@@ -1,0 +1,12 @@
+{
+  "name": "webpack-vue-debug",
+  "version": "1.0.0",
+  "main": "./index.js",
+  "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "webpack-vue-debug-loader": "1.0.0",
+    "webpack-vue-debug-plugin": "1.0.0"
+  }
+}
