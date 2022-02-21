@@ -1,23 +1,21 @@
-# vnode-plugin
+# webpack-vue-debug
 
-用于向 vue 项目编译后的 dom 上注入其对应编译前的代码在编辑器中位置信息的 webpack loader。<br/>
-
-配合 [vnode-loader](https://github.com/zh-lx/vnode-loader) 一起使用
+开发环境下向 vue 项目编译后的 dom 上注入其对应编译前的代码在编辑器中位置信息，在页面上以调试模式点击 dom 元素，会自动打开 vscode 并跳转至 dom 对应的 vscode 中的源代码。<br/>
 
 ## 安装
 
-### 1. 安装 `vnode-loader` 和 `vnode-plugin`
+### 1. 安装 `webpack-vue-debug`
 
 在项目根目录执行以下命令：
 
 ```
-yarn add vnode-loader vnode-plugin -D
+yarn add webpack-vue-debug -D
 ```
 
 or
 
 ```
-npm install vnode-loader vnode-plugin -D
+npm install webpack-vue-debug -D
 ```
 
 ### 2. 修改 `vue.config.js` 文件
@@ -31,20 +29,22 @@ module.exports = {
   chainWebpack: (config) => {
     // 添加如下代码，注意判别环境
     if (process.env.NODE_ENV === 'development') {
-      const VNodePlugin = require('vnode-plugin');
+      const DebugPlugin = require('webpack-vue-debug-plugin');
       config.module
         .rule('vue')
         .test(/\.vue$/)
-        .use('vnode-loader')
-        .loader('vnode-loader')
+        .use('webpack-vue-debug-loader')
+        .loader('webpack-vue-debug-loader')
         .end();
-      config.plugin('vnode-plugin').use(new VNodePlugin());
+      config.plugin('webpack-vue-debug-plugin').use(new DebugPlugin());
     }
   },
 };
 ```
 
 ### 3. 添加环境配置
+
+Mac 环境下需要进行如下操作（部分 windows 环境也需要，可以先忽略这部测试一下能否正常使用，不能的化再执行这一步）
 
 - 在项目根目录添加一个名为 `.env.local` 的文件夹，内容如下：<br>
   ```
@@ -65,4 +65,4 @@ module.exports = {
 
 ## 性能
 
-经多个大中型项目测试，对打 build 及 rebuild 的性能影响可忽略不计，可放心食用。
+经多个大中型项目测试，对打 build 及 rebuild 的性能影响可忽略不计。

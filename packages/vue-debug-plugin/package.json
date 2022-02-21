@@ -1,13 +1,11 @@
 {
-  "name": "@webpack/vue-debug-plugin",
+  "name": "webpack-vue-debug-plugin",
   "version": "1.0.0",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "dependencies": {
-    "@babel/core": "^7.14.6",
-    "@vue/compiler-sfc": "3.0.11",
     "chalk": "^4.1.1",
     "html-webpack-plugin": "^5.5.0",
     "portfinder": "^1.0.28",
