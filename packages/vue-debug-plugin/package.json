@@ -1,0 +1,23 @@
+{
+  "name": "@webpack/vue-debug-plugin",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.14.6",
+    "@vue/compiler-sfc": "3.0.11",
+    "chalk": "^4.1.1",
+    "html-webpack-plugin": "^5.5.0",
+    "portfinder": "^1.0.28",
+    "shell-quote": "^1.7.2",
+    "webpack": "^5.43.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.1"
+  },
+  "scripts": {
+    "build": "rm -rf lib && tsc && cp -r ./src/launch-editor.js ./lib && cp -r ./src/cover.css ./lib"
+  }
+}

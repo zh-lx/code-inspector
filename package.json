@@ -10,6 +10,7 @@
     "source code",
     "vscode"
   ],
+  "private": true,
   "main": "index.js",
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",
