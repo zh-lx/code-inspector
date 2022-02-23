@@ -1,6 +1,10 @@
-# webpack-vue-debug
+# webpack-vue-debug-loader
 
-开发环境下向 vue 项目编译后的 dom 上注入其对应编译前的代码在编辑器中位置信息，在页面上以调试模式点击 dom 元素，会自动打开 vscode 并跳转至 dom 对应的 vscode 中的源代码。<br/>
+[![NPM version](https://img.shields.io/npm/v/webpack-vue-debug-loader.svg)](https://www.npmjs.com/package/webpack-vue-debug-loader)
+[![GITHUB star](https://img.shields.io/github/stars/zh-lx/webpack-vue-debug.svg)](https://github.com/zh-lx/webpack-vue-debug)
+[![MIT-license](https://img.shields.io/npm/l/webpack-vue-debug.svg)](https://opensource.org/licenses/MIT)
+
+点击页面上的 dom 元素，会自动打开 vscode 并跳转至 dom 对应的源代码。<br/>
 
 ## 安装
 
@@ -42,9 +46,9 @@ module.exports = {
 };
 ```
 
-### 3. 添加环境配置
+### 3. 添加环境配置（Mac）
 
-Mac 环境下需要进行如下操作（部分 windows 环境也需要，可以先忽略这部测试一下能否正常使用，不能的化再执行这一步）
+Mac 环境下需要进行如下操作（windows 可以忽略这一步，如果不能正常唤醒 vscode 再尝试执行此步）
 
 - 在项目根目录添加一个名为 `.env.local` 的文件夹，内容如下：<br>
   ```
@@ -53,9 +57,11 @@ Mac 环境下需要进行如下操作（部分 windows 环境也需要，可以�
   ```
 - 在 vscode 中执行 `Command + Shift + P`, 输入 `shell Command: Install 'code' command in Path` 并点击该命令：
 
-  ![](https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png)
+  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="50%" />
+
   出现以下弹窗表示设置成功：
-  ![](https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png)
+
+  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="50%" />
 
 ## 使用及效果
 
