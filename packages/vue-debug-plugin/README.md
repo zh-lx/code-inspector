@@ -1,38 +1,44 @@
-# webpack-vue-debug-plugin
+<div align="center">
+<img src="https://user-images.githubusercontent.com/73059627/155552101-5df77d46-e852-4007-9983-7e7c093b88b5.png" width="360px" style="margin-bottom: 12px;" />
 
-[![NPM version](https://img.shields.io/npm/v/webpack-vue-debug-plugin.svg)](https://www.npmjs.com/package/webpack-vue-debug-plugin)
+<p align="center">
+  <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/README.md">English Doc</a>
+  |
+  <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/docs/README-ZH.md">中文文档</a>
+</p>
+
+[![NPM version](https://img.shields.io/npm/v/webpack-vue-debug.svg)](https://www.npmjs.com/package/webpack-vue-debug)
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/webpack-vue-debug.svg)](https://github.com/zh-lx/webpack-vue-debug)
 [![MIT-license](https://img.shields.io/npm/l/webpack-vue-debug.svg)](https://opensource.org/licenses/MIT)
 
-点击页面上的 dom 元素，会自动打开 vscode 并跳转至 dom 对应的源代码。<br/>
+<p>click the element of the page, it will open the vscode and jump to the source code of the element automatically.</p>
+</div>
 
-## 安装
+<hr />
 
-### 1. 安装 `webpack-vue-debug`
+## Install
 
-在项目根目录执行以下命令：
+### 1. install `webpack-vue-debug`
 
-```
+Execute the following command at the root of the project:
+
+```perl
 yarn add webpack-vue-debug -D
-```
-
-or
-
-```
+# or
 npm install webpack-vue-debug -D
 ```
 
-### 2. 修改 `vue.config.js` 文件
+### 2. configure `vue.config.js`
 
-在 `vue.config.js` 文件中，添加如下的 chainWebpack 配置<b>（注意需要判定一下环境，该功能只用于开发环境下）</b>：
+Add the following configuration to the `vue.config.js`.<b>(Note that you need to determine the environment, this configuration is only used in the development environment)</b>:
 
 ```js
 // vue.config.js
 module.exports = {
   // ...other code
   chainWebpack: (config) => {
-    // 添加如下代码，注意判别环境
     if (process.env.NODE_ENV === 'development') {
+      // add this configuration in the development environment
       const DebugPlugin = require('webpack-vue-debug-plugin');
       config.module
         .rule('vue')
@@ -46,29 +52,31 @@ module.exports = {
 };
 ```
 
-### 3. 添加环境配置（Mac）
+### 3. configure device environment(Mac)
 
-Mac 环境下需要进行如下操作（windows 可以忽略这一步，如果不能正常唤醒 vscode 再尝试执行此步）
+If you use Mac, you need to do the following:
 
-- 在项目根目录添加一个名为 `.env.local` 的文件夹，内容如下：<br>
+- Add a file named `.env.local` under the root directory of the project, and write the following contents to the `.env.local`:<br>
   ```
   # editor
   VUE_EDITOR=code
   ```
-- 在 vscode 中执行 `Command + Shift + P`, 输入 `shell Command: Install 'code' command in Path` 并点击该命令：
+- Execute `command + shift + p` command in vscode, search and click `shell Command: Install 'code' command in Path`:
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="50%" />
+  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
 
-  出现以下弹窗表示设置成功：
+  If the following popup window appears, your configuration is successful:
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="50%" />
+  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-## 使用及效果
+## Use and effect
 
-如下图所示，点击页面中 V 的悬浮窗，变成绿色时代表功能开启。(再次点击可置灰关闭功能)<br>
-鼠标移动至页面元素上会出现其信息，点击即可唤起 vscode 并跳转至其对应代码位置。
+As shown in the figure below, click the floating window with V mark in the page. When it turns green, it means that the function is turned on. (click again to turn off the function)<br/>
+
+When the function is turned on, the information will appear when the mouse moves to the page element. Click the element, it will open vscode and jump to the source code of element.
+
 ![](https://s3.bmp.ovh/imgs/2021/08/b71d54d5d9c29640.gif)
 
-## 性能
+## Performance
 
-经多个大中型项目测试，对打 build 及 rebuild 的性能影响可忽略不计。
+Tested by several large and medium-sized projects, the impact on the performance of build and rebuild is negligible.

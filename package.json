@@ -1,9 +1,11 @@
 {
   "name": "webpack-vue-debug",
   "version": "1.0.0",
-  "description": "Click the dom of the page, it will open the vscode and jump to the source code of the dom",
+  "description": "click the element of the page, it will open the vscode and jump to the source code of the element automatically.",
   "keywords": [
     "webpack",
+    "webpack-loader",
+    "webpack-plugin",
     "vue",
     "dom",
     "debug",
