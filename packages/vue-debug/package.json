@@ -2,6 +2,17 @@
   "name": "webpack-vue-debug",
   "version": "1.0.0",
   "main": "./index.js",
+  "description": "click the element of the page, it will open the vscode and jump to the source code of the element automatically.",
+  "keywords": [
+    "webpack",
+    "webpack-loader",
+    "webpack-plugin",
+    "vue",
+    "dom",
+    "debug",
+    "source code",
+    "vscode"
+  ],
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",

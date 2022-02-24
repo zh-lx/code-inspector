@@ -11,16 +11,16 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/webpack-vue-debug.svg)](https://github.com/zh-lx/webpack-vue-debug)
 [![MIT-license](https://img.shields.io/npm/l/webpack-vue-debug.svg)](https://opensource.org/licenses/MIT)
 
-<p>click the element of the page, it will open the vscode and jump to the source code of the element automatically.</p>
+<p>点击页面元素，该插件会唤起 vscode 并自动跳转至元素所对应的源代码。</p>
 </div>
 
 <hr />
 
-## Install
+## 安装
 
-### 1. install `webpack-vue-debug`
+### 1. 安装 `webpack-vue-debug`
 
-Execute the following command at the root of the project:
+在项目根目录执行以下命令：
 
 ```perl
 yarn add webpack-vue-debug -D
@@ -28,9 +28,9 @@ yarn add webpack-vue-debug -D
 npm install webpack-vue-debug -D
 ```
 
-### 2. configure `vue.config.js`
+### 2. 配置 `vue.config.js`
 
-Add the following configuration to the `vue.config.js`.<b>(Note that you need to determine the environment, this configuration is only used in the development environment)</b>:
+在 `vue.config.js` 中添加如下配置。<b>(注意你需要判断一下环境，该配置只能用于开发环境下)</b>：
 
 ```js
 // vue.config.js
@@ -52,31 +52,31 @@ module.exports = {
 };
 ```
 
-### 3. configure device environment(Mac)
+### 3. 配置设备环境(Mac)
 
-If you use Mac, you need to do the following:
+如果你使用 MAC，需要执行一下操作:
 
-- Add a file named `.env.local` under the root directory of the project, and write the following contents to the `.env.local`:<br>
+- 在项目根目录添加一个名为 `.env.local` 的文件，并在 `.env.local` 中写入以下内容：<br>
   ```
   # editor
   VUE_EDITOR=code
   ```
-- Execute `command + shift + p` command in vscode, search and click `shell Command: Install 'code' command in Path`:
+- 在 vscode 中执行 `command + shift + p` 命令，搜索并点击 `shell Command: Install 'code' command in Path`：
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
 
-  If the following popup window appears, your configuration is successful:
+- 出现以下弹窗，说明你的配置成功：
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-## Use and effect
+## 使用及效果
 
-As shown in the figure below, click the floating window with V mark in the page. When it turns green, it means that the function is turned on. (click again to turn off the function)<br/>
+如下图所示，点击页面中带有 V 标识的弹窗。当它变成绿色，说明功能打开。 (再次点击将关闭功能)<br/>
 
-When the function is turned on, the information will appear when the mouse moves to the page element. Click the element, it will open vscode and jump to the source code of element.
+当功能打开时, 鼠标移动至页面的元素上会出现其信息，点击元素会打开 vscode 并跳转至元素对应的源代码。
 
 ![](https://s3.bmp.ovh/imgs/2021/08/b71d54d5d9c29640.gif)
 
-## Performance
+## 性能
 
-Tested by several large and medium-sized projects, the impact on the performance of build and rebuild is negligible.
+经多个大中型项目测试，对 build 及 rebuild 的性能影响可忽略不计。
