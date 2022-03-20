@@ -1,8 +1,8 @@
 {
   "name": "webpack-vue-debug",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "main": "./index.js",
-  "description": "click the element of the page, it will open the vscode and jump to the source code of the element automatically.",
+  "description": "click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element",
   "keywords": [
     "webpack",
     "webpack-loader",
@@ -17,7 +17,7 @@
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "dependencies": {
-    "webpack-vue-debug-loader": "1.0.2",
-    "webpack-vue-debug-plugin": "1.0.2"
+    "webpack-vue-debug-loader": "1.1.0",
+    "webpack-vue-debug-plugin": "1.1.0"
   }
 }
