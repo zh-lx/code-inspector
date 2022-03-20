@@ -1,7 +1,8 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/73059627/155552101-5df77d46-e852-4007-9983-7e7c093b88b5.png" width="360px" style="margin-bottom: 12px;" />
+<img src="https://user-images.githubusercontent.com/73059627/159161041-8f721c6e-8840-45f4-bf34-658223933b9f.png" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
+  <h2>webpack-vue-debug</h2>
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/README.md">English Doc</a>
   |
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/docs/README-ZH.md">中文文档</a>
@@ -11,7 +12,7 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/webpack-vue-debug.svg)](https://github.com/zh-lx/webpack-vue-debug)
 [![MIT-license](https://img.shields.io/npm/l/webpack-vue-debug.svg)](https://opensource.org/licenses/MIT)
 
-<p>click the element of the page, it will open the vscode and jump to the source code of the element automatically.</p>
+<p>click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element</p>
 </div>
 
 <hr />
@@ -54,13 +55,10 @@ module.exports = {
 
 ### 3. configure device environment(Mac)
 
-If you use Mac, you need to do the following:
+<b>windows can ignore this step</b>
 
-- Add a file named `.env.local` under the root directory of the project, and write the following contents to the `.env.local`:<br>
-  ```
-  # editor
-  VUE_EDITOR=code
-  ```
+If you use Mac and the editor is Vscode, you need to do the following:
+
 - Execute `command + shift + p` command in vscode, search and click `shell Command: Install 'code' command in Path`:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
@@ -80,3 +78,26 @@ When the function is turned on, the information will appear when the mouse moves
 ## Performance
 
 Tested by several large and medium-sized projects, the impact on the performance of build and rebuild is negligible.
+
+## List of supported editors
+
+The list of editors currently supported by the plugin is as follows:
+
+- [VSCode](https://code.visualstudio.com/)
+- [Sublime Text](https://www.sublimetext.com/)
+- [webstorm](https://www.jetbrains.com/webstorm/)
+- [phpstorm](https://www.jetbrains.com/phpstorm/)
+- [HBuilderX](https://www.dcloud.io/hbuilderx.html)
+- [atom](https://atom.io/)
+- [brackets](https://brackets.io/)
+- [VSCodium](https://vscodium.com/)
+- [appcode](https://www.jetbrains.com/objc/)
+- [clion](https://www.jetbrains.com/clion/)
+- [idea](https://www.jetbrains.com/idea/)
+- [pycharm](https://www.jetbrains.com/pycharm/)
+- [rubymine](https://www.jetbrains.com/ruby/)
+- [MacVim](https://macvim-dev.github.io/macvim/)
+- [goland](https://www.jetbrains.com/go/)
+- [rider](https://www.jetbrains.com/rider/)
+
+If you are using another code editor and want to use the plugin, please leave a message in issue, I will support it.

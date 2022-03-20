@@ -19,20 +19,19 @@ function isTerminalEditor(editor) {
 // We can't just re-use full process name, because it will spawn a new instance
 // of the app every time
 const COMMON_EDITORS_OSX = {
-  '/Applications/Atom.app/Contents/MacOS/Atom': 'atom',
+  'Atom.app/Contents/MacOS/Atom': 'atom',
   '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta':
     '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta',
-  '/Applications/Brackets.app/Contents/MacOS/Brackets': 'brackets',
+  'Brackets.app/Contents/MacOS/Brackets': 'brackets',
   '/Applications/Sublime Text.app/Contents/MacOS/Sublime Text':
     '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
   '/Applications/Sublime Text Dev.app/Contents/MacOS/Sublime Text':
     '/Applications/Sublime Text Dev.app/Contents/SharedSupport/bin/subl',
   '/Applications/Sublime Text 2.app/Contents/MacOS/Sublime Text 2':
     '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
-  '/Applications/Visual Studio Code.app/Contents/MacOS/Electron': 'code',
-  '/Applications/Visual Studio Code - Insiders.app/Contents/MacOS/Electron':
-    'code-insiders',
-  '/Applications/VSCodium.app/Contents/MacOS/Electron': 'vscodium',
+  'Visual Studio Code.app/Contents/MacOS/Electron': 'code',
+  'Visual Studio Code - Insiders.app/Contents/MacOS/Electron': 'code-insiders',
+  'VSCodium.app/Contents/MacOS/Electron': 'vscodium',
   '/Applications/AppCode.app/Contents/MacOS/appcode':
     '/Applications/AppCode.app/Contents/MacOS/appcode',
   '/Applications/CLion.app/Contents/MacOS/clion':
@@ -49,11 +48,15 @@ const COMMON_EDITORS_OSX = {
     '/Applications/RubyMine.app/Contents/MacOS/rubymine',
   '/Applications/WebStorm.app/Contents/MacOS/webstorm':
     '/Applications/WebStorm.app/Contents/MacOS/webstorm',
-  '/Applications/MacVim.app/Contents/MacOS/MacVim': 'mvim',
+  'MacVim.app/Contents/MacOS/MacVim': 'mvim',
   '/Applications/GoLand.app/Contents/MacOS/goland':
     '/Applications/GoLand.app/Contents/MacOS/goland',
   '/Applications/Rider.app/Contents/MacOS/rider':
     '/Applications/Rider.app/Contents/MacOS/rider',
+  '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX':
+    '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
+  '/Applications/HBuilder.app/Contents/MacOS/HBuilder':
+    '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
 };
 
 const COMMON_EDITORS_LINUX = {
@@ -73,6 +76,7 @@ const COMMON_EDITORS_LINUX = {
   'webstorm.sh': 'webstorm',
   'goland.sh': 'goland',
   'rider.sh': 'rider',
+  hbuilderx: 'hbuilderx',
 };
 
 const COMMON_EDITORS_WIN = [
@@ -99,6 +103,8 @@ const COMMON_EDITORS_WIN = [
   'goland64.exe',
   'rider.exe',
   'rider64.exe',
+  'HBuilderX.exe',
+  'HBuilder.exe',
 ];
 
 // Transpiled version of: /^([A-Za-z]:[/\\])?[\p{L}0-9/.\-_\\]+$/u
@@ -153,6 +159,8 @@ function getArgumentsForLineNumber(
     case 'Code - Insiders':
     case 'vscodium':
     case 'VSCodium':
+    case 'HBuilderX':
+    case 'HBuilder':
       return addWorkspaceToArgumentsIfExists(
         ['-g', fileName + ':' + lineNumber + ':' + colNumber],
         workspace
@@ -214,6 +222,7 @@ function guessEditor() {
         )
         .toString();
       const runningProcesses = output.split('\r\n');
+
       for (let i = 0; i < runningProcesses.length; i++) {
         const processPath = runningProcesses[i].trim();
         const processName = path.basename(processPath);
@@ -230,7 +239,7 @@ function guessEditor() {
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[i];
+        // const processName = processNames[i];
         if (output.indexOf(processName) !== -1) {
           return [COMMON_EDITORS_LINUX[processName]];
         }
