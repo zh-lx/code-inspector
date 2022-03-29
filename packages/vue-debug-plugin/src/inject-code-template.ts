@@ -138,9 +138,9 @@
 
   // 监听是否发生拖拽事件
   window.addEventListener('mousedown', function (e) {
-    e.preventDefault();
     let dom = e.target as HTMLElement;
     if (dom.id === '_vc-control-suspension') {
+      e.preventDefault();
       is_drag = true;
       last_control_X = dom.offsetLeft;
       last_control_Y = dom.offsetTop;
