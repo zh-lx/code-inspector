@@ -19,44 +19,31 @@ function isTerminalEditor(editor) {
 // We can't just re-use full process name, because it will spawn a new instance
 // of the app every time
 const COMMON_EDITORS_OSX = {
-  'Atom.app/Contents/MacOS/Atom': 'atom',
-  '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta':
-    '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta',
-  'Brackets.app/Contents/MacOS/Brackets': 'brackets',
-  '/Applications/Sublime Text.app/Contents/MacOS/Sublime Text':
+  '/Atom.app/': 'atom',
+  '/Atom Beta.app/': '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta',
+  '/Brackets.app/': 'brackets',
+  '/Sublime Text.app/':
     '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
-  '/Applications/Sublime Text Dev.app/Contents/MacOS/Sublime Text':
+  '/Sublime Text Dev.app/':
     '/Applications/Sublime Text Dev.app/Contents/SharedSupport/bin/subl',
-  '/Applications/Sublime Text 2.app/Contents/MacOS/Sublime Text 2':
+  '/Sublime Text 2.app/':
     '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
-  'Visual Studio Code.app/Contents/MacOS/Electron': 'code',
-  'Visual Studio Code - Insiders.app/Contents/MacOS/Electron': 'code-insiders',
-  'VSCodium.app/Contents/MacOS/Electron': 'vscodium',
-  '/Applications/AppCode.app/Contents/MacOS/appcode':
-    '/Applications/AppCode.app/Contents/MacOS/appcode',
-  '/Applications/CLion.app/Contents/MacOS/clion':
-    '/Applications/CLion.app/Contents/MacOS/clion',
-  '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea':
-    '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
-  '/Applications/PhpStorm.app/Contents/MacOS/phpstorm':
-    '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
-  '/Applications/PyCharm.app/Contents/MacOS/pycharm':
-    '/Applications/PyCharm.app/Contents/MacOS/pycharm',
-  '/Applications/PyCharm CE.app/Contents/MacOS/pycharm':
-    '/Applications/PyCharm CE.app/Contents/MacOS/pycharm',
-  '/Applications/RubyMine.app/Contents/MacOS/rubymine':
-    '/Applications/RubyMine.app/Contents/MacOS/rubymine',
-  '/Applications/WebStorm.app/Contents/MacOS/webstorm':
-    '/Applications/WebStorm.app/Contents/MacOS/webstorm',
-  'MacVim.app/Contents/MacOS/MacVim': 'mvim',
-  '/Applications/GoLand.app/Contents/MacOS/goland':
-    '/Applications/GoLand.app/Contents/MacOS/goland',
-  '/Applications/Rider.app/Contents/MacOS/rider':
-    '/Applications/Rider.app/Contents/MacOS/rider',
-  '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX':
-    '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
-  '/Applications/HBuilder.app/Contents/MacOS/HBuilder':
-    '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
+  '/Visual Studio Code.app/': 'code',
+  '/Visual Studio Code/': 'code-insiders',
+  '/VSCodium.app/': 'vscodium',
+  '/AppCode.app/': '/Applications/AppCode.app/Contents/MacOS/appcode',
+  '/CLion.app/': '/Applications/CLion.app/Contents/MacOS/clion',
+  '/IntelliJ IDEA.app/': '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
+  '/PhpStorm.app/': '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
+  '/PyCharm.app/': '/Applications/PyCharm.app/Contents/MacOS/pycharm',
+  '/PyCharm CE.app/': '/Applications/PyCharm CE.app/Contents/MacOS/pycharm',
+  '/RubyMine.app/': '/Applications/RubyMine.app/Contents/MacOS/rubymine',
+  '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
+  '/MacVim.app/': 'mvim',
+  '/GoLand.app/': '/Applications/GoLand.app/Contents/MacOS/goland',
+  '/Rider.app/': '/Applications/Rider.app/Contents/MacOS/rider',
+  '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
+  '/HBuilder.app/': '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
 };
 
 const COMMON_EDITORS_LINUX = {
@@ -239,7 +226,7 @@ function guessEditor() {
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       for (let i = 0; i < processNames.length; i++) {
-        // const processName = processNames[i];
+        const processName = processNames[i];
         if (output.indexOf(processName) !== -1) {
           return [COMMON_EDITORS_LINUX[processName]];
         }
