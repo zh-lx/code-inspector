@@ -17,6 +17,9 @@
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "dependencies": {
+    "async": "^3.2.3",
+    "glob-parent": "^6.0.2",
+    "node-forge": "^1.3.1",
     "webpack-vue-debug-loader": "1.1.2",
     "webpack-vue-debug-plugin": "1.1.2"
   }
