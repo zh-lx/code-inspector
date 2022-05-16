@@ -63,9 +63,17 @@ If you use Mac and the editor is Vscode, you need to do the following:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
 
-  If the following popup window appears, your configuration is successful:
+- If the following popup window appears, your configuration is successful:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
+
+- If the editor doesn't open automatically when you click on a page element with the plugin enabled, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, the contents of the file are as follows:
+
+  ```perl
+  # editor
+
+  VUE_EDITOR=code
+  ```
 
 ## Use and effect
 

@@ -226,7 +226,7 @@ function guessEditor() {
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       for (let i = 0; i < processNames.length; i++) {
-        // const processName = processNames[i];
+        const processName = processNames[i];
         if (output.indexOf(processName) !== -1) {
           return [COMMON_EDITORS_LINUX[processName]];
         }
