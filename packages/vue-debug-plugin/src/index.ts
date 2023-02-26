@@ -1,36 +1,56 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import startServer from './server';
-import injectCode from './get-inject-code';
+import { getInjectCode, startServer } from 'vue-inspector-core';
 class TrackCodePlugin {
   apply(complier) {
-    complier.hooks.compilation.tap('TrackCodePlugin', (compilation) => {
-      startServer((port) => {
-        const code = injectCode(port);
-        // 4 之前版本
-        if (compilation.hooks.htmlWebpackPluginAfterHtmlProcessing) {
-          compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tap(
-            'HtmlWebpackPlugin',
-            (data) => {
-              // html-webpack-plugin编译后的内容，注入代码
-              data.html = data.html.replace('</body>', `${code}\n</body>`);
-            }
-          );
-        }
-        // 适应 5 版本
-        HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(
-          'TrackCodePlugin',
-          (data, cb) => {
-            // Manipulate the content
-            if (!data.html.includes(code)) {
-              // 防止重复注入
-              data.html = data.html.replace('</body>', `${code}\n</body>`);
-              // Tell webpack to move on
-              cb(null, data);
-            }
-          }
-        );
+    // 仅在开发环境下使用
+    if (complier.options.mode === 'development') {
+      complier.hooks.watchRun.tap('TrackCodePlugin', () => {
+        complier.options.module.rules.push({
+          test: /\.vue$/,
+          use: ['webpack-vue-inspector-loader'],
+          enforce: 'pre',
+        });
       });
-    });
+
+      complier.hooks.compilation.tap('TrackCodePlugin', (compilation) => {
+        startServer((port) => {
+          const code = getInjectCode(port);
+          // html-webpack-plugin 4 之前版本
+          if (compilation.hooks.htmlWebpackPluginAfterHtmlProcessing) {
+            compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tapAsync(
+              'TrackCodePlugin',
+              (data, cb) => {
+                const index = data.html.lastIndexOf('</html>');
+                if (index > -1) {
+                  const newHTML =
+                    data.html.slice(0, index) +
+                    `\n${code}\n` +
+                    data.html.slice(index);
+                  data.html = newHTML;
+                  cb(null, data);
+                }
+              }
+            );
+          } else {
+            // 适应 html-webpack-plugin  5 版本
+            HtmlWebpackPlugin?.getHooks?.(compilation)?.beforeEmit?.tapAsync(
+              'TrackCodePlugin',
+              (data, cb) => {
+                const index = data.html.lastIndexOf('</html>');
+                if (index > -1) {
+                  const newHTML =
+                    data.html.slice(0, index) +
+                    `\n${code}\n` +
+                    data.html.slice(index);
+                  data.html = newHTML;
+                  cb(null, data);
+                }
+              }
+            );
+          }
+        });
+      });
+    }
   }
 }
 

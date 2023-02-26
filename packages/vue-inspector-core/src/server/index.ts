@@ -1,19 +1,22 @@
 // 启动本地接口，访问时唤起vscode
-import http from 'http';
-import portFinder from 'portfinder';
+const http = require('http');
+const portFinder = require('portfinder');
 import launchEditor from './launch-editor';
+export { getEnhanceContent } from './content-enhance';
 
 let started = false;
+let recordPort = 5678;
 
-export = function StartServer(callback: Function) {
+export function StartServer(callback: Function) {
   if (started) {
+    callback(recordPort);
     return;
   }
   started = true;
-  const server = http.createServer((req, res) => {
+  const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
-    const file = params.get('file');
+    const file = params.get('file') as string;
     const line = Number(params.get('line'));
     const column = Number(params.get('column'));
     res.writeHead(200, {
@@ -27,12 +30,13 @@ export = function StartServer(callback: Function) {
   });
 
   // 寻找可用接口
-  portFinder.getPort({ port: 4000 }, (err: Error, port: number) => {
+  portFinder.getPort({ port: recordPort }, (err: Error, port: number) => {
     if (err) {
       throw err;
     }
     server.listen(port, () => {
+      recordPort = port;
       callback(port);
     });
   });
-};
+}

@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "webpack-vue-inspector-loader": "workspace:*",
+    "webpack-vue-inspector-plugin": "workspace:*"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.8",

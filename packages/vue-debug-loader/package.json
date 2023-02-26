@@ -1,19 +1,14 @@
 {
-  "name": "webpack-vue-debug-loader",
-  "version": "1.1.2",
+  "name": "webpack-vue-inspector-loader",
+  "version": "0.0.1",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "dependencies": {
-    "@vue/compiler-sfc": "^3.1.4",
-    "@vue/compiler-core": "^3.1.4",
-    "webpack": "^5.43.0"
-  },
-  "devDependencies": {
-    "@types/node": "^16.0.0"
+    "vue-inspector-core": "workspace:*"
   },
   "scripts": {
-    "build": "rm -rf lib && tsc"
+    "build": "tsc"
   }
 }
