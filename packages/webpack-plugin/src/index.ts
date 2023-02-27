@@ -1,5 +1,6 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { getInjectCode, startServer } from 'vue-inspector-core';
+const path = require('path');
 class TrackCodePlugin {
   apply(complier) {
     // 仅在开发环境下使用
@@ -7,7 +8,7 @@ class TrackCodePlugin {
       complier.hooks.watchRun.tap('TrackCodePlugin', () => {
         complier.options.module.rules.push({
           test: /\.vue$/,
-          use: ['webpack-vue-inspector-loader'],
+          use: [path.resolve(__dirname, './loader.js')],
           enforce: 'pre',
         });
       });
