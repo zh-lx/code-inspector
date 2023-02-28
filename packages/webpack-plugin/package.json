@@ -1,6 +1,6 @@
 {
   "name": "webpack-vue-inspector-plugin",
-  "version": "0.0.1-beta.3",
+  "version": "0.0.1-beta.4",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",
@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.0.1",
-    "html-webpack-plugin": "^4.5.0"
+    "html-webpack-plugin": "^4.0.0"
   },
   "peerDependencies": {
     "html-webpack-plugin": ">=3.0.0",
