@@ -120,14 +120,14 @@ export class MyElement extends LitElement {
       'color: blue; font-weight: bold;'
     );
     window.addEventListener('mousemove', this.handleMouseMove);
-    window.addEventListener('click', this.handleMouseClick);
+    window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('keyup', this.handleKeyUp);
     document.addEventListener('mouseleave', this.removeCover);
   }
 
   disconnectedCallback(): void {
     window.removeEventListener('mousemove', this.handleMouseMove);
-    window.removeEventListener('click', this.handleMouseClick);
+    window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('keyup', this.handleKeyUp);
     document.removeEventListener('mouseleave', this.removeCover);
   }
