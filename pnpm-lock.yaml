@@ -144,13 +144,13 @@ importers:
   packages/webpack-plugin:
     specifiers:
       '@types/node': ^16.0.1
-      html-webpack-plugin: ^5.1.0
+      html-webpack-plugin: ^4.5.0
       vue-inspector-core: workspace:*
     dependencies:
       vue-inspector-core: link:../core
     devDependencies:
       '@types/node': 16.18.12
-      html-webpack-plugin: 5.1.0
+      html-webpack-plugin: 4.5.2
 
   packages/webpack-test:
     specifiers:
@@ -6840,6 +6840,23 @@ packages:
       webpack: 4.46.0
     dev: true
 
+  /html-webpack-plugin/4.5.2:
+    resolution: {integrity: sha512-q5oYdzjKUIPQVjOosjgvCHQOv9Ett9CYYHlgvJeXG0qQvdSojnBq4vAdQBwn1+yGveAwHCoe/rMR86ozX3+c2A==}
+    engines: {node: '>=6.9'}
+    peerDependencies:
+      webpack: ^4.0.0 || ^5.0.0
+    dependencies:
+      '@types/html-minifier-terser': 5.1.2
+      '@types/tapable': 1.0.8
+      '@types/webpack': 4.41.33
+      html-minifier-terser: 5.1.1
+      loader-utils: 1.4.2
+      lodash: 4.17.21
+      pretty-error: 2.1.2
+      tapable: 1.1.3
+      util.promisify: 1.0.0
+    dev: true
+
   /html-webpack-plugin/4.5.2_webpack@5.75.0:
     resolution: {integrity: sha512-q5oYdzjKUIPQVjOosjgvCHQOv9Ett9CYYHlgvJeXG0qQvdSojnBq4vAdQBwn1+yGveAwHCoe/rMR86ozX3+c2A==}
     engines: {node: '>=6.9'}
@@ -6856,20 +6873,6 @@ packages:
       tapable: 1.1.3
       util.promisify: 1.0.0
       webpack: 5.75.0
-    dev: true
-
-  /html-webpack-plugin/5.1.0:
-    resolution: {integrity: sha512-2axkp+2NHmvHUWrKe1dY4LyM3WatQEdFChr42OY7R/Ad7f0AQzaKscGCcqN/FtQBxo8rdfJP7M3RMFDttqok3g==}
-    engines: {node: '>=10.13.0'}
-    peerDependencies:
-      webpack: ^5.20.0
-    dependencies:
-      '@types/html-minifier-terser': 5.1.2
-      html-minifier-terser: 5.1.1
-      loader-utils: 2.0.4
-      lodash: 4.17.21
-      pretty-error: 2.1.2
-      tapable: 2.2.1
     dev: true
 
   /htmlparser2/6.1.0:
