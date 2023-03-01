@@ -28,6 +28,7 @@ class WebpackVueInspectorPlugin {
         compiler.hooks.compilation.tap(
           'WebpackVueInspectorPlugin',
           (compilation) => {
+            const rootPath = compilation.options.context;
             startServer((port) => {
               const code = getInjectCode(port);
               // HtmlWebpackPlugin3 及之前版本
@@ -39,18 +40,19 @@ class WebpackVueInspectorPlugin {
               hook.tapAsync('VueInspectorPlugin', (data, cb) => {
                 replaceHtml(data, cb, code);
               });
-            });
+            }, rootPath);
           }
         );
       } else {
         compiler.plugin('watchRun', applyLoader);
         compiler.plugin('compilation', (compilation) => {
+          const rootPath = compilation.options.context;
           startServer((port) => {
             const code = getInjectCode(port);
             compilation.plugin('html-webpack-plugin-beforeEmit', (data, cb) => {
               replaceHtml(data, cb, code);
             });
-          });
+          }, rootPath);
         });
       }
     }

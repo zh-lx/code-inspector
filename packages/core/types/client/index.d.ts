@@ -22,6 +22,8 @@ export declare class MyElement extends LitElement {
     isTracking: (e: any) => boolean;
     renderCover: (target: HTMLElement) => void;
     removeCover: () => void;
+    addGlobalCursorStyle: () => void;
+    removeGlobalCursorStyle: () => void;
     trackCode: () => void;
     handleMouseMove: () => void;
     handleMouseClick: (e: any) => void;

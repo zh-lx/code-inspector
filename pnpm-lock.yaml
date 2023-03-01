@@ -30,12 +30,14 @@ importers:
     specifiers:
       '@types/node': ^16.0.1
       html-webpack-plugin: ^4.0.0
+      typescript: ^4.9.3
       vue-inspector-core: workspace:*
     dependencies:
       vue-inspector-core: link:../core
     devDependencies:
       '@types/node': 16.18.12
       html-webpack-plugin: 4.5.2
+      typescript: 4.9.5
 
   packages/webpack-test:
     specifiers:

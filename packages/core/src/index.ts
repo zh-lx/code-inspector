@@ -9,7 +9,7 @@ type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 
 export const getInjectCode = (
   port: number,
-  hotKeys: HotKey[] = ['ctrlKey', 'altKey']
+  hotKeys: HotKey[] = ['shiftKey', 'altKey']
 ) => {
   return `<vue-inspector-component port=${port} hotKeys="${hotKeys.join(
     ','

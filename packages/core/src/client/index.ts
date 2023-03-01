@@ -4,10 +4,12 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { debounce, composedPath } from './util';
 import { NodeName, PathName, LineName, ColumnName } from '../shared/constant';
 
+const styleId = '__vue-inspector-unique-id';
+
 @customElement('vue-inspector-component')
 export class MyElement extends LitElement {
   @property()
-  hotKeys: string = 'ctrlKey,altKey';
+  hotKeys: string = 'shiftKey,altKey';
   @property()
   port: number = 6666;
 
@@ -46,8 +48,8 @@ export class MyElement extends LitElement {
       horizon:
         left >= rightToViewPort ? 'element-info-right' : 'element-info-left',
     };
-    document.body.style.cursor = 'pointer';
-
+    // 增加鼠标光标样式
+    this.addGlobalCursorStyle();
     // 获取元素信息
     const path = target.getAttribute(PathName) || '';
     const name = target.getAttribute(NodeName) || '';
@@ -59,7 +61,25 @@ export class MyElement extends LitElement {
 
   removeCover = () => {
     this.show = false;
-    document.body.style.cursor = '';
+    this.removeGlobalCursorStyle();
+  };
+
+  addGlobalCursorStyle = () => {
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.setAttribute('id', styleId);
+      style.innerText = `body * {
+        cursor: pointer !important;
+      }`;
+      document.body.appendChild(style);
+    }
+  };
+
+  removeGlobalCursorStyle = () => {
+    const style = document.getElementById(styleId);
+    if (style) {
+      style.remove();
+    }
   };
 
   // 请求本地服务端，打开vscode
