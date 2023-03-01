@@ -19,7 +19,7 @@ const replaceHtml = (data, cb, code) => {
     cb(null, data);
   }
 };
-class TrackCodePlugin {
+class WebpackVueInspectorPlugin {
   apply(compiler) {
     // 仅在开发环境下使用
     if (compiler.options.mode === 'development') {
@@ -42,19 +42,19 @@ class TrackCodePlugin {
             });
           }
         );
-      }
-    } else {
-      compiler.plugin('watchRun', applyLoader);
-      compiler.plugin('compilation', (compilation) => {
-        startServer((port) => {
-          const code = getInjectCode(port);
-          compilation.plugin('html-webpack-plugin-beforeEmit', (data, cb) => {
-            replaceHtml(data, cb, code);
+      } else {
+        compiler.plugin('watchRun', applyLoader);
+        compiler.plugin('compilation', (compilation) => {
+          startServer((port) => {
+            const code = getInjectCode(port);
+            compilation.plugin('html-webpack-plugin-beforeEmit', (data, cb) => {
+              replaceHtml(data, cb, code);
+            });
           });
         });
-      });
+      }
     }
   }
 }
 
-export = TrackCodePlugin;
+export = WebpackVueInspectorPlugin;
