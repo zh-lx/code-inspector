@@ -20,6 +20,8 @@ export class MyElement extends LitElement {
   @state()
   infoClassName = { vertical: '', horizon: '' }; // 信息浮块位置类名
   @state()
+  infoWidth = '300px';
+  @state()
   show = false; // 是否展示
 
   isTracking = (e: any) => {
@@ -48,6 +50,9 @@ export class MyElement extends LitElement {
       horizon:
         left >= rightToViewPort ? 'element-info-right' : 'element-info-left',
     };
+    this.infoWidth =
+      Math.min(Math.max(left + width - 4, rightToViewPort + width - 4), 300) +
+      'px';
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
     // 获取元素信息
@@ -170,15 +175,18 @@ export class MyElement extends LitElement {
           id="element-info"
           class="element-info ${this.infoClassName.vertical} ${this
             .infoClassName.horizon}"
+          style=${styleMap({ width: this.infoWidth })}
         >
-          <div class="name-line">
-            <div class="element-name">
-              <span class="element-title">${this.element.name}</span>
-              <span class="element-tip">click to open editor</span>
+          <div class="element-info-content">
+            <div class="name-line">
+              <div class="element-name">
+                <span class="element-title">${this.element.name}</span>
+                <span class="element-tip">click to open editor</span>
+              </div>
             </div>
-          </div>
-          <div class="path-line">
-            ${this.element.path}:${this.element.line}:${this.element.column}
+            <div class="path-line">
+              ${this.element.path}:${this.element.line}:${this.element.column}
+            </div>
           </div>
         </div>
       </div>
@@ -194,15 +202,13 @@ export class MyElement extends LitElement {
     }
     .element-info {
       position: absolute;
-      width: 320px;
-      height: auto;
-      overflow: hidden;
-      white-space: normal;
-      word-break: break-all;
-      text-overflow: ellipsis;
+    }
+    .element-info-content {
+      max-width: 100%;
       font-size: 12px;
       color: #000;
       background-color: #fff;
+      word-break: break-all;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
       box-sizing: border-box;
       padding: 4px;
@@ -222,9 +228,13 @@ export class MyElement extends LitElement {
     }
     .element-info-left {
       left: 0;
+      display: flex;
+      justify-content: flex-start;
     }
     .element-info-right {
       right: 0;
+      display: flex;
+      justify-content: flex-end;
     }
     .element-name .element-title {
       color: coral;

@@ -18,6 +18,7 @@ export declare class MyElement extends LitElement {
         vertical: string;
         horizon: string;
     };
+    infoWidth: string;
     show: boolean;
     isTracking: (e: any) => boolean;
     renderCover: (target: HTMLElement) => void;
