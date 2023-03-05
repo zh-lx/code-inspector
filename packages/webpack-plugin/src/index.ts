@@ -1,5 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-import { getInjectCode, startServer } from 'vue-inspector-core';
+import { getInjectCode, startServer, HotKey } from 'vue-inspector-core';
 const path = require('path');
 
 const applyLoader = (compiler: any) => {
@@ -19,7 +19,18 @@ const replaceHtml = (data, cb, code) => {
     cb(null, data);
   }
 };
+
+interface Options {
+  hotKeys?: HotKey[];
+  hideButton?: boolean;
+  disableTriggerByKey?: boolean;
+}
 class WebpackVueInspectorPlugin {
+  options: Options;
+
+  constructor(options: Options) {
+    this.options = options || {};
+  }
   apply(compiler) {
     // 仅在开发环境下使用
     if (compiler.options.mode === 'development') {
@@ -30,7 +41,12 @@ class WebpackVueInspectorPlugin {
           (compilation) => {
             const rootPath = compilation.options.context;
             startServer((port) => {
-              const code = getInjectCode(port);
+              const code = getInjectCode(
+                port,
+                this.options.hotKeys || undefined,
+                this.options.disableTriggerByKey,
+                this.options.hideButton
+              );
               // HtmlWebpackPlugin3 及之前版本
               let hook = compilation.hooks.htmlWebpackPluginAfterHtmlProcessing;
               if (!hook) {
@@ -48,7 +64,12 @@ class WebpackVueInspectorPlugin {
         compiler.plugin('compilation', (compilation) => {
           const rootPath = compilation.options.context;
           startServer((port) => {
-            const code = getInjectCode(port);
+            const code = getInjectCode(
+              port,
+              this.options.hotKeys || undefined,
+              this.options.disableTriggerByKey,
+              this.options.hideButton
+            );
             compilation.plugin('html-webpack-plugin-beforeEmit', (data, cb) => {
               replaceHtml(data, cb, code);
             });
