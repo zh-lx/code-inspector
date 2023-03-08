@@ -1,6 +1,6 @@
 {
   "name": "vue-inspector-core",
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",
@@ -21,7 +21,10 @@
     "vite": "^4.1.0"
   },
   "dependencies": {
+    "@vue/compiler-core": "^3.2.47",
+    "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
+    "magic-string": "^0.30.0",
     "portfinder": "^1.0.28",
     "shell-quote": "^1.7.2"
   }

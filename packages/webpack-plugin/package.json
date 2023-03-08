@@ -1,6 +1,6 @@
 {
   "name": "webpack-vue-inspector-plugin",
-  "version": "0.0.1-beta.5",
+  "version": "0.0.1-beta.7",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
   "author": "zh-lx <18366276315@163.com>",

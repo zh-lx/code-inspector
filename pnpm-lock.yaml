@@ -8,15 +8,21 @@ importers:
   packages/core:
     specifiers:
       '@types/node': ^18.14.1
+      '@vue/compiler-core': ^3.2.47
+      '@vue/compiler-dom': ^3.2.47
       '@vue/compiler-sfc': ^3.2.47
       chalk: ^4.1.1
       lit: ^2.6.1
+      magic-string: ^0.30.0
       portfinder: ^1.0.28
       shell-quote: ^1.7.2
       typescript: ^4.9.3
       vite: ^4.1.0
     dependencies:
+      '@vue/compiler-core': 3.2.47
+      '@vue/compiler-dom': 3.2.47
       chalk: 4.1.2
+      magic-string: 0.30.0
       portfinder: 1.0.32
       shell-quote: 1.8.0
     devDependencies:
@@ -42,7 +48,7 @@ importers:
   packages/webpack-test:
     specifiers:
       '@vue/cli-plugin-babel': ~4.5.8
-      '@vue/cli-plugin-eslint': ~4.5.8
+      '@vue/cli-plugin-eslint': ~4.5.19
       '@vue/cli-service': ~4.5.8
       '@vue/compiler-sfc': ^3.0.0
       babel-eslint: ^10.1.0
@@ -1548,7 +1554,6 @@ packages:
 
   /@jridgewell/sourcemap-codec/1.4.14:
     resolution: {integrity: sha512-XPSJHWmi394fuUuzDnGz1wiKqWfo1yXecHQMRf2l6hztTO+nPru658AyDngaBe7isIxEkRsPR3FZh+s7iVa4Uw==}
-    dev: true
 
   /@jridgewell/trace-mapping/0.3.17:
     resolution: {integrity: sha512-MCNzAp77qzKca9+W/+I0+sEpaUnZoeasnghNeVc41VZCEKaCH73Vq3BZZ/SzWIgrqE4H4ceI+p+b6C0mHf9T4g==}
@@ -6626,6 +6631,13 @@ packages:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
     dependencies:
       sourcemap-codec: 1.4.8
+
+  /magic-string/0.30.0:
+    resolution: {integrity: sha512-LA+31JYDJLs82r2ScLrlz1GjSgu66ZV518eyWT+S8VhyQn/JL0u9MeBOvQMGYiPk1DBiSN9DDMOcXvigJZaViQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.4.14
+    dev: false
 
   /make-dir/2.1.0:
     resolution: {integrity: sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==}

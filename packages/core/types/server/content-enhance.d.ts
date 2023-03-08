@@ -1,1 +1,1 @@
-export declare function getEnhanceContent(content: string, filePath: string): string;
+export declare function getEnhanceContent(content: string, filePath: string): Promise<string>;

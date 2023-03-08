@@ -2,7 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { debounce, composedPath } from './util';
-import { NodeName, PathName, LineName, ColumnName } from '../shared/constant';
+import { PathName } from '../shared/constant';
 
 const styleId = '__vue-inspector-unique-id';
 
@@ -76,10 +76,11 @@ export class MyElement extends LitElement {
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
     // 获取元素信息
-    const path = target.getAttribute(PathName) || '';
-    const name = target.getAttribute(NodeName) || '';
-    const line = Number(target.getAttribute(LineName) || 0);
-    const column = Number(target.getAttribute(ColumnName) || 0);
+    const paths = target.getAttribute(PathName) || '';
+    const [path, _line, _column] = paths.split(':');
+    const name = target.tagName;
+    const line = Number(_line);
+    const column = Number(_column);
     this.element = { name, path, line, column };
     this.show = true;
   };
