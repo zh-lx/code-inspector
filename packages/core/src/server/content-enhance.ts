@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
-import { transform, parse } from '@vue/compiler-dom';
 import { PathName } from '../shared/constant';
+import { type TemplateChildNode } from '@vue/compiler-dom';
+const { parse, transform } = require('@vue/compiler-dom');
 
 export async function getEnhanceContent(content: string, filePath: string) {
   const s = new MagicString(content);
@@ -9,7 +10,7 @@ export async function getEnhanceContent(content: string, filePath: string) {
   });
   transform(ast, {
     nodeTransforms: [
-      (node) => {
+      (node: TemplateChildNode) => {
         if (
           !node.loc.source.includes(PathName) &&
           node.type === 1 &&

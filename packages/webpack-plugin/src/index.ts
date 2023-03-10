@@ -28,7 +28,7 @@ interface Options {
 class WebpackVueInspectorPlugin {
   options: Options;
 
-  constructor(options: Options) {
+  constructor(options?: Options) {
     this.options = options || {};
   }
   apply(compiler) {
