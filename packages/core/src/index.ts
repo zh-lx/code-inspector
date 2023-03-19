@@ -13,11 +13,11 @@ export const getInjectCode = (
   disableTriggerByKey: boolean = false,
   hideButton: boolean = false
 ) => {
-  return `<vue-inspector-component port=${port} hotKeys="${hotKeys.join(
+  return `<code-inspector-component port=${port} hotKeys="${hotKeys.join(
     ','
   )}" ${disableTriggerByKey ? 'disableTriggerByKey=true' : ''} ${
     hideButton ? 'hideButton=true' : ''
-  }></vue-inspector-component>
+  }></code-inspector-component>
   <script type="text/javascript">
   ${jsCode}
   </script>`;

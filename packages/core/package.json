@@ -1,6 +1,6 @@
 {
-  "name": "vue-inspector-core",
-  "version": "0.0.1-beta.4",
+  "name": "code-inspector-core",
+  "version": "0.0.1",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",

@@ -1,5 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-import { getInjectCode, startServer, HotKey } from 'vue-inspector-core';
+import { getInjectCode, startServer, HotKey } from 'code-inspector-core';
 const path = require('path');
 
 const applyLoader = (compiler: any) => {
@@ -25,7 +25,7 @@ interface Options {
   hideButton?: boolean;
   disableTriggerByKey?: boolean;
 }
-class WebpackVueInspectorPlugin {
+class WebpackCodeInspectorPlugin {
   options: Options;
 
   constructor(options?: Options) {
@@ -80,4 +80,4 @@ class WebpackVueInspectorPlugin {
   }
 }
 
-export = WebpackVueInspectorPlugin;
+export = WebpackCodeInspectorPlugin;

@@ -4,9 +4,9 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { debounce, composedPath } from './util';
 import { PathName } from '../shared/constant';
 
-const styleId = '__vue-inspector-unique-id';
+const styleId = '__code-inspector-unique-id';
 
-@customElement('vue-inspector-component')
+@customElement('code-inspector-component')
 export class MyElement extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
@@ -259,8 +259,8 @@ export class MyElement extends LitElement {
     };
     return html`
       <div
-        class="vue-inspector-container"
-        id="vue-inspector-container"
+        class="code-inspector-container"
+        id="code-inspector-container"
         style=${styleMap(containerPosition)}
       >
         <div
@@ -336,7 +336,7 @@ export class MyElement extends LitElement {
   }
 
   static styles = css`
-    .vue-inspector-container {
+    .code-inspector-container {
       position: fixed;
       pointer-events: none;
       z-index: 999999;

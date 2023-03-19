@@ -33,7 +33,7 @@ importers:
       '@vitejs/plugin-vue': ^4.1.0
       typescript: ^4.9.3
       vite: ^4.2.0
-      vite-vue-inspector-plugin: workspace:^0.0.1
+      vite-code-inspector-plugin: workspace:*
       vue: ^3.2.47
       vue-tsc: ^1.2.0
     dependencies:
@@ -42,7 +42,7 @@ importers:
       '@vitejs/plugin-vue': 4.1.0_vite@4.2.0+vue@3.2.47
       typescript: 4.9.5
       vite: 4.2.0
-      vite-vue-inspector-plugin: link:../../vite-plugin
+      vite-code-inspector-plugin: link:../../vite-plugin
       vue-tsc: 1.2.0_typescript@4.9.5
 
   packages/demos/webpack4-vue2:
@@ -84,9 +84,9 @@ importers:
       vue-template-compiler: ^2.6.14
       webpack: ^5.50.0
       webpack-cli: ^4.7.2
+      webpack-code-inspector-plugin: workspace:*
       webpack-dev-server: ^3.11.2
       webpack-merge: ^5.8.0
-      webpack-vue-inspector-plugin: workspace:*
     dependencies:
       vue: 2.7.14
       vue-router: 3.6.5_vue@2.7.14
@@ -126,9 +126,9 @@ importers:
       vue-template-compiler: 2.7.14
       webpack: 5.76.0_webpack-cli@4.10.0
       webpack-cli: 4.10.0_tlrwjd3zx6hbzskmfuawtpfkju
+      webpack-code-inspector-plugin: link:../../webpack-plugin
       webpack-dev-server: 3.11.3_pprukjopk7djil7kclgfasalzm
       webpack-merge: 5.8.0
-      webpack-vue-inspector-plugin: link:../../webpack-plugin
 
   packages/demos/webpack4-vue3:
     specifiers:
@@ -143,8 +143,8 @@ importers:
       vue-loader: ^16.0.0-rc.1
       webpack: ^4.44.2
       webpack-cli: ^3.3.12
+      webpack-code-inspector-plugin: workspace:*
       webpack-dev-server: ^3.11.0
-      webpack-vue-inspector-plugin: workspace:*
     dependencies:
       vue: 3.2.47
     devDependencies:
@@ -158,8 +158,8 @@ importers:
       vue-loader: 16.8.3_eyahegwrv37y7qk53bouxv3ekm
       webpack: 4.46.0_webpack-cli@3.3.12
       webpack-cli: 3.3.12_webpack@4.46.0
+      webpack-code-inspector-plugin: link:../../webpack-plugin
       webpack-dev-server: 3.11.3_i3w7szmgtxghzdij4arpgmor5i
-      webpack-vue-inspector-plugin: link:../../webpack-plugin
 
   packages/demos/webpack5-vue3:
     specifiers:
@@ -172,7 +172,7 @@ importers:
       eslint: ^6.7.2
       eslint-plugin-vue: ^7.0.0
       vue: ^3.0.0
-      webpack-vue-inspector-plugin: workspace:*
+      webpack-code-inspector-plugin: workspace:*
     dependencies:
       core-js: 3.29.0
       vue: 3.2.47
@@ -184,15 +184,15 @@ importers:
       babel-eslint: 10.1.0_eslint@6.8.0
       eslint: 6.8.0
       eslint-plugin-vue: 7.20.0_eslint@6.8.0
-      webpack-vue-inspector-plugin: link:../../webpack-plugin
+      webpack-code-inspector-plugin: link:../../webpack-plugin
 
   packages/vite-plugin:
     specifiers:
       '@types/node': ^16.0.1
+      code-inspector-core: workspace:*
       typescript: ^4.9.3
-      vue-inspector-core: workspace:*
     dependencies:
-      vue-inspector-core: link:../core
+      code-inspector-core: link:../core
     devDependencies:
       '@types/node': 16.18.12
       typescript: 4.9.5
@@ -200,10 +200,10 @@ importers:
   packages/webpack-plugin:
     specifiers:
       '@types/node': ^16.0.1
+      code-inspector-core: workspace:*
       typescript: ^4.9.3
-      vue-inspector-core: workspace:*
     dependencies:
-      vue-inspector-core: link:../core
+      code-inspector-core: link:../core
     devDependencies:
       '@types/node': 16.18.12
       typescript: 4.9.5

@@ -3,7 +3,7 @@ import {
   getInjectCode,
   startServer,
   HotKey,
-} from 'vue-inspector-core';
+} from 'code-inspector-core';
 import path from 'path';
 
 const PluginName = 'vite-code-inspector-plugin';
@@ -23,10 +23,10 @@ const replaceHtml = (html, code) => {
   return html;
 };
 
-export function myVueTransformPlugin(options: Options) {
+export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
-    enforce: 'pre',
+    enforce: 'pre' as 'pre',
     async transform(code, id) {
       if (!rootPath) {
         rootPath = process.cwd(); // 根路径
@@ -46,9 +46,9 @@ export function myVueTransformPlugin(options: Options) {
         startServer((port) => {
           const code = getInjectCode(
             port,
-            options.hotKeys || undefined,
-            options.disableTriggerByKey,
-            options.hideButton
+            options?.hotKeys || undefined,
+            options?.disableTriggerByKey,
+            options?.hideButton
           );
           html = replaceHtml(html, code);
           resolve(html);

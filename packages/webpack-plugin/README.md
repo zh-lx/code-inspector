@@ -1,8 +1,8 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/73059627/159161041-8f721c6e-8840-45f4-bf34-658223933b9f.png" width=160px" style="margin-bottom: 12px;" />
+<img src="https://t4.wodetu.cn/2023/03/19/cbea9d31e70a335d4494cf9699c0ab97.png" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
-  <h2>webpack-vue-debug</h2>
+  <h2>webpack-code-inspector-plugin</h2>
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/README.md">English Doc</a>
   |
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/docs/README-ZH.md">中文文档</a>
@@ -17,41 +17,49 @@
 
 <hr />
 
-## Install
+## Usage
 
-### 1. install `webpack-vue-debug`
+### 1. install `webpack-code-inspector-plugin`
 
-Execute the following command at the root of the project:
+Execute the following command at the root of your project:
 
 ```perl
-yarn add webpack-vue-debug -D
+npm i webpack-code-inspector-plugin -D
 # or
-npm install webpack-vue-debug -D
+yarn add webpack-code-inspector-plugin -D
+# or
+pnpm add webpack-code-inspector-plugin -D
 ```
 
 ### 2. configure `vue.config.js`
 
-Add the following configuration to the `vue.config.js`.<b>(Note that you need to determine the environment, this configuration is only used in the development environment)</b>:
+- If you use `vue.config.js`, add the following configuration:
 
-```js
-// vue.config.js
-module.exports = {
-  // ...other code
-  chainWebpack: (config) => {
-    if (process.env.NODE_ENV === 'development') {
+  ```js
+  // vue.config.js
+  const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
+
+  module.exports = {
+    // ...other code
+    chainWebpack: (config) => {
       // add this configuration in the development environment
-      const DebugPlugin = require('webpack-vue-debug-plugin');
-      config.module
-        .rule('vue')
-        .test(/\.vue$/)
-        .use('webpack-vue-debug-loader')
-        .loader('webpack-vue-debug-loader')
-        .end();
-      config.plugin('webpack-vue-debug-plugin').use(new DebugPlugin());
-    }
-  },
-};
-```
+      config
+        .plugin('webpack-code-inspector-plugin')
+        .use(new WebpackCodeInspectorPlugin({}));
+    },
+  };
+  ```
+
+- If you use `webpack.config.js`, add the following configuration:
+
+  ```js
+  // webpack.config.js
+  const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
+
+  module.exports = (env = {}) => ({
+    plugins: [new WebpackCodeInspectorPlugin({})],
+  });
+  ```
 
 ### 3. configure device environment(Mac)
 

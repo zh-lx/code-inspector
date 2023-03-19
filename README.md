@@ -1,8 +1,8 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/73059627/159161041-8f721c6e-8840-45f4-bf34-658223933b9f.png" width=160px" style="margin-bottom: 12px;" />
+<img src="https://t4.wodetu.cn/2023/03/19/cbea9d31e70a335d4494cf9699c0ab97.png" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
-  <h2>webpack-vue-debug</h2>
+  <h2>code-inspector</h2>
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/README.md">English Doc</a>
   |
   <a href="https://github.com/zh-lx/webpack-vue-debug/blob/main/docs/README-ZH.md">中文文档</a>
@@ -16,6 +16,43 @@
 </div>
 
 <hr />
+
+## Usage
+
+- [webpack usage]()
+- [vite usage]()
+
+## Support
+
+The following are which compilers, web frameworks and editors we supported now:
+
+- Compiler Support
+  - ✅ webpack
+  - ✅ vite
+- Web Framework Support
+  - ✅ vue(2.x/3.x)
+  - ⬜ react
+  - ⬜ svelte
+  - ⬜ solid
+  - ⬜ preact
+  - ⬜ lit
+- Editor Support
+  - ✅ [VSCode](https://code.visualstudio.com/)
+  - ✅ [Sublime Text](https://www.sublimetext.com/)
+  - ✅ [webstorm](https://www.jetbrains.com/webstorm/)
+  - ✅ [phpstorm](https://www.jetbrains.com/phpstorm/)
+  - ✅ [HBuilderX](https://www.dcloud.io/hbuilderx.html)
+  - ✅ [atom](https://atom.io/)
+  - ✅ [brackets](https://brackets.io/)
+  - ✅ [VSCodium](https://vscodium.com/)
+  - ✅ [appcode](https://www.jetbrains.com/objc/)
+  - ✅ [clion](https://www.jetbrains.com/clion/)
+  - ✅ [idea](https://www.jetbrains.com/idea/)
+  - ✅ [pycharm](https://www.jetbrains.com/pycharm/)
+  - ✅ [rubymine](https://www.jetbrains.com/ruby/)
+  - ✅ [MacVim](https://macvim-dev.github.io/macvim/)
+  - ✅ [goland](https://www.jetbrains.com/go/)
+  - ✅ [rider](https://www.jetbrains.com/rider/)
 
 ## Install
 
