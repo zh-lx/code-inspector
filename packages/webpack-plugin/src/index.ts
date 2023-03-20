@@ -1,4 +1,3 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 import { getInjectCode, startServer, HotKey } from 'code-inspector-core';
 const path = require('path');
 
@@ -61,6 +60,9 @@ class WebpackCodeInspectorPlugin {
         });
       }
     };
+    const HtmlWebpackPlugin = compiler.options.plugins.filter((item) => {
+      item.constructor.name === 'HtmlWebpackPlugin';
+    });
     // 仅在开发环境下使用
     if (compiler.options.mode === 'development') {
       if (compiler.hooks) {
