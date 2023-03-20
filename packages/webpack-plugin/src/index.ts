@@ -18,6 +18,29 @@ const replaceHtml = (html: string, code: string) => {
   return html;
 };
 
+// 不依赖 html-webpack-plugin 注入代码
+const injectCode = (
+  code: string,
+  assets: { [filename: string]: any },
+  cb?: (params?: any) => void
+) => {
+  const files = Object.keys(assets).filter((name) => /\.html$/.test(name));
+  if (!files.length) {
+    if (cb) {
+      cb(new Error('Cannot find output HTML file'));
+    }
+  } else {
+    files.forEach((filename: string) => {
+      const source = assets[filename].source();
+      const sourceCode = replaceHtml(source, code);
+      assets[filename] = {
+        source: () => sourceCode,
+        size: () => sourceCode.length,
+      };
+    });
+  }
+};
+
 interface Options {
   hotKeys?: HotKey[];
   hideButton?: boolean;
@@ -29,66 +52,81 @@ class WebpackCodeInspectorPlugin {
   constructor(options?: Options) {
     this.options = options || {};
   }
+
   apply(compiler) {
-    // 注入代码
-    const injectCode = (
-      port: number,
-      assets: { [filename: string]: any },
-      cb?: (params?: any) => void
-    ) => {
-      const code = getInjectCode(
+    // 仅在开发环境下使用
+    if (compiler.options.mode !== 'development') {
+      return;
+    }
+
+    // 获取要注入的代码
+    const getCode = (port: number) =>
+      getInjectCode(
         port,
         this.options.hotKeys || undefined,
         this.options.disableTriggerByKey,
         this.options.hideButton
       );
-      const files = Object.keys(assets).filter((name) => /\.html$/.test(name));
-      if (!files.length) {
-        if (cb) {
-          cb(new Error('Cannot find output HTML file'));
-        } else {
-          throw Error('Cannot find output HTML file');
-        }
-      } else {
-        files.forEach((filename: string) => {
-          const source = assets[filename].source();
-          const sourceCode = replaceHtml(source, code);
-          assets[filename] = {
-            source: () => sourceCode,
-            size: () => sourceCode.length,
-          };
-        });
-      }
-    };
-    const HtmlWebpackPlugin = compiler.options.plugins.filter((item) => {
-      item.constructor.name === 'HtmlWebpackPlugin';
+
+    if (compiler.hooks) {
+      // webpack4.x 及之后
+      this.handleWebpackAbove4(compiler, getCode);
+    } else {
+      compiler.plugin('watchRun', applyLoader);
+      compiler.plugin('emit', (compilation, cb) => {
+        const rootPath = compilation.options.context;
+        startServer((port) => {
+          const { assets } = compilation;
+          injectCode(port, assets, cb);
+          cb();
+        }, rootPath);
+      });
+    }
+  }
+
+  handleWebpackAbove4(compiler: any, getCode: (port: number) => string) {
+    // 注入 loader
+    compiler.hooks.watchRun.tap('WebpackCodeInspectorLoader', applyLoader);
+
+    // 检测当前是否有 HTMLWebpackPlugin 插件
+    const HtmlWebpackPlugin = compiler.options.plugins.find((item) => {
+      return item.constructor.name === 'HtmlWebpackPlugin';
     });
-    // 仅在开发环境下使用
-    if (compiler.options.mode === 'development') {
-      if (compiler.hooks) {
-        compiler.hooks.watchRun.tap('VueCodeInspectorLoader', applyLoader);
-        compiler.hooks.emit.tapAsync(
-          'WebpackCodeInspectorPlugin',
-          (compilation, cb) => {
+
+    // 优先通过 html-webpack-plugin 注入 client 代码
+    if (HtmlWebpackPlugin) {
+      compiler.hooks.compilation.tap(
+        'WebpackCodeInspectorPlugin',
+        (compilation) => {
+          // html-webpack-plugin 3.x 及之前版本
+          let hook = compilation.hooks.htmlWebpackPluginAfterHtmlProcessing;
+          // html-webpack-plugin 4.x 及之后版本
+          if (!hook) {
+            hook =
+              HtmlWebpackPlugin.constructor.getHooks(compilation).beforeEmit;
+          }
+          hook.tapAsync('WebpackCodeInspectorPlugin', (data, cb) => {
             const rootPath = compilation.options.context;
             startServer((port) => {
-              const { assets } = compilation;
-              injectCode(port, assets, cb);
-              cb();
+              data.html = replaceHtml(data.html, getCode(port));
+              cb(null, data);
             }, rootPath);
-          }
-        );
-      } else {
-        compiler.plugin('watchRun', applyLoader);
-        compiler.plugin('emit', (compilation, cb) => {
+          });
+        }
+      );
+    } else {
+      // 没有 html-webpack-plugin 则原生注入
+      compiler.hooks.emit.tapAsync(
+        'WebpackCodeInspectorPlugin',
+        (compilation, cb) => {
           const rootPath = compilation.options.context;
           startServer((port) => {
             const { assets } = compilation;
-            injectCode(port, assets, cb);
+            injectCode(getCode(port), assets, cb);
             cb();
           }, rootPath);
-        });
-      }
+        }
+      );
     }
   }
 }
