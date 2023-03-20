@@ -10,14 +10,13 @@ const applyLoader = (compiler: any) => {
   });
 };
 
-const replaceHtml = (data, cb, code) => {
-  const index = data.html.lastIndexOf('</html>');
+const replaceHtml = (html: string, code: string) => {
+  const index = html.lastIndexOf('</html>');
   if (index > -1) {
-    const newHTML =
-      data.html.slice(0, index) + `\n${code}\n` + data.html.slice(index);
-    data.html = newHTML;
-    cb(null, data);
+    const newHTML = html.slice(0, index) + `\n${code}\n` + html.slice(index);
+    html = newHTML;
   }
+  return html;
 };
 
 interface Options {
@@ -32,47 +31,59 @@ class WebpackCodeInspectorPlugin {
     this.options = options || {};
   }
   apply(compiler) {
+    // 注入代码
+    const injectCode = (
+      port: number,
+      assets: { [filename: string]: any },
+      cb?: (params?: any) => void
+    ) => {
+      const code = getInjectCode(
+        port,
+        this.options.hotKeys || undefined,
+        this.options.disableTriggerByKey,
+        this.options.hideButton
+      );
+      const files = Object.keys(assets).filter((name) => /\.html$/.test(name));
+      if (!files.length) {
+        if (cb) {
+          cb(new Error('Cannot find output HTML file'));
+        } else {
+          throw Error('Cannot find output HTML file');
+        }
+      } else {
+        files.forEach((filename: string) => {
+          const source = assets[filename].source();
+          const sourceCode = replaceHtml(source, code);
+          assets[filename] = {
+            source: () => sourceCode,
+            size: () => sourceCode.length,
+          };
+        });
+      }
+    };
     // 仅在开发环境下使用
     if (compiler.options.mode === 'development') {
       if (compiler.hooks) {
-        compiler.hooks.watchRun.tap('VueInspectorLoader', applyLoader);
-        compiler.hooks.compilation.tap(
-          'WebpackVueInspectorPlugin',
-          (compilation) => {
+        compiler.hooks.watchRun.tap('VueCodeInspectorLoader', applyLoader);
+        compiler.hooks.emit.tapAsync(
+          'WebpackCodeInspectorPlugin',
+          (compilation, cb) => {
             const rootPath = compilation.options.context;
             startServer((port) => {
-              const code = getInjectCode(
-                port,
-                this.options.hotKeys || undefined,
-                this.options.disableTriggerByKey,
-                this.options.hideButton
-              );
-              // HtmlWebpackPlugin3 及之前版本
-              let hook = compilation.hooks.htmlWebpackPluginAfterHtmlProcessing;
-              if (!hook) {
-                // 4 及之后版本
-                hook = HtmlWebpackPlugin.getHooks(compilation).beforeEmit;
-              }
-              hook.tapAsync('VueInspectorPlugin', (data, cb) => {
-                replaceHtml(data, cb, code);
-              });
+              const { assets } = compilation;
+              injectCode(port, assets, cb);
+              cb();
             }, rootPath);
           }
         );
       } else {
         compiler.plugin('watchRun', applyLoader);
-        compiler.plugin('compilation', (compilation) => {
+        compiler.plugin('emit', (compilation, cb) => {
           const rootPath = compilation.options.context;
           startServer((port) => {
-            const code = getInjectCode(
-              port,
-              this.options.hotKeys || undefined,
-              this.options.disableTriggerByKey,
-              this.options.hideButton
-            );
-            compilation.plugin('html-webpack-plugin-beforeEmit', (data, cb) => {
-              replaceHtml(data, cb, code);
-            });
+            const { assets } = compilation;
+            injectCode(port, assets, cb);
+            cb();
           }, rootPath);
         });
       }
