@@ -1,12 +1,17 @@
 import { getInjectCode, startServer, HotKey } from 'code-inspector-core';
 const path = require('path');
 
-const applyLoader = (compiler: any) => {
-  compiler.options.module.rules.push({
+const applyLoader = (compiler: any, cb: () => void) => {
+  // 适配 webpack 各个版本
+  const _compiler = compiler.compiler?.options ? compiler.compiler : compiler;
+  _compiler.options.module.rules.push({
     test: /\.vue$/,
     use: [path.resolve(__dirname, './loader.js')],
     enforce: 'pre',
   });
+  if (typeof cb === 'function') {
+    cb();
+  }
 };
 
 const replaceHtml = (html: string, code: string) => {
@@ -55,7 +60,7 @@ class WebpackCodeInspectorPlugin {
 
   apply(compiler) {
     // 仅在开发环境下使用
-    if (compiler.options.mode !== 'development') {
+    if (compiler.options.mode && compiler.options.mode !== 'development') {
       return;
     }
 
@@ -72,15 +77,7 @@ class WebpackCodeInspectorPlugin {
       // webpack4.x 及之后
       this.handleWebpackAbove4(compiler, getCode);
     } else {
-      compiler.plugin('watchRun', applyLoader);
-      compiler.plugin('emit', (compilation, cb) => {
-        const rootPath = compilation.options.context;
-        startServer((port) => {
-          const { assets } = compilation;
-          injectCode(port, assets, cb);
-          cb();
-        }, rootPath);
-      });
+      this.handleWebpackBelow3(compiler, getCode);
     }
   }
 
@@ -128,6 +125,20 @@ class WebpackCodeInspectorPlugin {
         }
       );
     }
+  }
+
+  // todo: webpack3.x 版本 loader 添加 vc_path 后未注入到 dom
+  // todo: webpack3.x 配合 html-webpack-plugin 一同使用
+  handleWebpackBelow3(compiler: any, getCode: (port: number) => string) {
+    compiler.plugin('watch-run', applyLoader);
+    compiler.plugin('emit', (compilation, cb) => {
+      const rootPath = compilation.options.context;
+      startServer((port) => {
+        const { assets } = compilation;
+        injectCode(getCode(port), assets, cb);
+        cb();
+      }, rootPath);
+    });
   }
 }
 
