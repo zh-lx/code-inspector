@@ -14,16 +14,16 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
 
-<p>click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element</p>
+<p>点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置</p>
 </div>
 
 <hr />
 
-## Usage
+## 使用
 
-### 1. install `vite-code-inspector-plugin`
+### 1. 安装 `vite-code-inspector-plugin`
 
-Execute the following command at the root of your project:
+在项目的根目录终端中执行以下命令:
 
 ```perl
 npm i vite-code-inspector-plugin -D
@@ -33,9 +33,9 @@ yarn add vite-code-inspector-plugin -D
 pnpm add vite-code-inspector-plugin -D
 ```
 
-### 2. configure `vite.config.js`
+### 2. 配置 `vite.config.js`
 
-- Add the following configuration in `vite.config.js`:
+- 在 `vite.config.js` 中添加如下配置:
 
   ```js
   // vite.config.js
@@ -48,22 +48,22 @@ pnpm add vite-code-inspector-plugin -D
   });
   ```
 
-### 3. Configure Vscode Command
+### 3. 配置 VSCode
 
-If your editor is Vscode, you need to do the following:
+如果你的编辑器是 VSCode，需要进行如下配置:
 
-- Execute `command + shift + p`(mac) or `ctrl + shift + p`(windows) command in vscode, search and click `shell Command: Install 'code' command in Path`:
+- 在 VSCode 中执行 `command + shift + p`(mac) 或 `ctrl + shift + p`(windows) 命令, 搜索 指令并点击 `shell Command: Install 'code' command in Path`:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
 
-- If the following popup window appears, your configuration is successful:
+- 如果出现如下弹窗，说明配置成功了:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-## FAQ
+## 常见问题
 
-- <b>Editor doesn't open automatically</b><br>
-  If your editor doesn't open automatically when you click on a page element, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, add the following content:
+- <b>代码编辑器无法自动打开</b><br>
+  如果你点击页面元素时无法自动打开代码编辑器，可能是因为系统权限或其他原因导致无法找到正在运行的代码编辑器。在项目根目录添加一个名为 `.env.local` 的文件并添加如下内容:
   ```perl
   # editor
   CODE_EDITOR=code
