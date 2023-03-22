@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { debounce, composedPath } from './util';
+import { composedPath } from './util';
 import { PathName } from '../shared/constant';
 
 const styleId = '__code-inspector-unique-id';
@@ -135,7 +135,7 @@ export class MyElement extends LitElement {
   };
 
   // 鼠标移动渲染遮罩层位置
-  handleMouseMove = debounce((e: MouseEvent) => {
+  handleMouseMove = (e: MouseEvent) => {
     if (
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
@@ -156,7 +156,7 @@ export class MyElement extends LitElement {
     } else {
       this.removeCover();
     }
-  }, 20);
+  };
 
   // 鼠标点击唤醒遮罩层
   handleMouseClick = (e: any) => {

@@ -184,8 +184,8 @@ function getArgumentsForLineNumber(
 
 function guessEditor() {
   // Explicit config always wins
-  if (process.env.VUE_EDITOR) {
-    return shellQuote.parse(process.env.VUE_EDITOR);
+  if (process.env.CODE_EDITOR) {
+    return shellQuote.parse(process.env.CODE_EDITOR);
   }
 
   // We can find out which editor is currently running by:
@@ -263,7 +263,7 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   }
   console.log(
     'To set up the editor integration, add something like ' +
-      chalk.cyan('VUE_EDITOR=atom') +
+      chalk.cyan('CODE_EDITOR=atom') +
       ' to the ' +
       chalk.green('.env.local') +
       ' file in your project folder ' +

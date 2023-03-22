@@ -3,8 +3,10 @@ const path = require('path');
 
 const applyLoader = (compiler: any, cb: () => void) => {
   // 适配 webpack 各个版本
-  const _compiler = compiler.compiler?.options ? compiler.compiler : compiler;
-  _compiler.options.module.rules.push({
+  const _compiler = compiler?.compiler || compiler;
+  const module = _compiler?.options?.module;
+  const rules = module?.rules || module?.loaders || [];
+  rules.push({
     test: /\.vue$/,
     use: [path.resolve(__dirname, './loader.js')],
     enforce: 'pre',
@@ -32,7 +34,10 @@ const injectCode = (
   const files = Object.keys(assets).filter((name) => /\.html$/.test(name));
   if (!files.length) {
     if (cb) {
-      cb(new Error('Cannot find output HTML file'));
+      ('webpack-code-inspector-plugin Cannot find output HTML file');
+      cb(
+        new Error('webpack-code-inspector-plugin Cannot find output HTML file')
+      );
     }
   } else {
     files.forEach((filename: string) => {
@@ -60,8 +65,10 @@ class WebpackCodeInspectorPlugin {
 
   apply(compiler) {
     // 仅在开发环境下使用
-    if (compiler.options.mode && compiler.options.mode !== 'development') {
-      return;
+    if (compiler.options.mode) {
+      if (compiler.options.mode !== 'development') {
+        return;
+      }
     }
 
     // 获取要注入的代码
@@ -77,7 +84,7 @@ class WebpackCodeInspectorPlugin {
       // webpack4.x 及之后
       this.handleWebpackAbove4(compiler, getCode);
     } else {
-      this.handleWebpackBelow3(compiler, getCode);
+      // this.handleWebpackBelow3(compiler, getCode);
     }
   }
 
@@ -129,17 +136,7 @@ class WebpackCodeInspectorPlugin {
 
   // todo: webpack3.x 版本 loader 添加 vc_path 后未注入到 dom
   // todo: webpack3.x 配合 html-webpack-plugin 一同使用
-  handleWebpackBelow3(compiler: any, getCode: (port: number) => string) {
-    compiler.plugin('watch-run', applyLoader);
-    compiler.plugin('emit', (compilation, cb) => {
-      const rootPath = compilation.options.context;
-      startServer((port) => {
-        const { assets } = compilation;
-        injectCode(getCode(port), assets, cb);
-        cb();
-      }, rootPath);
-    });
-  }
+  handleWebpackBelow3(compiler: any, getCode: (port: number) => string) {}
 }
 
 export = WebpackCodeInspectorPlugin;

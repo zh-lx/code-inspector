@@ -40,7 +40,7 @@ export declare class MyElement extends LitElement {
     removeGlobalCursorStyle: () => void;
     trackCode: () => void;
     moveSwitch: (e: MouseEvent) => void;
-    handleMouseMove: () => void;
+    handleMouseMove: (e: MouseEvent) => void;
     handleMouseClick: (e: any) => void;
     handleKeyUp: (e: any) => void;
     printTip: () => void;

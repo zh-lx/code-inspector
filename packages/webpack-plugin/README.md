@@ -31,7 +31,7 @@ yarn add webpack-code-inspector-plugin -D
 pnpm add webpack-code-inspector-plugin -D
 ```
 
-### 2. configure `vue.config.js`
+### 2. configure `vue.config.js` or `webpack.config.js`
 
 - If you use `vue.config.js`, add the following configuration:
 
@@ -61,13 +61,11 @@ pnpm add webpack-code-inspector-plugin -D
   });
   ```
 
-### 3. configure device environment(Mac)
+### 3. Configure Vscode Command
 
-<b>windows can ignore this step</b>
+If your editor is Vscode, you need to do the following:
 
-If you use Mac and the editor is Vscode, you need to do the following:
-
-- Execute `command + shift + p` command in vscode, search and click `shell Command: Install 'code' command in Path`:
+- Execute `command + shift + p`(mac) or `ctrl + shift + p`(windows) command in vscode, search and click `shell Command: Install 'code' command in Path`:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
 
@@ -75,45 +73,11 @@ If you use Mac and the editor is Vscode, you need to do the following:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-- If the editor doesn't open automatically when you click on a page element with the plugin enabled, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, the contents of the file are as follows:
+## FAQ
 
+- <b>Editor doesn't open automatically</b><br>
+  If your editor doesn't open automatically when you click on a page element, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, add the following content:
   ```perl
   # editor
-
-  VUE_EDITOR=code
+  CODE_EDITOR=code
   ```
-
-## Use and effect
-
-As shown in the figure below, click the floating window with V mark in the page. When it turns green, it means that the function is turned on. (click again to turn off the function)<br/>
-
-When the function is turned on, the information will appear when the mouse moves to the page element. Click the element, it will open vscode and jump to the source code of element.
-
-![](https://s3.bmp.ovh/imgs/2021/08/b71d54d5d9c29640.gif)
-
-## Performance
-
-Tested by several large and medium-sized projects, the impact on the performance of build and rebuild is negligible.
-
-## List of supported editors
-
-The list of editors currently supported by the plugin is as follows:
-
-- [VSCode](https://code.visualstudio.com/)
-- [Sublime Text](https://www.sublimetext.com/)
-- [webstorm](https://www.jetbrains.com/webstorm/)
-- [phpstorm](https://www.jetbrains.com/phpstorm/)
-- [HBuilderX](https://www.dcloud.io/hbuilderx.html)
-- [atom](https://atom.io/)
-- [brackets](https://brackets.io/)
-- [VSCodium](https://vscodium.com/)
-- [appcode](https://www.jetbrains.com/objc/)
-- [clion](https://www.jetbrains.com/clion/)
-- [idea](https://www.jetbrains.com/idea/)
-- [pycharm](https://www.jetbrains.com/pycharm/)
-- [rubymine](https://www.jetbrains.com/ruby/)
-- [MacVim](https://macvim-dev.github.io/macvim/)
-- [goland](https://www.jetbrains.com/go/)
-- [rider](https://www.jetbrains.com/rider/)
-
-If you are using another code editor and want to use the plugin, please leave a message in issue, I will support it.
