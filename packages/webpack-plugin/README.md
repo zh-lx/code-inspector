@@ -7,7 +7,7 @@
   |
   <a href="https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-ZH.md">中文文档</a>
   |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README-ZH.md">vite-code-inspector-plugin</a>
+  <a href="https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README.md">vite-code-inspector-plugin</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/webpack-code-inspector-plugin.svg)](https://www.npmjs.com/package/webpack-code-inspector-plugin)
