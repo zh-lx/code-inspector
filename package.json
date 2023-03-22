@@ -1,23 +1,19 @@
 {
-  "name": "webpack-vue-debug",
-  "version": "1.1.2",
+  "name": "code-inspector",
+  "version": "0.0.1",
   "description": "click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element",
   "keywords": [
-    "webpack",
-    "webpack-loader",
+    "code",
+    "vite-plugin",
     "webpack-plugin",
-    "vue",
-    "dom",
-    "debug",
-    "source code",
+    "inspector",
+    "vite",
+    "webpack",
     "vscode"
   ],
   "private": true,
   "main": "index.js",
-  "repository": "git@github.com:zh-lx/webpack-vue-debug.git",
+  "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
-  "license": "MIT",
-  "workspaces": [
-    "packages/*"
-  ]
+  "license": "MIT"
 }

@@ -1,0 +1,21 @@
+{
+  "name": "webpack-code-inspector-plugin",
+  "version": "0.0.1",
+  "main": "./lib/index.js",
+  "repository": "git@github.com:zh-lx/code-inspector.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "code-inspector-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.1",
+    "typescript": "^4.9.3"
+  },
+  "peerDependencies": {
+    "webpack": ">=1.0.0"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}
