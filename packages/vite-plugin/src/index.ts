@@ -10,9 +10,9 @@ const PluginName = 'vite-code-inspector-plugin';
 let rootPath = '';
 
 interface Options {
-  hotKeys?: HotKey[];
-  hideButton?: boolean;
-  disableTriggerByKey?: boolean;
+  hotKeys?: HotKey[] | false;
+  hideSwitch?: boolean;
+  autoToggle?: boolean;
 }
 
 const replaceHtml = (html, code) => {
@@ -44,12 +44,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
     async transformIndexHtml(html) {
       html = await new Promise((resolve) => {
         startServer((port) => {
-          const code = getInjectCode(
-            port,
-            options?.hotKeys || undefined,
-            options?.disableTriggerByKey,
-            options?.hideButton
-          );
+          const code = getInjectCode(port, {
+            ...(options || {}),
+          });
           html = replaceHtml(html, code);
           resolve(html);
         }, rootPath);

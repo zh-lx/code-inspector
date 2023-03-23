@@ -14,16 +14,17 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
 
-<p>点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置</p>
 </div>
 
 <hr />
 
-## 使用
+## 📜 介绍
 
-### 1. 安装 `vite-code-inspector-plugin`
+点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 
-在项目的根目录终端中执行以下命令:
+![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
+
+## 🚀 安装
 
 ```perl
 npm i vite-code-inspector-plugin -D
@@ -33,7 +34,9 @@ yarn add vite-code-inspector-plugin -D
 pnpm add vite-code-inspector-plugin -D
 ```
 
-### 2. 配置 `vite.config.js`
+## 📦 使用
+
+### 1. 配置 `vite.config.js`
 
 - 在 `vite.config.js` 中添加如下配置:
 
@@ -48,7 +51,7 @@ pnpm add vite-code-inspector-plugin -D
   });
   ```
 
-### 3. 配置 VSCode
+### 2. 配置 VSCode
 
 如果你的编辑器是 VSCode，需要进行如下配置:
 
@@ -60,7 +63,32 @@ pnpm add vite-code-inspector-plugin -D
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-## 常见问题
+## 🎨 可选配置
+
+| 参数       | 描述                                                  | 类型                | 可选值                                                               | 默认值                   |
+| ---------- | ----------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
+| hideSwitch | 是否隐藏功能开关                                      | `boolean`           | `true/false`                                                         | `false`                  |
+| hotKeys    | 组合键触发功能，为 `false` 或者空数组则关闭组合键触发 | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
+| autoToggle | 打开功能开关后，点击触发跳转编辑器时是否自动关闭开关  | `boolean`           | `true/false`                                                         | `true`                   |
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    ViteCodeInspectorPlugin({
+      hideSwitch: false,
+      hotKeys: ['altKey', 'shiftKey'],
+      autoToggle: true,
+    }),
+  ],
+});
+```
+
+## ❓ 常见问题
 
 - <b>代码编辑器无法自动打开</b><br>
   如果你点击页面元素时无法自动打开代码编辑器，可能是因为系统权限或其他原因导致无法找到正在运行的代码编辑器。在项目根目录添加一个名为 `.env.local` 的文件并添加如下内容:

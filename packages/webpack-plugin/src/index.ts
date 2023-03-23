@@ -52,9 +52,9 @@ const injectCode = (
 };
 
 interface Options {
-  hotKeys?: HotKey[];
-  hideButton?: boolean;
-  disableTriggerByKey?: boolean;
+  hotKeys?: HotKey[] | false;
+  hideSwitch?: boolean;
+  autoToggle?: boolean;
 }
 class WebpackCodeInspectorPlugin {
   options: Options;
@@ -65,20 +65,15 @@ class WebpackCodeInspectorPlugin {
 
   apply(compiler) {
     // 仅在开发环境下使用
-    if (compiler.options.mode) {
-      if (compiler.options.mode !== 'development') {
-        return;
-      }
+    if (compiler?.options?.mode !== 'development') {
+      return;
     }
 
     // 获取要注入的代码
     const getCode = (port: number) =>
-      getInjectCode(
-        port,
-        this.options.hotKeys || undefined,
-        this.options.disableTriggerByKey,
-        this.options.hideButton
-      );
+      getInjectCode(port, {
+        ...(this.options || {}),
+      });
 
     if (compiler.hooks) {
       // webpack4.x 及之后

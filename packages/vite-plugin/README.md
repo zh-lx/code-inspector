@@ -14,16 +14,17 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
 
-<p>click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element</p>
 </div>
 
 <hr />
 
-## Usage
+## 📜Introduction
 
-### 1. install `vite-code-inspector-plugin`
+Click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
 
-Execute the following command at the root of your project:
+![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
+
+## 🚀Install
 
 ```perl
 npm i vite-code-inspector-plugin -D
@@ -33,7 +34,9 @@ yarn add vite-code-inspector-plugin -D
 pnpm add vite-code-inspector-plugin -D
 ```
 
-### 2. configure `vite.config.js`
+## 📦Usage
+
+### 1. configure `vite.config.js`
 
 - Add the following configuration in `vite.config.js`:
 
@@ -48,7 +51,7 @@ pnpm add vite-code-inspector-plugin -D
   });
   ```
 
-### 3. Configure Vscode Command
+### 2. Configure Vscode Command
 
 If your editor is Vscode, you need to do the following:
 
@@ -60,7 +63,32 @@ If your editor is Vscode, you need to do the following:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
-## FAQ
+## 🎨Options
+
+| Parameter  | Description                                                                                                               | Type                | OptionValue                                                          | Default                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
+| hideSwitch | Whether hide the button of this function                                                                                  | `boolean`           | `true/false`                                                         | `false`                  |
+| hotKeys    | Combination keys for triggering this function.When the value is `false` or `[]`, the function can't be triggered by keys. | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
+| autoToggle | After opening the function switch, whether automatically close the switch when triggering the jump editor function.       | `boolean`           | `true/false`                                                         | `true`                   |
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    ViteCodeInspectorPlugin({
+      hideSwitch: false,
+      hotKeys: ['altKey', 'shiftKey'],
+      autoToggle: true,
+    }),
+  ],
+});
+```
+
+## ❓FAQ
 
 - <b>Editor doesn't open automatically</b><br>
   If your editor doesn't open automatically when you click on a page element, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, add the following content:

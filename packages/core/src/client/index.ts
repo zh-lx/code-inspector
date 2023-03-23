@@ -13,9 +13,9 @@ export class MyElement extends LitElement {
   @property()
   port: number = 6666;
   @property()
-  hideButton: boolean = false;
+  hideSwitch: boolean = false;
   @property()
-  disableTriggerByKey: boolean = false;
+  autoToggle: boolean = false;
 
   @state()
   position = { top: 0, left: 0, width: 0, height: 0 }; // 弹窗位置
@@ -43,8 +43,7 @@ export class MyElement extends LitElement {
 
   isTracking = (e: any) => {
     return (
-      !this.disableTriggerByKey &&
-      this.hotKeys.split(',').every((key) => e[key.trim()])
+      this.hotKeys && this.hotKeys.split(',').every((key) => e[key.trim()])
     );
   };
 
@@ -77,8 +76,7 @@ export class MyElement extends LitElement {
     this.addGlobalCursorStyle();
     // 获取元素信息
     const paths = target.getAttribute(PathName) || '';
-    const [path, _line, _column] = paths.split(':');
-    const name = target.tagName;
+    const [path, _line, _column, name] = paths.split(':');
     const line = Number(_line);
     const column = Number(_column);
     this.element = { name, path, line, column };
@@ -170,7 +168,9 @@ export class MyElement extends LitElement {
         this.trackCode();
         // 清除遮罩层
         this.removeCover();
-        this.open = false;
+        if (this.autoToggle) {
+          this.open = false;
+        }
       }
     }
   };
@@ -287,7 +287,7 @@ export class MyElement extends LitElement {
         class="inspector-switch ${this.open
           ? 'active-inspector-switch'
           : ''} ${this.moved ? 'move-inspector-switch' : ''}"
-        style=${styleMap({ display: this.hideButton ? 'none' : 'flex' })}
+        style=${styleMap({ display: this.hideSwitch ? 'none' : 'flex' })}
       >
         <svg
           t="1677801709811"

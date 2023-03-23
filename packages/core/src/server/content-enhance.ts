@@ -14,15 +14,14 @@ export function getEnhanceContent(content: string, filePath: string) {
         if (
           !node.loc.source.includes(PathName) &&
           node.type === 1 &&
-          node.tagType === 0 &&
           node.tag !== 'style' &&
           node.tag !== 'script'
         ) {
           const insertPosition = node.loc.start.offset + node.tag.length + 1;
           const { line, column } = node.loc.start;
-          const content = ` ${PathName}="${filePath}:${line}:${column}"${
-            node.props.length ? ' ' : ''
-          }`;
+          const content = ` ${PathName}="${filePath}:${line}:${column}:${
+            node.tag
+          }"${node.props.length ? ' ' : ''}`;
 
           s.prependLeft(insertPosition, content);
         }

@@ -13,22 +13,27 @@
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
 
-<p>点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置</p>
 </div>
 
 <hr />
 
-## 使用
+## 📜 介绍
 
-- [webpack 使用](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-ZH.md)
-- [vite 使用](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README-ZH.md)
+点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 
-## 支持列表
+![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
+
+## 📦 使用
+
+- Webpack: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README.md)
+- Vite: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README.md)
+
+## 🎨 支持列表
 
 下面是编译器、web 框架以及代码编辑器支持列表:
 
 - 编译器支持性
-  - ✅ webpack
+  - ✅ webpack(4.x/5.x)
   - ✅ vite
 - Web 框架支持性
   - ✅ vue(2.x/3.x)

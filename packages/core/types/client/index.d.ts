@@ -2,8 +2,8 @@ import { LitElement } from 'lit';
 export declare class MyElement extends LitElement {
     hotKeys: string;
     port: number;
-    hideButton: boolean;
-    disableTriggerByKey: boolean;
+    hideSwitch: boolean;
+    autoToggle: boolean;
     position: {
         top: number;
         left: number;
@@ -33,7 +33,7 @@ export declare class MyElement extends LitElement {
     moved: boolean;
     hoverSwitch: boolean;
     inspectorSwitchRef: HTMLDivElement;
-    isTracking: (e: any) => boolean;
+    isTracking: (e: any) => boolean | "";
     renderCover: (target: HTMLElement) => void;
     removeCover: () => void;
     addGlobalCursorStyle: () => void;
