@@ -8,6 +8,7 @@
   <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a>
 </p>
 
+[![NPM version](https://img.shields.io/npm/v/code-inspector-core/latest?style=plastic)](https://www.npmjs.com/package/code-inspector-core)
 [![NPM version](https://img.shields.io/npm/v/webpack-code-inspector-plugin/latest?label=webpack-code-inspector-plugin&style=plastic)](https://www.npmjs.com/package/webpack-code-inspector-plugin)
 [![NPM version](https://img.shields.io/npm/v/vite-code-inspector-plugin/latest?label=vite-code-inspector-plugin&style=plastic)](https://www.npmjs.com/package/vite-code-inspector-plugin)
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
