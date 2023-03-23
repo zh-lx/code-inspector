@@ -41,3 +41,14 @@ export function StartServer(callback: Function, rootPath: string) {
     });
   });
 }
+
+export function _normalizePath(filepath: string) {
+  let normalizedPath = path.normalize(filepath);
+
+  // Convert Windows path separators to Mac path separators
+  if (process.platform === 'win32') {
+    normalizedPath = normalizedPath.replace(/\\/g, '/');
+  }
+
+  return normalizedPath;
+}

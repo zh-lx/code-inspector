@@ -63,6 +63,10 @@ pnpm add vite-code-inspector-plugin -D
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
+### 3. 使用代码审查
+
+你可以通过打开开关或者同时按住 hotKeys 进行代码审查模式。在代码审查模式下，点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
+
 ## 🎨 可选配置
 
 | 参数       | 描述                                                  | 类型                | 可选值                                                               | 默认值                   |

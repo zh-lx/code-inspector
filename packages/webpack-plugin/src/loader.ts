@@ -1,4 +1,4 @@
-import { enhanceVueCode } from 'code-inspector-core';
+import { enhanceVueCode, normalizePath } from 'code-inspector-core';
 import path from 'path';
 
 /**
@@ -11,9 +11,9 @@ function WebpackCodeInspectorLoader(
   map: string,
   cb: any
 ) {
-  const completePath = this.resourcePath; // 当前文件的绝对路径
-  const root = this.rootContext ?? this.options.context ?? '';
-  const filePath = path.relative(root, completePath);
+  const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
+  const root = normalizePath(this.rootContext ?? this.options.context ?? '');
+  const filePath = normalizePath(path.relative(root, completePath));
   let params = new URLSearchParams(this.resource);
   if (params.get('type') !== 'style') {
     return enhanceVueCode(content, filePath);

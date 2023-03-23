@@ -1,4 +1,9 @@
-import { getInjectCode, startServer, HotKey } from 'code-inspector-core';
+import {
+  getInjectCode,
+  startServer,
+  HotKey,
+  normalizePath,
+} from 'code-inspector-core';
 const path = require('path');
 
 const applyLoader = (compiler: any, cb: () => void) => {
@@ -105,7 +110,7 @@ class WebpackCodeInspectorPlugin {
               HtmlWebpackPlugin.constructor.getHooks(compilation).beforeEmit;
           }
           hook.tapAsync('WebpackCodeInspectorPlugin', (data, cb) => {
-            const rootPath = compilation.options.context;
+            const rootPath = normalizePath(compilation.options.context);
             startServer((port) => {
               data.html = replaceHtml(data.html, getCode(port));
               cb(null, data);
@@ -118,7 +123,7 @@ class WebpackCodeInspectorPlugin {
       compiler.hooks.emit.tapAsync(
         'WebpackCodeInspectorPlugin',
         (compilation, cb) => {
-          const rootPath = compilation.options.context;
+          const rootPath = normalizePath(compilation.options.context);
           startServer((port) => {
             const { assets } = compilation;
             injectCode(getCode(port), assets, cb);

@@ -1,6 +1,6 @@
 {
   "name": "vite-code-inspector-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",

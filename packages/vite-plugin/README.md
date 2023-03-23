@@ -63,6 +63,10 @@ If your editor is Vscode, you need to do the following:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
 
+### 3. Use Code Inspector
+
+You can perform code inspector mode by turning on the switch or simultaneously pressing and holding hotKeys(default mac is 【Option + Shift】 and windows is 【Alt + Shift】). In this mode, click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
+
 ## 🎨Options
 
 | Parameter  | Description                                                                                                               | Type                | OptionValue                                                          | Default                  |

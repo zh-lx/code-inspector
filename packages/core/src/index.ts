@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-import { StartServer, getEnhanceContent } from './server';
+import { StartServer, getEnhanceContent, _normalizePath } from './server';
 
 const jsCodePath = path.resolve(__dirname, './client.umd.cjs');
 const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
@@ -32,3 +32,4 @@ export const getInjectCode = (port: number, options?: CodeOptions) => {
 
 export const startServer = StartServer;
 export const enhanceVueCode = getEnhanceContent;
+export const normalizePath = _normalizePath;

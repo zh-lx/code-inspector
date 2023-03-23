@@ -3,6 +3,7 @@ import {
   getInjectCode,
   startServer,
   HotKey,
+  normalizePath,
 } from 'code-inspector-core';
 import path from 'path';
 
@@ -31,13 +32,24 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       if (!rootPath) {
         rootPath = process.cwd(); // 根路径
       }
-      const [completePath] = id.split('?', 2); // 当前文件的绝对路径
+      const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
+      const completePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
-      const isTemplate =
-        completePath.endsWith('.vue') && params.get('type') !== 'style';
-      if (isTemplate) {
-        const filePath = path.relative(rootPath, completePath); // 相对路径
-        code = await enhanceVueCode(code, filePath);
+
+      const isVueJsx =
+        completePath.endsWith('.jsx') ||
+        completePath.endsWith('.tsx') ||
+        (completePath.endsWith('.vue') && params.get('isJsx') !== null);
+      const isVue =
+        completePath.endsWith('.vue') &&
+        params.get('type') !== 'style' &&
+        params.get('raw') === null;
+
+      const filePath = normalizePath(path.relative(rootPath, completePath)); // 相对路径
+      if (isVueJsx) {
+        code = await enhanceVueCode(code, filePath, 'vue-jsx');
+      } else if (isVue) {
+        code = await enhanceVueCode(code, filePath, 'vue');
       }
       return code;
     },

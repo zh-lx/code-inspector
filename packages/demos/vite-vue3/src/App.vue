@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue';
+import Detail from './components/detail.jsx';
+import About from './components/about.vue';
 </script>
 
 <template>
   <div>
+    <About />
+    <Detail />
     <a href="https://vitejs.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>

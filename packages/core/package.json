@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",
@@ -20,10 +20,14 @@
     "vite": "^4.1.0"
   },
   "dependencies": {
+    "@babel/core": "^7.21.3",
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@babel/plugin-transform-typescript": "^7.21.3",
+    "@vue/babel-plugin-jsx": "^1.1.1",
+    "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
     "magic-string": "^0.30.0",
     "portfinder": "^1.0.28",
-    "shell-quote": "^1.7.2",
-    "@vue/compiler-dom": "^3.2.47"
+    "shell-quote": "^1.7.2"
   }
 }

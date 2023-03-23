@@ -37,6 +37,8 @@ export class MyElement extends LitElement {
   moved = false;
   @state()
   hoverSwitch = false;
+  @state()
+  preUserSelect = '';
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -74,6 +76,11 @@ export class MyElement extends LitElement {
       'px';
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
+    // 防止 select
+    if (!this.preUserSelect) {
+      this.preUserSelect = getComputedStyle(document.body).userSelect;
+    }
+    document.body.style.userSelect = 'none';
     // 获取元素信息
     const paths = target.getAttribute(PathName) || '';
     const [path, _line, _column, name] = paths.split(':');
@@ -86,6 +93,8 @@ export class MyElement extends LitElement {
   removeCover = () => {
     this.show = false;
     this.removeGlobalCursorStyle();
+    document.body.style.userSelect = this.preUserSelect;
+    this.preUserSelect = '';
   };
 
   addGlobalCursorStyle = () => {

@@ -32,6 +32,7 @@ export declare class MyElement extends LitElement {
     open: boolean;
     moved: boolean;
     hoverSwitch: boolean;
+    preUserSelect: string;
     inspectorSwitchRef: HTMLDivElement;
     isTracking: (e: any) => boolean | "";
     renderCover: (target: HTMLElement) => void;
