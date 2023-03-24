@@ -39,7 +39,11 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       const isVueJsx =
         completePath.endsWith('.jsx') ||
         completePath.endsWith('.tsx') ||
-        (completePath.endsWith('.vue') && params.get('isJsx') !== null);
+        (completePath.endsWith('.vue') &&
+          (params.get('isJsx') !== null ||
+            params.get('lang.tsx') !== null ||
+            params.get('lang.jsx') !== null));
+
       const isVue =
         completePath.endsWith('.vue') &&
         params.get('type') !== 'style' &&

@@ -15,11 +15,21 @@ function WebpackCodeInspectorLoader(
   const root = normalizePath(this.rootContext ?? this.options.context ?? '');
   const filePath = normalizePath(path.relative(root, completePath));
   let params = new URLSearchParams(this.resource);
-  if (params.get('type') !== 'style') {
-    return enhanceVueCode(content, filePath);
-  } else {
-    return content;
+
+  const isVueJsx =
+    completePath.endsWith('.jsx') || completePath.endsWith('.tsx');
+  const isVue =
+    completePath.endsWith('.vue') &&
+    params.get('type') !== 'style' &&
+    params.get('raw') === null;
+
+  if (isVueJsx) {
+    content = enhanceVueCode(content, filePath, 'vue-jsx');
+  } else if (isVue) {
+    content = enhanceVueCode(content, filePath, 'vue');
   }
+
+  return content;
 }
 
 export = WebpackCodeInspectorLoader;
