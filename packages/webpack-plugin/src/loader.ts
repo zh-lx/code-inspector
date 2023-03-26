@@ -18,6 +18,7 @@ function WebpackCodeInspectorLoader(
 
   const isVueJsx =
     completePath.endsWith('.jsx') || completePath.endsWith('.tsx');
+
   const isVue =
     completePath.endsWith('.vue') &&
     params.get('type') !== 'style' &&
