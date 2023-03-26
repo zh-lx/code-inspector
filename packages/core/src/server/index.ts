@@ -23,8 +23,7 @@ export function StartServer(callback: Function, rootPath: string) {
     res.writeHead(200, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': '*',
-      'Access-Control-Allow-Headers':
-        'Content-Type,XFILENAME,XFILECATEGORY,XFILESIZE,X-URL-PATH,x-access-token',
+      'Access-Control-Allow-Headers': '*',
     });
     res.end('ok');
     launchEditor(file, line, column);

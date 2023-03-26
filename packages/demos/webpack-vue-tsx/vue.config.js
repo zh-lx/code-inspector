@@ -1,4 +1,4 @@
-const WebpackCodeInspectorPlugin = require('../../webpack-plugin');
+const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
 
 module.exports = {
   // ...other code
