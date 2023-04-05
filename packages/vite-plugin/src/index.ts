@@ -28,6 +28,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
     enforce: 'pre' as 'pre',
+    apply(_, { command }) {
+      return command === 'serve';
+    },
     async transform(code, id) {
       if (!rootPath) {
         rootPath = process.cwd(); // 根路径

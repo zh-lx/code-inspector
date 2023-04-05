@@ -1,19 +1,23 @@
 {
   "name": "code-inspector",
   "version": "0.0.1",
-  "description": "click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element",
-  "keywords": [
-    "code",
-    "vite-plugin",
-    "webpack-plugin",
-    "inspector",
-    "vite",
-    "webpack",
-    "vscode"
-  ],
-  "private": true,
-  "main": "index.js",
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://github.com/zh-lx/code-inspector",
+  "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
+  "keywords": [
+    "webpack",
+    "vite",
+    "plugin",
+    "vue",
+    "vscode",
+    "inspector",
+    "inspect"
+  ],
+  "bugs": {
+    "url": "https://github.com/zh-lx/code-inspector/issues"
+  },
+  "private": true,
+  "main": "index.js"
 }

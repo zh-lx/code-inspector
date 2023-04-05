@@ -8,6 +8,23 @@
     "dist",
     "types"
   ],
+  "repository": "git@github.com:zh-lx/code-inspector.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/zh-lx/code-inspector",
+  "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
+  "keywords": [
+    "webpack",
+    "vite",
+    "plugin",
+    "vue",
+    "vscode",
+    "inspector",
+    "inspect"
+  ],
+  "bugs": {
+    "url": "https://github.com/zh-lx/code-inspector/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build --config ./vite.client.config.ts && vite build",
