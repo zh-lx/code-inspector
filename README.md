@@ -1,11 +1,11 @@
 <div align="center">
-<img src="https://t4.wodetu.cn/2023/03/19/cbea9d31e70a335d4494cf9699c0ab97.png" width=160px" style="margin-bottom: 12px;" />
+<img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
   <h2>code-inspector</h2>
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">English Doc</a>
+  <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">中文文档</a>
   |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a>
+  <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-EN.md">English Doc</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/webpack-code-inspector-plugin/latest?label=webpack-code-inspector-plugin&style=plastic)](https://www.npmjs.com/package/webpack-code-inspector-plugin)
@@ -17,32 +17,32 @@
 
 <hr />
 
-## 📜Introduction
+## 📜 介绍
 
-Click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
+点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 
 ![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
 
-## 📦Usage
+## 📦 使用
 
 - Webpack: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README.md)
 - Vite: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README.md)
 
-## 🎨Support
+## 🎨 支持列表
 
-The following are which compilers, web frameworks and editors we supported now:
+下面是编译器、web 框架以及代码编辑器支持列表:
 
-- Compiler Support
-  - ✅ webpack()
+- 编译器支持性
+  - ✅ webpack(4.x/5.x)
   - ✅ vite
-- Web Framework Support
+- Web 框架支持性
   - ✅ vue(2.x/3.x)
   - ⬜ react
   - ⬜ svelte
   - ⬜ solid
   - ⬜ preact
   - ⬜ lit
-- Editor Support
+- 代码编辑器支持性
   - ✅ [VSCode](https://code.visualstudio.com/)
   - ✅ [Sublime Text](https://www.sublimetext.com/)
   - ✅ [webstorm](https://www.jetbrains.com/webstorm/)
