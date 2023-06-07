@@ -45,6 +45,7 @@ export function getEnhanceContent(
     const ast = babelParse(content, {
       babelrc: false,
       comments: true,
+      configFile: false,
       plugins: [
         importMetaPlugin,
         [vueJsxPlugin, {}],

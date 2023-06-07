@@ -16,19 +16,26 @@ function WebpackCodeInspectorLoader(
   const filePath = normalizePath(path.relative(root, completePath));
   let params = new URLSearchParams(this.resource);
 
-  // const isVueJsx =
-  //   completePath.endsWith('.jsx') || completePath.endsWith('.tsx');
+  const isVueJsx =
+    completePath.endsWith('.jsx') ||
+    completePath.endsWith('.tsx') ||
+    (completePath.endsWith('.vue') &&
+      (params.get('isJsx') !== null ||
+        params.get('lang.tsx') !== null ||
+        params.get('lang.jsx') !== null ||
+        params.get('lang') === 'tsx' ||
+        params.get('lang') === 'jsx'));
 
   const isVue =
     completePath.endsWith('.vue') &&
     params.get('type') !== 'style' &&
     params.get('raw') === null;
 
-  // if (isVueJsx) {
-  //   content = enhanceVueCode(content, filePath, 'vue-jsx');
-  // } else if (isVue) {
-  //   content = enhanceVueCode(content, filePath, 'vue');
-  // }
+  if (isVueJsx) {
+    content = enhanceVueCode(content, filePath, 'vue-jsx');
+  } else if (isVue) {
+    content = enhanceVueCode(content, filePath, 'vue');
+  }
 
   if (isVue) {
     content = enhanceVueCode(content, filePath, 'vue');

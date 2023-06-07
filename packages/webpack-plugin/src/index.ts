@@ -12,7 +12,7 @@ const applyLoader = (compiler: any, cb: () => void) => {
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
   rules.push({
-    test: /\.vue$/,
+    test: /\.(vue|jsx|tsx)$/,
     use: [path.resolve(__dirname, './loader.js')],
     enforce: 'pre',
   });
