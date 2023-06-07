@@ -20,6 +20,7 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "dependencies": {
+    "@vue/compiler-sfc": "^3.3.4",
     "code-inspector-core": "workspace:*"
   },
   "devDependencies": {
