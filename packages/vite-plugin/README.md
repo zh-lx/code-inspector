@@ -76,7 +76,7 @@ pnpm add vite-code-inspector-plugin -D
 
 | 参数       | 描述                                                  | 类型                | 可选值                                                               | 默认值                   |
 | ---------- | ----------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
-| hideSwitch | 是否隐藏功能开关                                      | `boolean`           | `true/false`                                                         | `false`                  |
+| showSwitch | 是否展示功能开关                                      | `boolean`           | `true/false`                                                         | `false`                  |
 | hotKeys    | 组合键触发功能，为 `false` 或者空数组则关闭组合键触发 | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
 | autoToggle | 打开功能开关后，点击触发跳转编辑器时是否自动关闭开关  | `boolean`           | `true/false`                                                         | `true`                   |
 
@@ -89,7 +89,7 @@ import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 export default defineConfig({
   plugins: [
     ViteCodeInspectorPlugin({
-      hideSwitch: false,
+      showSwitch: false,
       hotKeys: ['altKey', 'shiftKey'],
       autoToggle: true,
     }),

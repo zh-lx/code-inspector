@@ -12,7 +12,7 @@ let rootPath = '';
 
 interface Options {
   hotKeys?: HotKey[] | false;
-  hideSwitch?: boolean;
+  showSwitch?: boolean;
   autoToggle?: boolean;
 }
 
@@ -45,7 +45,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         (completePath.endsWith('.vue') &&
           (params.get('isJsx') !== null ||
             params.get('lang.tsx') !== null ||
-            params.get('lang.jsx') !== null));
+            params.get('lang.jsx') !== null ||
+            params.get('lang') === 'tsx' ||
+            params.get('lang') === 'jsx'));
 
       const isVue =
         completePath.endsWith('.vue') &&

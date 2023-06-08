@@ -91,7 +91,7 @@ pnpm add webpack-code-inspector-plugin -D
 
 | 参数       | 描述                                                                                                      | 类型                | 可选值                                                               | 默认值                   |
 | ---------- | --------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
-| hideSwitch | 是否隐藏功能开关                                                                                          | `boolean`           | `true/false`                                                         | `false`                  |
+| showSwitch | 是否展示功能开关                                                                                          | `boolean`           | `true/false`                                                         | `false`                  |
 | hotKeys    | 组合键触发功能，为 `false` 或者空数组则关闭组合键触发                                                     | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
 | autoToggle | After opening the function button, whether automatically close the button when triggering the jump editor | `boolean`           | `true/false`                                                         | `true`                   |
 
@@ -102,7 +102,7 @@ const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
 module.exports = (env = {}) => ({
   plugins: [
     new WebpackCodeInspectorPlugin({
-      hideSwitch: false,
+      showSwitch: false,
       hotKeys: ['altKey', 'shiftKey'],
       autoToggle: true,
     }),

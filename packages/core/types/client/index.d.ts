@@ -2,7 +2,7 @@ import { LitElement } from 'lit';
 export declare class MyElement extends LitElement {
     hotKeys: string;
     port: number;
-    hideSwitch: boolean;
+    showSwitch: boolean;
     autoToggle: boolean;
     position: {
         top: number;

@@ -2,7 +2,7 @@ import { StartServer, getEnhanceContent, _normalizePath } from './server';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
     hotKeys?: HotKey[] | false;
-    hideSwitch?: boolean;
+    showSwitch?: boolean;
     autoToggle?: boolean;
 };
 export declare const getInjectCode: (port: number, options?: CodeOptions) => string;

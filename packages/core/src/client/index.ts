@@ -13,7 +13,7 @@ export class MyElement extends LitElement {
   @property()
   port: number = 6666;
   @property()
-  hideSwitch: boolean = false;
+  showSwitch: boolean = false;
   @property()
   autoToggle: boolean = false;
 
@@ -125,7 +125,7 @@ export class MyElement extends LitElement {
 
   // 移动按钮
   moveSwitch = (e: MouseEvent) => {
-    if (composedPath(e).includes(this.inspectorSwitchRef)) {
+    if (composedPath(e).includes(this)) {
       this.hoverSwitch = true;
     } else {
       this.hoverSwitch = false;
@@ -296,7 +296,7 @@ export class MyElement extends LitElement {
         class="inspector-switch ${this.open
           ? 'active-inspector-switch'
           : ''} ${this.moved ? 'move-inspector-switch' : ''}"
-        style=${styleMap({ display: this.hideSwitch ? 'none' : 'flex' })}
+        style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
       >
         ${this.open
           ? html`

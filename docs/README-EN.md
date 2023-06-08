@@ -32,30 +32,12 @@ Click the element on the page, it will automatically open the code editor and po
 
 The following are which compilers, web frameworks and editors we supported now:
 
-- Compiler Support
+- The following bundlers are currently supported:
   - ✅ webpack(4.x/5.x)
   - ✅ vite
-- Web Framework Support
-  - ✅ vue(2.x/3.x)
-  - ⬜ react
-  - ⬜ svelte
-  - ⬜ solid
-  - ⬜ preact
-  - ⬜ lit
-- Editor Support
-  - ✅ [VSCode](https://code.visualstudio.com/)
-  - ✅ [Sublime Text](https://www.sublimetext.com/)
-  - ✅ [webstorm](https://www.jetbrains.com/webstorm/)
-  - ✅ [phpstorm](https://www.jetbrains.com/phpstorm/)
-  - ✅ [HBuilderX](https://www.dcloud.io/hbuilderx.html)
-  - ✅ [atom](https://atom.io/)
-  - ✅ [brackets](https://brackets.io/)
-  - ✅ [VSCodium](https://vscodium.com/)
-  - ✅ [appcode](https://www.jetbrains.com/objc/)
-  - ✅ [clion](https://www.jetbrains.com/clion/)
-  - ✅ [idea](https://www.jetbrains.com/idea/)
-  - ✅ [pycharm](https://www.jetbrains.com/pycharm/)
-  - ✅ [rubymine](https://www.jetbrains.com/ruby/)
-  - ✅ [MacVim](https://macvim-dev.github.io/macvim/)
-  - ✅ [goland](https://www.jetbrains.com/go/)
-  - ✅ [rider](https://www.jetbrains.com/rider/)
+- The following Web frameworks are currently supported:
+  - ✅ vue2
+  - ✅ vue3
+- The following code editors are currently supported:
+
+  [VSCode](https://code.visualstudio.com/) | [Sublime Text](https://www.sublimetext.com/) | [webstorm](https://www.jetbrains.com/webstorm/) | [phpstorm](https://www.jetbrains.com/phpstorm/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [atom](https://atom.io/) | [brackets](https://brackets.io/) | [VSCodium](https://vscodium.com/) | [appcode](https://www.jetbrains.com/objc/) | [clion](https://www.jetbrains.com/clion/) | [idea](https://www.jetbrains.com/idea/) | [pycharm](https://www.jetbrains.com/pycharm/) | [rubymine](https://www.jetbrains.com/ruby/) | [MacVim](https://macvim-dev.github.io/macvim/) | [goland](https://www.jetbrains.com/go/) | [rider](https://www.jetbrains.com/rider/)

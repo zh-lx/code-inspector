@@ -91,7 +91,7 @@ When the inspecting mode is on, click the element on the page, it will automatic
 
 | Parameter  | Description                                                                                                               | Type                | OptionValue                                                          | Default                  |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
-| hideSwitch | Whether hide the button of this function                                                                                  | `boolean`           | `true/false`                                                         | `false`                  |
+| showSwitch | Whether show the switch button of this function                                                                                  | `boolean`           | `true/false`                                                         | `false`                  |
 | hotKeys    | Combination keys for triggering this function.When the value is `false` or `[]`, the function can't be triggered by keys. | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
 | autoToggle | After opening the function switch, whether automatically close the switch when triggering the jump editor function.       | `boolean`           | `true/false`                                                         | `true`                   |
 
@@ -102,7 +102,7 @@ const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
 module.exports = (env = {}) => ({
   plugins: [
     new WebpackCodeInspectorPlugin({
-      hideSwitch: false,
+      showSwitch: false,
       hotKeys: ['altKey', 'shiftKey'],
       autoToggle: true,
     }),
