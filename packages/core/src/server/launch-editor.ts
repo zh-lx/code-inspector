@@ -306,8 +306,7 @@ function launchEditor(
   let [editor, ...args] = guessEditor();
 
   if (!editor) {
-    printInstructions(fileName, null);
-    return;
+    editor = 'code';
   }
 
   if (editor.toLowerCase() === 'none') {

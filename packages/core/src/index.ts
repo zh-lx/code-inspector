@@ -8,21 +8,21 @@ const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
   hotKeys?: HotKey[] | false;
-  hideSwitch?: boolean;
+  showSwitch?: boolean;
   autoToggle?: boolean;
 };
 
 export const getInjectCode = (port: number, options?: CodeOptions) => {
   const {
     hotKeys = ['shiftKey', 'altKey'],
-    hideSwitch = false,
+    showSwitch = false,
     autoToggle = true,
   } = options || ({} as CodeOptions);
   return `<code-inspector-component port=${port} hotKeys="${(hotKeys
     ? hotKeys
     : []
   )?.join(',')}"
-  ${hideSwitch ? 'hideSwitch=true' : ''} ${
+  ${showSwitch ? 'showSwitch=true' : ''} ${
     autoToggle ? 'autoToggle=true' : ''
   }></code-inspector-component>
   <script type="text/javascript">

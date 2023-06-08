@@ -12,7 +12,7 @@ let rootPath = '';
 
 interface Options {
   hotKeys?: HotKey[] | false;
-  hideSwitch?: boolean;
+  showSwitch?: boolean;
   autoToggle?: boolean;
 }
 
