@@ -103,5 +103,5 @@ export default defineConfig({
   If your editor doesn't open automatically when you click on a page element, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, add the following content:
   ```perl
   # editor
-  CODE_EDITOR=code
+  VITE_CODE_EDITOR=code
   ```
