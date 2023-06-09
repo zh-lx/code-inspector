@@ -6,7 +6,7 @@ import {
   normalizePath,
 } from 'code-inspector-core';
 import path from 'path';
-
+import { loadEnv } from 'vite';
 const PluginName = 'vite-code-inspector-plugin';
 let rootPath = '';
 
@@ -28,8 +28,10 @@ export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
     enforce: 'pre' as 'pre',
-    apply(_, { command }) {
-      return command === 'serve';
+    apply(_, { command, mode }) {
+      const isDev = command === 'serve'
+      if(isDev) process.env = {...process.env, ...loadEnv(mode, process.cwd())};
+      return isDev;
     },
     async transform(code, id) {
       if (!rootPath) {
