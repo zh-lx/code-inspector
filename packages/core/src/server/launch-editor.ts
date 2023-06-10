@@ -182,10 +182,17 @@ function getArgumentsForLineNumber(
   return [fileName];
 }
 
+/**
+ * webpack 会自动注入 `WEBPACK_DEV_SERVER` 
+ * 
+ * 需要根据是否为 vite 环境来获取不同的环境变量值
+ */
+const isVite = !process.env.WEBPACK_DEV_SERVER
+
 function guessEditor() {
   // Explicit config always wins
-  if (process.env.CODE_EDITOR) {
-    return shellQuote.parse(process.env.CODE_EDITOR);
+  if (isVite ? process.env.VITE_CODE_EDITOR : process.env.CODE_EDITOR) {
+    return shellQuote.parse(isVite ? process.env.VITE_CODE_EDITOR : process.env.CODE_EDITOR);
   }
 
   // We can find out which editor is currently running by:
@@ -263,7 +270,7 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   }
   console.log(
     'To set up the editor integration, add something like ' +
-      chalk.cyan('CODE_EDITOR=atom') +
+      chalk.cyan(`${isVite ? 'VITE_CODE_EDITOR=atom' : 'CODE_EDITOR=atom'}`) +
       ' to the ' +
       chalk.green('.env.local') +
       ' file in your project folder ' +

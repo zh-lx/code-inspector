@@ -103,5 +103,5 @@ export default defineConfig({
   如果你点击页面元素时无法自动打开代码编辑器，可能是因为系统权限或其他原因导致无法找到正在运行的代码编辑器。在项目根目录添加一个名为 `.env.local` 的文件并添加如下内容:
   ```perl
   # editor
-  CODE_EDITOR=code
+  VITE_CODE_EDITOR=code
   ```
