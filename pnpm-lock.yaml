@@ -14,6 +14,7 @@ importers:
       '@vue/babel-plugin-jsx': ^1.1.1
       '@vue/compiler-dom': ^3.2.47
       chalk: ^4.1.1
+      dotenv: ^16.1.4
       lit: ^2.6.1
       magic-string: ^0.30.0
       portfinder: ^1.0.28
@@ -27,6 +28,7 @@ importers:
       '@vue/babel-plugin-jsx': 1.1.1_@babel+core@7.21.3
       '@vue/compiler-dom': 3.2.47
       chalk: 4.1.2
+      dotenv: 16.1.4
       magic-string: 0.30.0
       portfinder: 1.0.32
       shell-quote: 1.8.0
@@ -5363,6 +5365,11 @@ packages:
   /dotenv-expand/5.1.0:
     resolution: {integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==}
     dev: true
+
+  /dotenv/16.1.4:
+    resolution: {integrity: sha512-m55RtE8AsPeJBpOIFKihEmqUcoVncQIwo7x9U8ZwLEZw9ZpXboz2c+rvog+jUaJvVrZ5kBOeYQBX5+8Aa/OZQw==}
+    engines: {node: '>=12'}
+    dev: false
 
   /dotenv/8.6.0:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}

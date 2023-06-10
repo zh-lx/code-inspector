@@ -43,6 +43,7 @@
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
+    "dotenv": "^16.1.4",
     "magic-string": "^0.30.0",
     "portfinder": "^1.0.28",
     "shell-quote": "^1.7.2"
