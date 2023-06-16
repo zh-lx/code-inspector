@@ -32,30 +32,21 @@
 
 下面是编译器、web 框架以及代码编辑器支持列表:
 
-- 编译器支持性
+- 当前支持以下打包工具
   - ✅ webpack(4.x/5.x)
   - ✅ vite
-- Web 框架支持性
-  - ✅ vue(2.x/3.x)
-  - ⬜ react
-  - ⬜ svelte
-  - ⬜ solid
-  - ⬜ preact
-  - ⬜ lit
-- 代码编辑器支持性
-  - ✅ [VSCode](https://code.visualstudio.com/)
-  - ✅ [Sublime Text](https://www.sublimetext.com/)
-  - ✅ [webstorm](https://www.jetbrains.com/webstorm/)
-  - ✅ [phpstorm](https://www.jetbrains.com/phpstorm/)
-  - ✅ [HBuilderX](https://www.dcloud.io/hbuilderx.html)
-  - ✅ [atom](https://atom.io/)
-  - ✅ [brackets](https://brackets.io/)
-  - ✅ [VSCodium](https://vscodium.com/)
-  - ✅ [appcode](https://www.jetbrains.com/objc/)
-  - ✅ [clion](https://www.jetbrains.com/clion/)
-  - ✅ [idea](https://www.jetbrains.com/idea/)
-  - ✅ [pycharm](https://www.jetbrains.com/pycharm/)
-  - ✅ [rubymine](https://www.jetbrains.com/ruby/)
-  - ✅ [MacVim](https://macvim-dev.github.io/macvim/)
-  - ✅ [goland](https://www.jetbrains.com/go/)
-  - ✅ [rider](https://www.jetbrains.com/rider/)
+- 当前支持以下 Web 框架
+  - ✅ vue2
+  - ✅ vue3
+- 当前支持以下代码编辑器
+
+  [VSCode](https://code.visualstudio.com/) | [Sublime Text](https://www.sublimetext.com/) | [webstorm](https://www.jetbrains.com/webstorm/) | [phpstorm](https://www.jetbrains.com/phpstorm/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [atom](https://atom.io/) | [brackets](https://brackets.io/) | [VSCodium](https://vscodium.com/) | [appcode](https://www.jetbrains.com/objc/) | [clion](https://www.jetbrains.com/clion/) | [idea](https://www.jetbrains.com/idea/) | [pycharm](https://www.jetbrains.com/pycharm/) | [rubymine](https://www.jetbrains.com/ruby/) | [MacVim](https://macvim-dev.github.io/macvim/) | [goland](https://www.jetbrains.com/go/) | [rider](https://www.jetbrains.com/rider/)
+
+## 📠 交流与反馈
+
+任何使用问题可以加入 QQ 群 `769748484` 或者添加作者微信 `zhoulx1688888` 进行咨询与反馈:
+
+<div style="display: flex;">
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/b107aac0-0582-4392-b2c5-c375ccc4fedc" width="200" />
+  <img src="https://user-images.githubusercontent.com/73059627/226233691-848b2a40-f1a9-414e-a80f-3fc6c6209eb1.png" width="200" />
+</div>

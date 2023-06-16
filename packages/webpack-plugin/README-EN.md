@@ -91,7 +91,7 @@ When the inspecting mode is on, click the element on the page, it will automatic
 
 | Parameter  | Description                                                                                                               | Type                | OptionValue                                                          | Default                  |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
-| showSwitch | Whether show the switch button of this function                                                                                  | `boolean`           | `true/false`                                                         | `false`                  |
+| showSwitch | Whether show the switch button of this function                                                                           | `boolean`           | `true/false`                                                         | `false`                  |
 | hotKeys    | Combination keys for triggering this function.When the value is `false` or `[]`, the function can't be triggered by keys. | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
 | autoToggle | After opening the function switch, whether automatically close the switch when triggering the jump editor function.       | `boolean`           | `true/false`                                                         | `true`                   |
 
@@ -118,3 +118,12 @@ module.exports = (env = {}) => ({
   # editor
   CODE_EDITOR=code
   ```
+
+## 📠 Communication and Feedback
+
+For any usage issues, you can join the QQ group `769748484` or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
+
+<div style="display: flex;">
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/b107aac0-0582-4392-b2c5-c375ccc4fedc" width="200" />
+  <img src="https://user-images.githubusercontent.com/73059627/226233691-848b2a40-f1a9-414e-a80f-3fc6c6209eb1.png" width="200" />
+</div>
