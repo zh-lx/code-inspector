@@ -1,4 +1,4 @@
-export declare const LineName = "_vc-row";
-export declare const ColumnName = "_vc-col";
-export declare const PathName = "_vc-path";
-export declare const NodeName = "_vc-node";
+export declare const LineName = 'vc-row';
+export declare const ColumnName = 'vc-col';
+export declare const PathName = 'vc-path';
+export declare const NodeName = 'vc-node';

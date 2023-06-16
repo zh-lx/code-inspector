@@ -4,7 +4,7 @@ const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
 const chalk = require('chalk');
-const shellQuote = require('shell-quote');
+// const shellQuote = require('shell-quote');
 const dotenv = require('dotenv');
 
 function isTerminalEditor(editor: string) {
@@ -16,6 +16,104 @@ function isTerminalEditor(editor: string) {
   }
   return false;
 }
+
+const CodeMap = {
+  mac: {
+    atom: 'atom',
+    brackets: 'brackets',
+    code: 'code',
+    code_insiders: 'code-insiders',
+    vscodium: 'vscodium',
+    idea: '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
+    phpstorm: '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
+    pycharm: '/Applications/PyCharm.app/Contents/MacOS/pycharm',
+    rubymine: '/Applications/RubyMine.app/Contents/MacOS/rubymine',
+    sublime_text:
+      '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
+    sublime_text2:
+      '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
+    vim: 'vim',
+    webstorm: '/Applications/WebStorm.app/Contents/MacOS/webstorm',
+    goland: '/Applications/GoLand.app/Contents/MacOS/goland',
+    rider: '/Applications/Rider.app/Contents/MacOS/rider',
+    hbuilder: '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
+    hbuilderx: '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
+  },
+  linux: {
+    atom: 'atom',
+    brackets: 'brackets',
+    code: 'code',
+    code_insiders: 'code-insiders',
+    vscodium: 'vscodium',
+    idea: 'idea',
+    phpstorm: 'phpstorm',
+    pycharm: 'pycharm',
+    rubymine: 'rubymine',
+    sublime_text: 'sublime_text',
+    sublime_text2: 'sublime_text',
+    vim: 'vim',
+    webstorm: 'webstorm',
+    goland: 'goland',
+    rider: 'rider',
+    hbuilder: 'hbuilder',
+    hbuilderx: 'hbuilderx',
+  },
+  win: {
+    atom: ['atom.exe'],
+    brackets: ['Brackets.exe'],
+    code: ['Code.exe'],
+    code_insiders: ['Code - Insiders.exe'],
+    vscodium: ['VSCodium.exe'],
+    idea: ['idea.exe', 'idea64.exe'],
+    phpstorm: ['phpstorm.exe', 'phpstorm64.exe'],
+    pycharm: ['pycharm.exe', 'pycharm64.exe'],
+    sublime_text: [
+      'sublime_text.exe',
+      'sublime_text2.exe',
+      'sublime_text_2.exe',
+    ],
+    sublime_text2: [
+      'sublime_text.exe',
+      'sublime_text2.exe',
+      'sublime_text_2.exe',
+    ],
+    rubymine: ['rubymine.exe', 'rubymine64.exe'],
+    vim: ['vim.exe', 'gvim.exe'],
+    webstorm: ['webstorm.exe', 'webstorm64.exe'],
+    goland: ['goland.exe', 'goland64.exe'],
+    rider: ['rider.exe', 'rider64.exe'],
+    hbuilder: ['HBuilderX.exe', 'HBuilder.exe'],
+    hbuilderx: ['HBuilderX.exe', 'HBuilder.exe'],
+  },
+};
+
+const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
+  if (process.platform === 'darwin') {
+    return CodeMap.mac[editor] ? [CodeMap.mac[editor]] : null;
+  } else if (process.platform === 'win32') {
+    const output = child_process
+      .execSync(
+        'wmic process where "executablepath is not null" get executablepath'
+      )
+      .toString();
+    const runningProcesses = output.split('\r\n');
+
+    for (let i = 0; i < runningProcesses.length; i++) {
+      const processPath = runningProcesses[i].trim();
+      const processName = path.basename(processPath);
+      if (
+        COMMON_EDITORS_WIN.indexOf(processName) !== -1 &&
+        CodeMap.win[editor].includes(processName)
+      ) {
+        return [processPath];
+      }
+    }
+    return null;
+  } else if (process.platform === 'linux') {
+    return CodeMap.linux[editor] ? [CodeMap.linux[editor]] : null;
+  }
+  return null;
+};
 
 // Map from full process name to binary that starts the process
 // We can't just re-use full process name, because it will spawn a new instance
@@ -186,16 +284,24 @@ function getArgumentsForLineNumber(
 function guessEditor() {
   // webpack
   if (process.env.CODE_EDITOR) {
-    return shellQuote.parse(process.env.CODE_EDITOR);
+    const editor = getEditorByCustom(process.env.CODE_EDITOR as any);
+    if (editor) {
+      return editor;
+    }
   }
 
   // vite
   const envPath = path.resolve(process.cwd(), '.env.local');
-  const envFile = fs.readFileSync(envPath, 'utf-8');
-  const envConfig = dotenv.parse(envFile || '');
-  if (envConfig.CODE_EDITOR) {
-    console.log(shellQuote.parse(envConfig.CODE_EDITOR));
-    return shellQuote.parse(envConfig.CODE_EDITOR);
+  if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf-8');
+    const envConfig = dotenv.parse(envFile || '');
+    if (envConfig.CODE_EDITOR) {
+      const editor = getEditorByCustom(envConfig.CODE_EDITOR as any);
+      console.log(editor);
+      if (editor) {
+        return editor;
+      }
+    }
   }
 
   // We can find out which editor is currently running by:
@@ -314,10 +420,6 @@ function launchEditor(
   }
 
   let [editor, ...args] = guessEditor();
-
-  if (!editor) {
-    editor = 'code';
-  }
 
   if (editor.toLowerCase() === 'none') {
     return;

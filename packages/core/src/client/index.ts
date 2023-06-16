@@ -149,7 +149,7 @@ export class MyElement extends LitElement {
     ) {
       const nodePath = composedPath(e);
       let targetNode;
-      // 寻找第一个有_vc-path属性的元素
+      // 寻找第一个有 vc-path属性的元素
       for (let i = 0; i < nodePath.length; i++) {
         const node = nodePath[i];
         if (node.hasAttribute && node.hasAttribute(PathName)) {
