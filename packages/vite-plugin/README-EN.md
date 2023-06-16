@@ -18,13 +18,13 @@
 
 <hr />
 
-## 📜Introduction
+## 📖 Introduction
 
-Click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
+Click the element on the page, it can automatically open the code editor and position the cursor to the source code of the element.
 
 ![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
 
-## 🚀Install
+## 🚀 Install
 
 ```perl
 npm i vite-code-inspector-plugin -D
@@ -34,7 +34,7 @@ yarn add vite-code-inspector-plugin -D
 pnpm add vite-code-inspector-plugin -D
 ```
 
-## 📦Usage
+## 🌈 Usage
 
 ### 1. configure `vite.config.js`
 
@@ -67,12 +67,12 @@ If your editor is Vscode, you need to do the following:
 
 There are two ways to use code inspector:
 
-1. Click the code inspector switch suspending on the page. When the color of the switch is colored, it means that inspecting mode is on <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" />; and when the color of the switch is gray, it means that inspecting mode is off <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />.
-2. Simultaneously pressing and holding combo keys to open the inspecting mode. (Default value of hotkeys in mac is 【Option + Shift】 and in windows is 【Alt + Shift】)
+1. 【Recommend】Simultaneously pressing and holding combo keys to open the inspecting mode. (Default value of hotkeys in mac is `Option + Shift` and in windows is `Alt + Shift`)
+2. Click the code inspector switch suspending on the page. When the color of the switch is colored, it means that inspecting mode is on <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" />; and when the color of the switch is gray, it means that inspecting mode is off <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />.（The Code Inspector switch button <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" /> is hidden by default, you need to configure `showSwitch: true` to display it on the page.）
 
 When the inspecting mode is on, click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
 
-## 🎨Options
+## 🎨 Options
 
 | Parameter  | Description                                                                                                               | Type                | OptionValue                                                          | Default                  |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
@@ -97,16 +97,67 @@ export default defineConfig({
 });
 ```
 
-## ❓FAQ
+## 🎯 Specify IDE
 
-- <b>Editor doesn't open automatically</b><br>
-  If your editor doesn't open automatically when you click on a page element, it could be because of system permissions or other issues that prevent the plugin from reading the programs currently running on your computer. Please add a file named `.env.local` to your project root directory, add the following content:
-  ```perl
-  # editor
-  CODE_EDITOR=code
-  ```
+By default, `webpack-code-inspector-plugin` automatically identifies the IDE program currently running on the system and opens the first identified program according to priority. If you have multiple different IDEs, you can specify which one to open. Add a file named `.env.local` to the root of the project root and add `CODE_EDITOR=[IDE encoding name]` to the file.
 
-## 📠 Communication and Feedback
+Taking vscode as an example, its `IDE encoding name` is `code`, so the following content should be added in `.env.local`:
+
+```perl
+# specify the IDE is vscode
+CODE_EDITOR=code
+```
+
+The comparison table of IDE and its corresponding `IDE encoding name` is as follows:
+
+<table>
+    <tr>
+        <th>IDE</th>
+        <th>IDE encoding name</th>
+    </tr>
+    <tr>
+        <td>Visual Studio Code</td>
+        <td>code</td>
+    </tr>
+    <tr>
+        <td>Visual Studio Code - Insiders</td>
+        <td>code_insiders</td>
+    </tr>
+    <tr>
+        <td>WebStorm</td>
+        <td>webstorm</td>
+    </tr>
+    <tr>
+        <td>Atom</td>
+        <td>atom</td>
+    </tr>
+    <tr>
+        <td>HBuilderX</td>
+        <td>hbuilderx</td>
+    </tr>
+    <tr>
+        <td>HBuilder</td>
+        <td>hbuilder</td>
+    </tr>
+    <tr>
+        <td>Sublime Text</td>
+        <td>sublime_text</td>
+    </tr>
+    <tr>
+        <td>PhpStorm</td>
+        <td>phpstorm</td>
+    </tr>
+    <tr>
+        <td>Brackets</td>
+        <td>brackets</td>
+    </tr>
+    <tr>
+        <td>RubyMine</td>
+        <td>rubymine</td>
+    </tr>
+</table>
+
+## 📧 Communication and Feedback
 
 For any usage issues, you can join the QQ group `769748484` or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
 

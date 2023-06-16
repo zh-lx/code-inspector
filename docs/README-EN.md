@@ -4,8 +4,7 @@
 <p align="center">
   <h2>code-inspector</h2>
   <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">中文文档</a>
-  |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-EN.md">English Doc</a>
+  | <span>English Doc</span>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/webpack-code-inspector-plugin/latest?label=webpack-code-inspector-plugin&style=plastic)](https://www.npmjs.com/package/webpack-code-inspector-plugin)
@@ -17,34 +16,35 @@
 
 <hr />
 
-## 📜Introduction
+## 📖 Introduction
 
-Click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
+Click the element on the page, it can automatically open the code editor and position the cursor to the source code of the element.
 
 ![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
 
-## 📦Usage
+## 🌈 Usage
 
-- Webpack: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-EN.md)
-- Vite: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README-EN.md)
+- Use with webpack: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-EN.md)
+- Use with vite: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README-EN.md)
 
-## 🎨Support
+## 🎨 Support
 
 The following are which compilers, web frameworks and editors we supported now:
 
-- The following bundlers are currently supported:
-  - ✅ webpack(4.x/5.x)
-  - ✅ vite
-- The following Web frameworks are currently supported:
-  - ✅ vue2
-  - ✅ vue3
+- The following bundlers are currently supported:<br />
+  ✅ webpack(4.x/5.x)<br />
+  ✅ vite
+- The following Web frameworks are currently supported:<br />
+  ✅ vue2<br />
+  ✅ vue3
 - The following code editors are currently supported:
 
   [VSCode](https://code.visualstudio.com/) | [Sublime Text](https://www.sublimetext.com/) | [webstorm](https://www.jetbrains.com/webstorm/) | [phpstorm](https://www.jetbrains.com/phpstorm/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [atom](https://atom.io/) | [brackets](https://brackets.io/) | [VSCodium](https://vscodium.com/) | [appcode](https://www.jetbrains.com/objc/) | [clion](https://www.jetbrains.com/clion/) | [idea](https://www.jetbrains.com/idea/) | [pycharm](https://www.jetbrains.com/pycharm/) | [rubymine](https://www.jetbrains.com/ruby/) | [MacVim](https://macvim-dev.github.io/macvim/) | [goland](https://www.jetbrains.com/go/) | [rider](https://www.jetbrains.com/rider/)
-                                                                               
-## 📠 Communication and Feedback
+
+## 📧 Communication and Feedback
+
 For any usage issues, you can join the QQ group `769748484` or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
-                                                                               
+
 <div style="display: flex;">
   <img src="https://github.com/zh-lx/code-inspector/assets/73059627/b107aac0-0582-4392-b2c5-c375ccc4fedc" width="200" />
   <img src="https://user-images.githubusercontent.com/73059627/226233691-848b2a40-f1a9-414e-a80f-3fc6c6209eb1.png" width="200" />

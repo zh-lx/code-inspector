@@ -4,8 +4,8 @@ const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
 const chalk = require('chalk');
-// const shellQuote = require('shell-quote');
 const dotenv = require('dotenv');
+import { Editor } from '../shared/constant';
 
 function isTerminalEditor(editor: string) {
   switch (editor) {
@@ -17,7 +17,19 @@ function isTerminalEditor(editor: string) {
   return false;
 }
 
-const CodeMap = {
+type CodeMapType = {
+  mac: {
+    [key in Editor]: string;
+  };
+  linux: {
+    [key in Editor]: string;
+  };
+  win: {
+    [key in Editor]: string[];
+  };
+};
+
+const CodeMap: CodeMapType = {
   mac: {
     atom: 'atom',
     brackets: 'brackets',
@@ -32,7 +44,6 @@ const CodeMap = {
       '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
     sublime_text2:
       '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
-    vim: 'vim',
     webstorm: '/Applications/WebStorm.app/Contents/MacOS/webstorm',
     goland: '/Applications/GoLand.app/Contents/MacOS/goland',
     rider: '/Applications/Rider.app/Contents/MacOS/rider',
@@ -51,7 +62,6 @@ const CodeMap = {
     rubymine: 'rubymine',
     sublime_text: 'sublime_text',
     sublime_text2: 'sublime_text',
-    vim: 'vim',
     webstorm: 'webstorm',
     goland: 'goland',
     rider: 'rider',
@@ -78,7 +88,6 @@ const CodeMap = {
       'sublime_text_2.exe',
     ],
     rubymine: ['rubymine.exe', 'rubymine64.exe'],
-    vim: ['vim.exe', 'gvim.exe'],
     webstorm: ['webstorm.exe', 'webstorm64.exe'],
     goland: ['goland.exe', 'goland64.exe'],
     rider: ['rider.exe', 'rider64.exe'],
@@ -87,10 +96,13 @@ const CodeMap = {
   },
 };
 
+// 用户指定了 IDE 时，优先走此处
 const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
   if (process.platform === 'darwin') {
+    // mac 系统
     return CodeMap.mac[editor] ? [CodeMap.mac[editor]] : null;
   } else if (process.platform === 'win32') {
+    // windows 系统
     const output = child_process
       .execSync(
         'wmic process where "executablepath is not null" get executablepath'
@@ -101,15 +113,13 @@ const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
     for (let i = 0; i < runningProcesses.length; i++) {
       const processPath = runningProcesses[i].trim();
       const processName = path.basename(processPath);
-      if (
-        COMMON_EDITORS_WIN.indexOf(processName) !== -1 &&
-        CodeMap.win[editor].includes(processName)
-      ) {
+      if (CodeMap.win[editor].includes(processName)) {
         return [processPath];
       }
     }
     return null;
   } else if (process.platform === 'linux') {
+    // linux 系统
     return CodeMap.linux[editor] ? [CodeMap.linux[editor]] : null;
   }
   return null;

@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",
@@ -45,7 +45,6 @@
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
     "magic-string": "^0.30.0",
-    "portfinder": "^1.0.28",
-    "shell-quote": "^1.7.2"
+    "portfinder": "^1.0.28"
   }
 }
