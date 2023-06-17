@@ -7,9 +7,9 @@ export default defineComponent({
     });
     return () => (
       <div>
-        detail jsx paragraph
-        <p>sfaasfa</p>
-        <a>sagasghiqlhj</a>
+        this is jsx root element
+        <p>detail jsx element 1</p>
+        <a>detail jsx element 2</a>
       </div>
     );
   },
