@@ -68,7 +68,7 @@ pnpm add webpack-code-inspector-plugin -D
 
 ### 2. 使用代码审查
 
-目前是有代码审查功能的方式有两种:
+目前使用代码审查功能的方式有两种:
 
 1. 【推荐】同时持续按住组合键进行代码审查。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`)
 2. 点击页面上的 Code Inspector 开关按钮。当开关的颜色变成彩色时，表示代码审查模式打开 <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" />；当开关颜色变成黑白时，表示代码审查模式关闭 <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />。（Code Inspector 开关按钮 <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" /> 默认隐藏，需要配置 `showSwitch: true` 才会在页面显示。）
