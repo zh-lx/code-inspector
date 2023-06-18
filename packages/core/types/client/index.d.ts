@@ -48,6 +48,7 @@ export declare class MyElement extends LitElement {
     recordMousePosition: (e: MouseEvent) => void;
     handleMouseUp: () => void;
     switch: (e: Event) => void;
+    eliminateWarning: () => void;
     protected firstUpdated(): void;
     disconnectedCallback(): void;
     render(): import("lit").TemplateResult<1>;

@@ -228,7 +228,21 @@ export class MyElement extends LitElement {
     this.moved = false;
   };
 
+  // 消除 vue 组件多个根节点时的 warning 问题
+  eliminateWarning = () => {
+    const originWarn = console.warn;
+    const warning = `[Vue warn]: Extraneous non-props attributes (${PathName})`;
+    console.warn = function (...args) {
+      if (args && args[0] && args[0].indexOf(warning) !== -1) {
+        return;
+      } else {
+        originWarn(...args);
+      }
+    };
+  };
+
   protected firstUpdated(): void {
+    this.eliminateWarning();
     this.printTip();
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousemove', this.moveSwitch);

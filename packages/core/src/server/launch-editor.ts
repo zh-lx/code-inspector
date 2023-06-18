@@ -307,7 +307,6 @@ function guessEditor() {
     const envConfig = dotenv.parse(envFile || '');
     if (envConfig.CODE_EDITOR) {
       const editor = getEditorByCustom(envConfig.CODE_EDITOR as any);
-      console.log(editor);
       if (editor) {
         return editor;
       }
