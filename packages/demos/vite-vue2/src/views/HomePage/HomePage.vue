@@ -1,7 +1,5 @@
 <template>
   <div class="home-page">
-    <DemoJsx></DemoJsx>
-    <VueJsx></VueJsx>
     <div class="test-text">isOk: {{ store.isOk }} - testNum: {{ testNum }}</div>
     <el-button type="primary" @click="changeStore">changeStore</el-button>
     <el-table v-loading="tableLoading" :data="tableData" style="width: 100%">
@@ -21,8 +19,6 @@ import { inject, onMounted, ref } from "vue";
 import Message from "element-ui/lib/message";
 import "element-ui/lib/theme-chalk/message.css";
 import { useRouter } from "vue-router/composables";
-import DemoJsx from "./demo.jsx";
-import VueJsx from "./vue-jsx.vue";
 const $router = useRouter();
 
 const injectEvent: any = inject("test");
