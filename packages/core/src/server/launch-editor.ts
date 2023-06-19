@@ -31,68 +31,44 @@ type CodeMapType = {
 
 const CodeMap: CodeMapType = {
   mac: {
-    atom: 'atom',
-    brackets: 'brackets',
-    code: 'code',
-    code_insiders: 'code-insiders',
-    vscodium: 'vscodium',
-    idea: '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
-    phpstorm: '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
-    pycharm: '/Applications/PyCharm.app/Contents/MacOS/pycharm',
-    rubymine: '/Applications/RubyMine.app/Contents/MacOS/rubymine',
-    sublime_text:
-      '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
-    sublime_text2:
-      '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
-    webstorm: '/Applications/WebStorm.app/Contents/MacOS/webstorm',
-    goland: '/Applications/GoLand.app/Contents/MacOS/goland',
-    rider: '/Applications/Rider.app/Contents/MacOS/rider',
-    hbuilder: '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
-    hbuilderx: '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
+    code: 'code', // confirmed
+    code_insiders: 'code-insiders', // confirmed
+    webstorm: '/Applications/WebStorm.app/Contents/MacOS/webstorm', // confirmed
+    atom: 'atom', // confirmed
+    hbuilder: '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX', // confirmed
+    phpstorm: '/Applications/PhpStorm.app/Contents/MacOS/phpstorm', // confirmed
+    pycharm: '/Applications/PyCharm.app/Contents/MacOS/pycharm', // confirmed
+    idea: '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea', // confirmed
+    // sublime_text: '/Applications/Sublime Text.app/Contents/MacOS/sublime_text', // can't open the opened project
+    // brackets: '/Applications/Brackets.app/Contents/MacOS/Brackets', // can't open file
+    // vscodium: 'codium', // cant't open the specific line and column
+
   },
   linux: {
-    atom: 'atom',
-    brackets: 'brackets',
     code: 'code',
     code_insiders: 'code-insiders',
-    vscodium: 'vscodium',
-    idea: 'idea',
+    webstorm: 'webstorm',
+    atom: 'atom',
+    hbuilder: 'hbuilderx',
     phpstorm: 'phpstorm',
     pycharm: 'pycharm',
-    rubymine: 'rubymine',
-    sublime_text: 'sublime_text',
-    sublime_text2: 'sublime_text',
-    webstorm: 'webstorm',
-    goland: 'goland',
-    rider: 'rider',
-    hbuilder: 'hbuilder',
-    hbuilderx: 'hbuilderx',
+    idea: 'idea',
+    // brackets: 'brackets',
+    // vscodium: 'vscodium',
+    // sublime_text: 'sublime_text',
   },
   win: {
-    atom: ['atom.exe'],
-    brackets: ['Brackets.exe'],
-    code: ['Code.exe'],
+    code: ['Code.exe'], // confirmed
     code_insiders: ['Code - Insiders.exe'],
-    vscodium: ['VSCodium.exe'],
-    idea: ['idea.exe', 'idea64.exe'],
+    webstorm: ['webstorm.exe', 'webstorm64.exe'],
+    atom: ['atom.exe'],
+    hbuilder: ['HBuilderX.exe', 'HBuilder.exe'],
     phpstorm: ['phpstorm.exe', 'phpstorm64.exe'],
     pycharm: ['pycharm.exe', 'pycharm64.exe'],
-    sublime_text: [
-      'sublime_text.exe',
-      'sublime_text2.exe',
-      'sublime_text_2.exe',
-    ],
-    sublime_text2: [
-      'sublime_text.exe',
-      'sublime_text2.exe',
-      'sublime_text_2.exe',
-    ],
-    rubymine: ['rubymine.exe', 'rubymine64.exe'],
-    webstorm: ['webstorm.exe', 'webstorm64.exe'],
-    goland: ['goland.exe', 'goland64.exe'],
-    rider: ['rider.exe', 'rider64.exe'],
-    hbuilder: ['HBuilderX.exe', 'HBuilder.exe'],
-    hbuilderx: ['HBuilderX.exe', 'HBuilder.exe'],
+    idea: ['idea.exe', 'idea64.exe'],
+    // brackets: ['Brackets.exe'],
+    // vscodium: ['VSCodium.exe'],
+    // sublime_text: [ 'sublime_text.exe', ],
   },
 };
 
@@ -129,79 +105,45 @@ const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
 // We can't just re-use full process name, because it will spawn a new instance
 // of the app every time
 const COMMON_EDITORS_OSX = {
-  '/Atom.app/': 'atom',
-  '/Atom Beta.app/': '/Applications/Atom Beta.app/Contents/MacOS/Atom Beta',
-  '/Brackets.app/': 'brackets',
-  '/Sublime Text.app/':
-    '/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl',
-  '/Sublime Text Dev.app/':
-    '/Applications/Sublime Text Dev.app/Contents/SharedSupport/bin/subl',
-  '/Sublime Text 2.app/':
-    '/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl',
   '/Visual Studio Code.app/': 'code',
   '/Visual Studio Code/': 'code-insiders',
-  '/VSCodium.app/': 'vscodium',
-  '/AppCode.app/': '/Applications/AppCode.app/Contents/MacOS/appcode',
-  '/CLion.app/': '/Applications/CLion.app/Contents/MacOS/clion',
-  '/IntelliJ IDEA.app/': '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
+  '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
+  '/Atom.app/': 'atom',
+  '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
   '/PhpStorm.app/': '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
   '/PyCharm.app/': '/Applications/PyCharm.app/Contents/MacOS/pycharm',
   '/PyCharm CE.app/': '/Applications/PyCharm CE.app/Contents/MacOS/pycharm',
-  '/RubyMine.app/': '/Applications/RubyMine.app/Contents/MacOS/rubymine',
-  '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
-  '/MacVim.app/': 'mvim',
-  '/GoLand.app/': '/Applications/GoLand.app/Contents/MacOS/goland',
-  '/Rider.app/': '/Applications/Rider.app/Contents/MacOS/rider',
-  '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
-  '/HBuilder.app/': '/Applications/HBuilder.app/Contents/MacOS/HBuilder',
+  '/IntelliJ IDEA.app/': '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea',
 };
 
 const COMMON_EDITORS_LINUX = {
-  atom: 'atom',
-  Brackets: 'brackets',
   code: 'code',
   'code-insiders': 'code-insiders',
-  vscodium: 'vscodium',
-  emacs: 'emacs',
-  gvim: 'gvim',
-  'idea.sh': 'idea',
+  'webstorm.sh': 'webstorm',
+  atom: 'atom',
+  hbuilderx: 'hbuilderx',
+  'hbuilderx.sh': 'hbuilderx',
   'phpstorm.sh': 'phpstorm',
   'pycharm.sh': 'pycharm',
-  'rubymine.sh': 'rubymine',
-  sublime_text: 'sublime_text',
-  vim: 'vim',
-  'webstorm.sh': 'webstorm',
-  'goland.sh': 'goland',
-  'rider.sh': 'rider',
-  hbuilderx: 'hbuilderx',
+  'idea.sh': 'idea',
 };
 
 const COMMON_EDITORS_WIN = [
-  'Brackets.exe',
   'Code.exe',
   'Code - Insiders.exe',
-  'VSCodium.exe',
+  'webstorm.exe',
+  'webstorm64.exe',
   'atom.exe',
-  'sublime_text.exe',
-  'notepad++.exe',
-  'clion.exe',
-  'clion64.exe',
-  'idea.exe',
-  'idea64.exe',
+  'HBuilderX.exe',
+  'HBuilder.exe',
+  'HBuilderX64.exe',
+  'HBuilder64.exe',
   'phpstorm.exe',
   'phpstorm64.exe',
   'pycharm.exe',
   'pycharm64.exe',
-  'rubymine.exe',
-  'rubymine64.exe',
-  'webstorm.exe',
-  'webstorm64.exe',
-  'goland.exe',
-  'goland64.exe',
-  'rider.exe',
-  'rider64.exe',
-  'HBuilderX.exe',
-  'HBuilder.exe',
+  'idea.exe',
+  'idea64.exe',
 ];
 
 // Transpiled version of: /^([A-Za-z]:[/\\])?[\p{L}0-9/.\-_\\]+$/u
@@ -388,12 +330,12 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   }
   console.log(
     'To set up the editor integration, add something like ' +
-      chalk.cyan('CODE_EDITOR=atom') +
-      ' to the ' +
-      chalk.green('.env.local') +
-      ' file in your project folder ' +
-      'and restart the development server. Learn more: ' +
-      chalk.green('https://goo.gl/MMTaZt')
+    chalk.cyan('CODE_EDITOR=code') +
+    ' to the ' +
+    chalk.green('.env.local') +
+    ' file in your project folder ' +
+    'and restart the development server. Learn more: ' +
+    chalk.green('https://goo.gl/MMTaZt')
   );
 }
 
@@ -461,9 +403,9 @@ function launchEditor(
     );
     console.log(
       'When running on Windows, file names are checked against a whitelist ' +
-        'to protect against remote code execution attacks. File names may ' +
-        'consist only of alphanumeric characters (all languages), periods, ' +
-        'dashes, slashes, and underscores.'
+      'to protect against remote code execution attacks. File names may ' +
+      'consist only of alphanumeric characters (all languages), periods, ' +
+      'dashes, slashes, and underscores.'
     );
     return;
   }
