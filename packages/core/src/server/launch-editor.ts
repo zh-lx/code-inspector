@@ -42,7 +42,6 @@ const CodeMap: CodeMapType = {
     // sublime_text: '/Applications/Sublime Text.app/Contents/MacOS/sublime_text', // can't open the opened project
     // brackets: '/Applications/Brackets.app/Contents/MacOS/Brackets', // can't open file
     // vscodium: 'codium', // cant't open the specific line and column
-
   },
   linux: {
     code: 'code',
@@ -234,7 +233,7 @@ function getArgumentsForLineNumber(
 }
 
 function guessEditor() {
-  let customEditors = null
+  let customEditors = null;
 
   // webpack
   if (process.env.CODE_EDITOR) {
@@ -274,7 +273,7 @@ function guessEditor() {
             return [COMMON_EDITORS_OSX[processName]];
           }
           if (!first) {
-            first = [COMMON_EDITORS_OSX[processName]]
+            first = [COMMON_EDITORS_OSX[processName]];
           }
         }
       }
@@ -296,7 +295,7 @@ function guessEditor() {
             return [processPath];
           }
           if (!first) {
-            first = [processPath]
+            first = [processPath];
           }
         }
       }
@@ -310,20 +309,22 @@ function guessEditor() {
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       let first: any;
       for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[i] as keyof typeof COMMON_EDITORS_LINUX;
+        const processName = processNames[
+          i
+        ] as keyof typeof COMMON_EDITORS_LINUX;
         if (output.indexOf(processName) !== -1) {
           if (customEditors?.includes(processName)) {
             // 优先返回用户自定义
             return [COMMON_EDITORS_LINUX[processName]];
           }
           if (!first) {
-            first = [COMMON_EDITORS_LINUX[processName]]
+            first = [COMMON_EDITORS_LINUX[processName]];
           }
         }
       }
     }
     if (first) {
-      return first
+      return first;
     }
   } catch (error) {
     // Ignore...
@@ -353,12 +354,12 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   }
   console.log(
     'To set up the editor integration, add something like ' +
-    chalk.cyan('CODE_EDITOR=code') +
-    ' to the ' +
-    chalk.green('.env.local') +
-    ' file in your project folder ' +
-    'and restart the development server. Learn more: ' +
-    chalk.green('https://goo.gl/MMTaZt')
+      chalk.cyan('CODE_EDITOR=code') +
+      ' to the ' +
+      chalk.green('.env.local') +
+      ' file in your project folder ' +
+      'and restart the development server. Learn more: ' +
+      chalk.green('https://goo.gl/MMTaZt')
   );
 }
 
@@ -426,9 +427,9 @@ function launchEditor(
     );
     console.log(
       'When running on Windows, file names are checked against a whitelist ' +
-      'to protect against remote code execution attacks. File names may ' +
-      'consist only of alphanumeric characters (all languages), periods, ' +
-      'dashes, slashes, and underscores.'
+        'to protect against remote code execution attacks. File names may ' +
+        'consist only of alphanumeric characters (all languages), periods, ' +
+        'dashes, slashes, and underscores.'
     );
     return;
   }
