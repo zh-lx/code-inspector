@@ -24,6 +24,8 @@ Click the element on the page, it can automatically open the code editor and pos
 
 ## 🌈 Usage
 
+This tool supports being used as a `webpack/vite` plugin. Please refer to the following for detailed access methods:
+
 - Use with webpack: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-EN.md)
 - Use with vite: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README-EN.md)
 
@@ -39,7 +41,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ vue3
 - The following code editors are currently supported:
 
-  [VSCode](https://code.visualstudio.com/) | [Sublime Text](https://www.sublimetext.com/) | [webstorm](https://www.jetbrains.com/webstorm/) | [phpstorm](https://www.jetbrains.com/phpstorm/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [atom](https://atom.io/) | [brackets](https://brackets.io/) | [VSCodium](https://vscodium.com/) | [appcode](https://www.jetbrains.com/objc/) | [clion](https://www.jetbrains.com/clion/) | [idea](https://www.jetbrains.com/idea/) | [pycharm](https://www.jetbrains.com/pycharm/) | [rubymine](https://www.jetbrains.com/ruby/) | [MacVim](https://macvim-dev.github.io/macvim/) | [goland](https://www.jetbrains.com/go/) | [rider](https://www.jetbrains.com/rider/)
+  [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
 ## 📧 Communication and Feedback
 

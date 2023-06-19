@@ -5,18 +5,10 @@ export const NodeName = 'vc-node'; // 注入的节点名称
 
 export type Editor =
   | 'atom'
-  | 'brackets'
   | 'code'
   | 'code_insiders'
-  | 'vscodium'
   | 'idea'
   | 'phpstorm'
   | 'pycharm'
-  | 'rubymine'
-  | 'sublime_text'
-  | 'sublime_text2'
   | 'webstorm'
-  | 'goland'
-  | 'rider'
   | 'hbuilder'
-  | 'hbuilderx';

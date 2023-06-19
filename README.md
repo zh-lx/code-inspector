@@ -24,6 +24,8 @@
 
 ## 🌈 使用
 
+本工具支持作为 `webpack/vite` 插件使用，详细接入方式参考下面：
+
 - 在 Webpack 中使用: [webpack-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README.md)
 - 在 Vite 中使用: [vite-code-inspector-plugin](https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README.md)
 
@@ -38,8 +40,7 @@
   ✅ vue2<br />
   ✅ vue3
 - 当前支持以下代码编辑器
-
-  [VSCode](https://code.visualstudio.com/) | [Sublime Text](https://www.sublimetext.com/) | [webstorm](https://www.jetbrains.com/webstorm/) | [phpstorm](https://www.jetbrains.com/phpstorm/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [atom](https://atom.io/) | [brackets](https://brackets.io/) | [VSCodium](https://vscodium.com/) | [appcode](https://www.jetbrains.com/objc/) | [clion](https://www.jetbrains.com/clion/) | [idea](https://www.jetbrains.com/idea/) | [pycharm](https://www.jetbrains.com/pycharm/) | [rubymine](https://www.jetbrains.com/ruby/) | [MacVim](https://macvim-dev.github.io/macvim/) | [goland](https://www.jetbrains.com/go/) | [rider](https://www.jetbrains.com/rider/)
+  [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
 ## 📧 交流与反馈
 

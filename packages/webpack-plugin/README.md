@@ -146,27 +146,19 @@ IDE 及对应的`IDE编码名称`对照表如下：
     </tr>
     <tr>
         <td>HBuilderX</td>
-        <td>hbuilderx</td>
-    </tr>
-    <tr>
-        <td>HBuilder</td>
         <td>hbuilder</td>
-    </tr>
-    <tr>
-        <td>Sublime Text</td>
-        <td>sublime_text</td>
     </tr>
     <tr>
         <td>PhpStorm</td>
         <td>phpstorm</td>
     </tr>
     <tr>
-        <td>Brackets</td>
-        <td>brackets</td>
+        <td>Pycharm</td>
+        <td>pycharm</td>
     </tr>
     <tr>
-        <td>RubyMine</td>
-        <td>rubymine</td>
+        <td>IntelliJ IDEA</td>
+        <td>idea</td>
     </tr>
 </table>
 
