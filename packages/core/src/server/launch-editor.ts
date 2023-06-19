@@ -31,14 +31,14 @@ type CodeMapType = {
 
 const CodeMap: CodeMapType = {
   mac: {
-    code: 'code', // confirmed
-    code_insiders: 'code-insiders', // confirmed
-    webstorm: '/Applications/WebStorm.app/Contents/MacOS/webstorm', // confirmed
-    atom: 'atom', // confirmed
-    hbuilder: '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX', // confirmed
-    phpstorm: '/Applications/PhpStorm.app/Contents/MacOS/phpstorm', // confirmed
-    pycharm: '/Applications/PyCharm.app/Contents/MacOS/pycharm', // confirmed
-    idea: '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea', // confirmed
+    code: '/Visual Studio Code.app/', // confirmed
+    code_insiders: '/Visual Studio Code/', // confirmed
+    webstorm: '/WebStorm.app/', // confirmed
+    atom: '/Atom.app/', // confirmed
+    hbuilder: '/HBuilderX.app/', // confirmed
+    phpstorm: '/PhpStorm.app/', // confirmed
+    pycharm: '/PyCharm.app/', // confirmed
+    idea: '/IntelliJ IDEA.app/', // confirmed
     // sublime_text: '/Applications/Sublime Text.app/Contents/MacOS/sublime_text', // can't open the opened project
     // brackets: '/Applications/Brackets.app/Contents/MacOS/Brackets', // can't open file
     // vscodium: 'codium', // cant't open the specific line and column
@@ -47,12 +47,12 @@ const CodeMap: CodeMapType = {
   linux: {
     code: 'code',
     code_insiders: 'code-insiders',
-    webstorm: 'webstorm',
+    webstorm: 'webstorm.sh',
     atom: 'atom',
-    hbuilder: 'hbuilderx',
-    phpstorm: 'phpstorm',
-    pycharm: 'pycharm',
-    idea: 'idea',
+    hbuilder: 'hbuilderx.sh',
+    phpstorm: 'phpstorm.sh',
+    pycharm: 'pycharm.sh',
+    idea: 'idea.sh',
     // brackets: 'brackets',
     // vscodium: 'vscodium',
     // sublime_text: 'sublime_text',
@@ -234,11 +234,13 @@ function getArgumentsForLineNumber(
 }
 
 function guessEditor() {
+  let customEditors = null
+
   // webpack
   if (process.env.CODE_EDITOR) {
     const editor = getEditorByCustom(process.env.CODE_EDITOR as any);
     if (editor) {
-      return editor;
+      customEditors = editor;
     }
   }
 
@@ -250,7 +252,7 @@ function guessEditor() {
     if (envConfig.CODE_EDITOR) {
       const editor = getEditorByCustom(envConfig.CODE_EDITOR as any);
       if (editor) {
-        return editor;
+        customEditors = editor;
       }
     }
   }
@@ -259,14 +261,21 @@ function guessEditor() {
   // `ps x` on macOS and Linux
   // `Get-Process` on Windows
   try {
+    let first: any;
+
     if (process.platform === 'darwin') {
       const output = child_process.execSync('ps x').toString();
       const processNames = Object.keys(COMMON_EDITORS_OSX);
       for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[i];
+        const processName = processNames[i] as keyof typeof COMMON_EDITORS_OSX;
         if (output.indexOf(processName) !== -1) {
-          // @ts-ignore
-          return [COMMON_EDITORS_OSX[processName]];
+          if (customEditors?.includes(processName)) {
+            // 优先返回用户自定义
+            return [COMMON_EDITORS_OSX[processName]];
+          }
+          if (!first) {
+            first = [COMMON_EDITORS_OSX[processName]]
+          }
         }
       }
     } else if (process.platform === 'win32') {
@@ -283,7 +292,12 @@ function guessEditor() {
         const processPath = runningProcesses[i].trim();
         const processName = path.basename(processPath);
         if (COMMON_EDITORS_WIN.indexOf(processName) !== -1) {
-          return [processPath];
+          if (customEditors?.includes(processName)) {
+            return [processPath];
+          }
+          if (!first) {
+            first = [processPath]
+          }
         }
       }
     } else if (process.platform === 'linux') {
@@ -294,13 +308,22 @@ function guessEditor() {
         .execSync('ps x --no-heading -o comm --sort=comm')
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
+      let first: any;
       for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[i];
+        const processName = processNames[i] as keyof typeof COMMON_EDITORS_LINUX;
         if (output.indexOf(processName) !== -1) {
-          // @ts-ignore
-          return [COMMON_EDITORS_LINUX[processName]];
+          if (customEditors?.includes(processName)) {
+            // 优先返回用户自定义
+            return [COMMON_EDITORS_LINUX[processName]];
+          }
+          if (!first) {
+            first = [COMMON_EDITORS_LINUX[processName]]
+          }
         }
       }
+    }
+    if (first) {
+      return first
     }
   } catch (error) {
     // Ignore...
