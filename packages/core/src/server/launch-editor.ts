@@ -89,7 +89,7 @@ const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
       const processPath = runningProcesses[i].trim();
       const processName = path.basename(processPath);
       if (CodeMap.win[editor].includes(processName)) {
-        return [processPath];
+        return [processName];
       }
     }
     return null;
