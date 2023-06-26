@@ -72,7 +72,9 @@ const CodeMap: CodeMapType = {
 };
 
 // 用户指定了 IDE 时，优先走此处
-const getEditorByCustom = (editor: keyof typeof CodeMap.mac): any[] | null => {
+const getEditorByCustom = (
+  editor: keyof typeof CodeMap.mac
+): string[] | null => {
   if (process.platform === 'darwin') {
     // mac 系统
     return CodeMap.mac[editor] ? [CodeMap.mac[editor]] : null;
@@ -240,6 +242,8 @@ function guessEditor() {
     const editor = getEditorByCustom(process.env.CODE_EDITOR as any);
     if (editor) {
       customEditors = editor;
+    } else {
+      return [process.env.CODE_EDITOR];
     }
   }
 
@@ -252,6 +256,8 @@ function guessEditor() {
       const editor = getEditorByCustom(envConfig.CODE_EDITOR as any);
       if (editor) {
         customEditors = editor;
+      } else {
+        return [envConfig.CODE_EDITOR];
       }
     }
   }
