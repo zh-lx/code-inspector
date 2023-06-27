@@ -1,0 +1,35 @@
+{
+  "name": "code-inspector-plugin",
+  "version": "0.0.18",
+  "main": "./lib/index.js",
+  "repository": "git@github.com:zh-lx/code-inspector.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc && vite build"
+  },
+  "homepage": "https://github.com/zh-lx/code-inspector",
+  "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
+  "keywords": [
+    "webpack",
+    "vite",
+    "plugin",
+    "vue",
+    "vscode",
+    "inspector",
+    "inspect"
+  ],
+  "bugs": {
+    "url": "https://github.com/zh-lx/code-inspector/issues"
+  },
+  "dependencies": {
+    "vite-code-inspector-plugin": "workspace:*",
+    "webpack-code-inspector-plugin": "workspace:*",
+    "code-inspector-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.1",
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0"
+  }
+}
