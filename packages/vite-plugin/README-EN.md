@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width=160px" style="margin-bottom: 12px;" />
+<img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
   <h2>vite-code-inspector-plugin</h2>
@@ -68,7 +68,7 @@ If your editor is Vscode, you need to do the following:
 There are two ways to use code inspector:
 
 1. 【Recommend】Simultaneously pressing and holding combo keys to open the inspecting mode. (Default value of hotkeys in mac is `Option + Shift` and in windows is `Alt + Shift`)
-2. Click the code inspector switch suspending on the page. When the color of the switch is colored, it means that inspecting mode is on <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" />; and when the color of the switch is gray, it means that inspecting mode is off <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />.（The Code Inspector switch button <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" /> is hidden by default, you need to configure `showSwitch: true` to display it on the page.）
+2. Click the code inspector switch suspending on the page. When the color of the switch is colored, it means that inspecting mode is on <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" />; and when the color of the switch is gray, it means that inspecting mode is off <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />.（The Code Inspector switch button <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" /> is hidden by default, you need to configure `showSwitch: true` to display it on the page.）
 
 When the inspecting mode is on, click the element on the page, it will automatically open the code editor and position the cursor to the source code of the element.
 

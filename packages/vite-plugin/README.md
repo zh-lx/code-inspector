@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width=160px" style="margin-bottom: 12px;" />
+<img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
   <h2>vite-code-inspector-plugin</h2>
@@ -56,7 +56,7 @@ pnpm add vite-code-inspector-plugin -D
 目前使用代码审查功能的方式有两种:
 
 1. 【推荐】同时持续按住组合键进行代码审查。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`)
-2. 点击页面上的 Code Inspector 开关按钮。当开关的颜色变成彩色时，表示代码审查模式打开 <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" />；当开关颜色变成黑白时，表示代码审查模式关闭 <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />。（Code Inspector 开关按钮 <img src="https://user-images.githubusercontent.com/73059627/230129140-6e7a7eb7-4c78-4a58-b4aa-fcb7c2a6c95f.png" width="20" /> 默认隐藏，需要配置 `showSwitch: true` 才会在页面显示。）
+2. 点击页面上的 Code Inspector 开关按钮。当开关的颜色变成彩色时，表示代码审查模式打开 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" />；当开关颜色变成黑白时，表示代码审查模式关闭 <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" />。（Code Inspector 开关按钮 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" /> 默认隐藏，需要配置 `showSwitch: true` 才会在页面显示。）
 
 当代码审查模式打开时，点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 

@@ -3,22 +3,28 @@
 layout: home
 
 hero:
-  name: 'code-inspector'
-  text: "Locate dom's source code in IDE"
-  tagline: My great project tagline
+  name: 'Code Inspector'
+  text: 'A Magic Tool for Developing'
+  tagline: Click the dom on the page, it can locate the dom's source code in the IDE
+  image:
+    src: /logo.svg
+    alt: ChoDocs
   actions:
     - theme: brand
-      text: Markdown Examples
+      text: 快速开始
       link: /markdown-examples
     - theme: alt
       text: API Examples
       link: /api-examples
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - icon: 🚀
+    title: 提效神器
+    details: 鼠标一点即能快速定位到源代码，大幅提升开发体验和效率
+  - icon: 📖
+    title: 简单易用
+    details: 安装、配置及使用步骤都十分简洁，只需几秒钟即可接入并使用
+  - icon: 🎨
+    title: 通用性强
+    details: 支持在 webpack/vite 中使用，支持 vue/react 等多个框架
 ---

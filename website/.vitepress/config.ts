@@ -2,9 +2,10 @@ import { defineConfig } from 'vitepress';
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: 'code-inspector',
+  title: 'Code Inspector',
   description: "Locate dom's source code in IDE",
   themeConfig: {
+    logo: './logo.svg',
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
