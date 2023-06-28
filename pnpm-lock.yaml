@@ -185,15 +185,15 @@ importers:
       '@vitejs/plugin-vue-jsx':
         specifier: ^3.0.1
         version: 3.0.1(vite@4.2.0)(vue@3.2.47)
+      code-inspector-plugin:
+        specifier: workspace:*
+        version: link:../../code-inspector-plugin
       typescript:
         specifier: ^4.9.3
         version: 4.9.5
       vite:
         specifier: ^4.2.0
         version: 4.2.0(@types/node@18.14.1)(sass@1.54.7)(terser@5.15.0)
-      vite-code-inspector-plugin:
-        specifier: workspace:*
-        version: link:../../vite-plugin
       vue-tsc:
         specifier: ^1.2.0
         version: 1.2.0(typescript@4.9.5)
@@ -352,6 +352,9 @@ importers:
       typescript:
         specifier: ^4.9.3
         version: 4.9.5
+      vite:
+        specifier: ^4.3.9
+        version: 4.3.9(@types/node@16.18.12)
 
 packages:
 
@@ -11498,6 +11501,39 @@ packages:
       terser: 5.15.0
     optionalDependencies:
       fsevents: 2.3.2
+
+  /vite@4.3.9(@types/node@16.18.12):
+    resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 16.18.12
+      esbuild: 0.17.12
+      postcss: 8.4.24
+      rollup: 3.25.1
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
 
   /vm-browserify@1.1.2:
     resolution: {integrity: sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==}

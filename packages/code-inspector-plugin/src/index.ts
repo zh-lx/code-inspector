@@ -1,5 +1,5 @@
-const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
-const { ViteCodeInspectorPlugin } = require('vite-code-inspector-plugin');
+import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
+import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import { CodeOptions } from 'code-inspector-core';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {

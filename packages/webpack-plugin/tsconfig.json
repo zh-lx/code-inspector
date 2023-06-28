@@ -1,26 +1,22 @@
 {
   "compilerOptions": {
-    "lib": ["es6", "dom"],
-    "sourceMap": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "module": "CommonJS",
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": false,
-    "module": "commonjs",
-    "target": "es5",
-    "strictNullChecks": false,
-    "suppressImplicitAnyIndexErrors": false,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "Node",
+    "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": false,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "noUnusedLocals": false,
-    "resolveJsonModule": true,
-    "baseUrl": "./",
-    "outDir": "lib",
-    "declaration": true
-  }
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
