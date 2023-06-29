@@ -3,7 +3,7 @@
     "dev": "webpack-dev-server"
   },
   "dependencies": {
-    "vue": "^3.0.2"
+    "vue": "^3.2.47"
   },
   "keywords": [
     "vue3",
@@ -13,7 +13,10 @@
   "name": "webpack4-vue3",
   "description": null,
   "devDependencies": {
+    "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.22.5",
     "@vue/compiler-sfc": "^3.0.2",
+    "babel-loader": "^8.0.0",
     "css-loader": "^3.6.0",
     "file-loader": "^5.1.0",
     "html-replace-webpack-plugin": "^2.6.0",
@@ -23,7 +26,7 @@
     "vue-loader": "^16.0.0-rc.1",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0",
-    "webpack-code-inspector-plugin": "workspace:*"
+    "webpack-code-inspector-plugin": "workspace:*",
+    "webpack-dev-server": "^3.11.0"
   }
 }

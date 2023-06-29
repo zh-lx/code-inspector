@@ -1,18 +1,15 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <input type="text" />
+  <div>{{ count }}</div>
   <HelloWorld msg="Welcome to Your Vue.js App" />
 </template>
 
-<script>
+<script setup>
 import HelloWorld from './components/HelloWorld.vue';
+import { ref } from 'vue';
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld,
-  },
-};
+const count = ref({}?.ol?.kkk);
 </script>
 
 <style>

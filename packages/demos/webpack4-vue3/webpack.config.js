@@ -10,19 +10,29 @@ module.exports = (env = {}) => ({
   devtool: env.prod ? 'source-map' : 'cheap-module-eval-source-map',
   entry: './src/main.js',
   resolve: {
-    alias: {
-      // this isn't technically needed, since the default `vue` entry for bundlers
-      // is a simple `export * from '@vue/runtime-dom`. However having this
-      // extra re-export somehow causes webpack to always invalidate the module
-      // on the first HMR update and causes the page to reload.
-      vue: '@vue/runtime-dom',
-    },
+    // alias: {
+    //   // this isn't technically needed, since the default `vue` entry for bundlers
+    //   // is a simple `export * from '@vue/runtime-dom`. However having this
+    //   // extra re-export somehow causes webpack to always invalidate the module
+    //   // on the first HMR update and causes the page to reload.
+    //   vue: '@vue/runtime-dom',
+    // },
   },
   module: {
     rules: [
       {
         test: /\.vue$/,
         use: 'vue-loader',
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+          },
+        },
       },
       {
         test: /\.png$/,
