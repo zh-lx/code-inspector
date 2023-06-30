@@ -1,6 +1,6 @@
 {
   "name": "webpack-code-inspector-plugin",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "main": "./lib/index.js",
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
@@ -20,7 +20,6 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "dependencies": {
-    "@vue/compiler-sfc": "^3.3.4",
     "code-inspector-core": "workspace:*"
   },
   "devDependencies": {

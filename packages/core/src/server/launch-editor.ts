@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
-const chalk = require('chalk');
-const dotenv = require('dotenv');
+import chalk from 'chalk';
+import dotenv from 'dotenv';
 import { Editor } from '../shared/constant';
 
 function isTerminalEditor(editor: string) {

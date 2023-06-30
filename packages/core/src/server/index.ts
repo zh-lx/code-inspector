@@ -4,6 +4,7 @@ const portFinder = require('portfinder');
 const path = require('path');
 import launchEditor from './launch-editor';
 export { getEnhanceContent } from './content-enhance';
+import { parse } from '@vue/compiler-sfc';
 
 let started = false;
 let recordPort = 5678;
@@ -51,3 +52,5 @@ export function _normalizePath(filepath: string) {
 
   return normalizedPath;
 }
+
+export const parseSFC = parse;

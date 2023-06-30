@@ -9,3 +9,4 @@ export declare const getInjectCode: (port: number, options?: CodeOptions) => str
 export declare const startServer: typeof StartServer;
 export declare const enhanceVueCode: typeof getEnhanceContent;
 export declare const normalizePath: typeof _normalizePath;
+export declare const parseSFC: typeof import("@vue/compiler-sfc").parse;

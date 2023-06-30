@@ -1,6 +1,6 @@
-import { enhanceVueCode, normalizePath } from 'code-inspector-core';
+import { enhanceVueCode, normalizePath, parseSFC } from 'code-inspector-core';
 import path from 'path';
-import { parse } from '@vue/compiler-sfc';
+// import { parse } from '@vue/compiler-sfc';
 
 /**
  * @description inject line、column and path to VNode when webpack compiling .vue file
@@ -36,7 +36,7 @@ function WebpackCodeInspectorLoader(
   if (isVueJsx) {
     content = enhanceVueCode(content, filePath, 'vue-jsx');
   } else if (isVueJsxWithScript) {
-    const { descriptor } = parse(content, {
+    const { descriptor } = parseSFC(content, {
       sourceMap: false,
     });
     // 提取<script>标签内容

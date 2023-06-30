@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",
@@ -30,21 +30,22 @@
     "build": "tsc && vite build --config ./vite.client.config.ts && vite build",
     "build:server": "tsc && vite build --config ./vite.server.config.ts"
   },
-  "devDependencies": {
-    "@types/node": "^18.14.1",
-    "lit": "^2.6.1",
-    "typescript": "^4.9.3",
-    "vite": "^4.1.0"
-  },
   "dependencies": {
+    "chalk": "^4.1.1",
+    "portfinder": "^1.0.28"
+  },
+  "devDependencies": {
     "@babel/core": "^7.21.3",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
+    "@types/node": "^18.14.1",
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-dom": "^3.2.47",
-    "chalk": "^4.1.1",
+    "@vue/compiler-sfc": "^3.3.4",
     "dotenv": "^16.1.4",
+    "lit": "^2.6.1",
     "magic-string": "^0.30.0",
-    "portfinder": "^1.0.28"
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0"
   }
 }

@@ -11,5 +11,17 @@ export default defineConfig({
     },
     minify: true,
     emptyOutDir: false,
+    rollupOptions: {
+      external: [
+        'os',
+        'path',
+        'fs',
+        'process',
+        'crypto',
+        'http',
+        'https',
+        'chalk',
+      ],
+    },
   },
 });
