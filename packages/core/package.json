@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "type": "module",
   "main": "dist/index.umd.cjs",
   "types": "types/index.d.ts",

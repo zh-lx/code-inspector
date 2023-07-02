@@ -102,6 +102,8 @@ export function getEnhanceContent(
           }
         },
       });
+    } else {
+      return content;
     }
 
     return s.toString();
