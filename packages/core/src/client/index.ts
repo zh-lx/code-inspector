@@ -233,7 +233,7 @@ export class MyElement extends LitElement {
     const originWarn = console.warn;
     const warning = `[Vue warn]: Extraneous non-props attributes (${PathName})`;
     console.warn = function (...args) {
-      if (args && args[0] && args[0].indexOf(warning) !== -1) {
+      if (typeof args?.[0] === 'string' && args[0].indexOf(warning) !== -1) {
         return;
       } else {
         originWarn(...args);
