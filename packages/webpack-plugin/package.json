@@ -37,6 +37,7 @@
     "code-inspector-core": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^20.3.3",
     "typescript": "^4.9.3",
     "vite": "^4.3.9"
   },
@@ -44,6 +45,6 @@
     "webpack": ">=4.0.0"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "tsc && vite build"
   }
 }

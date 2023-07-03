@@ -7,11 +7,12 @@ export default defineConfig({
       entry: ['src/index.ts'],
       formats: ['umd', 'es'],
       fileName: '[name]',
-      name: 'viteInspectorCore',
+      name: 'CodeInspectorPlugin',
     },
     minify: true,
     emptyOutDir: false,
     rollupOptions: {
+      external: ['vite-code-inspector-plugin', 'webpack-code-inspector-plugin'],
       // input: path.resolve('./lib/index.ts'),
       // output: [
       //   {

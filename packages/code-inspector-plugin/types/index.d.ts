@@ -1,16 +1,14 @@
-import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
+import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import { CodeOptions } from 'code-inspector-core';
 export interface CodeInspectorPluginOptions extends CodeOptions {
-    bundler: 'webpack' | 'vite';
     framework?: 'vue';
+    bundler: 'vite' | 'webpack';
 }
-export declare function CodeInspectorPlugin(options: CodeInspectorPluginOptions): WebpackCodeInspectorPlugin | {
-    name: string;
-    enforce: "pre";
-    apply(_: any, { command, mode }: {
-        command: any;
-        mode: any;
-    }): boolean;
-    transform(code: any, id: any): Promise<any>;
-    transformIndexHtml(html: any): Promise<any>;
-} | undefined;
+export interface CodeInspectorPluginVite extends CodeInspectorPluginOptions {
+    bundler: 'vite';
+}
+export interface CodeInspectorPluginWebpack extends CodeInspectorPluginOptions {
+    bundler: 'webpack';
+}
+export declare function CodeInspectorPlugin(options: CodeInspectorPluginVite): ReturnType<typeof ViteCodeInspectorPlugin>;
+export declare function CodeInspectorPlugin(options: CodeInspectorPluginWebpack): any;

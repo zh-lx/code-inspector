@@ -27,7 +27,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
     enforce: 'pre' as 'pre',
-    apply(_, { command, mode }) {
+    apply(_, { command }) {
       const isDev = command === 'serve';
       return isDev;
     },

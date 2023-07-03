@@ -1,8 +1,8 @@
 // @ts-ignore
-const fs = require('fs');
-const path = require('path');
-const child_process = require('child_process');
-const os = require('os');
+import fs from 'fs';
+import path from 'path';
+import child_process from 'child_process';
+import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import { Editor } from '../shared/constant';
@@ -369,13 +369,16 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   );
 }
 
-let _childProcess: {
-  kill: (arg0: string) => void;
-  on: (
-    arg0: string,
-    arg1: { (errorCode: any): void; (error: any): void }
-  ) => void;
-} | null = null;
+let _childProcess:
+  | {
+      kill: (arg0: string) => void;
+      on: (
+        arg0: string,
+        arg1: { (errorCode: any): void; (error: any): void }
+      ) => void;
+    }
+  | any
+  | null = null;
 function launchEditor(
   fileName: string,
   lineNumber: unknown,

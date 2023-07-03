@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite';
+import nodePolyfills from 'vite-plugin-node-stdlib-browser';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
     lib: {
       entry: ['src/index.ts'],
-      formats: ['umd'],
+      formats: ['umd', 'es'],
       fileName: '[name]',
       name: 'viteInspectorCore',
     },
@@ -24,4 +25,5 @@ export default defineConfig({
       ],
     },
   },
+  plugins: [nodePolyfills()],
 });
