@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'CodeInspectorPlugin',
     },
     minify: true,
-    emptyOutDir: false,
+    emptyOutDir: true,
     rollupOptions: {
       external: ['vite-code-inspector-plugin', 'webpack-code-inspector-plugin'],
       // input: path.resolve('./lib/index.ts'),

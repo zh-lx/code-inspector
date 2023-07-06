@@ -1,8 +1,7 @@
 {
   "name": "code-inspector-core",
   "version": "0.0.21",
-  "type": "module",
-  "main": "dist/index.umd.cjs",
+  "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
   "files": [
@@ -17,7 +16,7 @@
       },
       "require": {
         "types": "./types/index.d.ts",
-        "default": "./dist/index.umd.js"
+        "default": "./dist/index.js"
       }
     }
   },
@@ -40,8 +39,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build --config ./vite.client.config.ts && vite build",
-    "build:server": "tsc && vite build --config ./vite.server.config.ts"
+    "build": "tsc && vite build && vite build --config ./vite.client.config.ts && node ./config/build.js"
   },
   "dependencies": {
     "chalk": "^4.1.1",

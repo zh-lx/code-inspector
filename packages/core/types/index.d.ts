@@ -5,7 +5,7 @@ export type CodeOptions = {
     showSwitch?: boolean;
     autoToggle?: boolean;
 };
-export declare const getInjectCode: (port: number, options?: CodeOptions) => string;
+export declare function getInjectCode(port: number, options?: CodeOptions): string;
 export declare const startServer: typeof StartServer;
 export declare const enhanceVueCode: typeof getEnhanceContent;
 export declare const normalizePath: typeof _normalizePath;

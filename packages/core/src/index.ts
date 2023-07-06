@@ -7,13 +7,21 @@ import {
   parseSFC as _parseSFC,
 } from './server';
 import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+
+function fileURLToPath(fileURL: string) {
+  let filePath = fileURL;
+  if (process.platform === 'win32') {
+    filePath = filePath.replace(/^file:\/\/\//, '');
+    filePath = decodeURIComponent(filePath);
+    filePath = filePath.replace(/\//g, '\\');
+  }
+  return filePath;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const jsCodePath = path.resolve(__dirname, './client.umd.cjs');
-// todo
-console.log(11111, jsCodePath);
+const jsCodePath = path.resolve(__dirname, './client.umd.js');
+
 const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
 
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
@@ -23,7 +31,7 @@ export type CodeOptions = {
   autoToggle?: boolean;
 };
 
-export const getInjectCode = (port: number, options?: CodeOptions) => {
+export function getInjectCode(port: number, options?: CodeOptions) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
@@ -39,7 +47,7 @@ export const getInjectCode = (port: number, options?: CodeOptions) => {
   <script type="text/javascript">
   ${jsCode}
   </script>`;
-};
+}
 
 export const startServer = StartServer;
 export const enhanceVueCode = getEnhanceContent;

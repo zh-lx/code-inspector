@@ -1,17 +1,16 @@
 import { defineConfig } from 'vite';
-import nodePolyfills from 'vite-plugin-node-stdlib-browser';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
     lib: {
       entry: ['src/index.ts'],
-      formats: ['umd', 'es'],
+      formats: ['es', 'cjs'],
       fileName: '[name]',
       name: 'viteInspectorCore',
     },
     minify: true,
-    emptyOutDir: false,
+    emptyOutDir: true,
     rollupOptions: {
       external: [
         'os',
@@ -22,8 +21,9 @@ export default defineConfig({
         'http',
         'https',
         'chalk',
+        'portfinder',
+        'child_process',
       ],
     },
   },
-  plugins: [nodePolyfills()],
 });

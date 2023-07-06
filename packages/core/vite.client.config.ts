@@ -10,6 +10,6 @@ export default defineConfig({
       name: 'vueInspectorClient',
     },
     minify: true,
-    emptyOutDir: true,
+    emptyOutDir: false,
   },
 });
