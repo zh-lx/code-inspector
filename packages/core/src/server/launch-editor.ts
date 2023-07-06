@@ -405,7 +405,16 @@ function launchEditor(
 
   let [editor, ...args] = guessEditor();
 
-  if (editor.toLowerCase() === 'none') {
+  if (!editor || editor.toLowerCase() === 'none') {
+    console.log(
+      'Failed to recognize IDE automatically, add something like ' +
+        chalk.cyan('CODE_EDITOR=code') +
+        ' to the ' +
+        chalk.green('.env.local') +
+        ' file in your project folder ' +
+        'and restart the development server. Learn more: ' +
+        chalk.green('https://goo.gl/MMTaZt')
+    );
     return;
   }
 
