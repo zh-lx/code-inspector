@@ -39,7 +39,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build --config ./vite.client.config.ts && node ./config/build.js"
+    "build": "tsc && vite build && vite build --config ./vite.client.config.ts"
   },
   "dependencies": {
     "chalk": "^4.1.1",
