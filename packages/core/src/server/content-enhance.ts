@@ -108,9 +108,6 @@ export function getEnhanceContent(
 
     return s.toString();
   } catch (error) {
-    console.error(
-      'Webpack Code Inspector Plugin: failed to compile ' + filePath
-    );
     return content;
   }
 }

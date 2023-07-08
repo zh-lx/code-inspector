@@ -8,19 +8,28 @@ import {
 } from './server';
 import { dirname } from 'path';
 
+let compatibleDirname = '';
+
 function fileURLToPath(fileURL: string) {
   let filePath = fileURL;
   if (process.platform === 'win32') {
     filePath = filePath.replace(/^file:\/\/\//, '');
     filePath = decodeURIComponent(filePath);
     filePath = filePath.replace(/\//g, '\\');
+  } else {
+    filePath = filePath.replace(/^file:\/\//, '');
+    filePath = decodeURIComponent(filePath);
   }
   return filePath;
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+if (typeof __dirname !== 'undefined') {
+  compatibleDirname = __dirname;
+} else {
+  compatibleDirname = dirname(fileURLToPath(import.meta.url));
+}
 
-const jsCodePath = path.resolve(__dirname, './client.umd.js');
+const jsCodePath = path.resolve(compatibleDirname, './client.umd.js');
 
 const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
 

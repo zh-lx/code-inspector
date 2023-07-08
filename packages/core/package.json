@@ -39,7 +39,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && vite build --config ./vite.client.config.ts"
+    "build:server": "vite build",
+    "build:client": " vite build --config ./vite.client.config.ts",
+    "build": "tsc && pnpm build:server && pnpm build:client"
   },
   "dependencies": {
     "chalk": "^4.1.1",
