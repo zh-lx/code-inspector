@@ -11,4 +11,6 @@ export type Editor =
   | 'phpstorm'
   | 'pycharm'
   | 'webstorm'
-  | 'hbuilder'
+  | 'hbuilder';
+
+export const DefaultPort = 5678;

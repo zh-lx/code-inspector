@@ -2,7 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { composedPath } from './util';
-import { PathName } from '../shared/constant';
+import { PathName, DefaultPort } from '../shared/constant';
 
 const styleId = '__code-inspector-unique-id';
 
@@ -11,7 +11,7 @@ export class MyElement extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
   @property()
-  port: number = 6666;
+  port: number = DefaultPort;
   @property()
   showSwitch: boolean = false;
   @property()

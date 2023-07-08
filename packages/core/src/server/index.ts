@@ -5,9 +5,10 @@ import path from 'path';
 import launchEditor from './launch-editor';
 export { getEnhanceContent } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
+import { DefaultPort } from '../shared/constant';
 
 let started = false;
-let recordPort = 5678;
+let recordPort = DefaultPort;
 
 export function StartServer(callback: Function, rootPath: string) {
   if (started) {
