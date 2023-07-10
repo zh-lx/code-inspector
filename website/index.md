@@ -4,8 +4,10 @@ layout: home
 
 hero:
   name: 'Code Inspector'
-  text: 'A Magic Tool for Developing'
-  tagline: Click the dom on the page, it can locate the dom's source code in the IDE
+  # text: 'A Magic Tool for Developing'
+  # tagline: Click the dom on the page, it can locate the dom's source code in the IDE
+  text: '一个开发提效的神器'
+  tagline: 点击页面上的 DOM 元素，它能自动打开 IDE 并定位到 DOM 对应源代码位置
   image:
     src: /logo.svg
     alt: ChoDocs
