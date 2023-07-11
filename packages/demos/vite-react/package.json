@@ -1,0 +1,56 @@
+{
+  "name": "fine-admin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "build:gh-pages": "tsc && vite build --base=/fine-admin/"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^4.8.0",
+    "@ant-design/plots": "^1.2.2",
+    "@ant-design/pro-components": "^2.3.35",
+    "@reduxjs/toolkit": "^1.9.0",
+    "ahooks": "^3.7.2",
+    "antd": "^5.2.2",
+    "axios": "^1.2.0",
+    "classnames": "^2.3.2",
+    "dayjs": "^1.11.6",
+    "lodash-es": "^4.17.21",
+    "numeral": "^2.0.6",
+    "react": "^18.2.0",
+    "react-countup": "^6.4.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.5",
+    "react-router-dom": "^6.14.0",
+    "redux-persist": "^6.0.0",
+    "styled-components": "^5.3.6"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.6",
+    "@types/node": "^18.11.9",
+    "@types/numeral": "^2.0.2",
+    "@types/react": "^18.0.24",
+    "@types/react-dom": "^18.0.8",
+    "@types/styled-components": "^5.1.26",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
+    "@vitejs/plugin-react": "^2.2.0",
+    "eslint": "^8.28.0",
+    "eslint-config-alloy": "^4.7.0",
+    "eslint-plugin-react": "^7.31.11",
+    "prettier": "^2.8.0",
+    "type-fest": "^3.6.1",
+    "typescript": "^4.6.4",
+    "unplugin-auto-import": "^0.12.0",
+    "vite": "^4.3.9",
+    "code-inspector-plugin": "workspace:*"
+  },
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=7"
+  }
+}
