@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
@@ -41,9 +41,10 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "dependencies": {
+    "chalk": "4.1.1",
+    "code-inspector-core": "workspace:*",
     "vite-code-inspector-plugin": "workspace:*",
-    "webpack-code-inspector-plugin": "workspace:*",
-    "code-inspector-core": "workspace:*"
+    "webpack-code-inspector-plugin": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^16.0.1",

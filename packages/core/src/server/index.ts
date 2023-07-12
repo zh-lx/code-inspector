@@ -3,14 +3,14 @@ import http from 'http';
 import portFinder from 'portfinder';
 import path from 'path';
 import launchEditor from './launch-editor';
-export { getEnhanceContent } from './content-enhance';
+export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
 import { DefaultPort } from '../shared/constant';
 
 let started = false;
 let recordPort = DefaultPort;
 
-export function StartServer(callback: Function, rootPath: string) {
+export function startServer(callback: Function, rootPath: string) {
   if (started) {
     callback(recordPort);
     return;
@@ -44,7 +44,7 @@ export function StartServer(callback: Function, rootPath: string) {
   });
 }
 
-export function _normalizePath(filepath: string) {
+export function normalizePath(filepath: string) {
   let normalizedPath = path.normalize(filepath);
 
   // Convert Windows path separators to Mac path separators

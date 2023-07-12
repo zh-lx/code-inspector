@@ -1,11 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import {
-  StartServer,
-  getEnhanceContent,
-  _normalizePath,
-  parseSFC as _parseSFC,
-} from './server';
 import { dirname } from 'path';
 
 let compatibleDirname = '';
@@ -58,7 +52,4 @@ export function getInjectCode(port: number, options?: CodeOptions) {
   </script>`;
 }
 
-export const startServer = StartServer;
-export const enhanceVueCode = getEnhanceContent;
-export const normalizePath = _normalizePath;
-export const parseSFC = _parseSFC;
+export { startServer, enhanceCode, normalizePath, parseSFC } from './server';

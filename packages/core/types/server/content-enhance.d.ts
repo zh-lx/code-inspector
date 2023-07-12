@@ -1,3 +1,8 @@
-type FileType = 'vue' | 'vue-jsx';
-export declare function getEnhanceContent(content: string, filePath: string, fileType?: FileType): string;
+type FileType = 'vue' | 'jsx';
+type EnhanceCodeParams = {
+    code: string;
+    filePath: string;
+    fileType: FileType;
+};
+export declare function enhanceCode(params: EnhanceCodeParams): string;
 export {};

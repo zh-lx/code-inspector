@@ -1,44 +1,28 @@
-import type WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin/types/index';
 import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import { CodeOptions } from 'code-inspector-core';
+import chalk from 'chalk';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
-  framework?: 'vue';
   bundler: 'vite' | 'webpack';
+  catch?: boolean;
 }
 
-export interface CodeInspectorPluginVite extends CodeInspectorPluginOptions {
-  bundler: 'vite';
-}
-
-export interface CodeInspectorPluginWebpack extends CodeInspectorPluginOptions {
-  bundler: 'webpack';
-}
-
-export function CodeInspectorPlugin(
-  options: CodeInspectorPluginVite
-): ReturnType<typeof ViteCodeInspectorPlugin>;
-
-export function CodeInspectorPlugin(
-  options: CodeInspectorPluginWebpack
-): WebpackCodeInspectorPlugin;
-
-export function CodeInspectorPlugin(
-  options: CodeInspectorPluginOptions
-):
-  | ReturnType<typeof ViteCodeInspectorPlugin>
-  | WebpackCodeInspectorPlugin
-  | undefined {
+export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
+  // 没有 bundler 参数，报错
   if (!options?.bundler) {
-    console.error(
-      'Please specify the bundler in the options of CodeInspectorPlugin.'
+    console.log(
+      chalk.red(
+        'Please specify the bundler in the options of code-inspector-plugin.'
+      )
     );
     return;
   }
   if (options.bundler === 'webpack') {
+    // 使用 webpack 插件
     const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
     return new WebpackCodeInspectorPlugin(options);
   } else {
+    // 使用 vite 插件
     return ViteCodeInspectorPlugin(options);
   }
 }

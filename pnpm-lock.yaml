@@ -10,6 +10,9 @@ importers:
 
   packages/code-inspector-plugin:
     dependencies:
+      chalk:
+        specifier: 4.1.1
+        version: registry.npmmirror.com/chalk@4.1.1
       code-inspector-core:
         specifier: workspace:*
         version: link:../core
@@ -1007,7 +1010,7 @@ packages:
       '@babel/traverse': 7.21.3
       '@babel/types': 7.21.3
       convert-source-map: 1.9.0
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.0
@@ -2665,7 +2668,7 @@ packages:
       '@typescript-eslint/experimental-utils': 4.33.0(eslint@6.8.0)(typescript@4.1.6)
       '@typescript-eslint/parser': 4.33.0(eslint@6.8.0)(typescript@4.1.6)
       '@typescript-eslint/scope-manager': 4.33.0
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       eslint: 6.8.0
       functional-red-black-tree: 1.0.1
       ignore: 5.2.4
@@ -2692,7 +2695,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.37.0
       '@typescript-eslint/type-utils': 5.37.0(eslint@8.23.0)(typescript@4.9.5)
       '@typescript-eslint/utils': 5.37.0(eslint@8.23.0)(typescript@4.9.5)
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       eslint: 8.23.0
       functional-red-black-tree: 1.0.1
       ignore: 5.2.4
@@ -2735,7 +2738,7 @@ packages:
       '@typescript-eslint/scope-manager': 4.33.0
       '@typescript-eslint/types': 4.33.0
       '@typescript-eslint/typescript-estree': 4.33.0(typescript@4.1.6)
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       eslint: 6.8.0
       typescript: 4.1.6
     transitivePeerDependencies:
@@ -2755,7 +2758,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.37.0
       '@typescript-eslint/types': 5.37.0
       '@typescript-eslint/typescript-estree': 5.37.0(typescript@4.9.5)
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       eslint: 8.23.0
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -3353,7 +3356,7 @@ packages:
       copy-webpack-plugin: 5.1.2(webpack@4.46.0)
       css-loader: registry.npmmirror.com/css-loader@3.6.0(webpack@4.46.0)
       cssnano: 4.1.11
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       default-gateway: 5.0.5
       dotenv: registry.npmmirror.com/dotenv@8.6.0
       dotenv-expand: registry.npmmirror.com/dotenv-expand@5.1.0
@@ -3932,6 +3935,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       color-convert: 2.0.1
+    dev: false
 
   /any-promise@1.3.0:
     resolution: {integrity: sha512-7UvmKalWRt1wgjL1RrGxoSJW/0QZFIegpeGvZG9kjp8vrRu55XTHbwnqq2GpXm9uLbcuhxm3IqX9OB4MZR1b2A==}
@@ -4398,21 +4402,13 @@ packages:
     resolution: {integrity: sha512-oww27MtUmusatpRpCGSOneQk2/l5czXANDSFvsc7VuOQ86s3ANhZetpwXNf1zY/zdfP63Xvjz325DAdAoES13g==}
     dev: true
 
-  /chalk@2.4.2:
-    resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
-    engines: {node: '>=4'}
-    dependencies:
-      ansi-styles: registry.npmmirror.com/ansi-styles@3.2.1
-      escape-string-regexp: registry.npmmirror.com/escape-string-regexp@1.0.5
-      supports-color: registry.npmmirror.com/supports-color@5.5.0
-    dev: true
-
   /chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+    dev: false
 
   /chardet@0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
@@ -4495,7 +4491,7 @@ packages:
     engines: {node: '>=8.0.0', npm: '>=5.0.0'}
     hasBin: true
     dependencies:
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       highlight.js: 10.7.3
       mz: 2.7.0
       parse5: 5.1.1
@@ -4543,6 +4539,7 @@ packages:
     engines: {node: '>=7.0.0'}
     dependencies:
       color-name: registry.npmmirror.com/color-name@1.1.4
+    dev: false
 
   /combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
@@ -5055,17 +5052,6 @@ packages:
     dependencies:
       ms: 2.1.3
 
-  /debug@4.3.4:
-    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
-
   /debug@4.3.4(supports-color@6.1.0):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -5075,7 +5061,7 @@ packages:
       supports-color:
         optional: true
     dependencies:
-      ms: registry.npmmirror.com/ms@2.1.2
+      ms: 2.1.2
       supports-color: 6.1.0
 
   /deep-equal@1.1.1:
@@ -5448,9 +5434,9 @@ packages:
     dependencies:
       '@babel/code-frame': 7.18.6
       ajv: 6.12.6
-      chalk: 2.4.2
+      chalk: registry.npmmirror.com/chalk@2.4.2
       cross-spawn: 6.0.5
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       doctrine: 3.0.0
       eslint-scope: 5.1.1
       eslint-utils: 1.4.3
@@ -5497,9 +5483,9 @@ packages:
       '@humanwhocodes/gitignore-to-minimatch': 1.0.2
       '@humanwhocodes/module-importer': 1.0.1
       ajv: 6.12.6
-      chalk: 4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       cross-spawn: 7.0.3
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.0
@@ -5948,13 +5934,10 @@ packages:
     resolution: {integrity: sha512-9Qn4yBxelxoh2Ow62nP+Ka/kMnOXRi8BXnRaUwezLNhqelnN49xKz4F/dPP8OYLxLxq6JDtZb2i9XznUQbNPTg==}
     dev: true
 
-  /has-flag@3.0.0:
-    resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
-    engines: {node: '>=4'}
-
   /has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
+    dev: false
 
   /hash-base@3.1.0:
     resolution: {integrity: sha512-1nmYp/rhMDiE7AYkDw+lLwlAzz0AntGIe51F3RfFfEqyQ3feY2eI/NcwC6umIQVOASPMsWJLJScWKSSvzL9IVA==}
@@ -6153,7 +6136,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       ansi-escapes: registry.npmmirror.com/ansi-escapes@4.3.2
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       cli-cursor: 3.1.0
       cli-width: 3.0.0
       external-editor: 3.1.0
@@ -7882,13 +7865,14 @@ packages:
     resolution: {integrity: sha512-qe1jfm1Mg7Nq/NSh6XE24gPXROEVsWHxC1LIx//XNlD9iw7YZQGjZNjYN7xGaEG6iKdA8EtNFW6R0gjnVXp+wQ==}
     engines: {node: '>=6'}
     dependencies:
-      has-flag: 3.0.0
+      has-flag: registry.npmmirror.com/has-flag@3.0.0
 
   /supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
     dependencies:
       has-flag: 4.0.0
+    dev: false
 
   /svg-tags@1.0.0:
     resolution: {integrity: sha512-ovssysQTa+luh7A5Weu3Rta6FJlFBBbInjOh722LIt6klpU2/HtdUbszju/G4devcvk8PGt7FCLv5wftu3THUA==}
@@ -8111,7 +8095,7 @@ packages:
       '@antfu/utils': 0.5.2
       '@rollup/pluginutils': 4.2.1
       chokidar: 3.5.3
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       fast-glob: 3.2.12
       local-pkg: 0.4.3
       magic-string: 0.26.7
@@ -8241,10 +8225,10 @@ packages:
     dependencies:
       '@rollup/plugin-node-resolve': 13.3.0(rollup@2.77.3)
       '@types/mockjs': registry.npmmirror.com/@types/mockjs@1.0.7
-      chalk: 4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.2
       chokidar: 3.5.3
       connect: 3.7.0
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       esbuild: 0.11.3
       fast-glob: 3.2.12
       mockjs: 1.1.0
@@ -8479,7 +8463,7 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:
-      debug: 4.3.4
+      debug: 4.3.4(supports-color@6.1.0)
       eslint: 8.23.0
       eslint-scope: 7.2.0
       eslint-visitor-keys: 3.4.1
@@ -8589,7 +8573,7 @@ packages:
         optional: true
     dependencies:
       '@vue/compiler-sfc': 3.2.47
-      chalk: 4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       hash-sum: 2.0.0
       loader-utils: 2.0.4
       vue: 3.2.47
@@ -8698,7 +8682,7 @@ packages:
     peerDependencies:
       webpack: 4.x.x
     dependencies:
-      chalk: 2.4.2
+      chalk: registry.npmmirror.com/chalk@2.4.2
       cross-spawn: 6.0.5
       enhanced-resolve: 4.5.0
       findup-sync: 3.0.0(supports-color@6.1.0)
@@ -11886,7 +11870,7 @@ packages:
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest-message-util: registry.npmmirror.com/jest-message-util@27.5.1
       jest-util: registry.npmmirror.com/jest-util@27.5.1
       slash: registry.npmmirror.com/slash@3.0.0
@@ -11910,7 +11894,7 @@ packages:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
       ansi-escapes: registry.npmmirror.com/ansi-escapes@4.3.2
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       emittery: registry.npmmirror.com/emittery@0.8.1
       exit: registry.npmmirror.com/exit@0.1.2
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
@@ -11993,7 +11977,7 @@ packages:
       '@jest/transform': registry.npmmirror.com/@jest/transform@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       collect-v8-coverage: registry.npmmirror.com/collect-v8-coverage@1.0.2
       exit: registry.npmmirror.com/exit@0.1.2
       glob: registry.npmmirror.com/glob@7.2.3
@@ -12062,7 +12046,7 @@ packages:
       '@babel/core': registry.npmmirror.com/@babel/core@7.21.3
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       babel-plugin-istanbul: registry.npmmirror.com/babel-plugin-istanbul@6.1.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       convert-source-map: registry.npmmirror.com/convert-source-map@1.9.0
       fast-json-stable-stringify: registry.npmmirror.com/fast-json-stable-stringify@2.1.0
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
@@ -12088,7 +12072,7 @@ packages:
       '@types/istanbul-reports': registry.npmmirror.com/@types/istanbul-reports@3.0.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
       '@types/yargs': registry.npmmirror.com/@types/yargs@16.0.5
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
     dev: false
 
   registry.npmmirror.com/@jridgewell/gen-mapping@0.1.1:
@@ -12635,7 +12619,7 @@ packages:
       '@babel/runtime': registry.npmmirror.com/@babel/runtime@7.21.0
       '@types/aria-query': registry.npmmirror.com/@types/aria-query@5.0.1
       aria-query: registry.npmmirror.com/aria-query@5.1.3
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       dom-accessibility-api: registry.npmmirror.com/dom-accessibility-api@0.5.16
       lz-string: registry.npmmirror.com/lz-string@1.5.0
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -12651,7 +12635,7 @@ packages:
       '@babel/runtime': registry.npmmirror.com/@babel/runtime@7.21.0
       '@types/aria-query': registry.npmmirror.com/@types/aria-query@5.0.1
       aria-query: registry.npmmirror.com/aria-query@5.1.3
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       dom-accessibility-api: registry.npmmirror.com/dom-accessibility-api@0.5.16
       lz-string: registry.npmmirror.com/lz-string@1.5.0
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -14789,7 +14773,7 @@ packages:
       '@types/babel__core': registry.npmmirror.com/@types/babel__core@7.20.1
       babel-plugin-istanbul: registry.npmmirror.com/babel-plugin-istanbul@6.1.1
       babel-preset-jest: registry.npmmirror.com/babel-preset-jest@27.5.1(@babel/core@7.21.3)
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       slash: registry.npmmirror.com/slash@3.0.0
     transitivePeerDependencies:
@@ -14811,7 +14795,7 @@ packages:
       '@types/babel__core': registry.npmmirror.com/@types/babel__core@7.20.1
       babel-plugin-istanbul: registry.npmmirror.com/babel-plugin-istanbul@6.1.1
       babel-preset-jest: registry.npmmirror.com/babel-preset-jest@27.5.1(@babel/core@7.21.3)
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       slash: registry.npmmirror.com/slash@3.0.0
     transitivePeerDependencies:
@@ -15654,6 +15638,15 @@ packages:
     name: chalk
     version: 3.0.0
     engines: {node: '>=8'}
+    dependencies:
+      ansi-styles: registry.npmmirror.com/ansi-styles@4.3.0
+      supports-color: registry.npmmirror.com/supports-color@7.2.0
+
+  registry.npmmirror.com/chalk@4.1.1:
+    resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/chalk/-/chalk-4.1.1.tgz}
+    name: chalk
+    version: 4.1.1
+    engines: {node: '>=10'}
     dependencies:
       ansi-styles: registry.npmmirror.com/ansi-styles@4.3.0
       supports-color: registry.npmmirror.com/supports-color@7.2.0
@@ -18465,7 +18458,7 @@ packages:
       '@humanwhocodes/module-importer': registry.npmmirror.com/@humanwhocodes/module-importer@1.0.1
       '@nodelib/fs.walk': registry.npmmirror.com/@nodelib/fs.walk@1.2.8
       ajv: registry.npmmirror.com/ajv@6.12.6
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       cross-spawn: registry.npmmirror.com/cross-spawn@7.0.3
       debug: registry.npmmirror.com/debug@4.3.4(supports-color@6.1.0)
       doctrine: registry.npmmirror.com/doctrine@3.0.0
@@ -19211,7 +19204,7 @@ packages:
     dependencies:
       '@babel/code-frame': registry.npmmirror.com/@babel/code-frame@7.22.5
       '@types/json-schema': registry.npmmirror.com/@types/json-schema@7.0.11
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       cosmiconfig: registry.npmmirror.com/cosmiconfig@6.0.0
       deepmerge: registry.npmmirror.com/deepmerge@4.3.1
       eslint: 6.8.0
@@ -19280,7 +19273,7 @@ packages:
     dependencies:
       '@babel/code-frame': registry.npmmirror.com/@babel/code-frame@7.22.5
       '@types/json-schema': registry.npmmirror.com/@types/json-schema@7.0.11
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       chokidar: registry.npmmirror.com/chokidar@3.5.3
       cosmiconfig: registry.npmmirror.com/cosmiconfig@6.0.0
       deepmerge: registry.npmmirror.com/deepmerge@4.3.1
@@ -21119,7 +21112,7 @@ packages:
     hasBin: true
     dependencies:
       async: registry.npmmirror.com/async@3.2.4
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       filelist: registry.npmmirror.com/filelist@1.0.4
       minimatch: registry.npmmirror.com/minimatch@3.1.2
     dev: false
@@ -21145,7 +21138,7 @@ packages:
       '@jest/test-result': registry.npmmirror.com/@jest/test-result@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       co: registry.npmmirror.com/co@4.6.0
       dedent: registry.npmmirror.com/dedent@0.7.0
       expect: registry.npmmirror.com/expect@27.5.1
@@ -21179,7 +21172,7 @@ packages:
       '@jest/core': registry.npmmirror.com/@jest/core@27.5.1
       '@jest/test-result': registry.npmmirror.com/@jest/test-result@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       exit: registry.npmmirror.com/exit@0.1.2
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       import-local: registry.npmmirror.com/import-local@3.1.0
@@ -21211,7 +21204,7 @@ packages:
       '@jest/test-sequencer': registry.npmmirror.com/@jest/test-sequencer@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       babel-jest: registry.npmmirror.com/babel-jest@27.5.1(@babel/core@7.21.3)
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       ci-info: registry.npmmirror.com/ci-info@3.8.0
       deepmerge: registry.npmmirror.com/deepmerge@4.3.1
       glob: registry.npmmirror.com/glob@7.2.3
@@ -21244,7 +21237,7 @@ packages:
     version: 27.5.1
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       diff-sequences: registry.npmmirror.com/diff-sequences@27.5.1
       jest-get-type: registry.npmmirror.com/jest-get-type@27.5.1
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -21266,7 +21259,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest-get-type: registry.npmmirror.com/jest-get-type@27.5.1
       jest-util: registry.npmmirror.com/jest-util@27.5.1
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -21346,7 +21339,7 @@ packages:
       '@jest/test-result': registry.npmmirror.com/@jest/test-result@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       co: registry.npmmirror.com/co@4.6.0
       expect: registry.npmmirror.com/expect@27.5.1
       is-generator-fn: registry.npmmirror.com/is-generator-fn@2.1.0
@@ -21378,7 +21371,7 @@ packages:
     version: 27.5.1
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest-diff: registry.npmmirror.com/jest-diff@27.5.1
       jest-get-type: registry.npmmirror.com/jest-get-type@27.5.1
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -21393,7 +21386,7 @@ packages:
       '@babel/code-frame': registry.npmmirror.com/@babel/code-frame@7.22.5
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/stack-utils': registry.npmmirror.com/@types/stack-utils@2.0.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       micromatch: registry.npmmirror.com/micromatch@4.0.5
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -21468,7 +21461,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       jest-haste-map: registry.npmmirror.com/jest-haste-map@27.5.1
       jest-pnp-resolver: registry.npmmirror.com/jest-pnp-resolver@1.2.3(jest-resolve@27.4.2)
@@ -21486,7 +21479,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       jest-haste-map: registry.npmmirror.com/jest-haste-map@27.5.1
       jest-pnp-resolver: registry.npmmirror.com/jest-pnp-resolver@1.2.3(jest-resolve@27.5.1)
@@ -21509,7 +21502,7 @@ packages:
       '@jest/transform': registry.npmmirror.com/@jest/transform@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       emittery: registry.npmmirror.com/emittery@0.8.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       jest-docblock: registry.npmmirror.com/jest-docblock@27.5.1
@@ -21544,7 +21537,7 @@ packages:
       '@jest/test-result': registry.npmmirror.com/@jest/test-result@27.5.1
       '@jest/transform': registry.npmmirror.com/@jest/transform@27.5.1
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       cjs-module-lexer: registry.npmmirror.com/cjs-module-lexer@1.2.3
       collect-v8-coverage: registry.npmmirror.com/collect-v8-coverage@1.0.2
       execa: registry.npmmirror.com/execa@5.1.1
@@ -21589,7 +21582,7 @@ packages:
       '@types/babel__traverse': registry.npmmirror.com/@types/babel__traverse@7.20.1
       '@types/prettier': registry.npmmirror.com/@types/prettier@2.7.3
       babel-preset-current-node-syntax: registry.npmmirror.com/babel-preset-current-node-syntax@1.0.1(@babel/core@7.21.3)
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       expect: registry.npmmirror.com/expect@27.5.1
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       jest-diff: registry.npmmirror.com/jest-diff@27.5.1
@@ -21613,7 +21606,7 @@ packages:
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       ci-info: registry.npmmirror.com/ci-info@3.8.0
       graceful-fs: registry.npmmirror.com/graceful-fs@4.2.10
       picomatch: registry.npmmirror.com/picomatch@2.3.1
@@ -21627,7 +21620,7 @@ packages:
     dependencies:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       camelcase: registry.npmmirror.com/camelcase@6.3.0
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest-get-type: registry.npmmirror.com/jest-get-type@27.5.1
       leven: registry.npmmirror.com/leven@3.1.0
       pretty-format: registry.npmmirror.com/pretty-format@27.5.1
@@ -21643,7 +21636,7 @@ packages:
       jest: ^27.0.0
     dependencies:
       ansi-escapes: registry.npmmirror.com/ansi-escapes@4.3.2
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest: registry.npmmirror.com/jest@27.4.3
       jest-regex-util: registry.npmmirror.com/jest-regex-util@27.5.1
       jest-watcher: registry.npmmirror.com/jest-watcher@27.5.1
@@ -21662,7 +21655,7 @@ packages:
       '@jest/types': registry.npmmirror.com/@jest/types@27.5.1
       '@types/node': registry.npmmirror.com/@types/node@18.14.1
       ansi-escapes: registry.npmmirror.com/ansi-escapes@4.3.2
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       jest-util: registry.npmmirror.com/jest-util@27.5.1
       string-length: registry.npmmirror.com/string-length@4.0.2
     dev: false
@@ -29202,7 +29195,7 @@ packages:
         optional: true
     dependencies:
       '@vue/compiler-sfc': 3.2.47
-      chalk: registry.npmmirror.com/chalk@4.1.2
+      chalk: registry.npmmirror.com/chalk@4.1.1
       hash-sum: registry.npmmirror.com/hash-sum@2.0.0
       loader-utils: registry.npmmirror.com/loader-utils@2.0.4
       vue: 3.2.47
