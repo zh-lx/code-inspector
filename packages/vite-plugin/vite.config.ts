@@ -5,7 +5,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: ['src/index.ts'],
-      formats: ['umd', 'es'],
+      formats: ['cjs', 'es'],
       fileName: '[name]',
       name: 'ViteCodeInspectorPlugin',
     },
@@ -13,9 +13,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       external: ['code-inspector-core', 'path'],
-      // output: {
-      //   exports: 'default', // 设置默认导出
-      // },
     },
+    target: ['node8', 'es2015'],
   },
 });

@@ -26,6 +26,7 @@ export function StartServer(callback: Function, rootPath: string) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': '*',
       'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
     launchEditor(file, line, column);

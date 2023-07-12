@@ -1,7 +1,7 @@
 {
   "name": "code-inspector-plugin",
-  "version": "0.0.18",
-  "main": "./dist/index.umd.js",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
   "repository": "git@github.com:zh-lx/code-inspector.git",
@@ -10,6 +10,10 @@
   "scripts": {
     "build": "tsc && vite build"
   },
+  "files": [
+    "dist",
+    "types"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -18,7 +22,7 @@
       },
       "require": {
         "types": "./types/index.d.ts",
-        "default": "./dist/index.umd.js"
+        "default": "./dist/index.js"
       }
     }
   },

@@ -17,5 +17,6 @@ export default defineConfig({
         exports: 'default', // 设置默认导出
       },
     },
+    target: ['node8', 'es2015'],
   },
 });

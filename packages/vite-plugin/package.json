@@ -1,7 +1,7 @@
 {
   "name": "vite-code-inspector-plugin",
-  "version": "0.0.21",
-  "main": "./dist/index.umd.js",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
   "repository": "git@github.com:zh-lx/code-inspector.git",
@@ -9,6 +9,10 @@
   "license": "MIT",
   "homepage": "https://github.com/zh-lx/code-inspector",
   "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
+  "files": [
+    "dist",
+    "types"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -17,7 +21,7 @@
       },
       "require": {
         "types": "./types/index.d.ts",
-        "default": "./dist/index.umd.js"
+        "default": "./dist/index.js"
       }
     }
   },

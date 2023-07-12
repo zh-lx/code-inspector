@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.21",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
@@ -44,16 +44,17 @@
     "build": "tsc && pnpm build:server && pnpm build:client"
   },
   "dependencies": {
+    "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
+    "@babel/plugin-proposal-decorators": "^7.22.7",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
     "@types/node": "^18.14.1",
     "@vue/babel-plugin-jsx": "^1.1.1",
-    "@vue/compiler-dom": "^3.2.47",
     "@vue/compiler-sfc": "^3.3.4",
     "dotenv": "^16.1.4",
     "lit": "^2.6.1",

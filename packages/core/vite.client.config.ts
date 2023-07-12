@@ -11,5 +11,6 @@ export default defineConfig({
     },
     minify: true,
     emptyOutDir: false,
+    target: ['node8', 'es2015'],
   },
 });

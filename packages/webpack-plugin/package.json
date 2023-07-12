@@ -1,6 +1,6 @@
 {
   "name": "webpack-code-inspector-plugin",
-  "version": "0.0.18",
+  "version": "0.1.0",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
@@ -9,6 +9,10 @@
     "build:loader": "vite build --config vite.loader.config.ts",
     "build": "tsc && pnpm build:plugin && pnpm build:loader"
   },
+  "files": [
+    "dist",
+    "types"
+  ],
   "exports": {
     ".": {
       "import": {

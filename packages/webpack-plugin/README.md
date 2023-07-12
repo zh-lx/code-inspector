@@ -2,15 +2,12 @@
 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width=160px" style="margin-bottom: 12px;" />
 
 <p align="center">
-  <h2>webpack-code-inspector-plugin</h2>
-  <span>中文文档</span>
-  |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/packages/webpack-plugin/README-EN.md">English Doc</a>
-  |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/packages/vite-plugin/README.md">vite-code-inspector-plugin</a>
+  <h2>code-inspector-plugin</h2>
+  <span>中文文档</span> |
+  <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-EN.md">English Doc</a>
 </p>
 
-[![NPM version](https://img.shields.io/npm/v/webpack-code-inspector-plugin.svg)](https://www.npmjs.com/package/webpack-code-inspector-plugin)
+[![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
 
@@ -27,42 +24,68 @@
 ## 🚀 安装
 
 ```perl
-npm i webpack-code-inspector-plugin -D
+npm i code-inspector-plugin -D
 # or
-yarn add webpack-code-inspector-plugin -D
+yarn add code-inspector-plugin -D
 # or
-pnpm add webpack-code-inspector-plugin -D
+pnpm add code-inspector-plugin -D
 ```
 
 ## 🌈 使用
 
-### 1. 配置 `vue.config.js` 或 `webpack.config.js`
+本工具支持作为 `webpack` 或 `vite` 插件使用，详细接入方式参考下面：
 
-- 如果你使用的是 `vue.config.js`, 添加如下配置:
+### 1. 配置 webpack/vite
+
+- <b>webpack 中使用</b>，在 `vue.config.js` 或者 `webpack.config.js` 添加如下配置:
+
+  `vue.config.js`：
 
   ```js
   // vue.config.js
-  const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
   module.exports = {
     // ...other code
     chainWebpack: (config) => {
-      // add this configuration in the development environment
-      config
-        .plugin('webpack-code-inspector-plugin')
-        .use(new WebpackCodeInspectorPlugin());
+      config.plugin('code-inspector-plugin').use(
+        CodeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
     },
   };
   ```
 
-- 如果你使用的是 `webpack.config.js`, 添加如下配置:
+  `webpack.config.js`：
 
   ```js
   // webpack.config.js
-  const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
   module.exports = (env = {}) => ({
-    plugins: [new WebpackCodeInspectorPlugin()],
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'webpack',
+      }),
+    ],
+  });
+  ```
+
+- <b>vite 中使用</b>，在 `vite.config.js` 中添加如下配置:
+
+  ```js
+  // vite.config.js
+  import { defineConfig } from 'vite';
+  import { CodeInspectorPlugin } from 'code-inspector-plugin';
+
+  // https://vitejs.dev/config/
+  export default defineConfig({
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'vite',
+      }),
+    ],
   });
   ```
 
@@ -89,30 +112,16 @@ pnpm add webpack-code-inspector-plugin -D
 
 ## 🎨 可选配置
 
-| 参数       | 描述                                                       | 类型                | 可选值                                                               | 默认值                   |
-| ---------- | ---------------------------------------------------------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
-| showSwitch | 是否展示功能开关                                           | `boolean`           | `true/false`                                                         | `false`                  |
-| hotKeys    | 组合键触发功能，为 `false` 或者空数组则关闭组合键触发      | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
-| autoToggle | 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关 | `boolean`           | `true/false`                                                         | `true`                   |
-
-```js
-// webpack.config.js
-const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
-
-module.exports = (env = {}) => ({
-  plugins: [
-    new WebpackCodeInspectorPlugin({
-      showSwitch: false,
-      hotKeys: ['altKey', 'shiftKey'],
-      autoToggle: true,
-    }),
-  ],
-});
-```
+| 参数       | 描述                                                       | 是否必传 | 类型                | 可选值                                                               | 默认值                   |
+| ---------- | ---------------------------------------------------------- | -------- | ------------------- | -------------------------------------------------------------------- | ------------------------ |
+| bundler    | 指定的打包工具                                             | 是       | `string`            | `vite/webpack`                                                       | -                        |
+| showSwitch | 是否展示功能开关                                           | 否       | `boolean`           | `true/false`                                                         | `false`                  |
+| hotKeys    | 组合键触发功能，为 `false` 或者空数组则关闭组合键触发      | 否       | `string[] \| false` | Array<`'ctrlKey'`\|`'altKey'`\|`'metaKey'`\|`'shiftKey'`> \| `false` | `['altKey', 'shiftKey']` |
+| autoToggle | 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关 | 否       | `boolean`           | `true/false`                                                         | `true`                   |
 
 ## 🎯 指定 IDE
 
-默认情况下，`webpack-code-inspector-plugin` 会自动识别当前系统运行中的 IDE 程序并按照优先级打开识别到的第一个。如果你有多种不同的 IDE，你可以指定要打开的 IDE，在项目根目录添加一个名为 `.env.local` 的文件并添加： `CODE_EDITOR=[IDE编码名称]`。
+默认情况下，`code-inspector-plugin` 会自动识别当前系统运行中的 IDE 程序并按照优先级打开识别到的第一个。如果你有多种不同的 IDE，你可以指定要打开的 IDE，在项目根目录添加一个名为 `.env.local` 的文件并添加： `CODE_EDITOR=[IDE编码名称]`。
 
 以 vscode 为例，它的`IDE编码名称`是 `code`，则对应在 `.env.local` 中添加如下内容：
 
@@ -161,6 +170,20 @@ IDE 及对应的`IDE编码名称`对照表如下：
         <td>idea</td>
     </tr>
 </table>
+
+## 🎨 支持列表
+
+下面是编译器、web 框架以及代码编辑器支持列表:
+
+- 当前支持以下打包工具<br />
+  ✅ webpack(4.x/5.x)<br />
+  ✅ vite
+- 当前支持以下 Web 框架<br />
+  ✅ vue2<br />
+  ✅ vue3<br />
+  ✅ react
+- 当前支持以下代码编辑器<br />
+  [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
 ## 📧 交流与反馈
 

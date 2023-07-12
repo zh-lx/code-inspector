@@ -23,7 +23,9 @@ export default defineConfig({
         'chalk',
         'portfinder',
         'child_process',
+        '@vue/compiler-dom',
       ],
     },
+    target: ['node8', 'es2015'],
   },
 });

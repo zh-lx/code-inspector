@@ -9,6 +9,8 @@ import { parse as babelParse, traverse as babelTraverse } from '@babel/core';
 import tsPlugin from '@babel/plugin-transform-typescript';
 // @ts-ignore
 import importMetaPlugin from '@babel/plugin-syntax-import-meta';
+// @ts-ignore
+import proposalDecorators from '@babel/plugin-proposal-decorators';
 
 type FileType = 'vue' | 'vue-jsx';
 
@@ -72,6 +74,7 @@ export function getEnhanceContent(
           importMetaPlugin,
           [vueJsxPlugin, {}],
           [tsPlugin, { isTSX: true, allowExtensions: true }],
+          [proposalDecorators, { legacy: true }],
         ],
       });
 
