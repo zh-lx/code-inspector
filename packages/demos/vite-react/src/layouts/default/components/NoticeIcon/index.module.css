@@ -1,0 +1,28 @@
+.popover {
+  position: relative;
+  width: 336px;
+}
+
+.noticeButton {
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.icon {
+  padding: 4px;
+}
+
+.badge {
+  font-size: 16px;
+}
+
+.tabs .ant-tabs-nav-list {
+  margin: auto;
+}
+
+.tabs .ant-tabs-nav-scroll {
+  text-align: center;
+}
+.tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}

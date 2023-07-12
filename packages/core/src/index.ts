@@ -1,13 +1,36 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 import {
   StartServer,
   getEnhanceContent,
   _normalizePath,
   parseSFC as _parseSFC,
 } from './server';
+import { dirname } from 'path';
 
-const jsCodePath = path.resolve(__dirname, './client.umd.cjs');
+let compatibleDirname = '';
+
+function fileURLToPath(fileURL: string) {
+  let filePath = fileURL;
+  if (process.platform === 'win32') {
+    filePath = filePath.replace(/^file:\/\/\//, '');
+    filePath = decodeURIComponent(filePath);
+    filePath = filePath.replace(/\//g, '\\');
+  } else {
+    filePath = filePath.replace(/^file:\/\//, '');
+    filePath = decodeURIComponent(filePath);
+  }
+  return filePath;
+}
+
+if (typeof __dirname !== 'undefined') {
+  compatibleDirname = __dirname;
+} else {
+  compatibleDirname = dirname(fileURLToPath(import.meta.url));
+}
+
+const jsCodePath = path.resolve(compatibleDirname, './client.umd.js');
+
 const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
 
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
@@ -17,7 +40,7 @@ export type CodeOptions = {
   autoToggle?: boolean;
 };
 
-export const getInjectCode = (port: number, options?: CodeOptions) => {
+export function getInjectCode(port: number, options?: CodeOptions) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
@@ -33,7 +56,7 @@ export const getInjectCode = (port: number, options?: CodeOptions) => {
   <script type="text/javascript">
   ${jsCode}
   </script>`;
-};
+}
 
 export const startServer = StartServer;
 export const enhanceVueCode = getEnhanceContent;

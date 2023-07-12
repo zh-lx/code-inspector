@@ -4,7 +4,7 @@ import {
   HotKey,
   normalizePath,
 } from 'code-inspector-core';
-const path = require('path');
+import path from 'path';
 
 const applyLoader = (compiler: any, cb: () => void) => {
   // 适配 webpack 各个版本
@@ -136,7 +136,7 @@ class WebpackCodeInspectorPlugin {
 
   // todo: webpack3.x 版本 loader 添加 vc_path 后未注入到 dom
   // todo: webpack3.x 配合 html-webpack-plugin 一同使用
-  handleWebpackBelow3(compiler: any, getCode: (port: number) => string) {}
+  // handleWebpackBelow3(compiler: any, getCode: (port: number) => string) {}
 }
 
-export = WebpackCodeInspectorPlugin;
+export default WebpackCodeInspectorPlugin;

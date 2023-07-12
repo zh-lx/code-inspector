@@ -5,12 +5,12 @@ export default defineConfig({
   build: {
     lib: {
       entry: ['src/index.ts'],
-      formats: ['umd'],
+      formats: ['es', 'cjs'],
       fileName: '[name]',
       name: 'viteInspectorCore',
     },
     minify: true,
-    emptyOutDir: false,
+    emptyOutDir: true,
     rollupOptions: {
       external: [
         'os',
@@ -21,7 +21,11 @@ export default defineConfig({
         'http',
         'https',
         'chalk',
+        'portfinder',
+        'child_process',
+        '@vue/compiler-dom',
       ],
     },
+    target: ['node8', 'es2015'],
   },
 });

@@ -1,13 +1,25 @@
 {
   "name": "code-inspector-core",
-  "version": "0.0.21",
-  "type": "module",
-  "main": "dist/index.umd.cjs",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
   "files": [
     "dist",
     "types"
   ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
@@ -27,25 +39,28 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build --config ./vite.client.config.ts && vite build",
-    "build:server": "tsc && vite build --config ./vite.server.config.ts"
+    "build:server": "vite build",
+    "build:client": " vite build --config ./vite.client.config.ts",
+    "build": "tsc && pnpm build:server && pnpm build:client"
   },
   "dependencies": {
+    "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
+    "@babel/plugin-proposal-decorators": "^7.22.7",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
     "@types/node": "^18.14.1",
     "@vue/babel-plugin-jsx": "^1.1.1",
-    "@vue/compiler-dom": "^3.2.47",
     "@vue/compiler-sfc": "^3.3.4",
     "dotenv": "^16.1.4",
     "lit": "^2.6.1",
     "magic-string": "^0.30.0",
     "typescript": "^4.9.3",
-    "vite": "^4.1.0"
+    "vite": "^4.3.9",
+    "vite-plugin-node-stdlib-browser": "^0.2.1"
   }
 }

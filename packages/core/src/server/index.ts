@@ -1,13 +1,14 @@
 // 启动本地接口，访问时唤起vscode
-const http = require('http');
-const portFinder = require('portfinder');
-const path = require('path');
+import http from 'http';
+import portFinder from 'portfinder';
+import path from 'path';
 import launchEditor from './launch-editor';
 export { getEnhanceContent } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
+import { DefaultPort } from '../shared/constant';
 
 let started = false;
-let recordPort = 5678;
+let recordPort = DefaultPort;
 
 export function StartServer(callback: Function, rootPath: string) {
   if (started) {
@@ -25,6 +26,7 @@ export function StartServer(callback: Function, rootPath: string) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': '*',
       'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
     launchEditor(file, line, column);

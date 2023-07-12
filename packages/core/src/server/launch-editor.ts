@@ -1,8 +1,8 @@
 // @ts-ignore
-const fs = require('fs');
-const path = require('path');
-const child_process = require('child_process');
-const os = require('os');
+import fs from 'fs';
+import path from 'path';
+import child_process from 'child_process';
+import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import { Editor } from '../shared/constant';
@@ -369,13 +369,16 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
   );
 }
 
-let _childProcess: {
-  kill: (arg0: string) => void;
-  on: (
-    arg0: string,
-    arg1: { (errorCode: any): void; (error: any): void }
-  ) => void;
-} | null = null;
+let _childProcess:
+  | {
+      kill: (arg0: string) => void;
+      on: (
+        arg0: string,
+        arg1: { (errorCode: any): void; (error: any): void }
+      ) => void;
+    }
+  | any
+  | null = null;
 function launchEditor(
   fileName: string,
   lineNumber: unknown,
@@ -402,7 +405,16 @@ function launchEditor(
 
   let [editor, ...args] = guessEditor();
 
-  if (editor.toLowerCase() === 'none') {
+  if (!editor || editor.toLowerCase() === 'none') {
+    console.log(
+      'Failed to recognize IDE automatically, add something like ' +
+        chalk.cyan('CODE_EDITOR=code') +
+        ' to the ' +
+        chalk.green('.env.local') +
+        ' file in your project folder ' +
+        'and restart the development server. Learn more: ' +
+        chalk.green('https://goo.gl/MMTaZt')
+    );
     return;
   }
 

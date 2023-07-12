@@ -6,12 +6,7 @@ import path from 'path';
  * @description inject line、column and path to VNode when webpack compiling .vue file
  * @type webpack.loader.Loader
  */
-function WebpackCodeInspectorLoader(
-  this: any,
-  content: string,
-  map: string,
-  cb: any
-) {
+export default function WebpackCodeInspectorLoader(this: any, content: string) {
   const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   const root = normalizePath(this.rootContext ?? this.options.context ?? '');
   const filePath = normalizePath(path.relative(root, completePath));
@@ -49,5 +44,3 @@ function WebpackCodeInspectorLoader(
 
   return content;
 }
-
-export = WebpackCodeInspectorLoader;

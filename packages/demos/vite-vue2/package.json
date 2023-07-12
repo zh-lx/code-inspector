@@ -36,7 +36,7 @@
     "typescript": "^4.6.4",
     "unplugin-vue-components": "^0.22.4",
     "vite": "^4.0.3",
-    "vite-code-inspector-plugin": "workspace:*",
+    "code-inspector-plugin": "workspace:*",
     "vite-plugin-mock": "^2.9.6",
     "vue-eslint-parser": "^9.0.3",
     "vue-tsc": "^0.39.5"

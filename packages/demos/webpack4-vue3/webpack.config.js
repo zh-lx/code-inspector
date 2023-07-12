@@ -2,7 +2,7 @@ const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-const WebpackInspectorPlugin = require('webpack-code-inspector-plugin');
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
 const HRC = require('html-replace-webpack-plugin');
 
 module.exports = (env = {}) => ({
@@ -58,7 +58,9 @@ module.exports = (env = {}) => ({
     new MiniCssExtractPlugin({
       filename: '[name].css',
     }),
-    new WebpackInspectorPlugin({}),
+    CodeInspectorPlugin({
+      bundler: 'webpack',
+    }),
     new HTMLWebpackPlugin({
       template: './index.html',
       title: '打包',

@@ -1,7 +1,30 @@
 {
   "name": "webpack-code-inspector-plugin",
-  "version": "0.0.21",
-  "main": "./lib/index.js",
+  "version": "0.1.0",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.mjs",
+  "typings": "./types/index.d.ts",
+  "scripts": {
+    "build:plugin": "vite build",
+    "build:loader": "vite build --config vite.loader.config.ts",
+    "build": "tsc && pnpm build:plugin && pnpm build:loader"
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.umd.js"
+      }
+    }
+  },
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
@@ -23,13 +46,8 @@
     "code-inspector-core": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^16.0.1",
-    "typescript": "^4.9.3"
-  },
-  "peerDependencies": {
-    "webpack": ">=4.0.0"
-  },
-  "scripts": {
-    "build": "tsc"
+    "@types/node": "^20.3.3",
+    "typescript": "^4.9.3",
+    "vite": "^4.3.9"
   }
 }

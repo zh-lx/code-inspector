@@ -9,6 +9,8 @@ import { parse as babelParse, traverse as babelTraverse } from '@babel/core';
 import tsPlugin from '@babel/plugin-transform-typescript';
 // @ts-ignore
 import importMetaPlugin from '@babel/plugin-syntax-import-meta';
+// @ts-ignore
+import proposalDecorators from '@babel/plugin-proposal-decorators';
 
 type FileType = 'vue' | 'vue-jsx';
 
@@ -19,6 +21,7 @@ export function getEnhanceContent(
 ) {
   try {
     const s = new MagicString(content);
+    // vue 部分内置元素添加 attrs 可能报错，不处理
     const escapeTags = [
       'style',
       'script',
@@ -35,6 +38,7 @@ export function getEnhanceContent(
     ];
 
     if (fileType === 'vue') {
+      // vue template 处理
       const ast = parse(content, {
         comments: true,
       });
@@ -47,19 +51,21 @@ export function getEnhanceContent(
               node.type === 1 &&
               escapeTags.indexOf(node.tag.toLowerCase()) === -1
             ) {
+              // 向 dom 上添加一个带有 filepath/row/column 的属性
               const insertPosition =
                 node.loc.start.offset + node.tag.length + 1;
               const { line, column } = node.loc.start;
-              const content = ` ${PathName}="${filePath}:${line}:${column}:${
+              const addition = ` ${PathName}="${filePath}:${line}:${column}:${
                 node.tag
               }"${node.props.length ? ' ' : ''}`;
 
-              s.prependLeft(insertPosition, content);
+              s.prependLeft(insertPosition, addition);
             }
           }) as NodeTransform,
         ],
       });
     } else if (fileType === 'vue-jsx') {
+      // vue jsx 处理
       const ast = babelParse(content, {
         babelrc: false,
         comments: true,
@@ -68,6 +74,7 @@ export function getEnhanceContent(
           importMetaPlugin,
           [vueJsxPlugin, {}],
           [tsPlugin, { isTSX: true, allowExtensions: true }],
+          [proposalDecorators, { legacy: true }],
         ],
       });
 
@@ -89,16 +96,16 @@ export function getEnhanceContent(
               return;
             }
 
+            // 向 dom 上添加一个带有 filepath/row/column 的属性
             const insertPosition =
               node.openingElement.end -
               (node.openingElement.selfClosing ? 2 : 1);
             const { line, column } = node.loc.start;
-
-            const content = ` ${PathName}="${filePath}:${line}:${column}:${
+            const addition = ` ${PathName}="${filePath}:${line}:${column}:${
               node.openingElement.name.name
             }"${node.openingElement.attributes.length ? ' ' : ''}`;
 
-            s.prependLeft(insertPosition, content);
+            s.prependLeft(insertPosition, addition);
           }
         },
       });
@@ -108,9 +115,6 @@ export function getEnhanceContent(
 
     return s.toString();
   } catch (error) {
-    console.error(
-      'Webpack Code Inspector Plugin: failed to compile ' + filePath
-    );
     return content;
   }
 }

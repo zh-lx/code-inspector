@@ -1,0 +1,126 @@
+.login_bg {
+  height: 100vh;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  position: relative;
+  background-image: url('@/assets/images/login_bg.png');
+}
+.login_container {
+  box-sizing: content-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 420px;
+  height: 350px;
+  padding: 50px 0;
+  color: #fff;
+  border-radius: 6px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.subtitle {
+  font-size: 16px;
+  color: #fff;
+  font-weight: 200;
+}
+.login_title {
+  text-align: center;
+  font-size: 35px;
+  padding-bottom: 30px;
+  color: #fff;
+}
+.form_item_box {
+  position: relative;
+}
+.form_item {
+  position: relative;
+  padding-left: 35px;
+  padding-right: 35px;
+}
+.form_item_icon {
+  font-size: 18px;
+  position: absolute;
+  top: 50%;
+  color: #fff;
+  transform: translateY(-50%);
+}
+.prefix {
+  left: 10px;
+}
+.suffix {
+  right: 10px;
+}
+.form_item input {
+  letter-spacing: 1px;
+  width: 100%;
+  background-color: transparent;
+  height: 40px;
+  outline: none;
+  border: none;
+  line-height: 26px;
+  font-size: 15px;
+  color: #fff;
+}
+input::placeholder {
+  color: #ccc;
+  font-size: 15px;
+  letter-spacing: 0px;
+}
+.form_item_box .line {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 100%;
+  height: 0;
+  border-bottom: 1px solid #fff;
+}
+.line_active {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  transition: all 0.6s;
+}
+.form_item_box:hover .line_active {
+  width: 100%;
+}
+.form_item_box:has(input:focus) .line_active {
+  width: 100%;
+}
+/* // .submit {  // 原生按钮
+//   outline: none;
+//   border: none;
+//   width: 100%;
+//   height: 42px;
+//   background-color: @primary-color;
+//   margin-top: 50px; //20px;
+//   color: #fff;
+//   letter-spacing: 12px;
+//   font-size: 15px;
+//   cursor: pointer;
+//   transition: all 0.6s;
+// }
+// .submit:hover {
+//   box-shadow: 0 0 10px @primary-color;
+// } */
+
+/* .submit {
+  width: 100%;
+  height: 42px;
+  margin-top: 35px;
+}
+.forgot_password {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 14px;
+  /* color: @primary-color;
+  padding: 6px 0;
+} */
