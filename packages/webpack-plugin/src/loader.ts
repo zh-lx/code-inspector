@@ -1,4 +1,4 @@
-import { enhanceVueCode, normalizePath, parseSFC } from 'code-inspector-core';
+import { enhanceCode, normalizePath, parseSFC } from 'code-inspector-core';
 import path from 'path';
 // import { parse } from '@vue/compiler-sfc';
 
@@ -12,13 +12,13 @@ export default function WebpackCodeInspectorLoader(this: any, content: string) {
   const filePath = normalizePath(path.relative(root, completePath));
   let params = new URLSearchParams(this.resource);
 
-  const isVueJsx =
+  const isJSX =
     completePath.endsWith('.jsx') ||
     completePath.endsWith('.tsx') ||
     (completePath.endsWith('.vue') &&
       (params.get('isJsx') !== null || params.get('lang.tsx') !== null));
 
-  const isVueJsxWithScript =
+  const isJsxWithScript =
     completePath.endsWith('.vue') &&
     (params.get('lang') === 'tsx' || params.get('lang') === 'jsx');
 
@@ -28,18 +28,22 @@ export default function WebpackCodeInspectorLoader(this: any, content: string) {
     params.get('type') !== 'script' &&
     params.get('raw') === null;
 
-  if (isVueJsx) {
-    content = enhanceVueCode(content, filePath, 'vue-jsx');
-  } else if (isVueJsxWithScript) {
+  if (isJSX) {
+    content = enhanceCode({ code: content, filePath, fileType: 'jsx' });
+  } else if (isJsxWithScript) {
     const { descriptor } = parseSFC(content, {
       sourceMap: false,
     });
     // 提取<script>标签内容
     const scriptContent = descriptor.script.content;
-    const _scriptContent = enhanceVueCode(scriptContent, filePath, 'vue-jsx');
+    const _scriptContent = enhanceCode({
+      code: scriptContent,
+      filePath,
+      fileType: 'jsx',
+    });
     content = content.replace(scriptContent, _scriptContent);
   } else if (isVue) {
-    content = enhanceVueCode(content, filePath, 'vue');
+    content = enhanceCode({ code: content, filePath, fileType: 'vue' });
   }
 
   return content;

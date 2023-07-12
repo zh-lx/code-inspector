@@ -1,5 +1,5 @@
 import {
-  enhanceVueCode,
+  enhanceCode,
   getInjectCode,
   startServer,
   HotKey,
@@ -56,9 +56,17 @@ export function ViteCodeInspectorPlugin(options?: Options) {
 
       const filePath = normalizePath(path.relative(rootPath, completePath)); // 相对路径
       if (isVueJsx) {
-        code = await enhanceVueCode(code, filePath, 'vue-jsx');
+        code = await enhanceCode({
+          code,
+          filePath,
+          fileType: 'jsx',
+        });
       } else if (isVue) {
-        code = await enhanceVueCode(code, filePath, 'vue');
+        code = await enhanceCode({
+          code,
+          filePath,
+          fileType: 'vue',
+        });
       }
       return code;
     },

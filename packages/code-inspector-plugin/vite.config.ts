@@ -12,8 +12,12 @@ export default defineConfig({
     minify: true,
     emptyOutDir: true,
     rollupOptions: {
-      external: ['vite-code-inspector-plugin', 'webpack-code-inspector-plugin'],
+      external: [
+        'vite-code-inspector-plugin',
+        'webpack-code-inspector-plugin',
+        'chalk',
+      ],
     },
-    target: ['node8', 'es2015']
+    target: ['node8', 'es2015'],
   },
 });

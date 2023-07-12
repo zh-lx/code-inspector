@@ -12,13 +12,16 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-ignore
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
-type FileType = 'vue' | 'vue-jsx';
+type FileType = 'vue' | 'jsx';
 
-export function getEnhanceContent(
-  content: string,
-  filePath: string,
-  fileType: FileType = 'vue'
-) {
+type EnhanceCodeParams = {
+  code: string;
+  filePath: string;
+  fileType: FileType;
+};
+
+export function enhanceCode(params: EnhanceCodeParams) {
+  const { code: content, filePath, fileType } = params;
   try {
     const s = new MagicString(content);
     // vue 部分内置元素添加 attrs 可能报错，不处理
@@ -64,8 +67,8 @@ export function getEnhanceContent(
           }) as NodeTransform,
         ],
       });
-    } else if (fileType === 'vue-jsx') {
-      // vue jsx 处理
+    } else if (fileType === 'jsx') {
+      // jsx 处理
       const ast = babelParse(content, {
         babelrc: false,
         comments: true,
@@ -112,7 +115,6 @@ export function getEnhanceContent(
     } else {
       return content;
     }
-
     return s.toString();
   } catch (error) {
     return content;
