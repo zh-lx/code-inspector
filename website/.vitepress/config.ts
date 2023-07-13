@@ -14,9 +14,9 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Examples',
+        text: '指南',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
+          { text: '快速开始', link: '/guide/start' },
           { text: 'Runtime API Examples', link: '/api-examples' },
         ],
       },

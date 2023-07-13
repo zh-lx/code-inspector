@@ -14,7 +14,7 @@ hero:
   actions:
     - theme: brand
       text: 快速开始
-      link: /markdown-examples
+      link: /guide/start
     - theme: alt
       text: API Examples
       link: /api-examples

@@ -6,6 +6,20 @@ import { PathName, DefaultPort } from '../shared/constant';
 
 const styleId = '__code-inspector-unique-id';
 
+const MacHotKeyMap = {
+  ctrlKey: '^control',
+  altKey: '⌥option',
+  metaKey: '⌘command',
+  shiftKey: 'shift',
+};
+
+const WindowsHotKeyMap = {
+  ctrlKey: 'Ctrl',
+  altKey: 'Alt',
+  metaKey: '⊞Windows',
+  shiftKey: '⇧Shift',
+};
+
 @customElement('code-inspector-component')
 export class MyElement extends LitElement {
   @property()
@@ -193,11 +207,29 @@ export class MyElement extends LitElement {
 
   // 打印功能提示信息
   printTip = () => {
+    const agent = navigator.userAgent.toLowerCase();
+    const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
+      (item) => agent.match(item)
+    );
+    const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
+    const keys = this.hotKeys
+      .split(',')
+      .map((item) => '%c' + hotKeyMap[item.trim() as keyof typeof hotKeyMap]);
+    const colorCount = keys.length * 2 + 1;
+    const colors = Array(colorCount)
+      .fill('')
+      .map((_, index) => {
+        if (index % 2 === 0) {
+          return 'color: #42b983; font-weight: bold; font-family: PingFang SC;';
+        } else {
+          return 'color: #006aff; font-weight: bold; font-family: PingFang SC;';
+        }
+      });
     console.log(
-      `%c同时按住 [${this.hotKeys
-        .split(',')
-        .join(' + ')}] 时启用 inspector 功能(点击页面元素可定位至编辑器源代码)`,
-      'color: #42b983; font-weight: bold; font-family: PingFang SC;'
+      `%c同时按住 [${keys.join(
+        ' %c+ '
+      )}%c] 时启用 inspector 功能(点击页面元素可定位至编辑器源代码)`,
+      ...colors
     );
   };
 
