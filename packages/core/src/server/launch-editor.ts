@@ -90,7 +90,7 @@ const getEditorByCustom = (
     for (let i = 0; i < runningProcesses.length; i++) {
       const processPath = runningProcesses[i].trim();
       const processName = path.basename(processPath);
-      if (CodeMap.win[editor].includes(processName)) {
+      if (CodeMap.win[editor]?.includes(processName)) {
         return [processName];
       }
     }

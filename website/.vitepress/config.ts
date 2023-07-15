@@ -16,9 +16,14 @@ export default defineConfig({
       {
         text: '指南',
         items: [
-          { text: '快速开始', link: '/guide/start' },
-          { text: 'Runtime API Examples', link: '/api-examples' },
+          { text: '介绍', link: '/guide/introduction' },
+          { text: '使用', link: '/guide/start' },
+          { text: '指定 IDE', link: '/guide/ide' },
         ],
+      },
+      {
+        text: '配置',
+        items: [{ text: '指定 IDE', link: '/setting/ide' }],
       },
     ],
 
