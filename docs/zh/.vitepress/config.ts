@@ -43,7 +43,7 @@ export default defineConfig({
     fr: {
       label: 'English',
       lang: 'en',
-      link: 'http://localhost:5173', // default /fr/ -- shows on navbar translations menu, can be external
+      link: 'https://en.inspector.fe-dev.cn', // default /fr/ -- shows on navbar translations menu, can be external
     },
   },
 });
