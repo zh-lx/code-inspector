@@ -14,19 +14,19 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: '指南',
+        text: 'Guidance',
         items: [
-          { text: '介绍', link: '/guide/introduction' },
-          { text: '使用', link: '/guide/start' },
-          { text: '指定 IDE', link: '/guide/ide' },
+          { text: 'Introduction', link: '/guide/introduction' },
+          { text: 'Use', link: '/guide/start' },
+          { text: 'Specify IDE', link: '/guide/ide' },
           { text: 'API', link: '/guide/api' },
         ],
       },
       {
-        text: '更多',
+        text: 'More',
         items: [
-          { text: '常见问题', link: '/more/question' },
-          { text: '交流与反馈', link: '/more/feedback' },
+          { text: 'Common Problems', link: '/more/question' },
+          { text: 'Feedback', link: '/more/feedback' },
         ],
       },
     ],
@@ -37,13 +37,13 @@ export default defineConfig({
   },
   locales: {
     root: {
-      label: '简体中文',
-      lang: 'zh',
-    },
-    fr: {
       label: 'English',
       lang: 'en',
-      link: 'https://www.baidu.com', // default /fr/ -- shows on navbar translations menu, can be external
+    },
+    en: {
+      label: '简体中文',
+      lang: 'zh',
+      link: 'http://localhost:5174', // default /fr/ -- shows on navbar translations menu, can be external
     },
   },
 });

@@ -76,7 +76,7 @@ CODE_EDITOR=/Applications/VSCodium.app/Contents/MacOS/Electron
 
 ### Windows 系统
 
-以 Webstorm 为例（其他的 IDE 步骤相同），要在 MAC 系统中获取 IDE 可执行程序路径，步骤如下：
+以 Webstorm 为例（其他的 IDE 步骤相同），要在 Windows 系统中获取 IDE 可执行程序路径，步骤如下：
 
 1. 找到 IDE 的快捷方式（如果没有则创建一个），右键点击快捷方式，选择【属性】：
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6db6899f-fec5-474a-bffb-de8a394df777" style="max-width: 400px" />

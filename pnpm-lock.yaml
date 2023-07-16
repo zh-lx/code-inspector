@@ -8,6 +8,18 @@ importers:
 
   .: {}
 
+  docs/en:
+    devDependencies:
+      vitepress:
+        specifier: 1.0.0-beta.2
+        version: 1.0.0-beta.2(@algolia/client-search@4.18.0)(search-insights@2.7.0)
+
+  docs/zh:
+    devDependencies:
+      vitepress:
+        specifier: 1.0.0-beta.2
+        version: 1.0.0-beta.2(@algolia/client-search@4.18.0)(search-insights@2.7.0)
+
   packages/code-inspector-plugin:
     dependencies:
       chalk:
@@ -665,12 +677,6 @@ importers:
       vite:
         specifier: ^4.3.9
         version: 4.3.9(@types/node@20.3.3)
-
-  website:
-    devDependencies:
-      vitepress:
-        specifier: 1.0.0-beta.2
-        version: 1.0.0-beta.2(@algolia/client-search@4.18.0)(search-insights@2.7.0)
 
 packages:
 
@@ -3124,7 +3130,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.3.9
+      vite: 4.3.9(@types/node@20.3.3)
       vue: 3.3.4
     dev: true
 
@@ -4245,6 +4251,7 @@ packages:
     engines: {node: '>=4'}
     dependencies:
       color-convert: registry.npmmirror.com/color-convert@1.9.3
+    dev: true
 
   /ansi-styles@4.3.0:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
@@ -4830,9 +4837,9 @@ packages:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
     engines: {node: '>=4'}
     dependencies:
-      ansi-styles: 3.2.1
+      ansi-styles: registry.npmmirror.com/ansi-styles@3.2.1
       escape-string-regexp: registry.npmmirror.com/escape-string-regexp@1.0.5
-      supports-color: 5.5.0
+      supports-color: registry.npmmirror.com/supports-color@5.5.0
 
   /chalk@4.1.1:
     resolution: {integrity: sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==}
@@ -7308,6 +7315,13 @@ packages:
       js-tokens: 4.0.0
     dev: false
 
+  /lru-cache@4.1.5:
+    resolution: {integrity: sha512-sWZlbEP2OsHNkXrMl5GYk/jKk70MBng6UU4YI/qGDYbgf6YbP4EvmqISbXCoJiRKs+1bSpFHVgQxvJ17F2li5g==}
+    dependencies:
+      pseudomap: 1.0.2
+      yallist: 2.1.2
+    dev: true
+
   /lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
     dependencies:
@@ -8728,6 +8742,11 @@ packages:
       node-forge: 0.10.0
     dev: true
 
+  /semver@5.7.1:
+    resolution: {integrity: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==}
+    hasBin: true
+    dev: true
+
   /semver@6.3.0:
     resolution: {integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==}
     hasBin: true
@@ -8833,7 +8852,7 @@ packages:
     resolution: {integrity: sha512-Qu+VC3EwYLldKa1fCxuuvULvSJOKEgk9pi8dZeCVK7TqBfUNTH4sFkk4joj8afVSfAYgJoSOetjx9QWOJ5mYoQ==}
     engines: {node: '>=6'}
     dependencies:
-      ansi-styles: registry.npmmirror.com/ansi-styles@3.2.1
+      ansi-styles: 3.2.1
       astral-regex: registry.npmmirror.com/astral-regex@1.0.0
       is-fullwidth-code-point: registry.npmmirror.com/is-fullwidth-code-point@2.0.0
     dev: true
@@ -9050,12 +9069,6 @@ packages:
   /supports-color@2.0.0:
     resolution: {integrity: sha512-KKNVtd6pCYgPIKU4cp2733HWYCpplQhddZLBUryaAHou723x+FRzQ5Df824Fj+IyyuiQTRoub4SnIFfIcrp70g==}
     engines: {node: '>=0.8.0'}
-
-  /supports-color@5.5.0:
-    resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
-    engines: {node: '>=4'}
-    dependencies:
-      has-flag: registry.npmmirror.com/has-flag@3.0.0
 
   /supports-color@6.1.0:
     resolution: {integrity: sha512-qe1jfm1Mg7Nq/NSh6XE24gPXROEVsWHxC1LIx//XNlD9iw7YZQGjZNjYN7xGaEG6iKdA8EtNFW6R0gjnVXp+wQ==}
@@ -9570,38 +9583,6 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vite@4.3.9:
-    resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      esbuild: 0.17.12
-      postcss: 8.4.24
-      rollup: 3.26.0
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
   /vite@4.3.9(@types/node@16.18.12):
     resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -9716,7 +9697,7 @@ packages:
       mark.js: 8.11.1
       minisearch: 6.1.0
       shiki: 0.14.3
-      vite: 4.3.9
+      vite: 4.3.9(@types/node@20.3.3)
       vue: 3.3.4
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -10300,6 +10281,10 @@ packages:
 
   /y18n@4.0.3:
     resolution: {integrity: sha512-JKhqTOwSrqNA1NY5lSztJ1GrBiUodLMmIZuLiDaMRJ+itFd+ABVE8XBjOvIWL+rSqNDC74LCSFmlb/U4UZ4hJQ==}
+    dev: true
+
+  /yallist@2.1.2:
+    resolution: {integrity: sha512-ncTzHV7NvsQZkYe1DW7cbDLm0YpzHmZF5r/iyP3ZnQtMiJ+pjzisCiMNI+Sj+xQF5pXhSHxSB3uDbsBTzY/c2A==}
     dev: true
 
   /yallist@4.0.0:
@@ -11380,7 +11365,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/helper-validator-identifier': registry.npmmirror.com/@babel/helper-validator-identifier@7.22.5
-      chalk: registry.npmmirror.com/chalk@2.4.2
+      chalk: 2.4.2
       js-tokens: registry.npmmirror.com/js-tokens@4.0.0
 
   registry.npmmirror.com/@babel/parser@7.22.5:
@@ -17193,7 +17178,7 @@ packages:
     name: cross-spawn
     version: 5.1.0
     dependencies:
-      lru-cache: registry.npmmirror.com/lru-cache@4.1.5
+      lru-cache: 4.1.5
       shebang-command: registry.npmmirror.com/shebang-command@1.2.0
       which: registry.npmmirror.com/which@1.3.1
     dev: true
@@ -17206,7 +17191,7 @@ packages:
     dependencies:
       nice-try: registry.npmmirror.com/nice-try@1.0.5
       path-key: registry.npmmirror.com/path-key@2.0.1
-      semver: registry.npmmirror.com/semver@5.7.1
+      semver: 5.7.1
       shebang-command: registry.npmmirror.com/shebang-command@1.2.0
       which: registry.npmmirror.com/which@1.3.1
     dev: true
@@ -18305,7 +18290,7 @@ packages:
     version: 0.1.2
     hasBin: true
     dependencies:
-      minimatch: registry.npmmirror.com/minimatch@3.1.2
+      minimatch: 3.1.2
     dev: false
 
   registry.npmmirror.com/duplexer@0.1.2:
@@ -22786,7 +22771,7 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       pify: registry.npmmirror.com/pify@4.0.1
-      semver: registry.npmmirror.com/semver@5.7.1
+      semver: 5.7.1
     dev: true
 
   registry.npmmirror.com/make-dir@3.1.0:
@@ -23272,7 +23257,7 @@ packages:
     dependencies:
       hosted-git-info: registry.npmmirror.com/hosted-git-info@2.8.9
       resolve: registry.npmmirror.com/resolve@1.22.1
-      semver: registry.npmmirror.com/semver@5.7.1
+      semver: 5.7.1
       validate-npm-package-license: registry.npmmirror.com/validate-npm-package-license@3.0.4
     dev: true
 
