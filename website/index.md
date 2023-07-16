@@ -16,8 +16,8 @@ hero:
       text: 快速开始
       link: /guide/start
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: 加入用户群
+      link: /more/feedback
 
 features:
   - icon: 🚀
@@ -25,7 +25,7 @@ features:
     details: 鼠标一点即能快速定位到源代码，大幅提升开发体验和效率
   - icon: 📖
     title: 简单易用
-    details: 安装、配置及使用步骤都十分简洁，只需几秒钟即可接入并使用
+    details: 安装、配置及使用步骤都十分简洁，一分钟时间即可接入并使用
   - icon: 🎨
     title: 通用性强
     details: 支持在 webpack/vite 中使用，支持 vue/react 等多个框架
