@@ -2,7 +2,7 @@
 
 By default, `code-inspector-plugin` will scan the currently running applications in the system and automatically open a running IDE program (automatic recognition only applies to IDEs that support automatic recognition in the table below), so in most cases you do not need to manually specify an IDE.
 
-If you want to specify an IDE, you need to add a file named `.env.local` to the project root directory and add: `CODE_EDITOR=[IDE Encoding Name]`.
+If you want to specify an IDE, you need to add a file named `.env.local` to the project root directory and add the following content: `CODE_EDITOR=[IDE Encoding Name]`.
 
 Taking vscode as an example, its corresponding `IDE Encoding Name` is `code`, so the following content should be added in `.env.local`:
 
@@ -54,20 +54,20 @@ The IDE that supports automatic recognition and the corresponding IDE Encoding N
     </tr>
 </table>
 
-## Non Automatic Recognition IDE
+## Other IDE
 
-If the IDE you are using is no longer in the list that supports automatic recognition mentioned above, or if it is an unofficial IDE in the list mentioned above, you need to add a file named `.env.local` to the project root directory and add: `CODE_EDITOR=[IDE Execution Path]`, the IDE Execution Path reference is as follows.
+If the IDE you are using is not in the list that supports automatic recognition mentioned above or if it is an unofficial IDE, you need to add a file named `.env.local` to the project root directory and add the following content: `CODE_EDITOR=[IDE Execution Path]`, the reference of getting `IDE Execution Path` is as follows.
 
 ### MAC
 
-Taking VSCodium as an example (the other IDE steps are the same), to obtain the IDE Execution Path in the MAC system, the steps are as follows:
+Taking VSCodium as an example (the other IDE steps are the same), to get the `IDE Execution Path` in the MAC system, the steps are as follows:
 
-1. Open the IDE program VSCodium
+1. Open VSCodium
 2. Open the MAC's own Activity Monitor, find VSCodium in the process, and double-click:
    ![Active_Monitor](https://github.com/zh-lx/code-inspector/assets/73059627/17d65dc1-82ff-439f-aeba-8e3056cd2a1b)
-3. After double clicking, in the "Open File and Port" tab of the window, find the corresponding path under the first txt, which is the IDE Execution Path:
+3. After double clicking, in the `Open File and Port` tab of the window, find the corresponding path under the first txt, which is the `IDE Execution Path`:
    ![Open_Files](https://github.com/zh-lx/code-inspector/assets/73059627/f27a61f4-1c57-4687-83c7-6078533d62b4)
-4. Copy the IDE Execution Path to the `.env.local` file to:
+4. Copy the `IDE Execution Path` to the `.env.local` file:
 
 ```perl
 # .env.local
@@ -76,13 +76,13 @@ CODE_EDITOR=/Applications/VSCodium.app/Contents/MacOS/Electron
 
 ### Windows
 
-Taking Webstorm as an example (other IDE steps are the same), to obtain the IDE Execution Path in the Windows system, the steps are as follows:
+Taking Webstorm as an example (other IDE steps are the same), to get the `IDE Execution Path` in the Windows system, the steps are as follows:
 
-1. Find the shortcut to the IDE (if not available, create one), right-click on the shortcut, and select 【属性】:
+1. Find the shortcut of the IDE (if not available, create one), right-click on the shortcut, and select `属性`:
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6db6899f-fec5-474a-bffb-de8a394df777" style="max-width: 400px" />
-2. After opening, find the 【目标】 in the 【快捷】 tab and remove the double quotes in the 【目标】 to obtain the IDE Execution Path：
+2. After opening, find the `快捷` tab, the value of `目标` is the `IDE Execution Path`：
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/f5067697-a246-4566-a530-ca83f9803bf5" style="max-width: 400px" />
-3. Copy the IDE Execution Path to the `.env.local` file to:
+3. Copy the `IDE Execution Path` to the `.env.local` file:
 
 ```perl
 # .env.local

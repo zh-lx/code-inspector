@@ -1,22 +1,13 @@
 # API
 
-## 配置项
+## 参数
 
-`CodeInspectorPlugin` 的类型定义如下：
+`CodeInspectorPlugin` 接收一个名为 `options` 的参数：
 
 ```typescript
-type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
-interface CodeInspectorPluginOptions {
-  bundler: 'vite' | 'webpack';
-  hotKeys?: HotKey[] | false;
-  showSwitch?: boolean;
-  autoToggle?: boolean;
-}
-
-function CodeInspectorPlugin(options: CodeInspectorPluginOptions) {
-  // ...
-}
+CodeInspectorPlugin(options);
 ```
 
 `options` 的属性及说明如下表：

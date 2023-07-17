@@ -5,13 +5,13 @@ export default defineConfig({
   title: 'Code Inspector',
   description: "Locate dom's source code in IDE",
   themeConfig: {
-    logo: './logo.svg',
+    logo: '/logo.svg',
     // https://vitepress.dev/reference/default-theme-config
     // nav: [{ text: '首页', link: '/' }],
     search: {
       provider: 'local',
     },
-
+    outline: [2, 3],
     sidebar: [
       {
         text: 'Guidance',

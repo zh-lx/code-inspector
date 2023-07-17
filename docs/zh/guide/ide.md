@@ -54,7 +54,7 @@ CODE_EDITOR=code
     </tr>
 </table>
 
-## 非自动识别的 IDE
+## 其他 IDE
 
 如果你使用的 IDE 不再上述支持自动识别的列表内，或者是上述列表中非官方 IDE，需要在项目根目录添加一个名为 `.env.local` 的文件并添加： `CODE_EDITOR=[IDE可执行程序路径]`，IDE 可执行程序路径参考如下。
 

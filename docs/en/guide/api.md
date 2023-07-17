@@ -1,22 +1,13 @@
 # API
 
-## Configuration Item
+## Parameters
 
-The type definition of `CodeInspectorPlugin` is as follows:
+`CodeInspectorPlugin` receiving a parameter named `options`:
 
 ```typescript
-type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
-interface CodeInspectorPluginOptions {
-  bundler: 'vite' | 'webpack';
-  hotKeys?: HotKey[] | false;
-  showSwitch?: boolean;
-  autoToggle?: boolean;
-}
-
-function CodeInspectorPlugin(options: CodeInspectorPluginOptions) {
-  // ...
-}
+CodeInspectorPlugin(options);
 ```
 
 The attributes and descriptions of `options` are shown in the table below:

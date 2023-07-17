@@ -48,7 +48,6 @@ module.exports = () => ({
 import { defineConfig } from 'vite';
 import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     CodeInspectorPlugin({
@@ -76,10 +75,13 @@ export default defineConfig({
 
 目前使用 DOM 源码定位功能的方式有两种:
 
-1. 【推荐】方式一：在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现蓝色半透明遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，浏览器控制台会输出相关组合键提示)
-   ![image](https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e)
-2. 方式二：当插件参数中配置 `showSwitch: true` 时，会在页面显示一个 Code Inspector 开关按钮，点击可切换审查模式开启/关闭，审查模式开启后作用同方式一中按住组合键。当开关的颜色为彩色时，表示代码审查模式开启 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" />；当开关颜色为黑白时，表示代码审查模式关闭 <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />。
+### 方式一（推荐）
+
+在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现蓝色半透明遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，浏览器控制台会输出相关组合键提示)
+![image](https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e)
+
+### 方式二
+
+当插件参数中配置 `showSwitch: true` 时，会在页面显示一个`代码审查开关按钮`，点击可切换`代码审查模式`开启/关闭，`代码审查模式`开启后使用方式同方式一中按住组合键。当开关的颜色为彩色时，表示`代码审查模式`开启 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" />；当开关颜色为黑白时，表示`代码审查模式`关闭 <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />。
 
 ![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
-
-
