@@ -70,7 +70,7 @@ class WebpackCodeInspectorPlugin {
 
   apply(compiler) {
     // 仅在开发环境下使用
-    if (compiler?.options?.mode !== 'development') {
+    if (compiler?.options?.mode !== 'development' && process.env.NODE_ENV !== 'development') {
       return;
     }
 
