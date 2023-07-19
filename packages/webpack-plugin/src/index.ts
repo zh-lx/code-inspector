@@ -12,7 +12,8 @@ const applyLoader = (compiler: any, cb: () => void) => {
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
   rules.push({
-    test: /\.(vue|jsx|tsx)$/,
+    test: /\.(vue|jsx|tsx|js|ts)$/,
+    exclude: /node_modules/,
     use: [path.resolve(__dirname, './loader.js')],
     enforce: 'pre',
   });
@@ -70,7 +71,10 @@ class WebpackCodeInspectorPlugin {
 
   apply(compiler) {
     // 仅在开发环境下使用
-    if (compiler?.options?.mode !== 'development' && process.env.NODE_ENV !== 'development') {
+    if (
+      compiler?.options?.mode !== 'development' &&
+      process.env.NODE_ENV !== 'development'
+    ) {
       return;
     }
 

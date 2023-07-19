@@ -7,16 +7,19 @@ import path from 'path';
  * @type webpack.loader.Loader
  */
 export default function WebpackCodeInspectorLoader(this: any, content: string) {
+  this.cacheable && this.cacheable();
   const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   const root = normalizePath(this.rootContext ?? this.options.context ?? '');
   const filePath = normalizePath(path.relative(root, completePath));
   let params = new URLSearchParams(this.resource);
 
+  const jsxExtList = ['.js', '.ts', '.jsx', '.tsx'];
+  const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
+
   const isJSX =
-    completePath.endsWith('.jsx') ||
-    completePath.endsWith('.tsx') ||
+    jsxExtList.some((ext) => completePath.endsWith(ext)) ||
     (completePath.endsWith('.vue') &&
-      (params.get('isJsx') !== null || params.get('lang.tsx') !== null));
+      jsxParamList.some((param) => params.get(param) !== null));
 
   const isJsxWithScript =
     completePath.endsWith('.vue') &&

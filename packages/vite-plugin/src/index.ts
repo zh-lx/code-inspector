@@ -32,6 +32,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       return isDev;
     },
     async transform(code, id) {
+      if (id.match('node_modules')) {
+        return code;
+      }
       if (!rootPath) {
         rootPath = process.cwd(); // 根路径
       }
@@ -39,13 +42,12 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       const completePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
 
-      const isVueJsx =
-        completePath.endsWith('.jsx') ||
-        completePath.endsWith('.tsx') ||
+      const jsxExtList = ['.js', '.ts', '.jsx', '.tsx'];
+      const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
+      const isJsx =
+        jsxExtList.some((ext) => completePath.endsWith(ext)) ||
         (completePath.endsWith('.vue') &&
-          (params.get('isJsx') !== null ||
-            params.get('lang.tsx') !== null ||
-            params.get('lang.jsx') !== null ||
+          (jsxParamList.some((param) => params.get(param) !== null) ||
             params.get('lang') === 'tsx' ||
             params.get('lang') === 'jsx'));
 
@@ -55,7 +57,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         params.get('raw') === null;
 
       const filePath = normalizePath(path.relative(rootPath, completePath)); // 相对路径
-      if (isVueJsx) {
+      if (isJsx) {
         code = await enhanceCode({
           code,
           filePath,

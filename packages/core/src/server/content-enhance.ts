@@ -104,7 +104,7 @@ export function enhanceCode(params: EnhanceCodeParams) {
               node.openingElement.end -
               (node.openingElement.selfClosing ? 2 : 1);
             const { line, column } = node.loc.start;
-            const addition = ` ${PathName}="${filePath}:${line}:${column}:${
+            const addition = ` ${PathName}="${filePath}:${line}:${column + 1}:${
               node.openingElement.name.name
             }"${node.openingElement.attributes.length ? ' ' : ''}`;
 
