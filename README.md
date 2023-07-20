@@ -38,7 +38,7 @@ pnpm add code-inspector-plugin -D
 
 ## 🎨 支持列表
 
-下面是编译器、web 框架以及代码编辑器支持列表:
+当前支持的编译器、web 框架以及 IDE 如下:
 
 - 当前支持以下打包工具<br />
   ✅ webpack(4.x/5.x)<br />
