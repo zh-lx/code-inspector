@@ -1,12 +1,18 @@
 import {
   getInjectCode,
   startServer,
-  HotKey,
   normalizePath,
+  CodeOptions,
 } from 'code-inspector-core';
 import path from 'path';
 
+let isFirstLoad = true;
+
 const applyLoader = (compiler: any, cb: () => void) => {
+  if (!isFirstLoad) {
+    return;
+  }
+  isFirstLoad = false;
   // 适配 webpack 各个版本
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
@@ -57,11 +63,10 @@ const injectCode = (
   }
 };
 
-interface Options {
-  hotKeys?: HotKey[] | false;
-  showSwitch?: boolean;
-  autoToggle?: boolean;
+interface Options extends CodeOptions {
+  close?: boolean;
 }
+
 class WebpackCodeInspectorPlugin {
   options: Options;
 
@@ -70,6 +75,12 @@ class WebpackCodeInspectorPlugin {
   }
 
   apply(compiler) {
+    isFirstLoad = true;
+
+    if (this.options.close) {
+      return;
+    }
+
     // 仅在开发环境下使用
     if (
       compiler?.options?.mode !== 'development' &&

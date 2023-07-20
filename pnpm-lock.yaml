@@ -38,6 +38,9 @@ importers:
       '@types/node':
         specifier: ^16.0.1
         version: 16.18.12
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
       typescript:
         specifier: ^4.9.3
         version: 4.9.5
@@ -3540,7 +3543,7 @@ packages:
       cssnano: 4.1.11
       debug: 4.3.4(supports-color@6.1.0)
       default-gateway: 5.0.5
-      dotenv: registry.npmmirror.com/dotenv@8.6.0
+      dotenv: 8.6.0
       dotenv-expand: registry.npmmirror.com/dotenv-expand@5.1.0
       file-loader: registry.npmmirror.com/file-loader@4.3.0(webpack@4.46.0)
       fs-extra: registry.npmmirror.com/fs-extra@7.0.1
@@ -5714,6 +5717,16 @@ packages:
   /dotenv@16.1.4:
     resolution: {integrity: sha512-m55RtE8AsPeJBpOIFKihEmqUcoVncQIwo7x9U8ZwLEZw9ZpXboz2c+rvog+jUaJvVrZ5kBOeYQBX5+8Aa/OZQw==}
     engines: {node: '>=12'}
+    dev: true
+
+  /dotenv@16.3.1:
+    resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
+    engines: {node: '>=12'}
+    dev: true
+
+  /dotenv@8.6.0:
+    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
+    engines: {node: '>=10'}
     dev: true
 
   /easy-stack@1.0.1:
@@ -18276,13 +18289,6 @@ packages:
     version: 10.0.0
     engines: {node: '>=10'}
     dev: false
-
-  registry.npmmirror.com/dotenv@8.6.0:
-    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/dotenv/-/dotenv-8.6.0.tgz}
-    name: dotenv
-    version: 8.6.0
-    engines: {node: '>=10'}
-    dev: true
 
   registry.npmmirror.com/dotignore@0.1.2:
     resolution: {integrity: sha512-UGGGWfSauusaVJC+8fgV+NVvBXkCTmVv7sk6nojDZZvuOUNGUy0Zk4UpHQD6EDjS0jpBwcACvH4eofvyzBcRDw==, registry: https://registry.npmjs.org/, tarball: https://registry.npmmirror.com/dotignore/-/dotignore-0.1.2.tgz}

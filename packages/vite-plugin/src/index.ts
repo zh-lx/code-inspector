@@ -2,17 +2,15 @@ import {
   enhanceCode,
   getInjectCode,
   startServer,
-  HotKey,
   normalizePath,
+  CodeOptions,
 } from 'code-inspector-core';
 import path from 'path';
 const PluginName = 'vite-code-inspector-plugin';
 let rootPath = '';
 
-interface Options {
-  hotKeys?: HotKey[] | false;
-  showSwitch?: boolean;
-  autoToggle?: boolean;
+interface Options extends CodeOptions {
+  close?: boolean;
 }
 
 const replaceHtml = (html, code) => {
@@ -28,6 +26,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
     name: PluginName,
     enforce: 'pre' as 'pre',
     apply(_, { command }) {
+      if (options?.close) {
+        return false;
+      }
       const isDev = command === 'serve';
       return isDev;
     },
