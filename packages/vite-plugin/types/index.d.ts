@@ -1,8 +1,6 @@
-import { HotKey } from 'code-inspector-core';
-interface Options {
-    hotKeys?: HotKey[] | false;
-    showSwitch?: boolean;
-    autoToggle?: boolean;
+import { CodeOptions } from 'code-inspector-core';
+interface Options extends CodeOptions {
+    close?: boolean;
 }
 export declare function ViteCodeInspectorPlugin(options?: Options): {
     name: string;
