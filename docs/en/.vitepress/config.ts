@@ -25,6 +25,7 @@ export default defineConfig({
       {
         text: 'More',
         items: [
+          { text: 'Changelog', link: '/more/changelog' },
           { text: 'Common Problems', link: '/more/question' },
           { text: 'Feedback', link: '/more/feedback' },
         ],
