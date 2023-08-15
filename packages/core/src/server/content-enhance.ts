@@ -87,7 +87,8 @@ export function enhanceCode(params: EnhanceCodeParams) {
             node.type === 'JSXElement' &&
             escapeTags.indexOf(
               (node?.openingElement?.name?.name || '').toLowerCase()
-            ) === -1
+            ) === -1 &&
+            node?.openingElement?.name?.name
           ) {
             if (
               node.openingElement.attributes.some(

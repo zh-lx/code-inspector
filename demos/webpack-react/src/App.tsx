@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
@@ -19,6 +19,10 @@ function App() {
           Learn React
         </a>
       </header>
+      <React.Fragment>
+        <p>p1</p>
+        <p>p2</p>
+      </React.Fragment>
     </div>
   );
 }
