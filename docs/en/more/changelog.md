@@ -1,9 +1,21 @@
 # Changelog
 
+## 0.1.11
+
+- 【optimize】Optimize dependencies version
+
+## 0.1.10
+
+- 【fix】Fix the issue of injecting path information into the React built-in component, which will cause an error to be reported on the console
+
+## 0.1.9
+
+- 【optimize】Removing file path verification for Windows systems
+
 ## 0.1.8
 
-【feature】Added the `needEnvInspector` parameter to support scenarios where the plugin only takes effect when `CODE_INSPECTOR=true` is configured in `.local.env`
-【fix】Fix the issue of full page refresh during hot updates when used in webpack
+- 【feature】Added the `needEnvInspector` parameter to support scenarios where the plugin only takes effect when `CODE_INSPECTOR=true` is configured in `.local.env`
+- 【fix】Fix the issue of full page refresh during hot updates when used in webpack
 
 ## 0.1.7
 
