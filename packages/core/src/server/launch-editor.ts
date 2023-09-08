@@ -234,7 +234,7 @@ function getArgumentsForLineNumber(
   return [fileName];
 }
 
-function guessEditor() {
+function guessEditor(_editor?: Editor) {
   let customEditors = null;
 
   // webpack
@@ -262,6 +262,13 @@ function guessEditor() {
     }
   }
 
+  if(_editor) {
+    const editor = getEditorByCustom(_editor);
+    if(editor) {
+      customEditors = editor;
+    }
+  }
+
   // We can find out which editor is currently running by:
   // `ps x` on macOS and Linux
   // `Get-Process` on Windows
@@ -275,6 +282,7 @@ function guessEditor() {
         const processName = processNames[i] as keyof typeof COMMON_EDITORS_OSX;
         if (output.indexOf(processName) !== -1) {
           if (customEditors?.includes(processName)) {
+            
             // 优先返回用户自定义
             return [COMMON_EDITORS_OSX[processName]];
           }
@@ -363,8 +371,11 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
       chalk.cyan('CODE_EDITOR=code') +
       ' to the ' +
       chalk.green('.env.local') +
-      ' file in your project folder ' +
-      'and restart the development server. Learn more: ' +
+      ' file in your project folder,' +
+      ' or add ' +
+      chalk.green('editor: \"code\"') +
+      ' to CodeInspectorPlugin config, ' +
+      'and then restart the development server. Learn more: ' +
       chalk.green('https://goo.gl/MMTaZt')
   );
 }
@@ -383,7 +394,8 @@ let _childProcess:
 function launchEditor(
   fileName: string,
   lineNumber: unknown,
-  colNumber: unknown
+  colNumber: unknown,
+  _editor?: Editor,
 ) {
   if (!fs.existsSync(fileName)) {
     return;
@@ -404,7 +416,7 @@ function launchEditor(
     colNumber = 1;
   }
 
-  let [editor, ...args] = guessEditor();
+  let [editor, ...args] = guessEditor(_editor);
 
   if (!editor || editor.toLowerCase() === 'none') {
     console.log(
@@ -412,8 +424,11 @@ function launchEditor(
         chalk.cyan('CODE_EDITOR=code') +
         ' to the ' +
         chalk.green('.env.local') +
-        ' file in your project folder ' +
-        'and restart the development server. Learn more: ' +
+        ' file in your project folder,' +
+        ' or add ' +
+        chalk.green('editor: \"code\"') +
+        ' to CodeInspectorPlugin config, ' +
+        'and then restart the development server. Learn more: ' +
         chalk.green('https://goo.gl/MMTaZt')
     );
     return;
