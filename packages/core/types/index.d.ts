@@ -1,3 +1,4 @@
+import { Editor } from './shared/constant';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
     /**
@@ -15,6 +16,7 @@ export type CodeOptions = {
      * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
      */
     autoToggle?: boolean;
+    editor?: Editor;
 };
 export declare function getInjectCode(port: number, options?: CodeOptions): string;
 export { startServer, enhanceCode, normalizePath, parseSFC } from './server';

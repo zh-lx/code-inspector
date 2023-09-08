@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { dirname } from 'path';
+import { Editor } from './shared/constant';
 
 let compatibleDirname = '';
 
@@ -44,6 +45,7 @@ export type CodeOptions = {
    * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
    */
   autoToggle?: boolean;
+  editor?: Editor;
 };
 
 export function getInjectCode(port: number, options?: CodeOptions) {

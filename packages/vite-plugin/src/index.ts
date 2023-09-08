@@ -81,7 +81,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
           });
           html = replaceHtml(html, code);
           resolve(html);
-        }, rootPath);
+        }, rootPath, options.editor);
       });
       return html;
     },

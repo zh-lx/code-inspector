@@ -1,5 +1,6 @@
 export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
-export declare function startServer(callback: Function, rootPath: string): void;
+import { Editor } from '../shared/constant';
+export declare function startServer(callback: (port: number) => any, rootPath: string, editor?: Editor): void;
 export declare function normalizePath(filepath: string): string;
 export declare const parseSFC: typeof parse;
