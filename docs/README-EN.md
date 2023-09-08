@@ -49,13 +49,6 @@ The following are which compilers, web frameworks and editors we supported now:
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
-## 👨‍💻 Contributors
-
-Thanks for the contributors of this project：
-
-<!-- readme: collaborators,contributors -start -->
-<!-- readme: collaborators,contributors -end -->
-
 ## 📧 Communication and Feedback
 
 For any usage issues, you can join the QQ group `769748484`、wechat group or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
