@@ -249,7 +249,7 @@ function guessEditor(_editor?: Editor) {
 
   // vite
   const envPath = path.resolve(process.cwd(), '.env.local');
-  if (fs.existsSync(envPath)) {
+  if (fs.existsSync(envPath) && !customEditors) {
     const envFile = fs.readFileSync(envPath, 'utf-8');
     const envConfig = dotenv.parse(envFile || '');
     if (envConfig.CODE_EDITOR) {
@@ -262,9 +262,9 @@ function guessEditor(_editor?: Editor) {
     }
   }
 
-  if(_editor) {
+  if (_editor && !customEditors) {
     const editor = getEditorByCustom(_editor);
-    if(editor) {
+    if (editor) {
       customEditors = editor;
     }
   }
@@ -282,7 +282,6 @@ function guessEditor(_editor?: Editor) {
         const processName = processNames[i] as keyof typeof COMMON_EDITORS_OSX;
         if (output.indexOf(processName) !== -1) {
           if (customEditors?.includes(processName)) {
-            
             // 优先返回用户自定义
             return [COMMON_EDITORS_OSX[processName]];
           }
@@ -373,7 +372,7 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
       chalk.green('.env.local') +
       ' file in your project folder,' +
       ' or add ' +
-      chalk.green('editor: \"code\"') +
+      chalk.green('editor: "code"') +
       ' to CodeInspectorPlugin config, ' +
       'and then restart the development server. Learn more: ' +
       chalk.green('https://goo.gl/MMTaZt')
@@ -395,7 +394,7 @@ function launchEditor(
   fileName: string,
   lineNumber: unknown,
   colNumber: unknown,
-  _editor?: Editor,
+  _editor?: Editor
 ) {
   if (!fs.existsSync(fileName)) {
     return;
@@ -426,7 +425,7 @@ function launchEditor(
         chalk.green('.env.local') +
         ' file in your project folder,' +
         ' or add ' +
-        chalk.green('editor: \"code\"') +
+        chalk.green('editor: "code"') +
         ' to CodeInspectorPlugin config, ' +
         'and then restart the development server. Learn more: ' +
         chalk.green('https://goo.gl/MMTaZt')
