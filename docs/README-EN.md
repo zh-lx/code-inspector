@@ -10,6 +10,7 @@
 [![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)
 [![GITHUB star](https://img.shields.io/github/stars/zh-lx/code-inspector.svg)](https://github.com/zh-lx/code-inspector)
 [![MIT-license](https://img.shields.io/npm/l/code-inspector.svg)](https://opensource.org/licenses/MIT)
+
 </div>
 
 <hr />
@@ -48,11 +49,19 @@ The following are which compilers, web frameworks and editors we supported now:
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
+## 👨‍💻 Contributors
+
+Thanks for the contributors of this project：
+
+<!-- readme: collaborators,contributors -start -->
+<!-- readme: collaborators,contributors -end -->
+
 ## 📧 Communication and Feedback
 
-For any usage issues, you can join the QQ group `769748484` or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
+For any usage issues, you can join the QQ group `769748484`、wechat group or add the author's WeChat account `zhoulx1688888` for consultation and feedback:
 
-<div style="display: flex;">
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/b107aac0-0582-4392-b2c5-c375ccc4fedc" width="200" />
-  <img src="https://user-images.githubusercontent.com/73059627/226233691-848b2a40-f1a9-414e-a80f-3fc6c6209eb1.png" width="200" />
+<div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6f0c8197-21e3-48d7-b9db-ffeb0e0d4ba7" width="200" height="272" />
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/acd7dafb-b47a-480c-8ab0-93801f39477f" width="200" height="272" />
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/28ebb97a-a114-4598-a6f2-0e45103284cc" width="200" height="272" />
 </div>
