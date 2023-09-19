@@ -30,6 +30,8 @@ export class MyElement extends LitElement {
   showSwitch: boolean = false;
   @property()
   autoToggle: boolean = false;
+  @property()
+  hideConsole: boolean = false;
 
   @state()
   position = { top: 0, left: 0, width: 0, height: 0 }; // 弹窗位置
@@ -275,7 +277,9 @@ export class MyElement extends LitElement {
 
   protected firstUpdated(): void {
     this.eliminateWarning();
-    this.printTip();
+    if (!this.hideConsole) {
+      this.printTip();
+    }
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousemove', this.moveSwitch);
     window.addEventListener('click', this.handleMouseClick, true);
