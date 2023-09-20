@@ -41,6 +41,11 @@ export type CodeOptions = {
    */
   showSwitch?: boolean;
   /**
+   * @cn 是否隐藏在控制台的按键提示
+   * @en Whether hide the tips of combination keys on console.
+   */
+  hideConsole?: boolean;
+  /**
    * @cn 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关
    * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
    */
@@ -52,6 +57,7 @@ export function getInjectCode(port: number, options?: CodeOptions) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
+    hideConsole = false,
     autoToggle = true,
   } = options || ({} as CodeOptions);
   return `<code-inspector-component port=${port} hotKeys="${(hotKeys
@@ -60,7 +66,7 @@ export function getInjectCode(port: number, options?: CodeOptions) {
   )?.join(',')}"
   ${showSwitch ? 'showSwitch=true' : ''} ${
     autoToggle ? 'autoToggle=true' : ''
-  }></code-inspector-component>
+  }  ${hideConsole ? 'hideConsole=true' : ''}></code-inspector-component>
   <script type="text/javascript">
   ${jsCode}
   </script>`;
