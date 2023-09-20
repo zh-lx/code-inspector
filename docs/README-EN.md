@@ -4,7 +4,7 @@
 <p align="center">
   <h2>code-inspector</h2>
   <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">中文文档</a>
-  | <span>English Doc</span> | <a href="https://en.inspector.fe-dev.cn">Online Docs</a>
+  | <span>English Doc</span> | <a href="https://inspector.fe-dev.cn/en">Online Docs</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)
