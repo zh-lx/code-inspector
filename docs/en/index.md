@@ -16,6 +16,12 @@ hero:
     - theme: alt
       text: Join User Group
       link: /more/feedback
+    - theme: alt
+      text: Try it Online(React)
+      link: https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts
+    - theme: alt
+      text: Try it Online(Vue)
+      link: https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts
 
 features:
   - icon: 🚀

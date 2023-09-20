@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress';
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Code Inspector',
+  base: '/en/',
   description: "Locate dom's source code in IDE",
   themeConfig: {
     logo: '/logo.svg',
@@ -25,6 +26,7 @@ export default defineConfig({
       {
         text: 'More',
         items: [
+          { text: 'Try it online', link: '/more/try' },
           { text: 'Changelog', link: '/more/changelog' },
           { text: 'Common Problems', link: '/more/question' },
           { text: 'Feedback', link: '/more/feedback' },
