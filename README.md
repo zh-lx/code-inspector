@@ -22,6 +22,18 @@
 
 ![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
 
+## 💻 在线体验
+
+<b>vue online demo:</b><br/>
+[
+![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)
+](https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts)
+
+<b>react online demo:</b><br/>
+[
+![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)
+](https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts)
+
 ## 🚀 安装
 
 ```perl

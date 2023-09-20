@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.1.12
+
+- 【feat】增加 `hideConsole` 和 `editor` 参数
+
 ## 0.1.11
 
 - 【optimize】优化依赖项版本

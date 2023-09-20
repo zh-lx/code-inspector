@@ -4,6 +4,7 @@ export declare class MyElement extends LitElement {
     port: number;
     showSwitch: boolean;
     autoToggle: boolean;
+    hideConsole: boolean;
     position: {
         top: number;
         left: number;
