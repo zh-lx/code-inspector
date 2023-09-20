@@ -12,6 +12,11 @@ export type CodeOptions = {
      */
     showSwitch?: boolean;
     /**
+     * @cn 是否隐藏在控制台的按键提示
+     * @en Whether hide the tips of combination keys on console.
+     */
+    hideConsole?: boolean;
+    /**
      * @cn 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关
      * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
      */

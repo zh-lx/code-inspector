@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12
+
+- 【feat】Add parameters: `hideConsole` and `editor`
+
 ## 0.1.11
 
 - 【optimize】Optimize dependencies version
