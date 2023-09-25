@@ -234,7 +234,7 @@ function getArgumentsForLineNumber(
   return [fileName];
 }
 
-function guessEditor() {
+function guessEditor(_editor?: Editor) {
   let customEditors = null;
 
   // webpack
@@ -249,7 +249,7 @@ function guessEditor() {
 
   // vite
   const envPath = path.resolve(process.cwd(), '.env.local');
-  if (fs.existsSync(envPath)) {
+  if (fs.existsSync(envPath) && !customEditors) {
     const envFile = fs.readFileSync(envPath, 'utf-8');
     const envConfig = dotenv.parse(envFile || '');
     if (envConfig.CODE_EDITOR) {
@@ -259,6 +259,13 @@ function guessEditor() {
       } else {
         return [envConfig.CODE_EDITOR];
       }
+    }
+  }
+
+  if (_editor && !customEditors) {
+    const editor = getEditorByCustom(_editor);
+    if (editor) {
+      customEditors = editor;
     }
   }
 
@@ -363,8 +370,11 @@ function printInstructions(fileName: any, errorMessage: string | any[] | null) {
       chalk.cyan('CODE_EDITOR=code') +
       ' to the ' +
       chalk.green('.env.local') +
-      ' file in your project folder ' +
-      'and restart the development server. Learn more: ' +
+      ' file in your project folder,' +
+      ' or add ' +
+      chalk.green('editor: "code"') +
+      ' to CodeInspectorPlugin config, ' +
+      'and then restart the development server. Learn more: ' +
       chalk.green('https://goo.gl/MMTaZt')
   );
 }
@@ -379,10 +389,12 @@ let _childProcess:
     }
   | any
   | null = null;
+
 function launchEditor(
   fileName: string,
   lineNumber: unknown,
-  colNumber: unknown
+  colNumber: unknown,
+  _editor?: Editor
 ) {
   if (!fs.existsSync(fileName)) {
     return;
@@ -403,7 +415,7 @@ function launchEditor(
     colNumber = 1;
   }
 
-  let [editor, ...args] = guessEditor();
+  let [editor, ...args] = guessEditor(_editor);
 
   if (!editor || editor.toLowerCase() === 'none') {
     console.log(
@@ -411,8 +423,11 @@ function launchEditor(
         chalk.cyan('CODE_EDITOR=code') +
         ' to the ' +
         chalk.green('.env.local') +
-        ' file in your project folder ' +
-        'and restart the development server. Learn more: ' +
+        ' file in your project folder,' +
+        ' or add ' +
+        chalk.green('editor: "code"') +
+        ' to CodeInspectorPlugin config, ' +
+        'and then restart the development server. Learn more: ' +
         chalk.green('https://goo.gl/MMTaZt')
     );
     return;

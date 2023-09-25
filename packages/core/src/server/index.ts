@@ -5,12 +5,12 @@ import path from 'path';
 import launchEditor from './launch-editor';
 export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
-import { DefaultPort } from '../shared/constant';
+import { DefaultPort, Editor } from '../shared/constant';
 
 let started = false;
 let recordPort = DefaultPort;
 
-export function startServer(callback: Function, rootPath: string) {
+export function startServer(callback: (port: number) => any, rootPath: string, editor?: Editor) {
   if (started) {
     callback(recordPort);
     return;
@@ -29,7 +29,7 @@ export function startServer(callback: Function, rootPath: string) {
       'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
-    launchEditor(file, line, column);
+    launchEditor(file, line, column, editor);
   });
 
   // 寻找可用接口

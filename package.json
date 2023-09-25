@@ -18,6 +18,12 @@
   "bugs": {
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
+  "scripts": {
+    "build": "pnpm --filter \"./packages/*\" run build"
+  },
   "private": true,
-  "main": "index.js"
+  "main": "index.js",
+  "engines": {
+    "node": "^16.20.0"
+  }
 }

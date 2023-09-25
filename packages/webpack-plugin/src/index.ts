@@ -129,7 +129,7 @@ class WebpackCodeInspectorPlugin {
             startServer((port) => {
               data.html = replaceHtml(data.html, getCode(port));
               cb(null, data);
-            }, rootPath);
+            }, rootPath, this.options.editor);
           });
         }
       );

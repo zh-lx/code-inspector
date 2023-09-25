@@ -1,9 +1,25 @@
 # 更新日志
 
+## 0.1.12
+
+- 【feat】增加 `hideConsole` 和 `editor` 参数
+
+## 0.1.11
+
+- 【optimize】优化依赖项版本
+
+## 0.1.10
+
+- 【fix】修复 react 内置组件注入路径信息会在控制台报错问题
+
+## 0.1.9
+
+- 【optimize】移除 windows 系统的文件路径校验
+
 ## 0.1.8
 
-【feature】新增 `needEnvInspector` 可选配置项
-【fix】修复在 webpack 中使用会导致热更新时页面全量刷新的问题
+- 【feature】新增 `needEnvInspector` 可选配置项
+- 【fix】修复在 webpack 中使用会导致热更新时页面全量刷新的问题
 
 ## 0.1.7
 

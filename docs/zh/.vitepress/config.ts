@@ -25,6 +25,7 @@ export default defineConfig({
       {
         text: '更多',
         items: [
+          { text: '在线体验', link: '/more/try' },
           { text: '更新日志', link: '/more/changelog' },
           { text: '常见问题', link: '/more/question' },
           { text: '交流与反馈', link: '/more/feedback' },
