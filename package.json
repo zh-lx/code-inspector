@@ -25,5 +25,8 @@
   "main": "index.js",
   "engines": {
     "node": "^16.20.0"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3"
   }
 }
