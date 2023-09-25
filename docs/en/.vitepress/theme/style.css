@@ -22,13 +22,13 @@
  * -------------------------------------------------------------------------- */
 
 :root {
-  --vp-button-brand-border: var(--vp-c-brand-light);
+  --vp-button-brand-border: var(--vp-c-brand-brand);
   --vp-button-brand-text: var(--vp-c-white);
   --vp-button-brand-bg: var(--vp-c-brand);
   --vp-button-brand-hover-border: var(--vp-c-brand-light);
   --vp-button-brand-hover-text: var(--vp-c-white);
   --vp-button-brand-hover-bg: var(--vp-c-brand-light);
-  --vp-button-brand-active-border: var(--vp-c-brand-light);
+  --vp-button-brand-active-border: var(--vp-button-brand-bg);
   --vp-button-brand-active-text: var(--vp-c-white);
   --vp-button-brand-active-bg: var(--vp-button-brand-bg);
 }
@@ -42,13 +42,13 @@
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
     #006aff 30%,
-    #41d1ff
+    #89e9e0
   );
 
   --vp-home-hero-image-background-image: linear-gradient(
     -45deg,
-    #bae0ff 80%,
-    #41d1ff 80%
+    #41d1ff 50%,
+    #89e9e0 50%
   );
   --vp-home-hero-image-filter: blur(40px);
 }
