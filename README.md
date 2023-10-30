@@ -64,7 +64,7 @@ pnpm add code-inspector-plugin -D
 
 ## 👨‍💻 Contributors
 
-特别鸣谢本项目的贡献者：
+特别鸣谢本项目的贡献者：<br />
 <img src="https://contrib.rocks/image?repo=zh-lx/code-inspector" />
 
 ## 📧 交流与反馈
