@@ -65,33 +65,7 @@ pnpm add code-inspector-plugin -D
 ## 👨‍💻 Contributors
 
 特别鸣谢本项目的贡献者：
-
-<!-- readme: collaborators,contributors -start -->
-<table>
-<tr>
-    <td align="center">
-        <a href="https://github.com/zh-lx">
-            <img src="https://avatars.githubusercontent.com/u/73059627?v=4" width="100;" alt="zh-lx"/>
-            <br />
-            <sub><b>Zhoulixiang</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/zcf0508">
-            <img src="https://avatars.githubusercontent.com/u/21942252?v=4" width="100;" alt="zcf0508"/>
-            <br />
-            <sub><b>周财发</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/1070152533">
-            <img src="https://avatars.githubusercontent.com/u/40099031?v=4" width="100;" alt="1070152533"/>
-            <br />
-            <sub><b>1070152533</b></sub>
-        </a>
-    </td></tr>
-</table>
-<!-- readme: collaborators,contributors -end -->
+<img src="https://contrib.rocks/image?repo=zh-lx/code-inspector" />
 
 ## 📧 交流与反馈
 
