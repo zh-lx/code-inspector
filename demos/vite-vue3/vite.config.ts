@@ -9,7 +9,6 @@ export default defineConfig({
     vue(),
     CodeInspectorPlugin({
       bundler: 'vite',
-      needEnvInspector: true,
     }),
     vueJsx(),
   ],
