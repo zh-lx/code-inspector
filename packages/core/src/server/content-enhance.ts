@@ -38,6 +38,7 @@ export function enhanceCode(params: EnhanceCodeParams) {
       'transition-group',
       'transitiongroup',
       'suspense',
+      "fragment"
     ];
 
     if (fileType === 'vue') {

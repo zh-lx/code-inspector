@@ -23,6 +23,10 @@ function App() {
         <p>p1</p>
         <p>p2</p>
       </React.Fragment>
+      <Fragment>
+        <p>p1</p>
+        <p>p2</p>
+      </Fragment>
     </div>
   );
 }
