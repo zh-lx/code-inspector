@@ -19,7 +19,8 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "scripts": {
-    "build": "pnpm --filter \"./packages/*\" run build"
+    "build": "pnpm --filter \"./packages/*\" run build",
+    "pub": "pnpm --filter \"./packages/*\" run pub"
   },
   "private": true,
   "main": "index.js",

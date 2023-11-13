@@ -1,6 +1,6 @@
 {
   "name": "vite-code-inspector-plugin",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
@@ -46,6 +46,7 @@
     "vite": "^4.3.9"
   },
   "scripts": {
-    "build": "tsc && vite build"
+    "build": "tsc && vite build",
+    "pub": "pnpm publish"
   }
 }

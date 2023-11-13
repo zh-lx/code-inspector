@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
@@ -41,7 +41,8 @@
     "dev": "vite",
     "build:server": "vite build",
     "build:client": " vite build --config ./vite.client.config.ts",
-    "build": "tsc && pnpm build:server && pnpm build:client"
+    "build": "tsc && pnpm build:server && pnpm build:client",
+    "pub": "pnpm publish"
   },
   "dependencies": {
     "@vue/compiler-dom": "^3.2.47",

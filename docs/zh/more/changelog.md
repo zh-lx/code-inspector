@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.1.13
+
+- 【fix】修复在 `Fragment` 元素上注入 `vc-path` 属性报错问题
+
 ## 0.1.12
 
 - 【feat】增加 `hideConsole` 和 `editor` 参数

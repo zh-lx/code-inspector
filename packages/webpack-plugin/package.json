@@ -1,13 +1,14 @@
 {
   "name": "webpack-code-inspector-plugin",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
   "scripts": {
     "build:plugin": "vite build",
     "build:loader": "vite build --config vite.loader.config.ts",
-    "build": "tsc && pnpm build:plugin && pnpm build:loader"
+    "build": "tsc && pnpm build:plugin && pnpm build:loader",
+    "pub": "pnpm publish"
   },
   "files": [
     "dist",

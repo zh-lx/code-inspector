@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.13
+
+- 【fix】Invalid prop `vc-path` supplied to `Fragment`
+
 ## 0.1.12
 
 - 【feat】Add parameters: `hideConsole` and `editor`
