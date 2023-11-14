@@ -2,7 +2,7 @@
 import { h } from 'vue';
 import Theme from 'vitepress/theme';
 // import HomeHeroAfter from '../components/home-hero-after.vue';
-import './style.css';
+import './style.scss';
 
 export default {
   ...Theme,

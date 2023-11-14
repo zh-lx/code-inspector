@@ -25,14 +25,29 @@ export default defineConfig({
       {
         text: '更多',
         items: [
-          { text: '在线体验', link: '/more/try' },
           { text: '更新日志', link: '/more/changelog' },
           { text: '常见问题', link: '/more/question' },
           { text: '交流与反馈', link: '/more/feedback' },
         ],
       },
     ],
-
+    nav: [
+      {
+        text: '在线体验',
+        items: [
+          {
+            text: 'Vue Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts',
+            target: '_blank',
+          },
+          {
+            text: 'React Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts',
+            target: '_blank',
+          },
+        ],
+      },
+    ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zh-lx/code-inspector' },
     ],

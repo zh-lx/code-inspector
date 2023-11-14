@@ -26,14 +26,29 @@ export default defineConfig({
       {
         text: 'More',
         items: [
-          { text: 'Try it online', link: '/more/try' },
           { text: 'Changelog', link: '/more/changelog' },
           { text: 'Common Problems', link: '/more/question' },
           { text: 'Feedback', link: '/more/feedback' },
         ],
       },
     ],
-
+    nav: [
+      {
+        text: 'Try It Online',
+        items: [
+          {
+            text: 'Vue Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts',
+            target: '_blank',
+          },
+          {
+            text: 'React Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts',
+            target: '_blank',
+          },
+        ],
+      },
+    ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/zh-lx/code-inspector' },
     ],
