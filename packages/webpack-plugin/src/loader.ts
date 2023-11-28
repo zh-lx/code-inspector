@@ -37,14 +37,21 @@ export default function WebpackCodeInspectorLoader(this: any, content: string) {
     const { descriptor } = parseSFC(content, {
       sourceMap: false,
     });
-    // 提取<script>标签内容
-    const scriptContent = descriptor.script.content;
-    const _scriptContent = enhanceCode({
-      code: scriptContent,
-      filePath,
-      fileType: 'jsx',
-    });
-    content = content.replace(scriptContent, _scriptContent);
+    // 处理 <script> 标签内容
+    // 注意：.vue 允许同时存在 <script> 和 <script setup>
+    const scripts = [
+      descriptor.script?.content,
+      descriptor.scriptSetup?.content,
+    ];
+    for (const script of scripts) {
+      if (!script) continue;
+      const newScript = enhanceCode({
+        code: script,
+        filePath,
+        fileType: 'jsx',
+      });
+      content = content.replace(script, newScript);
+    }
   } else if (isVue) {
     content = enhanceCode({ code: content, filePath, fileType: 'vue' });
   }
