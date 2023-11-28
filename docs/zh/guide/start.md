@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack` 或 `vite` 作为打包器的项目中使用，支持 `vue2/vue3/react` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack`、`rspack` 或 `vite` 作为打包器的项目中使用，支持 `vue2/vue3/react` 等框架，请参考如下的接入教程。
 
 ## 安装
 

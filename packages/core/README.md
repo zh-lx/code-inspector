@@ -53,8 +53,9 @@ pnpm add code-inspector-plugin -D
 下面是编译器、web 框架以及代码编辑器支持列表:
 
 - 当前支持以下打包工具<br />
-  ✅ webpack(4.x/5.x)<br />
-  ✅ vite
+  ✅ webpack(3.x/4.x/5.x)<br />
+  ✅ vite<br />
+  ✅ rspack
 - 当前支持以下 Web 框架<br />
   ✅ vue2<br />
   ✅ vue3<br />

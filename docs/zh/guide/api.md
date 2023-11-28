@@ -18,7 +18,7 @@ CodeInspectorPlugin({
 ## bundler
 
 - 必传项
-- 类型：`string`，可选值有 `vite` / `webpack`
+- 类型：`string`，可选值有 `vite` / `webpack` / `rspack`
 - 说明：指定的打包工具类型
 
 ## showSwitch

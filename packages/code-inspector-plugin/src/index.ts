@@ -10,7 +10,7 @@ export interface CodeInspectorPluginOptions extends CodeOptions {
    * @zh 指定项目的打包器
    * @en specify the bundler of the project
    */
-  bundler: 'vite' | 'webpack';
+  bundler: 'vite' | 'webpack' | 'rspack';
   /**
    * @zh 设置为 true 时，仅当 .env.local 文件存在且其包含 CODE_INSPECTOR=true 时插件生效；默认值为 false
    * @en When set the value to true, only if the .env.local file exists and it contains CODE_INSPECTOR=true, the plugin takes effect; The default value is false
@@ -48,7 +48,7 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     }
   }
 
-  if (options.bundler === 'webpack') {
+  if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
     const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
     return new WebpackCodeInspectorPlugin({ ...options, close });

@@ -22,4 +22,4 @@
 
 ### 支持性广
 
-支持在 `webpack/vite` 中使用，支持 `vue/react` 等多个框架
+支持在 `webpack/vite/rspack` 中使用，支持 `vue/react` 等多个框架

@@ -1,6 +1,6 @@
 # Get Started
 
-`code-inspector-plugin` supports use in projects with `webpack` or `vite` as bundler, and supports frameworks such as `vue2/vue3/react`. Please refer to the following tutorial to install it.
+`code-inspector-plugin` supports use in projects with `webpack`、`rspack` or `vite` as bundler, and supports frameworks such as `vue2/vue3/react`. Please refer to the following tutorial to install it.
 
 ## Installation
 

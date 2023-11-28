@@ -20,7 +20,7 @@ CodeInspectorPlugin({
 ## bundler
 
 - Required
-- Type: `string`, the optional value includes `vite` / `webpack`
+- Type: `string`, the optional value includes `vite` / `webpack` / `rspack`
 - Description: specify your bundler
 
 ## showSwitch
