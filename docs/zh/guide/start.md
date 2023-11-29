@@ -24,7 +24,7 @@ pnpm add code-inspector-plugin -D
 
 ## 配置
 
-### 1. 配置 webpack 或者 vite
+### 1. 配置打包工具
 
 在 webpack 中使用：
 
@@ -55,6 +55,23 @@ export default defineConfig({
     }),
   ],
 });
+```
+
+在 rspack 中使用：
+
+```js
+// rspack.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports =  = {
+  // other config...
+  plugins: [
+    CodeInspectorPlugin({
+      bundler: 'rspack',
+    }),
+    // other plugins...
+  ],
+};
 ```
 
 ### 2. 配置 vscode 命令行工具

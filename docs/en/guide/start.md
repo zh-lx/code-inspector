@@ -24,9 +24,9 @@ pnpm add code-inspector-plugin -D
 
 ## Configuration
 
-### 1.Config Webpack/Vite
+### 1.Config bundler
 
-Config `webpack.config.js`：
+Use in webpack：
 
 ```js
 // webpack.config.js
@@ -41,7 +41,7 @@ module.exports = () => ({
 });
 ```
 
-Config `vite.config.js`：
+Use in vite：
 
 ```js
 // vite.config.js
@@ -55,6 +55,23 @@ export default defineConfig({
     }),
   ],
 });
+```
+
+Use in rspack：
+
+```js
+// rspack.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports =  = {
+  // other config...
+  plugins: [
+    CodeInspectorPlugin({
+      bundler: 'rspack',
+    }),
+    // other plugins...
+  ],
+};
 ```
 
 ### 2.Config VSCode
