@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- 【feat】Support using in project whose bundler is `rspack`
+
 ## 0.1.13
 
 - 【fix】Invalid prop `vc-path` supplied to `Fragment`
