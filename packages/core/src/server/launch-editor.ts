@@ -276,7 +276,7 @@ function guessEditor(_editor?: Editor) {
     let first: any;
 
     if (process.platform === 'darwin') {
-      const output = child_process.execSync('ps x').toString();
+      const output = child_process.execSync('ps aux').toString();
       const processNames = Object.keys(COMMON_EDITORS_OSX);
       for (let i = 0; i < processNames.length; i++) {
         const processName = processNames[i] as keyof typeof COMMON_EDITORS_OSX;
@@ -317,7 +317,7 @@ function guessEditor(_editor?: Editor) {
       // x List all processes owned by you
       // -o comm Need only names column
       const output = child_process
-        .execSync('ps x --no-heading -o comm --sort=comm')
+        .execSync('ps aux --no-heading -o comm --sort=comm')
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       let first: any;
