@@ -34,7 +34,30 @@ export class MyElement extends LitElement {
   hideConsole: boolean = false;
 
   @state()
-  position = { top: 0, left: 0, width: 0, height: 0 }; // 弹窗位置
+  position = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    padding: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+    border: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+    margin: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+  }; // 弹窗位置
   @state()
   element = { name: '', line: 0, column: 0, path: '' }; // 选中节点信息
   @state()
@@ -65,31 +88,74 @@ export class MyElement extends LitElement {
     );
   };
 
+  // 20px -> 20
+  getDomPropertyValue = (target: HTMLElement, property: string) => {
+    const computedStyle = window.getComputedStyle(target);
+    return Number(computedStyle.getPropertyValue(property).replace('px', ''));
+  };
+
   // 渲染遮罩层
   renderCover = (target: HTMLElement) => {
     // 设置 target 的位置
-    const { top, left, height, width } = target.getBoundingClientRect();
-    this.position = { top, left, width, height };
+    const { top, right, bottom, left } = target.getBoundingClientRect();
+    this.position = {
+      top,
+      right,
+      bottom,
+      left,
+      border: {
+        top: this.getDomPropertyValue(target, 'border-top-width'),
+        right: this.getDomPropertyValue(target, 'border-right-width'),
+        bottom: this.getDomPropertyValue(target, 'border-bottom-width'),
+        left: this.getDomPropertyValue(target, 'border-left-width'),
+      },
+      padding: {
+        top: this.getDomPropertyValue(target, 'padding-top'),
+        right: this.getDomPropertyValue(target, 'padding-right'),
+        bottom: this.getDomPropertyValue(target, 'padding-bottom'),
+        left: this.getDomPropertyValue(target, 'padding-left'),
+      },
+      margin: {
+        top: this.getDomPropertyValue(target, 'margin-top'),
+        right: this.getDomPropertyValue(target, 'margin-right'),
+        bottom: this.getDomPropertyValue(target, 'margin-bottom'),
+        left: this.getDomPropertyValue(target, 'margin-left'),
+      },
+    };
     const browserHeight = document.documentElement.clientHeight; // 浏览器高度
     const browserWidth = document.documentElement.clientWidth; // 浏览器宽度
     // 自动调整信息弹出位置
-    const bottomToViewPort = browserHeight - top - height; // 距浏览器视口底部距离
-    const rightToViewPort = browserWidth - left - width; // 距浏览器右边距离
+    const bottomToViewPort =
+      browserHeight -
+      bottom -
+      this.getDomPropertyValue(target, 'margin-bottom'); // 距浏览器视口底部距离
+    const rightToViewPort =
+      browserWidth - right - this.getDomPropertyValue(target, 'margin-right'); // 距浏览器右边距离
+    const topToViewPort = top - this.getDomPropertyValue(target, 'margin-top');
+    const leftToViewPort =
+      left - this.getDomPropertyValue(target, 'margin-left');
     this.infoClassName = {
       vertical:
-        top > bottomToViewPort
-          ? top < 100
+        topToViewPort > bottomToViewPort
+          ? topToViewPort < 100
             ? 'element-info-top-inner'
             : 'element-info-top'
           : bottomToViewPort < 100
           ? 'element-info-bottom-inner'
           : 'element-info-bottom',
       horizon:
-        left >= rightToViewPort ? 'element-info-right' : 'element-info-left',
+        leftToViewPort >= rightToViewPort
+          ? 'element-info-right'
+          : 'element-info-left',
     };
     this.infoWidth =
-      Math.min(Math.max(left + width - 4, rightToViewPort + width - 4), 300) +
-      'px';
+      Math.max(
+        right -
+          left +
+          this.getDomPropertyValue(target, 'margin-right') +
+          this.getDomPropertyValue(target, 'margin-left'),
+        300
+      ) + 'px';
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
     // 防止 select
@@ -165,7 +231,7 @@ export class MyElement extends LitElement {
     ) {
       const nodePath = composedPath(e);
       let targetNode;
-      // 寻找第一个有 vc-path属性的元素
+      // 寻找第一个有 data-insp-path 属性的元素
       for (let i = 0; i < nodePath.length; i++) {
         const node = nodePath[i];
         if (node.hasAttribute && node.hasAttribute(PathName)) {
@@ -310,11 +376,39 @@ export class MyElement extends LitElement {
 
   render() {
     const containerPosition = {
-      left: `${this.position.left}px`,
-      top: `${this.position.top}px`,
-      width: `${this.position.width}px`,
-      height: `${this.position.height}px`,
       display: this.show ? 'block' : 'none',
+      top: `${this.position.top - this.position.margin.top}px`,
+      left: `${this.position.left - this.position.margin.left}px`,
+      height: `${
+        this.position.bottom -
+        this.position.top +
+        this.position.margin.bottom +
+        this.position.margin.top
+      }px`,
+      width: `${
+        this.position.right -
+        this.position.left +
+        this.position.margin.right +
+        this.position.margin.left
+      }px`,
+    };
+    const marginPosition = {
+      borderTopWidth: `${this.position.margin.top}px`,
+      borderRightWidth: `${this.position.margin.right}px`,
+      borderBottomWidth: `${this.position.margin.bottom}px`,
+      borderLeftWidth: `${this.position.margin.left}px`,
+    };
+    const borderPosition = {
+      borderTopWidth: `${this.position.border.top}px`,
+      borderRightWidth: `${this.position.border.right}px`,
+      borderBottomWidth: `${this.position.border.bottom}px`,
+      borderLeftWidth: `${this.position.border.left}px`,
+    };
+    const paddingPosition = {
+      borderTopWidth: `${this.position.padding.top}px`,
+      borderRightWidth: `${this.position.padding.right}px`,
+      borderBottomWidth: `${this.position.padding.bottom}px`,
+      borderLeftWidth: `${this.position.padding.left}px`,
     };
     return html`
       <div
@@ -322,6 +416,13 @@ export class MyElement extends LitElement {
         id="code-inspector-container"
         style=${styleMap(containerPosition)}
       >
+        <div class="margin-overlay" style=${styleMap(marginPosition)}>
+          <div class="border-overlay" style=${styleMap(borderPosition)}>
+            <div class="padding-overlay" style=${styleMap(paddingPosition)}>
+              <div class="content-overlay"></div>
+            </div>
+          </div>
+        </div>
         <div
           id="element-info"
           class="element-info ${this.infoClassName.vertical} ${this
@@ -331,13 +432,11 @@ export class MyElement extends LitElement {
           <div class="element-info-content">
             <div class="name-line">
               <div class="element-name">
-                <span class="element-title">${this.element.name}</span>
-                <span class="element-tip">click to open editor</span>
+                <span class="element-title">&lt;${this.element.name}&gt;</span>
+                <span class="element-tip">click to open IDE</span>
               </div>
             </div>
-            <div class="path-line">
-              ${this.element.path}:${this.element.line}:${this.element.column}
-            </div>
+            <div class="path-line">${this.element.path}</div>
           </div>
         </div>
       </div>
@@ -444,7 +543,30 @@ export class MyElement extends LitElement {
       position: fixed;
       pointer-events: none;
       z-index: 999999;
-      background: rgba(0, 106, 255, 0.3);
+      font-family: 'PingFang SC';
+      .margin-overlay {
+        position: absolute;
+        inset: 0;
+        border-style: solid;
+        border-color: rgba(255, 155, 0, 0.3);
+        .border-overlay {
+          position: absolute;
+          inset: 0;
+          border-style: solid;
+          border-color: rgba(255, 200, 50, 0.3);
+          .padding-overlay {
+            position: absolute;
+            inset: 0;
+            border-style: solid;
+            border-color: rgba(77, 200, 0, 0.3);
+            .content-overlay {
+              position: absolute;
+              inset: 0;
+              background: rgba(120, 170, 210, 0.7);
+            }
+          }
+        }
+      }
     }
     .element-info {
       position: absolute;
@@ -457,20 +579,21 @@ export class MyElement extends LitElement {
       word-break: break-all;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
       box-sizing: border-box;
-      padding: 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
     }
     .element-info-top {
-      top: 0;
+      top: -4px;
       transform: translateY(-100%);
     }
     .element-info-bottom {
-      top: 100%;
+      top: calc(100% + 4px);
     }
     .element-info-top-inner {
-      top: 0;
+      top: 4px;
     }
     .element-info-bottom-inner {
-      bottom: 0;
+      bottom: 4px;
     }
     .element-info-left {
       left: 0;
@@ -487,7 +610,7 @@ export class MyElement extends LitElement {
       font-weight: bold;
     }
     .element-name .element-tip {
-      color: #999;
+      color: #006aff;
     }
     .path-line {
       color: #333;

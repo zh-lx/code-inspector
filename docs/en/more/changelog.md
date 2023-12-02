@@ -1,12 +1,19 @@
 # Changelog
 
+## 0.3.0
+
+- 【feat】Support using in project whose framework is `solid` or `preact`
+- 【feat】Rename the dom attribute `vc-path` to `data-insp-path`
+- 【style】Optimize the style of inspect overlay
+- 【fix】Compatible with users using `sudo` to start the dev service
+
 ## 0.2.0
 
 - 【feat】Support using in project whose bundler is `rspack`
 
 ## 0.1.13
 
-- 【fix】Invalid prop `vc-path` supplied to `Fragment`
+- 【fix】Invalid prop `data-insp-path` supplied to `Fragment`
 
 ## 0.1.12
 

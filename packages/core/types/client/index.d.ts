@@ -7,9 +7,27 @@ export declare class MyElement extends LitElement {
     hideConsole: boolean;
     position: {
         top: number;
+        right: number;
+        bottom: number;
         left: number;
-        width: number;
-        height: number;
+        padding: {
+            top: number;
+            right: number;
+            bottom: number;
+            left: number;
+        };
+        border: {
+            top: number;
+            right: number;
+            bottom: number;
+            left: number;
+        };
+        margin: {
+            top: number;
+            right: number;
+            bottom: number;
+            left: number;
+        };
     };
     element: {
         name: string;
@@ -36,6 +54,7 @@ export declare class MyElement extends LitElement {
     preUserSelect: string;
     inspectorSwitchRef: HTMLDivElement;
     isTracking: (e: any) => boolean | "";
+    getDomPropertyValue: (target: HTMLElement, property: string) => number;
     renderCover: (target: HTMLElement) => void;
     removeCover: () => void;
     addGlobalCursorStyle: () => void;

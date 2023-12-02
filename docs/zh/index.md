@@ -28,5 +28,5 @@ features:
     details: 安装、配置及使用步骤都十分简洁，一分钟时间即可接入并使用
   - icon: 🎨
     title: 支持性广
-    details: 支持在 webpack/vite/rspack 中使用，支持 vue/react 等多个框架
+    details: 支持在 webpack/vite/rspack 中使用，支持 vue/react/preact/solid 等多个框架
 ---
