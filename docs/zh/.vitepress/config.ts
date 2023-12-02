@@ -45,6 +45,16 @@ export default defineConfig({
             link: 'https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts',
             target: '_blank',
           },
+          {
+            text: 'Preact Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts',
+            target: '_blank',
+          },
+          {
+            text: 'Solid Demo',
+            link: 'https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts',
+            target: '_blank',
+          },
         ],
       },
     ],

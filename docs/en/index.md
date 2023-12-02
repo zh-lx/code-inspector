@@ -26,5 +26,5 @@ features:
     details: The installation, configuration, and usage steps are very simple, and can be installed and used in just one minute.
   - icon: 🎨
     title: Widely Supportability
-    details: Supports use in webpack/vite, supports multiple frameworks such as vue/react.
+    details: Supports use in webpack/vite, supports multiple frameworks such as vue/react/preact/solid.
 ---

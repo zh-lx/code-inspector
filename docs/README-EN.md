@@ -23,15 +23,10 @@ Click the element on the page, it can automatically open the code editor and pos
 
 ## 💻 Try it out online
 
-<b>vue online demo:</b><br/>
-[
-![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)
-](https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts)
-
-<b>react online demo:</b><br/>
-[
-![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)
-](https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts)
+- [vue online demo](https://stackblitz.com/edit/vitejs-vite-4pseos?file=vite.config.ts)
+- [react online demo](https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts)
+- [preact online demo](https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts)
+- [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
 
 ## 🚀 Install
 
@@ -58,7 +53,9 @@ The following are which compilers, web frameworks and editors we supported now:
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
   ✅ vue3<br />
-  ✅ react
+  ✅ react<br />
+  ✅ preact<br />
+  ✅ solid
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 

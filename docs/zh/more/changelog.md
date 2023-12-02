@@ -1,12 +1,19 @@
 # 更新日志
 
+## 0.3.0
+
+- 【feat】支持在以 `solid` or `preact` 为框架的项目中使用
+- 【feat】将注入 dom 中的属性 `vc-path` 重命名为 `data-insp-path`
+- 【style】优化 dom 筛选框的样式
+- 【fix】兼容用户使用 `sudo` 启动项目开发的场景
+
 ## 0.2.0
 
 - 【feat】支持在 `rspack` 作为打包工具的项目中使用
 
 ## 0.1.13
 
-- 【fix】修复在 `Fragment` 元素上注入 `vc-path` 属性报错问题
+- 【fix】修复在 `Fragment` 元素上注入 `data-insp-path` 属性报错问题
 
 ## 0.1.12
 
