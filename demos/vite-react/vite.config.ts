@@ -16,6 +16,7 @@ export default defineConfig({
     }
   },
   plugins: [
+    // code-inspector-plugin need to be used before @vitejs/plugin-react
     CodeInspectorPlugin({
       bundler: 'vite'
     }),
