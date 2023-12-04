@@ -32,7 +32,7 @@ type CodeMapType = {
 const CodeMap: CodeMapType = {
   mac: {
     code: '/Visual Studio Code.app/', // confirmed
-    code_insiders: '/Visual Studio Code/', // confirmed
+    code_insiders: '/Visual Studio Code - Insiders.app/', // confirmed
     webstorm: '/WebStorm.app/', // confirmed
     atom: '/Atom.app/', // confirmed
     hbuilder: '/HBuilderX.app/', // confirmed
@@ -107,7 +107,7 @@ const getEditorByCustom = (
 // of the app every time
 const COMMON_EDITORS_OSX = {
   '/Visual Studio Code.app/': 'code',
-  '/Visual Studio Code/': 'code-insiders',
+  '/Visual Studio Code - Insiders.app/': 'code-insiders',
   '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
   '/Atom.app/': 'atom',
   '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
