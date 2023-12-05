@@ -25,10 +25,6 @@ import About from './components/about.vue';
   will-change: filter;
   transition: filter 300ms;
 }
-.logo.vue {
-  margin: 20px 10px 16px;
-  border: 10px solid #eee;
-}
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
