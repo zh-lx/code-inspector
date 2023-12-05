@@ -5,8 +5,10 @@ export default defineComponent({
   setup(props, ctx) {
     return () => (
       <div>
-        <p>21315215151</p>
-        <a>sfasfjlasflakjm111</a>
+        <p>
+          同时按住 <span style={{ color: 'red' }}>Alt + Shift 键</span>{' '}
+        </p>
+        <a>即可进入代码定位模式</a>
       </div>
     );
   },
