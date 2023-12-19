@@ -12,3 +12,4 @@ export interface CodeInspectorPluginOptions extends CodeOptions {
     needEnvInspector?: boolean;
 }
 export declare function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any;
+export declare const codeInspectorPlugin: typeof CodeInspectorPlugin;

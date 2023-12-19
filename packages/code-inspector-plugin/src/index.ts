@@ -57,3 +57,6 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     return ViteCodeInspectorPlugin({ ...options, close });
   }
 }
+
+
+export const codeInspectorPlugin = CodeInspectorPlugin;

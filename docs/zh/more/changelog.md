@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.3.1
+
+- 【fix】修复在 webpack 中与 `eslint-loader` 插件使用不兼容的问题
+- 【fix】修复在 macOS 系统中无法自动识别 `code-insiders` IDE 的问题
+
 ## 0.3.0
 
 - 【feat】支持在以 `solid` or `preact` 为框架的项目中使用

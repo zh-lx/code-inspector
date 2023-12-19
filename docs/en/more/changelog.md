@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- 【fix】Fix the issue of incompatible use of the plugin with `eslint-loader` in webpack
+- 【fix】Fix the issue of being able to recognizing the `code-insiders` IDE in macOS system
+
 ## 0.3.0
 
 - 【feat】Support using in project whose framework is `solid` or `preact`
