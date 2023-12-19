@@ -21,7 +21,6 @@ const applyLoader = (compiler: any, cb: () => void) => {
     test: /\.(vue|jsx|tsx|js|ts)$/,
     exclude: /node_modules/,
     use: [path.resolve(__dirname, './loader.js')],
-    enforce: 'pre',
   });
   if (typeof cb === 'function') {
     cb();
