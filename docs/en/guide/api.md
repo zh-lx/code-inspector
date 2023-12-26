@@ -20,35 +20,40 @@ CodeInspectorPlugin({
 ## bundler
 
 - Required
-- Type: `string`, the optional value includes `vite` / `webpack` / `rspack`
+- Type: `string`, options: `vite` / `webpack` / `rspack`
 - Description: specify your bundler
+
+## hotKeys
+
+- Optional. Default value is `['altKey', 'shiftKey']`
+- Type: `false` or `string[]`. When the type is `string[]`, the optional values for array items are: `ctrlKey`、`altKey`、`metaKey`、`shiftKey`.
+- Description: The combination of keys that trigger the functionality. Set to `false` or `[]` to disable the combination key triggering. (`ctrlKey` corresponds to the `control` key on Mac; `altKey` corresponds to the `option` key on Mac; `metaKey` corresponds to the `command` key on Mac)
 
 ## showSwitch
 
 - Optional. Default value is `false`
 - Type: `boolean`
-- Description: Whether display a switch on the page that controls the source code positioning function (the effect is the same as holding down the combination key when the switch is turned on)
-
-## hotKeys
-
-- Optional. Default value is `['altKey', 'shiftKey']`
-- Type: `false` or `string[]`. When the type is `string[]`, the item of the array belongs to one or more of `ctrlKey`、`altKey`、`metaKey`、`shiftKey`.
-- Description: The combination keys that triggers the source code positioning function. When the value is `false` or `[]`，the function will be closed.(`ctrlKey` corresponds to `control` in Mac；`altKey` corresponds to `option` in Mac；`metaKey` corresponds to `command` in Mac,)
+- Description: Whether to display a switch on the page to control the source code positioning feature. When the switch is on, the effect is the same as holding down the combination keys. (it is more recommended to use the combination key triggering feature).
 
 ## autoToggle
 
 - Optional. Default value is `true`
 - Type: `boolean`
-- Description: When `showSwitch` is `true`, whether to automatically turn off the switch after triggering the source code positioning function and jump to the IDE.(mainly for user experience)
+- Description: When configured with `showSwitch: true, autoToggle: true`, after triggering the functionality and switching to the IDE, the switch functionality will be automatically turned off to prevent the user from accidentally triggering the functionality by clicking after switching back to the page.
 
 ## needEnvInspector
 
 - Optional. Default value is `false`
 - Type: `boolean`
-- Description: When the value is `true`, the plugin only takes effect when `CODE_INSPECTOR=true` is configured in `.local.env`
+- Description: This configuration can be ignored for most users. When set to true, the plugin functionality will only take effect when the `.env.local` file exists and it contains `CODE_INSPECTOR=true`. (Mainly to address the need of some team members who do not want to use the plugin functionality)
 
 ## hideConsole
 
 - Optional. Default value is `false`
 - Type: `boolean`
 - Description: By default, the code-inspector-plugin will print a line of hotKeys prompts on the console when the project is first launched. Set this to 'true' to disable printing
+
+## editor
+- Optional. Default value is `undefined`
+- Type: `string | undefined`, options: `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
+- Description: The plugin will automatically recognize the IDE running on the current system. When this option is set, it will open the specified IDE (for specifying IDE, it is more recommended to use the method in the [Specify IDE](/guide/ide) section).

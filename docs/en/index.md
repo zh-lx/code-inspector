@@ -4,27 +4,27 @@ layout: home
 
 hero:
   name: 'Code Inspector'
-  text: 'A magic tool for developing'
-  tagline: Click the dom on the page, it can locate the dom's source code in the IDE
+  text: 'A Magic Tool for Developing'
+  tagline: Click on the DOM element on the page, and it can automatically open the IDE and position the cursor to the source code location of the DOM.
   image:
     src: /logo.svg
     alt: ChoDocs
   actions:
     - theme: brand
-      text: Get started
+      text: Get Started
       link: /guide/start
     - theme: alt
-      text: Join User Group
+      text: Feedback
       link: /more/feedback
 
 features:
   - icon: 🚀
     title: Improve Efficiency
-    details: Just need click the dom, you can quickly locate the source code, greatly improving the development experience and efficiency.
+    details: Click on the DOM element on the page, and it can automatically open the IDE and position the cursor to the source code location, greatly improving development experience and efficiency.
   - icon: 📖
-    title: Easy to Use
-    details: The installation, configuration, and usage steps are very simple, and can be installed and used in just one minute.
+    title: User-Friendly
+    details:  No intrusion into the source code, effective by simply including it in the bundler, the entire integration process is as easy as drinking water.
   - icon: 🎨
-    title: Widely Supportability
-    details: Supports use in webpack/vite, supports multiple frameworks such as vue/react/preact/solid.
+    title: Strong Adaptability
+    details: Supports usage in webpack/vite/rspack, and supports multiple frameworks such as Vue/React/Preact/Solid.
 ---

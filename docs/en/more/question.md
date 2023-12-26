@@ -1,25 +1,23 @@
 # Common Problems
 
+## Do I need to manually distinguish between production and development environments?
+
+The plugin automatically recognizes whether it is a production or development environment based on the internal parameters of the bundler. It only takes effect in the development environment, so users do not need to manually distinguish between production and development environments.
+
 ## Use in Micro Frontend
 
-If you encounter the problem of unable to locate source code in micro frontend project, it is because the plugin relies on the compilation process and can be used normally by applying `code-inspector-plugin` in both the main and sub projects.
+If you encounter issues where the DOM filtering navigation does not work in micro frontend sub-projects, you need to apply `code-inspector-plugin` in both the main project and sub-projects to use it normally.
 
-## The system cannot find the specified path
+## System cannot find the specified path
 
-If you encounter this error when opening the IDE, it may be because there is a Chinese directory in the IDE directory. Modify it to an English directory to use it normally.
+If you encounter the following error when opening the IDE, it may be because the IDE's directory contains Chinese characters. Modify it to an English directory, and it should work normally:
 
 ![Cache_3237daf49ba5c20a](https://github.com/zh-lx/code-inspector/assets/73059627/a6883758-27e1-474d-87a4-32e1cfd013d0)
 
-## Compilation failed
+## Clicking does not open the IDE
 
-When using `code-inspector-plugin`, encountering compilation failures is likely due to the order of `code-inspector-plugin` and other plugins. You can try placing `code-inspector-plugin` in the first and last items of the `vite/webpack plugins` array to see if compilation can be successful.
+If the project is running normally, and the DOM inspector feature appears (DOM masking when holding down the combination keys on the page), but clicking does not automatically open the IDE, it may be because the IDE used does not support automatic recognition or is a non-official version of the IDE. In both cases, refer to the [Non Automatic Recognition IDE](/guide/ide.html#non_automatic_recognition_ide) section in the Specify IDE chapter for configuration instructions.
 
-If the compilation still fails, please [join user group](/more/feedback) or go to github to submit [issue](https://github.com/zh-lx/code-inspector/issues).
+## Other Issues
 
-## Can not open the IDE
-
-If the project is running normally and the DOM inspector function can appear (There is a DOM mask on the page when holding down the combination key), but the IDE does not automatically open after clicking the dom. It may be because the IDE used does not support automatic recognition or unofficial versions of the IDE. In both cases, you can refer to the configuration tutorial for [Non Automatic Recognition IDE](/guide/ide.html#non_automatic_recognition_ide).
-
-## Other Problems
-
-If you encounter other problems, please [join user group](/more/feedback) or go to github to submit [issue](https://github.com/zh-lx/code-inspector/issues).
+If you encounter unresolved issues, please leave a message below [my Twitter](https://twitter.com/zhulxing312147) post or submit an issue on [Github](https://github.com/zh-lx/code-inspector/issues).
