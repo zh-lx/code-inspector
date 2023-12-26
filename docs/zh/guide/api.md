@@ -7,46 +7,53 @@ import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
 CodeInspectorPlugin({
   bundler: 'vite',
-  showSwitch: false,
   hotKeys: ['altKey', 'shiftKey'],
-  autoToggle: true,
+  showSwitch: false,
+  autoToggle: false,
   needEnvInspector: false,
   hideConsole: false,
+  editor: undefined
 });
 ```
 
 ## bundler
 
 - 必传项
-- 类型：`string`，可选值有 `vite` / `webpack` / `rspack`
+- 类型：`string`，可选值有 `vite/webpack/rspack`
 - 说明：指定的打包工具类型
+
+## hotKeys
+
+- 可选项。默认值为 `['altKey', 'shiftKey']`
+- 类型：`false` 或 `string[]`。类型为数组时，数组项的可选值为: `ctrlKey`、`altKey`、`metaKey`、`shiftKey`
+- 说明：触发功能的组合键，为 `false` 或者空数组则关闭组合键触发功能。(`ctrlKey` 对应 Mac 中的 `control` 键；`altKey` 对应 Mac 中的 `option` 键；`metaKey` 对应 Mac 中的 `command` 键)
 
 ## showSwitch
 
 - 可选项。默认值为 `false`
 - 类型：`boolean`
-- 说明: 是否在页面展示一个控制源码定位功能的开关(开关打开时和按住组合键的效果是相同的)
-
-## hotKeys
-
-- 可选项。默认值为 `['altKey', 'shiftKey']`
-- 类型：`false` 或 `string[]`。类型为数组时，数组项为 `ctrlKey`、`altKey`、`metaKey`、`shiftKey` 中的一个或多个。
-- 说明：触发源码定位功能的组合键，为 `false` 或者空数组则关闭组合键触发。(`ctrlKey` 对应 Mac 中的 `control` 键；`altKey` 对应 Mac 中的 `option` 键；`metaKey` 对应 Mac 中的 `command` 键)
+- 说明: 是否在页面展示一个控制源码定位功能的开关，开关打开时和按住组合键的效果是相同的(更推荐使用组件键触发功能)
 
 ## autoToggle
 
 - 可选项。默认值为 `true`
 - 类型：`boolean`
-- 说明：`showSwitch` 为 `true` 的情况下，点击触发源码定位功能跳转 IDE 后是否自动关闭开关(主要是为了用户体验)
+- 说明：当配置了 `showSwitch: true, autoToggloe: true` 时，触发功能跳转 IDE 后，会自动将 `switch` 的功能关闭，主要是为了防止用户切会页面后鼠标点击直接误触发功能
 
 ## needEnvInspector
 
 - 可选项。默认值为 `false`
 - 类型：`boolean`
-- 说明：为 `true` 时，仅当 `.env.local` 文件存在且其包含 `CODE_INSPECTOR=true` 时插件生效。（主要是解决团队内有部分成员不想使用该插件的需求）
+- 说明：对于大多数人可以忽略这个配置。为 `true` 时，仅当 `.env.local` 文件存在且其包含 `CODE_INSPECTOR=true` 时插件功能才生效。（主要是解决团队内有部分成员不想使用该插件功能的需求）
 
 ## hideConsole
 
 - 可选项。默认值为 `false`
 - 类型：`boolean`
-- 说明：默认情况下，插件在项目首次启动时在控制台打印一行按键提示，设置此项为 `true` 可禁用打印
+- 说明：默认情况下，插件在项目首次启动时会在浏览器控制台打印一行组合键按键的提示，设置此项为 `true` 可以禁用打印
+
+## editor
+
+- 可选项。默认值为 `undefined`
+- 类型：`string | undefined`，可选值有 `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
+- 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定IDE](/guide/ide)章节的方式）

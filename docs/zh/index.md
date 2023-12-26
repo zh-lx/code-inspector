@@ -6,8 +6,8 @@ hero:
   name: 'Code Inspector'
   # text: 'A Magic Tool for Developing'
   # tagline: Click the dom on the page, it can locate the dom's source code in the IDE
-  text: '一个开发提效的神器'
-  tagline: 点击页面上的 DOM 元素，它能自动打开 IDE 并定位到 DOM 对应源代码位置
+  text: '页面开发提效的神器'
+  tagline: 点击页面上的 DOM 元素，它能自动打开 IDE 并将光标定位至 DOM 的源代码位置
   image:
     src: /logo.svg
     alt: ChoDocs
@@ -21,12 +21,12 @@ hero:
 
 features:
   - icon: 🚀
-    title: 提效神器
-    details: 鼠标一点即能快速定位到源代码，大幅提升开发体验和效率
+    title: 开发提效
+    details: 点击页面上的 DOM 元素，它能自动打开 IDE 并将光标定位至 DOM 的源代码位置，大幅提升开发体验和效率
   - icon: 📖
     title: 简单易用
-    details: 安装、配置及使用步骤都十分简洁，一分钟时间即可接入并使用
+    details: 对源代码无任何侵入，只需要在打包工具中引入就能够生效，整个接入过程如喝水般一样简单
   - icon: 🎨
-    title: 支持性广
+    title: 适配性强
     details: 支持在 webpack/vite/rspack 中使用，支持 vue/react/preact/solid 等多个框架
 ---

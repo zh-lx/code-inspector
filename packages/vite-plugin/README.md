@@ -20,7 +20,7 @@
 
 点击页面上的元素，能够自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 
-![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
+![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
 
 ## 💻 在线体验
 

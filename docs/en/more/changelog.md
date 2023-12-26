@@ -51,7 +51,7 @@
 
 ## 0.1.5
 
-【feature】Add the locating of jsx syntax in '.js' and '.ts' files
+【feature】Add the locating of jsx syntax in ``.js' and '.ts' files
 
 ## 0.1.4
 

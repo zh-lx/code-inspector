@@ -1,8 +1,8 @@
 # Introduction
 
-`code-inspector-plugin` is a development efficiency tool based on `webpack/vite plugin`. Clicking on an dom on the page will automatically open your IDE and locate the cursor to the corresponding source code position of the dom.
+`code-inspector-plugin` is a tool designed to enhance development efficiency based on `webpack/vite/rspack plugin`. By clicking on the DOM elements in your web page, it automatically opens your IDE and positions the cursor at the corresponding source code location.
 
-![code-inspector](https://user-images.githubusercontent.com/73059627/227070438-6e40e112-6f1d-4f67-9f26-53986bff77c3.gif)
+![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
 
 ## Motive
 
@@ -16,12 +16,12 @@ Compared to similar tools on the market, `code-inspector-plugin` has some obviou
 
 ### Improve Efficiency
 
-Just need click the dom, you can quickly locate the source code, greatly improving the development experience and efficiency.
+Click on a DOM element on the page, and it automatically opens your IDE, positioning the cursor to the source code location of the DOM. This greatly enhances the development experience and efficiency.
 
-### Easy to Use
+### User-Friendly
 
-The installation, configuration, and usage steps are very simple, and can be installed and used in just one minute.
+No intrusion into the source code, effective by simply including it in the bundler, the entire integration process is as easy as drinking water.
 
-### Widely Supportability
+### Strong Adaptability
 
-Supports use in `webpack/vite`, supports multiple frameworks such as `vue/react`.
+Supports usage in webpack/vite/rspack, and supports multiple frameworks such as Vue/React/Preact/Solid.
