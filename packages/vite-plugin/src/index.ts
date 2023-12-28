@@ -74,6 +74,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       return code;
     },
     async transformIndexHtml(html) {
+      if (!rootPath) {
+        rootPath = process.cwd(); // 根路径
+      }
       html = await new Promise((resolve) => {
         startServer((port) => {
           const code = getInjectCode(port, {

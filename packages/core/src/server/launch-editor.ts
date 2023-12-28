@@ -317,7 +317,7 @@ function guessEditor(_editor?: Editor) {
       // x List all processes owned by you
       // -o comm Need only names column
       const output = child_process
-        .execSync('ps aux --no-heading -o comm --sort=comm')
+        .execSync('ps -eo comm --sort=comm')
         .toString();
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
       let first: any;
