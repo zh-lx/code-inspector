@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+
+- 【fix】Fix the issue of failure to execute the `ps aux xxx` command on certain Linux systems to obtain running processes.
+- 【fix】Fix the issue of failing to retrieve `rootPath` in some scenarios when used in Vite projects.
+
 ## 0.3.1
 
 - 【fix】Fix the issue of incompatible use of the plugin with `eslint-loader` in webpack

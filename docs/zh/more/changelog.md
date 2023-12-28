@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.3.2
+
+- 【fix】修复在部分 linux 系统中执行 `ps aux xxx` 命令以获取运行程序失败的问题
+- 【fix】修复部分情况下 vite 项目中使用时获取 `rootPath` 失败的问题
+
 ## 0.3.1
 
 - 【fix】修复在 webpack 中与 `eslint-loader` 插件使用不兼容的问题
