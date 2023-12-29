@@ -30,11 +30,11 @@ Click the element on the page, it can automatically open the code editor and pos
 ## 🚀 Install
 
 ```perl
-npm i webpack-code-inspector-plugin -D
+npm i code-inspector-plugin -D
 # or
-yarn add webpack-code-inspector-plugin -D
+yarn add code-inspector-plugin -D
 # or
-pnpm add webpack-code-inspector-plugin -D
+pnpm add code-inspector-plugin -D
 ```
 
 ## 🌈 Usage
