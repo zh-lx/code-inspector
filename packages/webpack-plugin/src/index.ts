@@ -1,8 +1,28 @@
 import {
   CodeOptions,
-  getCompatibleDirname
 } from 'code-inspector-core';
 import path, {dirname} from 'path';
+
+let compatibleDirname = '';
+
+function fileURLToPath(fileURL: string) {
+  let filePath = fileURL;
+  if (process.platform === 'win32') {
+    filePath = filePath.replace(/^file:\/\/\//, '');
+    filePath = decodeURIComponent(filePath);
+    filePath = filePath.replace(/\//g, '\\');
+  } else {
+    filePath = filePath.replace(/^file:\/\//, '');
+    filePath = decodeURIComponent(filePath);
+  }
+  return filePath;
+}
+
+if (typeof __dirname !== 'undefined') {
+  compatibleDirname = __dirname;
+} else {
+  compatibleDirname = dirname(fileURLToPath(import.meta.url));
+}
 
 let isFirstLoad = true;
 
@@ -20,7 +40,7 @@ const applyLoader =  (options: CodeOptions) => (compiler: any, cb: () => void) =
     exclude: /node_modules/,
     use: [
       { 
-        loader: path.resolve(getCompatibleDirname(dirname), './loader.js') ,
+        loader: path.resolve(compatibleDirname, './loader.js') ,
         options,
       }
     ],

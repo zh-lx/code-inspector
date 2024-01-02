@@ -4,6 +4,8 @@ import { dirname } from 'path';
 import { Editor } from './shared/constant';
 import { startServer, enhanceCode, normalizePath, parseSFC } from './server';
 
+let compatibleDirname = '';
+
 function fileURLToPath(fileURL: string) {
   let filePath = fileURL;
   if (process.platform === 'win32') {
@@ -17,20 +19,13 @@ function fileURLToPath(fileURL: string) {
   return filePath;
 }
 
-export function getCompatibleDirname(dirname: (path: string) => string) {
-  let compatibleDirname = '';
-
-  if (typeof __dirname !== 'undefined') {
-    compatibleDirname = __dirname;
-  } else {
-    compatibleDirname = dirname(fileURLToPath(import.meta.url));
-  }
-  return compatibleDirname;
+if (typeof __dirname !== 'undefined') {
+  compatibleDirname = __dirname;
+} else {
+  compatibleDirname = dirname(fileURLToPath(import.meta.url));
 }
 
-
-
-const jsCodePath = path.resolve(getCompatibleDirname(dirname), './client.umd.js');
+const jsCodePath = path.resolve(compatibleDirname, './client.umd.js');
 
 const jsCode = fs.readFileSync(jsCodePath, 'utf-8');
 

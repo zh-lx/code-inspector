@@ -1,6 +1,5 @@
 import { Editor } from './shared/constant';
 import { startServer, enhanceCode, normalizePath, parseSFC } from './server';
-export declare function getCompatibleDirname(dirname: (path: string) => string): string;
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
     /**
