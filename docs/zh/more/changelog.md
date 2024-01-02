@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.4.1
+
+- 【feat】支持以 ESM 方式引入 webpack 插件
+
 ## 0.4.0
 
 - 【feat】支持了 SSR、Umijs 等所有以 `webpack、vite、rspack` 为底层打包工具的项目

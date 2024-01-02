@@ -58,6 +58,11 @@ The following are which compilers, web frameworks and editors we supported now:
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
+## 👨‍💻 Contributors
+
+Special thanks to the contributors of this project:<br />
+<img src="https://contrib.rocks/image?repo=zh-lx/code-inspector" />
+
 ## 📧 Communication and Feedback
 
 For any usage issues, please leave a message below my [Twitter](https://twitter.com/zhulxing312147) post or [submit an issue](https://github.com/zh-lx/code-inspector/issues) on Github.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- 【feat】Support importing webpack plugin in ESM format.
+
 ## 0.4.0
 
 - 【feat】Add support for SSR, Umijs, and all projects using `webpack, vite, rspack` as the underlying bundlers.
