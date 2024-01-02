@@ -54,6 +54,13 @@ CodeInspectorPlugin({
 - Description: By default, the code-inspector-plugin will print a line of hotKeys prompts on the console when the project is first launched. Set this to 'true' to disable printing
 
 ## editor
+
 - Optional. Default value is `undefined`
 - Type: `string | undefined`, options: `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - Description: The plugin will automatically recognize the IDE running on the current system. When this option is set, it will open the specified IDE (for specifying IDE, it is more recommended to use the method in the [Specify IDE](/guide/ide) section).
+
+## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
+
+- Optional. Default value is `auto`
+- Type`'auto' | 'all' | string`
+- Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`. When set to `auto`, the `client code` will be injected into the first file that meets the aforementioned conditions. When set to `all`, the `client code` will be injected into every file that meets the aforementioned conditions. Alternatively, you can specify an absolute path to a file for injecting the `client code` (typically used for specifying a client-side file in SSR projects).

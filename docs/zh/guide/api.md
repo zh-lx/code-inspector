@@ -12,7 +12,7 @@ CodeInspectorPlugin({
   autoToggle: false,
   needEnvInspector: false,
   hideConsole: false,
-  editor: undefined
+  editor: undefined,
 });
 ```
 
@@ -56,4 +56,10 @@ CodeInspectorPlugin({
 
 - 可选项。默认值为 `undefined`
 - 类型：`string | undefined`，可选值有 `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
-- 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定IDE](/guide/ide)章节的方式）
+- 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定 IDE](/guide/ide)章节的方式）
+
+## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
+
+- 可选项。默认值为 `auto`
+- 类型：`'auto' | 'all' | string`
+- 说明：用于注入 DOM 筛选和点击跳转 vscode 的相关的 `client code` 代码的文件(必须为绝对路径且以 `.js/.ts/.mjs/.mts/.jsx/.tsx` 为结尾的文件)。为 `auto` 时会在符合上述条件的第一个文件注入 `client code`；为 `all` 时会在每个符合上述条件的文件中都注入 `client code`；也可自己指定一个绝对路径文件作为注入 `client code` 的文件(通常用于 SSR 项目中指定一个 client 端的文件)。

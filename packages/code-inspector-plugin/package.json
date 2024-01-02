@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-plugin",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
@@ -9,7 +9,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc && vite build",
-    "pub": "pnpm publish"
+    "pub": "pnpm publish",
+    "pub:beta": "pnpm publish --tag beta"
   },
   "files": [
     "dist",

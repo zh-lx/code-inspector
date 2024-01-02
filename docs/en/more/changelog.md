@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- 【feat】Add support for SSR, Umijs, and all projects using `webpack, vite, rspack` as the underlying bundlers.
+
 ## 0.3.2
 
 - 【fix】Fix the issue of failure to execute the `ps aux xxx` command on certain Linux systems to obtain running processes.

@@ -5,6 +5,7 @@ import Theme from 'vitepress/theme';
 import './style.scss';
 
 export default {
+  extends: Theme,
   ...Theme,
   Layout: () => {
     return h(Theme.Layout, null, {

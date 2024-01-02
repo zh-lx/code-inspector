@@ -1,4 +1,5 @@
 import { Editor } from './shared/constant';
+import { startServer, enhanceCode, normalizePath, parseSFC } from './server';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
     /**
@@ -22,6 +23,16 @@ export type CodeOptions = {
      */
     autoToggle?: boolean;
     editor?: Editor;
+    /**
+     * @cn 用于注入DOM 筛选和点击跳转vscode的相关代码的文件。必须为绝对路径且以 `.js/.ts/.mjs/.mts/.jsx/.tsx` 为结尾的文件
+     * @en The file to inject the relevant code for DOM filtering and click navigation in VSCode. Must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.
+     */
+    injectTo?: 'auto' | 'all' | string;
 };
 export declare function getInjectCode(port: number, options?: CodeOptions): string;
-export { startServer, enhanceCode, normalizePath, parseSFC } from './server';
+export declare function getFilenameWithoutExt(filePath: string): string;
+export declare function isTargetFile(file: string): boolean;
+export declare function isNextClientFile(code: string): boolean;
+export declare function isUseEffectFile(code: string): boolean;
+export declare function getServedCode(options: CodeOptions, rootPath: string, file: string, code: string): Promise<string>;
+export { startServer, enhanceCode, normalizePath, parseSFC };

@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.4.0
+
+- 【feat】支持了 SSR、Umijs 等所有以 `webpack、vite、rspack` 为底层打包工具的项目
+
 ## 0.3.2
 
 - 【fix】修复在部分 linux 系统中执行 `ps aux xxx` 命令以获取运行程序失败的问题
