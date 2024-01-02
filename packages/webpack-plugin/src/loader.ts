@@ -1,19 +1,32 @@
-import { enhanceCode, normalizePath, parseSFC } from 'code-inspector-core';
+import {
+  enhanceCode,
+  normalizePath,
+  parseSFC,
+  getServedCode,
+} from 'code-inspector-core';
 import path from 'path';
-// import { parse } from '@vue/compiler-sfc';
 
 /**
  * @description inject line、column and path to VNode when webpack compiling .vue file
  * @type webpack.loader.Loader
  */
-export default function WebpackCodeInspectorLoader(this: any, content: string) {
+export default async function WebpackCodeInspectorLoader(
+  this: any,
+  content: string
+) {
   this.cacheable && this.cacheable();
   const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
-  const root = normalizePath(this.rootContext ?? this.options.context ?? '');
-  const filePath = normalizePath(path.relative(root, completePath));
+  const options = this.query;
+  const rootPath = normalizePath(
+    this.rootContext ?? this.options.context ?? ''
+  );
+  const filePath = normalizePath(path.relative(rootPath, completePath));
   let params = new URLSearchParams(this.resource);
 
-  const jsxExtList = ['.js', '.ts', '.jsx', '.tsx'];
+  // start server and inject client code to entry file
+  content = await getServedCode(options, rootPath, completePath, content);
+
+  const jsxExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
   const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
   const isJSX =
@@ -30,7 +43,7 @@ export default function WebpackCodeInspectorLoader(this: any, content: string) {
     params.get('type') !== 'style' &&
     params.get('type') !== 'script' &&
     params.get('raw') === null;
-
+    
   if (isJSX) {
     content = enhanceCode({ code: content, filePath, fileType: 'jsx' });
   } else if (isJsxWithScript) {

@@ -1,30 +1,21 @@
 import {
   enhanceCode,
-  getInjectCode,
-  startServer,
   normalizePath,
   CodeOptions,
+  getServedCode,
 } from 'code-inspector-core';
 import path from 'path';
 const PluginName = 'vite-code-inspector-plugin';
-let rootPath = '';
 
+let rootPath = '';
 interface Options extends CodeOptions {
   close?: boolean;
 }
 
-const replaceHtml = (html, code) => {
-  const index = html.lastIndexOf('</html>');
-  if (index > -1) {
-    html = html.slice(0, index) + `\n${code}\n` + html.slice(index);
-  }
-  return html;
-};
-
 export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
-    enforce: 'pre' as 'pre',
+    ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
     apply(_, { command }) {
       if (options?.close) {
         return false;
@@ -33,17 +24,21 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       return isDev;
     },
     async transform(code, id) {
-      if (id.match('node_modules')) {
-        return code;
-      }
       if (!rootPath) {
         rootPath = process.cwd(); // 根路径
+      }
+
+      // start server and inject client code to entry file
+      code = await getServedCode(options, rootPath, id, code);
+
+      if (id.match('node_modules')) {
+        return code;
       }
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const completePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
 
-      const jsxExtList = ['.js', '.ts', '.jsx', '.tsx'];
+      const jsxExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
       const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
       const isJsx =
         jsxExtList.some((ext) => completePath.endsWith(ext)) ||
@@ -72,21 +67,6 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         });
       }
       return code;
-    },
-    async transformIndexHtml(html) {
-      if (!rootPath) {
-        rootPath = process.cwd(); // 根路径
-      }
-      html = await new Promise((resolve) => {
-        startServer((port) => {
-          const code = getInjectCode(port, {
-            ...(options || {}),
-          });
-          html = replaceHtml(html, code);
-          resolve(html);
-        }, rootPath, options.editor);
-      });
-      return html;
-    },
+    }
   };
 }

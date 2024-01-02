@@ -1,7 +1,8 @@
-import path from 'path';
+import path, { isAbsolute } from 'path';
 import fs from 'fs';
 import { dirname } from 'path';
 import { Editor } from './shared/constant';
+import { startServer, enhanceCode, normalizePath, parseSFC } from './server';
 
 let compatibleDirname = '';
 
@@ -51,6 +52,16 @@ export type CodeOptions = {
    */
   autoToggle?: boolean;
   editor?: Editor;
+  /**
+   * @cn 用于注入DOM 筛选和点击跳转vscode的相关代码的文件。必须为绝对路径且以 `.js/.ts/.mjs/.mts/.jsx/.tsx` 为结尾的文件
+   * @en The file to inject the relevant code for DOM filtering and click navigation in VSCode. Must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.
+   */
+  injectTo?: 'auto' | 'all' | string;
+  /**
+   * @cn 是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误，需要此项设置为 `false`）
+   * @en Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
+   */
+  enforcePre?: boolean;
 };
 
 export function getInjectCode(port: number, options?: CodeOptions) {
@@ -60,16 +71,118 @@ export function getInjectCode(port: number, options?: CodeOptions) {
     hideConsole = false,
     autoToggle = true,
   } = options || ({} as CodeOptions);
-  return `<code-inspector-component port=${port} hotKeys="${(hotKeys
-    ? hotKeys
-    : []
-  )?.join(',')}"
-  ${showSwitch ? 'showSwitch=true' : ''} ${
-    autoToggle ? 'autoToggle=true' : ''
-  }  ${hideConsole ? 'hideConsole=true' : ''}></code-inspector-component>
-  <script type="text/javascript">
-  ${jsCode}
-  </script>`;
+  return `
+/* eslint-disable */
+if (typeof window !== 'undefined') {
+  if (!document.body.querySelector('code-inspector-component')) {
+    const script = document.createElement('script');
+    script.setAttribute('type', 'text/javascript');
+    script.textContent = ${`${jsCode}`};
+
+    const inspector = document.createElement('code-inspector-component');
+    inspector.port = ${port};
+    inspector.hotkeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
+    inspector.showSwitch = !!${showSwitch};
+    inspector.autoToggle = !!${autoToggle};
+    inspector.hideConsole = !!${hideConsole};
+    document.body.append(inspector);
+  }
+}
+/* eslint-disable */
+`;
 }
 
-export { startServer, enhanceCode, normalizePath, parseSFC } from './server';
+// 获取不带文件后缀名的文件路径
+export function getFilenameWithoutExt(filePath: string) {
+  while (path.parse(filePath).ext) {
+    filePath = path.parse(filePath).name;
+  }
+  return filePath;
+}
+
+// 检测是否为符合可注入代码的目标文件
+export function isTargetFile(file: string) {
+  return ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'].some((ext) =>
+    file.endsWith(ext)
+  );
+}
+
+// 检测是否为 nextjs 中的 client 文件
+export function isNextClientFile(code: string) {
+  return (
+    code.trim().startsWith(`"use client"`) ||
+    code.trim().startsWith(`'use client'`) ||
+    code.trim().startsWith(`"use client;"`) ||
+    code.trim().startsWith(`'use client;'`)
+  );
+}
+
+// 检测是否为 useEffect 文件
+export function isUseEffectFile(code: string) {
+  return code.includes(`useEffect(`);
+}
+
+let port = 0;
+let entry = '';
+let nextInjectedFile = '';
+let useEffectFile = '';
+let injectAll = false;
+
+export async function getServedCode(
+  options: CodeOptions,
+  rootPath: string,
+  file: string,
+  code: string
+) {
+  // start server
+  port = await new Promise((resolve) => {
+    startServer(
+      (port) => {
+        resolve(port);
+      },
+      rootPath,
+      options?.editor
+    );
+  });
+
+  if (options?.injectTo) {
+    if (options.injectTo === 'auto') {
+      //
+    } else if (options.injectTo === 'all') {
+      injectAll = true;
+    } else if (isAbsolute(options.injectTo)) {
+      if (isTargetFile(entry)) {
+        entry = getFilenameWithoutExt(options.injectTo);
+      } else {
+        console.error(`The ext of "injectTo" in code-inspector-plugin must in '.js/.ts/.mjs/.mts/.jsx/.tsx'`)
+      }
+    } else {
+      console.error(`"injectTo" in code-inspector-plugin must be 'auto' or 'all' or an absolute file path!`)
+    }
+  }
+  // inject client code to entry file
+  if (!entry && isTargetFile(file)) {
+    entry = getFilenameWithoutExt(file);
+  }
+  // compatible to nextjs
+  if (!nextInjectedFile && isTargetFile(file) && isNextClientFile(code)) {
+    nextInjectedFile = getFilenameWithoutExt(file);
+  }
+  // compatible to react ssr but not nextjs
+  if (!nextInjectedFile && !useEffectFile && isTargetFile(file) && isUseEffectFile(code)) {
+    useEffectFile = getFilenameWithoutExt(file);
+  }
+  if (
+    isTargetFile(file) &&
+    (getFilenameWithoutExt(file) === entry ||
+      getFilenameWithoutExt(file) === nextInjectedFile ||
+      getFilenameWithoutExt(file) === useEffectFile || injectAll)
+  ) {
+    code = `${code}\n${getInjectCode(port, {
+      ...(options || {}),
+    })}`;
+  }
+  return code;
+}
+
+export { startServer, enhanceCode, normalizePath, parseSFC };
