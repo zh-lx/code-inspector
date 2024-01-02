@@ -46,7 +46,7 @@ Please check here for complete access and usage information: [code-inspector-plu
 The following are which compilers, web frameworks and editors we supported now:
 
 - The following bundlers are currently supported:<br />
-  ✅ webpack(3.x/4.x/5.x)<br />
+  ✅ webpack<br />
   ✅ vite<br />
   ✅ rspack
 - The following Web frameworks are currently supported:<br />

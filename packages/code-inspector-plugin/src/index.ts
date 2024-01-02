@@ -1,4 +1,5 @@
 import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
+import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
 import { CodeOptions } from 'code-inspector-core';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
@@ -50,7 +51,6 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
 
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
-    const WebpackCodeInspectorPlugin = require('webpack-code-inspector-plugin');
     return new WebpackCodeInspectorPlugin({ ...options, close });
   } else {
     // 使用 vite 插件

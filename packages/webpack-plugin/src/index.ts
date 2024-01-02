@@ -1,7 +1,8 @@
 import {
   CodeOptions,
+  getCompatibleDirname
 } from 'code-inspector-core';
-import path from 'path';
+import path, {dirname} from 'path';
 
 let isFirstLoad = true;
 
@@ -19,7 +20,7 @@ const applyLoader =  (options: CodeOptions) => (compiler: any, cb: () => void) =
     exclude: /node_modules/,
     use: [
       { 
-        loader: path.resolve(__dirname, './loader.js') ,
+        loader: path.resolve(getCompatibleDirname(dirname), './loader.js') ,
         options,
       }
     ],
