@@ -28,6 +28,11 @@ export type CodeOptions = {
      * @en The file to inject the relevant code for DOM filtering and click navigation in VSCode. Must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.
      */
     injectTo?: 'auto' | 'all' | string;
+    /**
+     * @cn 是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误，需要此项设置为 `false`）
+     * @en Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
+     */
+    enforcePre?: boolean;
 };
 export declare function getInjectCode(port: number, options?: CodeOptions): string;
 export declare function getFilenameWithoutExt(filePath: string): string;

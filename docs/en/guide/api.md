@@ -59,6 +59,12 @@ CodeInspectorPlugin({
 - Type: `string | undefined`, options: `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - Description: The plugin will automatically recognize the IDE running on the current system. When this option is set, it will open the specified IDE (for specifying IDE, it is more recommended to use the method in the [Specify IDE](/guide/ide) section).
 
+## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
+
+- Optional. Default value is `true`
+- Type: `boolean`
+- Description: Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
+
 ## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
 
 - Optional. Default value is `auto`

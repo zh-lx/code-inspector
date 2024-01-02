@@ -23,6 +23,7 @@ const applyLoader =  (options: CodeOptions) => (compiler: any, cb: () => void) =
         options,
       }
     ],
+    ...(options.enforcePre === false ? {} : { enforce: 'pre' })
   });
   if (typeof cb === 'function') {
     cb();

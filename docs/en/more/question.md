@@ -18,6 +18,14 @@ If you encounter the following error when opening the IDE, it may be because the
 
 If the project is running normally, and the DOM inspector feature appears (DOM masking when holding down the combination keys on the page), but clicking does not automatically open the IDE, it may be because the IDE used does not support automatic recognition or is a non-official version of the IDE. In both cases, refer to the [Non Automatic Recognition IDE](/guide/ide.html#non_automatic_recognition_ide) section in the Specify IDE chapter for configuration instructions.
 
+## Use in SSR
+
+The plugin provides default support for most conventional SSR frameworks. For `next.js` projects, make sure there are files containing client-side code (including `use client`). If you have a custom-rendered SSR project, please submit an issue for consultation on how to adapt.
+
+## Eslint Plugin Errors
+
+If this plugin causes errors with the ESLint Plugin, please add `enforcePre: false` to the `code-inspector-plugin` configuration.
+
 ## Other Issues
 
 If you encounter unresolved issues, please leave a message below [my Twitter](https://twitter.com/zhulxing312147) post or submit an issue on [Github](https://github.com/zh-lx/code-inspector/issues).

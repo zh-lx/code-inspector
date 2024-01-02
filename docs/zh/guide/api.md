@@ -58,6 +58,12 @@ CodeInspectorPlugin({
 - 类型：`string | undefined`，可选值有 `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定 IDE](/guide/ide)章节的方式）
 
+## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
+
+- 可选项。默认值为 `true`
+- 类型：`boolean`
+- 说明：是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误，需要此项设置为 `false`）。
+
 ## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
 
 - 可选项。默认值为 `auto`

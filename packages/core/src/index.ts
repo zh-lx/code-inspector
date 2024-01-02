@@ -57,6 +57,11 @@ export type CodeOptions = {
    * @en The file to inject the relevant code for DOM filtering and click navigation in VSCode. Must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.
    */
   injectTo?: 'auto' | 'all' | string;
+  /**
+   * @cn 是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误，需要此项设置为 `false`）
+   * @en Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
+   */
+  enforcePre?: boolean;
 };
 
 export function getInjectCode(port: number, options?: CodeOptions) {
@@ -67,6 +72,7 @@ export function getInjectCode(port: number, options?: CodeOptions) {
     autoToggle = true,
   } = options || ({} as CodeOptions);
   return `
+/* eslint-disable */
 if (typeof window !== 'undefined') {
   if (!document.body.querySelector('code-inspector-component')) {
     const script = document.createElement('script');
@@ -82,6 +88,7 @@ if (typeof window !== 'undefined') {
     document.body.append(inspector);
   }
 }
+/* eslint-disable */
 `;
 }
 
@@ -104,7 +111,9 @@ export function isTargetFile(file: string) {
 export function isNextClientFile(code: string) {
   return (
     code.trim().startsWith(`"use client"`) ||
-    code.trim().startsWith(`'use client'`)
+    code.trim().startsWith(`'use client'`) ||
+    code.trim().startsWith(`"use client;"`) ||
+    code.trim().startsWith(`'use client;'`)
   );
 }
 

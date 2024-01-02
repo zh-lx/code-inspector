@@ -43,7 +43,7 @@ export default async function WebpackCodeInspectorLoader(
     params.get('type') !== 'style' &&
     params.get('type') !== 'script' &&
     params.get('raw') === null;
-
+    
   if (isJSX) {
     content = enhanceCode({ code: content, filePath, fileType: 'jsx' });
   } else if (isJsxWithScript) {

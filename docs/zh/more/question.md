@@ -18,6 +18,14 @@
 
 如果项目正常运行，且可以出现 DOM inspector 功能（按住组合键时在页面有 DOM 遮罩筛选），但是点击后没有自动打开 IDE。可能是因为使用的时不支持自动识别的 IDE 或非官方版本的 IDE，这两种情况都可以参考【指定 IDE】一节中的 [非自动识别的 IDE](/guide/ide.html#非自动识别的-ide) 配置教程。
 
-## 非上述问题
+## SSR 场景
 
-如果遇到无法解决的问题，请 [加入用户群](/more/feedback) 或到 github 提 [issue](https://github.com/zh-lx/code-inspector/issues)
+默认支持了大部分常规框架的 SSR 项目，其中 `nextjs` 项目中需要确保有客户端执行的代码文件(包含 `use client`)。对于自建渲染的 SSR 项目，如何适配请加群咨询。
+
+## Eslint Plugin 报错
+
+如果本插件引起了 Eslint Plugin 报错问题，请在 `code-inspector-plugin` 配置中添加 `enforcePre: false`。
+
+## 其他问题
+
+如果遇到无法解决的问题，请 [加入用户群](/more/feedback) 或到 github 提 [issue](https://github.com/zh-lx/code-inspector/issues)，加群咨询能够解决绝大部分问题。

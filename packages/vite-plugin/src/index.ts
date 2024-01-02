@@ -15,7 +15,7 @@ interface Options extends CodeOptions {
 export function ViteCodeInspectorPlugin(options?: Options) {
   return {
     name: PluginName,
-    enforce: 'pre' as 'pre',
+    ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
     apply(_, { command }) {
       if (options?.close) {
         return false;
