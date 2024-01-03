@@ -122,37 +122,42 @@ export function isUseEffectFile(code: string) {
   return code.includes(`useEffect(`);
 }
 
-let port = 0;
-let entry = '';
-let nextInjectedFile = '';
-let useEffectFile = '';
-let injectAll = false;
+export type RecordInfo = {
+  port: number,
+  entry: string,
+  nextInjectedFile: string,
+  useEffectFile: string,
+  injectAll: boolean;
+}
 
 export async function getServedCode(
   options: CodeOptions,
   rootPath: string,
   file: string,
-  code: string
+  code: string,
+  record: RecordInfo,
 ) {
-  // start server
-  port = await new Promise((resolve) => {
-    startServer(
-      (port) => {
-        resolve(port);
-      },
-      rootPath,
-      options?.editor
-    );
-  });
+  if (!record.port) {
+    // start server
+    record.port = await new Promise((resolve) => {
+      startServer(
+        (port) => {
+          resolve(port);
+        },
+        rootPath,
+        options?.editor
+      );
+    });
+  }
 
   if (options?.injectTo) {
     if (options.injectTo === 'auto') {
       //
     } else if (options.injectTo === 'all') {
-      injectAll = true;
+      record.injectAll = true;
     } else if (isAbsolute(options.injectTo)) {
-      if (isTargetFile(entry)) {
-        entry = getFilenameWithoutExt(options.injectTo);
+      if (isTargetFile(record.entry)) {
+        record.entry = getFilenameWithoutExt(options.injectTo);
       } else {
         console.error(`The ext of "injectTo" in code-inspector-plugin must in '.js/.ts/.mjs/.mts/.jsx/.tsx'`)
       }
@@ -161,24 +166,24 @@ export async function getServedCode(
     }
   }
   // inject client code to entry file
-  if (!entry && isTargetFile(file)) {
-    entry = getFilenameWithoutExt(file);
+  if (!record.entry && isTargetFile(file)) {
+    record.entry = getFilenameWithoutExt(file);
   }
   // compatible to nextjs
-  if (!nextInjectedFile && isTargetFile(file) && isNextClientFile(code)) {
-    nextInjectedFile = getFilenameWithoutExt(file);
+  if (!record.nextInjectedFile && isTargetFile(file) && isNextClientFile(code)) {
+    record.nextInjectedFile = getFilenameWithoutExt(file);
   }
   // compatible to react ssr but not nextjs
-  if (!nextInjectedFile && !useEffectFile && isTargetFile(file) && isUseEffectFile(code)) {
-    useEffectFile = getFilenameWithoutExt(file);
+  if (!record.nextInjectedFile && !record.useEffectFile && isTargetFile(file) && isUseEffectFile(code)) {
+    record.useEffectFile = getFilenameWithoutExt(file);
   }
   if (
     isTargetFile(file) &&
-    (getFilenameWithoutExt(file) === entry ||
-      getFilenameWithoutExt(file) === nextInjectedFile ||
-      getFilenameWithoutExt(file) === useEffectFile || injectAll)
+    (getFilenameWithoutExt(file) === record.entry ||
+      getFilenameWithoutExt(file) === record.nextInjectedFile ||
+      getFilenameWithoutExt(file) === record.useEffectFile || record.injectAll)
   ) {
-    code = `${code}\n${getInjectCode(port, {
+    code = `${code}\n${getInjectCode(record.port, {
       ...(options || {}),
     })}`;
   }

@@ -39,5 +39,12 @@ export declare function getFilenameWithoutExt(filePath: string): string;
 export declare function isTargetFile(file: string): boolean;
 export declare function isNextClientFile(code: string): boolean;
 export declare function isUseEffectFile(code: string): boolean;
-export declare function getServedCode(options: CodeOptions, rootPath: string, file: string, code: string): Promise<string>;
+export type RecordInfo = {
+    port: number;
+    entry: string;
+    nextInjectedFile: string;
+    useEffectFile: string;
+    injectAll: boolean;
+};
+export declare function getServedCode(options: CodeOptions, rootPath: string, file: string, code: string, record: RecordInfo): Promise<string>;
 export { startServer, enhanceCode, normalizePath, parseSFC };

@@ -7,7 +7,8 @@
   "scripts": {
     "build:plugin": "vite build",
     "build:loader": "vite build --config vite.loader.config.ts",
-    "build": "tsc && pnpm build:plugin && pnpm build:loader",
+    "build:inject": "vite build --config vite.inject-loader.config.ts",
+    "build": "tsc && pnpm build:plugin && pnpm build:loader && pnpm build:inject",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   },
