@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.4.2
+
+- 【fix】修复缓存引起的 server 未启动问题以及 `net::ERR_CONNECTION_REFUSED` 错误
+
 ## 0.4.1
 
 - 【feat】支持以 ESM 方式引入 webpack 插件

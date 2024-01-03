@@ -3,6 +3,7 @@ import {
   normalizePath,
   CodeOptions,
   getServedCode,
+  RecordInfo
 } from 'code-inspector-core';
 import path from 'path';
 const PluginName = 'vite-code-inspector-plugin';
@@ -13,6 +14,13 @@ interface Options extends CodeOptions {
 }
 
 export function ViteCodeInspectorPlugin(options?: Options) {
+  const record: RecordInfo = {
+    port: 0,
+    entry: '',
+    nextInjectedFile: '',
+    useEffectFile: '',
+    injectAll: false,
+  }
   return {
     name: PluginName,
     ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
@@ -29,7 +37,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       }
 
       // start server and inject client code to entry file
-      code = await getServedCode(options, rootPath, id, code);
+      code = await getServedCode(options, rootPath, id, code, record);
 
       if (id.match('node_modules')) {
         return code;

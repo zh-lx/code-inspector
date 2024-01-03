@@ -2,29 +2,19 @@ import {
   enhanceCode,
   normalizePath,
   parseSFC,
-  getServedCode,
 } from 'code-inspector-core';
 import path from 'path';
 
-/**
- * @description inject line、column and path to VNode when webpack compiling .vue file
- * @type webpack.loader.Loader
- */
 export default async function WebpackCodeInspectorLoader(
-  this: any,
-  content: string
+  content: string,
 ) {
-  this.cacheable && this.cacheable();
+  this.cacheable && this.cacheable(true);
   const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
-  const options = this.query;
   const rootPath = normalizePath(
     this.rootContext ?? this.options.context ?? ''
   );
   const filePath = normalizePath(path.relative(rootPath, completePath));
   let params = new URLSearchParams(this.resource);
-
-  // start server and inject client code to entry file
-  content = await getServedCode(options, rootPath, completePath, content);
 
   const jsxExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
   const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];

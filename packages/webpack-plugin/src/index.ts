@@ -1,5 +1,6 @@
 import {
   CodeOptions,
+  RecordInfo,
 } from 'code-inspector-core';
 import path, {dirname} from 'path';
 
@@ -26,7 +27,11 @@ if (typeof __dirname !== 'undefined') {
 
 let isFirstLoad = true;
 
-const applyLoader =  (options: CodeOptions) => (compiler: any, cb: () => void) => {
+interface LoaderOptions extends CodeOptions {
+  record: RecordInfo,
+}
+
+const applyLoader = (options: LoaderOptions, compiler: any) => {
   if (!isFirstLoad) {
     return;
   }
@@ -40,19 +45,27 @@ const applyLoader =  (options: CodeOptions) => (compiler: any, cb: () => void) =
     exclude: /node_modules/,
     use: [
       { 
-        loader: path.resolve(compatibleDirname, './loader.js') ,
+        loader: path.resolve(compatibleDirname, `./loader.js`) ,
         options,
       }
     ],
     ...(options.enforcePre === false ? {} : { enforce: 'pre' })
+  }, {
+    test: /\.(jsx|tsx|js|ts|mjs|mts)$/,
+    exclude: /node_modules/,
+    use: [
+      { 
+        loader: path.resolve(compatibleDirname, `./inject-loader.js`) ,
+        options,
+      }
+    ],
+    enforce: 'post'
   });
-  if (typeof cb === 'function') {
-    cb();
-  }
 }
 
 interface Options extends CodeOptions {
   close?: boolean;
+  time?: number;
 }
 
 class WebpackCodeInspectorPlugin {
@@ -77,7 +90,15 @@ class WebpackCodeInspectorPlugin {
       return;
     }
 
-    applyLoader(this.options)(compiler, () => {});
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      nextInjectedFile: '',
+      useEffectFile: '',
+      injectAll: false,
+    }
+    
+    applyLoader({ ...this.options, record }, compiler);
   }
 }
 

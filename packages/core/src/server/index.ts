@@ -7,15 +7,8 @@ export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
 import { DefaultPort, Editor } from '../shared/constant';
 
-let started = false;
-let recordPort = DefaultPort;
 
 export function startServer(callback: (port: number) => any, rootPath: string, editor?: Editor) {
-  if (started) {
-    callback(recordPort);
-    return;
-  }
-  started = true;
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
@@ -33,12 +26,11 @@ export function startServer(callback: (port: number) => any, rootPath: string, e
   });
 
   // 寻找可用接口
-  portFinder.getPort({ port: recordPort }, (err: Error, port: number) => {
+  portFinder.getPort({ port: DefaultPort }, (err: Error, port: number) => {
     if (err) {
       throw err;
     }
     server.listen(port, () => {
-      recordPort = port;
       callback(port);
     });
   });
