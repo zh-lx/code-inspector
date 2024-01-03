@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+
+- 【fix】Fix the issue of server not starting and `net::ERR_CONNECTION_REFUSED` error caused by caching.
+
 ## 0.4.1
 
 - 【feat】Support importing webpack plugin in ESM format.

@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
@@ -23,7 +23,7 @@
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
-  "homepage": "https://inspector.fe-dev.cn/",
+  "homepage": "https://inspector.fe-dev.cn/en",
   "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
   "keywords": [
     "webpack",

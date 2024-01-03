@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-plugin",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
@@ -28,7 +28,7 @@
       }
     }
   },
-  "homepage": "https://inspector.fe-dev.cn/",
+  "homepage": "https://inspector.fe-dev.cn/en",
   "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
   "keywords": [
     "webpack",
