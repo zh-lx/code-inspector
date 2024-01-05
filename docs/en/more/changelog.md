@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- 【fix】Fixed the issue of plugin in sub-applications not work in micro-frontends framework.
+
 ## 0.4.2
 
 - 【fix】Fix the issue of server not starting and `net::ERR_CONNECTION_REFUSED` error caused by caching.

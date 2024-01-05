@@ -1,5 +1,5 @@
 import { LitElement, css, html } from 'lit';
-import { customElement, property, query, state } from 'lit/decorators.js';
+import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { composedPath } from './util';
 import { PathName, DefaultPort } from '../shared/constant';
@@ -20,8 +20,7 @@ const WindowsHotKeyMap = {
   shiftKey: '⇧Shift',
 };
 
-@customElement('code-inspector-component')
-export class MyElement extends LitElement {
+export class CodeInspectorComponent extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
   @property()
@@ -644,4 +643,8 @@ export class MyElement extends LitElement {
       cursor: move;
     }
   `;
+}
+
+if (!customElements.get('code-inspector-component')) {
+  customElements.define('code-inspector-component', CodeInspectorComponent)
 }
