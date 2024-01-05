@@ -1,5 +1,5 @@
 import { LitElement } from 'lit';
-export declare class MyElement extends LitElement {
+export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
     port: number;
     showSwitch: boolean;

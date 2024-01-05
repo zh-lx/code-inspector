@@ -46,5 +46,5 @@ export type RecordInfo = {
     useEffectFile: string;
     injectAll: boolean;
 };
-export declare function getServedCode(options: CodeOptions, rootPath: string, file: string, code: string, record: RecordInfo): Promise<string>;
+export declare function getServedCode(options: CodeOptions, file: string, code: string, record: RecordInfo): Promise<string>;
 export { startServer, enhanceCode, normalizePath, parseSFC };

@@ -7,12 +7,11 @@ export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
 import { DefaultPort, Editor } from '../shared/constant';
 
-
-export function startServer(callback: (port: number) => any, rootPath: string, editor?: Editor) {
+export function startServer(callback: (port: number) => any, editor?: Editor) {
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
-    const file = path.join(rootPath, params.get('file') as string);
+    const file = params.get('file') as string;
     const line = Number(params.get('line'));
     const column = Number(params.get('column'));
     res.writeHead(200, {
