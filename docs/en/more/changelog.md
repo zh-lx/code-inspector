@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+- 【fix】Fix the issue of plugins not working on Windows.
+
 ## 0.4.3
 
 - 【fix】Fixed the issue of plugin in sub-applications not work in micro-frontends framework.
