@@ -164,9 +164,11 @@ export class CodeInspectorComponent extends LitElement {
     document.body.style.userSelect = 'none';
     // 获取元素信息
     const paths = target.getAttribute(PathName) || '';
-    const [path, _line, _column, name] = paths.split(':');
-    const line = Number(_line);
-    const column = Number(_column);
+    const segments = paths.split(':');
+    const name = segments[segments.length - 1];
+    const column = Number(segments[segments.length - 2]);
+    const line = Number(segments[segments.length - 3]);
+    const path = segments.slice(0, segments.length - 3).join(':');
     this.element = { name, path, line, column };
     this.show = true;
   };
@@ -646,5 +648,5 @@ export class CodeInspectorComponent extends LitElement {
 }
 
 if (!customElements.get('code-inspector-component')) {
-  customElements.define('code-inspector-component', CodeInspectorComponent)
+  customElements.define('code-inspector-component', CodeInspectorComponent);
 }
