@@ -1,15 +1,19 @@
-import { enhanceCode, normalizePath, parseSFC } from 'code-inspector-core';
+import {
+  enhanceCode,
+  normalizePath,
+  parseSFC,
+  isJsTypeFile,
+} from 'code-inspector-core';
 
 export default async function WebpackCodeInspectorLoader(content: string) {
   this.cacheable && this.cacheable(true);
   const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource);
 
-  const jsxExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
   const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
   const isJSX =
-    jsxExtList.some((ext) => filePath.endsWith(ext)) ||
+    isJsTypeFile(filePath) ||
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
 

@@ -7,11 +7,11 @@ export default async function WebpackCodeInjectLoader(
 ) {
   this.async();
   this.cacheable && this.cacheable(false);
-  const completePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
+  const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   const options = this.query;
 
   // start server and inject client code to entry file
-  content = await getServedCode(options, completePath, content, options.record);
+  content = await getServedCode(options, filePath, content, options.record);
 
   this.callback(null, content, source, meta);
 }
