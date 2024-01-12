@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.4.5
+
+- 【fix】修复 vue 框架中使用关于 `[Vue warn]: Extraneous non-props attributes (data-insp-path)` 的警告
+
 ## 0.4.4
 
 - 【fix】修复插件在 Windows 不生效的问题

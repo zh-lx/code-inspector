@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+- 【fix】Fix the warning in the Vue framework related to `[Vue warn]: Extraneous non-props attributes (data-insp-path)`.
+
 ## 0.4.4
 
 - 【fix】Fix the issue of plugins not working on Windows.
