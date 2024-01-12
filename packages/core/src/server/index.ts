@@ -6,6 +6,8 @@ import launchEditor from './launch-editor';
 export { enhanceCode } from './content-enhance';
 import { parse } from '@vue/compiler-sfc';
 import { DefaultPort, Editor } from '../shared/constant';
+export { getServedCode } from './inject-code';
+export type { RecordInfo } from './inject-code';
 
 export function startServer(callback: (port: number) => any, editor?: Editor) {
   const server = http.createServer((req: any, res: any) => {

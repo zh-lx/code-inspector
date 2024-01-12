@@ -1,5 +1,4 @@
 import { Editor } from './shared/constant';
-import { startServer, enhanceCode, normalizePath, parseSFC } from './server';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type CodeOptions = {
     /**
@@ -34,17 +33,6 @@ export type CodeOptions = {
      */
     enforcePre?: boolean;
 };
-export declare function getInjectCode(port: number, options?: CodeOptions): string;
-export declare function getFilenameWithoutExt(filePath: string): string;
-export declare function isTargetFile(file: string): boolean;
-export declare function isNextClientFile(code: string): boolean;
-export declare function isUseEffectFile(code: string): boolean;
-export type RecordInfo = {
-    port: number;
-    entry: string;
-    nextInjectedFile: string;
-    useEffectFile: string;
-    injectAll: boolean;
-};
-export declare function getServedCode(options: CodeOptions, file: string, code: string, record: RecordInfo): Promise<string>;
-export { startServer, enhanceCode, normalizePath, parseSFC };
+export { startServer, enhanceCode, normalizePath, parseSFC, getServedCode, } from './server';
+export type { RecordInfo } from './server';
+export { fileURLToPath, isJsTypeFile } from './shared/utils';
