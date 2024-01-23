@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.4.6
+
+- 【fix】修复 windows 系统中 vscode 安装路径存在中文时，无法打开 vscode 对应代码的问题
+- 【optimize】优化 `webpack/rspack` 中 `inject-loader` 的缓存逻辑
+
 ## 0.4.5
 
 - 【fix】修复 vue 框架中使用关于 `[Vue warn]: Extraneous non-props attributes (data-insp-path)` 的警告

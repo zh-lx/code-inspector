@@ -91,7 +91,7 @@ const getEditorByCustom = (
       const processPath = runningProcesses[i].trim();
       const processName = path.basename(processPath);
       if (CodeMap.win[editor]?.includes(processName)) {
-        return [processName];
+        return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
       }
     }
     return null;
@@ -146,6 +146,11 @@ const COMMON_EDITORS_WIN = [
   'idea.exe',
   'idea64.exe',
 ];
+
+const COMMON_EDITORS_WIN_MAP: { [key: string]: string } = {
+  'Code.exe': 'code',
+  'Code - Insiders.exe': 'code-insiders',
+};
 
 // Transpiled version of: /^([A-Za-z]:[/\\])?[\p{L}0-9/.\-_\\]+$/u
 // Non-transpiled version requires support for Unicode property regex. Allows
@@ -305,10 +310,10 @@ function guessEditor(_editor?: Editor) {
         const processName = path.basename(processPath);
         if (COMMON_EDITORS_WIN.indexOf(processName) !== -1) {
           if (customEditors?.includes(processName)) {
-            return [processPath];
+            return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
           }
           if (!first) {
-            first = [processPath];
+            first = [COMMON_EDITORS_WIN_MAP[processName] || processPath];
           }
         }
       }
