@@ -14,3 +14,4 @@ export type Editor =
   | 'hbuilder';
 
 export const DefaultPort = 5678;
+export const JsFileExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];

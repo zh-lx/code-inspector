@@ -329,21 +329,7 @@ export class CodeInspectorComponent extends LitElement {
     this.moved = false;
   };
 
-  // 消除 vue 组件多个根节点时的 warning 问题
-  eliminateWarning = () => {
-    const originWarn = console.warn;
-    const warning = `[Vue warn]: Extraneous non-props attributes (${PathName})`;
-    console.warn = function (...args) {
-      if (typeof args?.[0] === 'string' && args[0].indexOf(warning) !== -1) {
-        return;
-      } else {
-        originWarn(...args);
-      }
-    };
-  };
-
   protected firstUpdated(): void {
-    this.eliminateWarning();
     if (!this.hideConsole) {
       this.printTip();
     }

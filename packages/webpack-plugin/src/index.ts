@@ -1,23 +1,11 @@
 import {
   CodeOptions,
   RecordInfo,
+  fileURLToPath
 } from 'code-inspector-core';
 import path, {dirname} from 'path';
 
 let compatibleDirname = '';
-
-function fileURLToPath(fileURL: string) {
-  let filePath = fileURL;
-  if (process.platform === 'win32') {
-    filePath = filePath.replace(/^file:\/\/\//, '');
-    filePath = decodeURIComponent(filePath);
-    filePath = filePath.replace(/\//g, '\\');
-  } else {
-    filePath = filePath.replace(/^file:\/\//, '');
-    filePath = decodeURIComponent(filePath);
-  }
-  return filePath;
-}
 
 if (typeof __dirname !== 'undefined') {
   compatibleDirname = __dirname;

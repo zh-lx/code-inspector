@@ -4,6 +4,7 @@ import {
   CodeOptions,
   getServedCode,
   RecordInfo,
+  isJsTypeFile
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
@@ -40,10 +41,9 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       const filePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
 
-      const jsxExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
       const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
       const isJsx =
-        jsxExtList.some((ext) => filePath.endsWith(ext)) ||
+      isJsTypeFile(filePath) ||
         (filePath.endsWith('.vue') &&
           (jsxParamList.some((param) => params.get(param) !== null) ||
             params.get('lang') === 'tsx' ||
