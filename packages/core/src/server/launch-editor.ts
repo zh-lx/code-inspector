@@ -91,7 +91,7 @@ const getEditorByCustom = (
       const processPath = runningProcesses[i].trim();
       const processName = path.basename(processPath);
       if (CodeMap.win[editor]?.includes(processName)) {
-        return [COMMON_EDITORS_WIN_MAP[processName]] || [processPath];
+        return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
       }
     }
     return null;
@@ -310,10 +310,10 @@ function guessEditor(_editor?: Editor) {
         const processName = path.basename(processPath);
         if (COMMON_EDITORS_WIN.indexOf(processName) !== -1) {
           if (customEditors?.includes(processName)) {
-            return [COMMON_EDITORS_WIN_MAP[processName]] || [processPath];
+            return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
           }
           if (!first) {
-            first = [COMMON_EDITORS_WIN_MAP[processName]] || [processPath];
+            first = [COMMON_EDITORS_WIN_MAP[processName] || processPath];
           }
         }
       }
