@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.6
+
+- 【fix】Resolved the issue where opening the corresponding code in VSCode was not possible on Windows systems when the installation path of VSCode contained Chinese characters.
+- 【optimize】Improved the caching logic of `inject-loader` in `webpack/rspack`.
+
 ## 0.4.5
 
 - 【fix】Fix the warning in the Vue framework related to `[Vue warn]: Extraneous non-props attributes (data-insp-path)`.
