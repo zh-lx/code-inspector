@@ -61,12 +61,30 @@ CodeInspectorPlugin({
 
 ## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
 
-- Optional. Default value is `true`
+- Optional(Only effective for `webpack/rspack`). Default value is `true`
 - Type: `boolean`
-- Description: Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
+- Description: Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors or duplicate ESLint validation during hot updates, set this option to `false`)
 
-## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
+## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
 - Optional. Default value is `auto`
 - Type`'auto' | 'all' | string`
 - Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`. When set to `auto`, the `client code` will be injected into the first file that meets the aforementioned conditions. When set to `all`, the `client code` will be injected into every file that meets the aforementioned conditions. Alternatively, you can specify an absolute path to a file for injecting the `client code` (typically used for specifying a client-side file in SSR projects).
+
+## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- Optional
+- Type: `boolean | (() => boolean)`
+- Description: Customize the determination logic for the development environment. (The plugin internally recognizes the `development` environment to make the plugin effective. If automatic recognition fails, manual specification is required.)
+
+## forceInjectCache <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- Optional (Effective only for `webpack/rspack`). Used to improve compilation performance.
+- Type: `boolean`
+- Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.)
+
+## match <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- Optional. Used to improve compilation performance.
+- Type: `RegExp`
+- Description: Only files that match the `match` regular expression will undergo source code location compilation to reduce the involvement of invalid files in compilation. Default is `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`.

@@ -26,6 +26,14 @@
 
 如果本插件引起了 Eslint Plugin 报错问题，请在 `code-inspector-plugin` 配置中添加 `enforcePre: false`。
 
+## Eslint Loader 热更新重复执行
+
+如果本插件引起了 Eslint Loader 热更新重复执行，请在 `code-inspector-plugin` 配置中添加 `enforcePre: false`。
+
+## 打包速度优化
+
+对于 `webpack` 中的打包速度优化，可以使用参考 [API](/guide/api) 一节中的 `enforcePre`、`forceInjectCache`、`match` 等参数进行优化。
+
 ## 其他问题
 
 如果遇到无法解决的问题，请 [加入用户群](/more/feedback) 或到 github 提 [issue](https://github.com/zh-lx/code-inspector/issues)，加群咨询能够解决绝大部分问题。

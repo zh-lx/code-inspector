@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- 【optimize】When the `injectTo` option is set, the injection loader of the interaction logic in `webpack/rspack` only takes effect for files specified in `injectTo`.
+- 【feat】Added `dev` parameter, allowing users to customize the logic for determining the development environment.
+- 【feat】Added `forceInjectCache` parameter, allowing users to enforce the caching strategy for the injection loader of the interaction logic in `webpack/rspack`.
+- 【feat】Added `match` parameter, allowing users to specify the file types participating in source code location compilation to reduce the compilation of irrelevant files.
+
 ## 0.4.6
 
 - 【fix】Resolved the issue where opening the corresponding code in VSCode was not possible on Windows systems when the installation path of VSCode contained Chinese characters.

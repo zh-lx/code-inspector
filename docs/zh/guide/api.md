@@ -60,12 +60,30 @@ CodeInspectorPlugin({
 
 ## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
 
-- 可选项。默认值为 `true`
+- 可选项(仅对 `webpack/rspack` 生效)。默认值为 `true`
 - 类型：`boolean`
-- 说明：是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误，需要此项设置为 `false`）。
+- 说明：是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误或者热跟新时 eslint 的重复校验，需要此项设置为 `false`）。
 
-## injectTo <Badge type="tip" text="0.4.0+" vertical="middle" />
+## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
 - 可选项。默认值为 `auto`
 - 类型：`'auto' | 'all' | string`
 - 说明：用于注入 DOM 筛选和点击跳转 vscode 的相关的 `client code` 代码的文件(必须为绝对路径且以 `.js/.ts/.mjs/.mts/.jsx/.tsx` 为结尾的文件)。为 `auto` 时会在符合上述条件的第一个文件注入 `client code`；为 `all` 时会在每个符合上述条件的文件中都注入 `client code`；也可自己指定一个绝对路径文件作为注入 `client code` 的文件(通常用于 SSR 项目中指定一个 client 端的文件)。
+
+## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean | (() => boolean)`
+- 说明：自定义 development 环境的判断。（插件内部会识别 `development` 环境以让插件生效，如果自动识别失败，需要手动指定）
+
+## forceInjectCache <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- 可选项(仅对 `webpack/rspack` 生效)。用于提升编译时性能
+- 类型：`boolean`
+- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)
+
+## match <Badge type="tip" text="0.5.0+" vertical="middle" />
+
+- 可选项。用于提升编译时性能
+- 类型：`RegExp`
+- 说明：仅对符合 `match` 正则表达式的文件会进行源码定位编译，以减少无效文件参与编译，默认为 `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`

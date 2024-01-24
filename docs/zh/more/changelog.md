@@ -1,5 +1,12 @@
 # 更新日志
 
+## 0.5.0
+
+- 【optimize】设置 `injectTo` 选项时，`webpakc/rspack` 的交互逻辑的注入 loader 仅对 `injectTo` 文件生效
+- 【feat】新增 `dev` 参数，支持用户自定义开发环境的判断逻辑
+- 【feat】新增 `forceInjectCache` 参数，支持用户强制设置`webpakc/rspack` 的交互逻辑的注入 loader 的缓存策略
+- 【feat】新增 `match` 参数，支持用户指定参与源码定位编译的文件类型以减少无关文件的编译
+
 ## 0.4.6
 
 - 【fix】修复 windows 系统中 vscode 安装路径存在中文时，无法打开 vscode 对应代码的问题

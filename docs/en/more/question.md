@@ -26,6 +26,14 @@ The plugin provides default support for most conventional SSR frameworks. For `n
 
 If this plugin causes errors with the ESLint Plugin, please add `enforcePre: false` to the `code-inspector-plugin` configuration.
 
+## Eslint Loader Hot Update Repetition
+
+If this plugin causes Eslint Loader to repeatedly execute hot updates, please add `enforcePre: false` to the `code-inspector-plugin` configuration.
+
+## Bundle Speed Optimization
+
+For bundle speed optimization in `webpack`, you can use parameters such as `enforcePre`, `forceInjectCache`, `match`, etc., as referenced in the [API](/guide/api) section for optimization.
+
 ## Other Issues
 
 If you encounter unresolved issues, please leave a message below [my Twitter](https://twitter.com/zhulxing312147) post or submit an issue on [Github](https://github.com/zh-lx/code-inspector/issues).

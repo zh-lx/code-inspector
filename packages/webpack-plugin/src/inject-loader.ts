@@ -12,7 +12,7 @@ export default async function WebpackCodeInjectLoader(
   // start server and inject client code to entry file
   const originContent = content;
   content = await getServedCode(options, filePath, content, options.record);
-  this.cacheable && this.cacheable(originContent === content);
+  this.cacheable && this.cacheable(options?.forceInjectCache ?? originContent === content);
 
   this.callback(null, content, source, meta);
 }
