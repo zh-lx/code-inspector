@@ -77,8 +77,21 @@ class WebpackCodeInspectorPlugin {
       return;
     }
 
+    // 自定义 dev 环境判断
+    let isDev: boolean;
+    if (typeof this.options?.dev === 'function') {
+      isDev = this.options?.dev();
+    } else {
+      isDev = this.options?.dev;
+    }
+
+    if (isDev === false) {
+      return;
+    }
+
     // 仅在开发环境下使用
     if (
+      !isDev &&
       compiler?.options?.mode !== 'development' &&
       process.env.NODE_ENV !== 'development'
     ) {

@@ -27,8 +27,18 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       if (options?.close) {
         return false;
       }
-      const isDev = command === 'serve';
-      return isDev;
+      // 自定义 dev 环境判断
+      let isDev: boolean;
+      if (typeof options?.dev === 'function') {
+        isDev = options?.dev();
+      } else {
+        isDev = options?.dev;
+      }
+      if (isDev === false) {
+        return false;
+      } else {
+        return !!isDev || command === 'serve';
+      }
     },
     async transform(code, id) {
       // start server and inject client code to entry file

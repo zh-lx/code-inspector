@@ -32,6 +32,11 @@ export type CodeOptions = {
      * @en Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors, set this option to `false`)
      */
     enforcePre?: boolean;
+    /**
+     * @cn 自定义 development 环境的判断
+     * @en Custom determination of the development environment.
+     */
+    dev?: boolean | (() => boolean);
 };
 export { startServer, enhanceCode, normalizePath, parseSFC, getServedCode, } from './server';
 export type { RecordInfo } from './server';
