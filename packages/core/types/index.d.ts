@@ -37,6 +37,11 @@ export type CodeOptions = {
      * @en Custom determination of the development environment.
      */
     dev?: boolean | (() => boolean);
+    /**
+     * @cn 强制设置 webpack 交互注入逻辑 loader 的缓存策略；为 true 时全缓存；为 false 时不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存
+     * @en Force set the caching strategy for the webpack interactive injection logic loader; when set to true, fully cache; when set to false, do not cache; if not set, automatically determine to cache only the entry file, and not cache other files.
+     */
+    forceInjectCache?: boolean | (() => boolean);
 };
 export { startServer, enhanceCode, normalizePath, parseSFC, getServedCode, } from './server';
 export type { RecordInfo } from './server';
