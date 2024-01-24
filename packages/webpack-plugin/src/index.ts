@@ -30,7 +30,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const rules = module?.rules || module?.loaders || [];
   rules.push(
     {
-      test: /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
+      test: options?.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
       exclude: /node_modules/,
       use: [
         {
