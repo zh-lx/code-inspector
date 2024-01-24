@@ -28,27 +28,34 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
-  rules.push({
-    test: /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
-    exclude: /node_modules/,
-    use: [
-      { 
-        loader: path.resolve(compatibleDirname, `./loader.js`) ,
-        options,
-      }
-    ],
-    ...(options.enforcePre === false ? {} : { enforce: 'pre' })
-  }, {
-    test: /\.(jsx|tsx|js|ts|mjs|mts)$/,
-    exclude: /node_modules/,
-    use: [
-      { 
-        loader: path.resolve(compatibleDirname, `./inject-loader.js`) ,
-        options,
-      }
-    ],
-    enforce: 'post'
-  });
+  rules.push(
+    {
+      test: /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: path.resolve(compatibleDirname, `./loader.js`),
+          options,
+        },
+      ],
+      ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
+    },
+    {
+      ...(options?.injectTo
+        ? { resource: options?.injectTo }
+        : {
+            test: /\.(jsx|tsx|js|ts|mjs|mts)$/,
+            exclude: /node_modules/,
+          }),
+      use: [
+        {
+          loader: path.resolve(compatibleDirname, `./inject-loader.js`),
+          options,
+        },
+      ],
+      enforce: 'post',
+    }
+  );
 }
 
 interface Options extends CodeOptions {

@@ -104,7 +104,7 @@ export async function getServedCode(
     } else if (options.injectTo === 'all') {
       record.injectAll = true;
     } else if (isAbsolute(options.injectTo)) {
-      if (isJsTypeFile(record.entry)) {
+      if (isJsTypeFile(options.injectTo)) {
         record.entry = getFilenameWithoutExt(options.injectTo);
       } else {
         console.error(
