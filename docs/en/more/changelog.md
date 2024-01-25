@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+- 【optimize】Enhance the cache strategy for injecting loader in `webpack`, significantly improving the performance of HMR.
+
 ## 0.5.0
 
 - 【optimize】When the `injectTo` option is set, the injection loader of the interaction logic in `webpack/rspack` only takes effect for files specified in `injectTo`.

@@ -77,11 +77,11 @@ CodeInspectorPlugin({
 - Type: `boolean | (() => boolean)`
 - Description: Customize the determination logic for the development environment. (The plugin internally recognizes the `development` environment to make the plugin effective. If automatic recognition fails, manual specification is required.)
 
-## forceInjectCache <Badge type="tip" text="0.5.0+" vertical="middle" />
+## forceInjectCache <Badge type="danger" text="deprecated" vertical="middle" />
 
 - Optional (Effective only for `webpack/rspack`). Used to improve compilation performance.
 - Type: `boolean`
-- Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.)
+- Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.) <b>After upgrading to version 0.5.1, the cache strategy has been optimized, and it is no longer necessary to set this field.</b>
 
 ## match <Badge type="tip" text="0.5.0+" vertical="middle" />
 

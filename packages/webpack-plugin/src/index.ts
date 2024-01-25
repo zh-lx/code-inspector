@@ -50,7 +50,11 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       use: [
         {
           loader: path.resolve(compatibleDirname, `./inject-loader.js`),
-          options,
+          options: {
+            ...options,
+            // 冷启动时强制不走缓存，保证 server 启动成功
+            cacheIdentifiers: Date.now() + '-' + Math.random()
+          },
         },
       ],
       enforce: 'post',
