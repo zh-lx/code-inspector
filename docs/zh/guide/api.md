@@ -76,11 +76,11 @@ CodeInspectorPlugin({
 - 类型：`boolean | (() => boolean)`
 - 说明：自定义 development 环境的判断。（插件内部会识别 `development` 环境以让插件生效，如果自动识别失败，需要手动指定）
 
-## forceInjectCache <Badge type="tip" text="0.5.0+" vertical="middle" />
+## forceInjectCache <Badge type="danger" text="已废弃" vertical="middle" />
 
 - 可选项(仅对 `webpack/rspack` 生效)。用于提升编译时性能
 - 类型：`boolean`
-- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)
+- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)。<b>升级到 `0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段。</b>
 
 ## match <Badge type="tip" text="0.5.0+" vertical="middle" />
 

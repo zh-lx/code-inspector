@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.5.1
+
+- 【optimize】优化 `webpack` 中 inject loader 的缓存策略，大幅提升热更新性能
+
 ## 0.5.0
 
 - 【optimize】设置 `injectTo` 选项时，`webpakc/rspack` 的交互逻辑的注入 loader 仅对 `injectTo` 文件生效
