@@ -1,6 +1,6 @@
-type FileType = 'vue' | 'jsx';
+type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
 type EnhanceCodeParams = {
-    code: string;
+    content: string;
     filePath: string;
     fileType: FileType;
 };

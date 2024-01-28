@@ -1,4 +1,4 @@
-export { enhanceCode } from './content-enhance';
+export { enhanceCode } from './enhance';
 import { parse } from '@vue/compiler-sfc';
 import { Editor } from '../shared/constant';
 export { getServedCode } from './inject-code';
