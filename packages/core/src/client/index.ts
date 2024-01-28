@@ -267,6 +267,28 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  // disabled 无法触发 click 事件
+  handlePointerDown = (e: any) => {
+    if (!e.target?.disabled) {
+      return;
+    }
+    if (this.isTracking(e) || this.open) {
+      if (this.show) {
+        // 阻止冒泡
+        e.stopPropagation();
+        // 阻止默认事件
+        e.preventDefault();
+        // 唤醒 vscode
+        this.trackCode();
+        // 清除遮罩层
+        this.removeCover();
+        if (this.autoToggle) {
+          this.open = false;
+        }
+      }
+    }
+  }
+
   // 监听键盘抬起，清除遮罩层
   handleKeyUp = (e: any) => {
     if (!this.isTracking(e) && !this.open) {
@@ -336,6 +358,7 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousemove', this.moveSwitch);
     window.addEventListener('click', this.handleMouseClick, true);
+    window.addEventListener('pointerdown', this.handlePointerDown, true);
     document.addEventListener('keyup', this.handleKeyUp);
     document.addEventListener('mouseleave', this.removeCover);
     document.addEventListener('mouseup', this.handleMouseUp);
@@ -350,6 +373,7 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mousemove', this.moveSwitch);
     window.removeEventListener('click', this.handleMouseClick, true);
+    window.removeEventListener('pointerdown', this.handlePointerDown, true);
     document.removeEventListener('keyup', this.handleKeyUp);
     document.removeEventListener('mouseleave', this.removeCover);
     document.removeEventListener('mouseup', this.handleMouseUp);
