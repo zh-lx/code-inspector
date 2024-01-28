@@ -501,10 +501,22 @@ function launchEditor(
     _childProcess = child_process.spawn(
       'cmd.exe',
       ['/C', editor].concat(args),
-      { stdio: 'inherit' }
+      {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          NODE_OPTIONS: '',
+        },
+      }
     );
   } else {
-    _childProcess = child_process.spawn(editor, args, { stdio: 'inherit' });
+    _childProcess = child_process.spawn(editor, args, {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '',
+      },
+    });
   }
   // @ts-ignore
   _childProcess.on('exit', function (errorCode: string) {
