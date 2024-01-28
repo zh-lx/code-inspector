@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+- 【fix】Fixed the issue where `disabled` elements couldn't trigger click events.
+- 【fix】Resolved the problem causing errors when executing commands with `spawn` while `NODE_OPTIONS` were set.
+
 ## 0.5.1
 
 - 【optimize】Enhance the cache strategy for injecting loader in `webpack`, significantly improving the performance of HMR.

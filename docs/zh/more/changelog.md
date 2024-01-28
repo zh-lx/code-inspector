@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.5.2
+
+- 【fix】修复 `disabled` 的元素无法触发点击定位的问题
+- 【fix】修复设置了 `NODE_OPTIONS` 时 `spawn` 执行指令会报错的问题
+
 ## 0.5.1
 
 - 【optimize】优化 `webpack` 中 inject loader 的缓存策略，大幅提升热更新性能
