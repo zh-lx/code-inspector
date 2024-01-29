@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- 【fix】Fixed the issue of code location requests failing due to `XHR` cross-origin in certain scenarios.
+
 ## 0.6.0
 
 - 【feat】Support usage in projects based on the `Svelte` framework.
