@@ -56,6 +56,11 @@ export default defineConfig({
             link: 'https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts',
             target: '_blank',
           },
+          {
+            text: 'Svelte Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts',
+            target: '_blank',
+          },
         ],
       },
     ],

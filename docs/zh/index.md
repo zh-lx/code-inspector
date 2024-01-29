@@ -28,5 +28,5 @@ features:
     details: 对源代码无任何侵入，只需要在打包工具中引入就能够生效，整个接入过程如喝水般一样简单
   - icon: 🎨
     title: 适配性强
-    details: 支持在 webpack/vite/rspack 中使用，支持 vue/react/preact/solid 等多个框架
+    details: 支持在 webpack/vite/rspack 中使用，支持 vue/react/preact/solid/svelte 等多个框架
 ---

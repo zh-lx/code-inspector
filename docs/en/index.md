@@ -23,8 +23,8 @@ features:
     details: Click on the DOM element on the page, and it can automatically open the IDE and position the cursor to the source code location, greatly improving development experience and efficiency.
   - icon: 📖
     title: User-Friendly
-    details:  No intrusion into the source code, effective by simply including it in the bundler, the entire integration process is as easy as drinking water.
+    details: No intrusion into the source code, effective by simply including it in the bundler, the entire integration process is as easy as drinking water.
   - icon: 🎨
     title: Strong Adaptability
-    details: Supports usage in webpack/vite/rspack, and supports multiple frameworks such as Vue/React/Preact/Solid.
+    details: Supports usage in webpack/vite/rspack, and supports multiple frameworks such as Vue/React/Preact/Solid/Svelte.
 ---

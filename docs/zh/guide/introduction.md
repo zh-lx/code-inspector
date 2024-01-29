@@ -22,4 +22,4 @@
 
 ### 适配性强
 
-支持在 `webpack/vite/rspack` 中使用，支持 `vue/react/preact/solid` 等多个框架
+支持在 `webpack/vite/rspack` 中使用，支持 `vue/react/preact/solid/svelte` 等多个框架

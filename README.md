@@ -26,6 +26,7 @@ Click the element on the page, it can automatically open the code editor and pos
 - [react online demo](https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts)
 - [preact online demo](https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts)
 - [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
+- [svelte online demo](https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts)
 
 ## 🚀 Install
 
@@ -54,7 +55,8 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ vue3<br />
   ✅ react<br />
   ✅ preact<br />
-  ✅ solid
+  ✅ solid<br />
+  ✅ svelte
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 

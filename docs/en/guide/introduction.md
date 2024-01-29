@@ -24,4 +24,4 @@ No intrusion into the source code, effective by simply including it in the bundl
 
 ### Strong Adaptability
 
-Supports usage in webpack/vite/rspack, and supports multiple frameworks such as Vue/React/Preact/Solid.
+Supports usage in `webpack/vite/rspack`, and supports multiple frameworks such as `Vue/React/Preact/Solid/Svelte`.

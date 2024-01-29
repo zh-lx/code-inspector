@@ -1,6 +1,6 @@
 # Get Started
 
-`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack` as bundlers and works with frameworks such as `vue/react/preact/solid`. Please refer to the integration tutorial below.
+`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack` as bundlers and works with frameworks such as `vue/react/preact/solid/svelte`. Please refer to the integration tutorial below.
 
 ## Installation
 

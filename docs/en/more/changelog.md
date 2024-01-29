@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- 【feat】Support usage in projects based on the `Svelte` framework.
+- 【fix】Fix the issue where files with special characters such as `+&` in the file path couldn't be opened.
+
 ## 0.5.2
 
 - 【fix】Fixed the issue where `disabled` elements couldn't trigger click events.
