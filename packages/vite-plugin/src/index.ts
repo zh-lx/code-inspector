@@ -4,13 +4,15 @@ import {
   CodeOptions,
   getServedCode,
   RecordInfo,
-  isJsTypeFile
+  isJsTypeFile,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
 interface Options extends CodeOptions {
   close?: boolean;
 }
+
+const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
 export function ViteCodeInspectorPlugin(options?: Options) {
   const record: RecordInfo = {
@@ -41,12 +43,13 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       }
     },
     async transform(code, id) {
-      // start server and inject client code to entry file
-      code = await getServedCode(options, id, code, record);
-
       if (id.match('node_modules')) {
         return code;
       }
+
+      // start server and inject client code to entry file
+      code = await getServedCode(options, id, code, record);
+      
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
@@ -55,32 +58,32 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         return code;
       }
 
-      const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
+      // jsx
       const isJsx =
-      isJsTypeFile(filePath) ||
+        isJsTypeFile(filePath) ||
         (filePath.endsWith('.vue') &&
           (jsxParamList.some((param) => params.get(param) !== null) ||
             params.get('lang') === 'tsx' ||
             params.get('lang') === 'jsx'));
+      if (isJsx) {
+        return enhanceCode({ content: code, filePath, fileType: 'jsx' });
+      }
 
+      // vue
       const isVue =
         filePath.endsWith('.vue') &&
         params.get('type') !== 'style' &&
         params.get('raw') === null;
-
-      if (isJsx) {
-        code = await enhanceCode({
-          code,
-          filePath,
-          fileType: 'jsx',
-        });
-      } else if (isVue) {
-        code = await enhanceCode({
-          code,
-          filePath,
-          fileType: 'vue',
-        });
+      if (isVue) {
+        return enhanceCode({ content: code, filePath, fileType: 'vue' });
       }
+
+      // svelte
+      const isSvelte = filePath.endsWith('.svelte');
+      if (isSvelte) {
+        return enhanceCode({ content: code, filePath, fileType: 'svelte' });
+      }
+
       return code;
     },
   };

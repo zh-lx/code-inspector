@@ -118,7 +118,7 @@ export async function getServedCode(
     }
   }
   // inject client code to entry file
-  if (!record.entry && isJsTypeFile(file)) {
+  if (!record.entry && isJsTypeFile(file) && !file.includes('/.svelte-kit/')) {
     record.entry = getFilenameWithoutExt(file);
   }
   // compatible to nextjs

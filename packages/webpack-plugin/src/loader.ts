@@ -5,31 +5,27 @@ import {
   isJsTypeFile,
 } from 'code-inspector-core';
 
+const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
+
 export default async function WebpackCodeInspectorLoader(content: string) {
   this.cacheable && this.cacheable(true);
   const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource);
 
-  const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
-
+  // jsx 语法
   const isJSX =
     isJsTypeFile(filePath) ||
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
+  if (isJSX) {
+    return enhanceCode({ content, filePath, fileType: 'jsx' });
+  }
 
+  // vue jsx
   const isJsxWithScript =
     filePath.endsWith('.vue') &&
     (params.get('lang') === 'tsx' || params.get('lang') === 'jsx');
-
-  const isVue =
-    filePath.endsWith('.vue') &&
-    params.get('type') !== 'style' &&
-    params.get('type') !== 'script' &&
-    params.get('raw') === null;
-
-  if (isJSX) {
-    content = enhanceCode({ code: content, filePath, fileType: 'jsx' });
-  } else if (isJsxWithScript) {
+  if (isJsxWithScript) {
     const { descriptor } = parseSFC(content, {
       sourceMap: false,
     });
@@ -42,14 +38,29 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     for (const script of scripts) {
       if (!script) continue;
       const newScript = enhanceCode({
-        code: script,
+        content: script,
         filePath,
         fileType: 'jsx',
       });
       content = content.replace(script, newScript);
     }
-  } else if (isVue) {
-    content = enhanceCode({ code: content, filePath, fileType: 'vue' });
+    return content;
+  }
+
+  // vue
+  const isVue =
+    filePath.endsWith('.vue') &&
+    params.get('type') !== 'style' &&
+    params.get('type') !== 'script' &&
+    params.get('raw') === null;
+  if (isVue) {
+    return enhanceCode({ content, filePath, fileType: 'vue' });
+  }
+
+  // svelte
+  const isSvelte = filePath.endsWith('.svelte');
+  if (isSvelte) {
+    return enhanceCode({ content, filePath, fileType: 'svelte' });
   }
 
   return content;
