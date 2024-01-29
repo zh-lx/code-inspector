@@ -200,7 +200,8 @@ export class CodeInspectorComponent extends LitElement {
 
   // 请求本地服务端，打开vscode
   trackCode = () => {
-    const url = `http://localhost:${this.port}/?file=${this.element.path}&line=${this.element.line}&column=${this.element.column}`;
+    const file = encodeURIComponent(this.element.path);
+    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.send();

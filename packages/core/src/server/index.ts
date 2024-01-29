@@ -13,7 +13,7 @@ export function startServer(callback: (port: number) => any, editor?: Editor) {
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
-    const file = params.get('file') as string;
+    const file = decodeURIComponent(params.get('file') as string);
     const line = Number(params.get('line'));
     const column = Number(params.get('column'));
     res.writeHead(200, {
