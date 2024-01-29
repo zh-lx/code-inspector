@@ -202,9 +202,9 @@ export class CodeInspectorComponent extends LitElement {
   trackCode = () => {
     const file = encodeURIComponent(this.element.path);
     const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.send();
+    // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
+    const img = document.createElement('img');
+    img.src = url;
   };
 
   // 移动按钮
