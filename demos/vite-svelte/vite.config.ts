@@ -6,6 +6,5 @@ import path from 'path';
 export default defineConfig({
 	plugins: [CodeInspectorPlugin({
 		bundler: 'vite',
-		injectTo: path.resolve(__dirname, './.svelte-kit/generated/client/nodes/0.js')
 	}), sveltekit()]
 });

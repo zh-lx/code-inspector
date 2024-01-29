@@ -43,12 +43,13 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       }
     },
     async transform(code, id) {
-      // start server and inject client code to entry file
-      code = await getServedCode(options, id, code, record);
-
       if (id.match('node_modules')) {
         return code;
       }
+
+      // start server and inject client code to entry file
+      code = await getServedCode(options, id, code, record);
+      
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);
