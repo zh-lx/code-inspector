@@ -204,6 +204,13 @@ export class CodeInspectorComponent extends LitElement {
     const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
+    const errorCallback = () => {
+      // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
+      const img = document.createElement('img');
+      img.src = url;
+      xhr.removeEventListener("error", errorCallback);
+    };
+    xhr.addEventListener("error", errorCallback);
     xhr.send();
   };
 
