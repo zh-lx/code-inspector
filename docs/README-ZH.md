@@ -38,7 +38,7 @@
   ✅ webpack<br />
   ✅ vite<br />
   ✅ rspack<br />
-  ✅ Next.js / Nuxt / Umijs 等
+  ✅ next.js / Nuxt / Umijs 等
 - 当前支持以下 Web 框架<br />
   ✅ vue2<br />
   ✅ vue3<br />
@@ -66,7 +66,7 @@ pnpm add code-inspector-plugin -D
 ### 1. 配置打包工具
 
 <details>
-  <summary>点击展开查看 webpck 项目配置</summary>
+  <summary>点击展开查看 <b>webpack</b> 项目配置</summary>
 
 ```js
 // webpack.config.js
@@ -84,7 +84,7 @@ module.exports = () => ({
 </details>
 
 <details>
-  <summary>点击展开查看 vite 项目配置</summary>
+  <summary>点击展开查看 <b>vite</b> 项目配置</summary>
 
 ```js
 // vite.config.js
@@ -103,7 +103,7 @@ export default defineConfig({
 </details>
 
 <details>
-  <summary>点击展开查看 rspack 项目配置</summary>
+  <summary>点击展开查看 <b>rspack</b> 项目配置</summary>
 
 ```js
 // rspack.config.js
@@ -123,7 +123,7 @@ module.exports =  = {
 </details>
 
 <details>
-  <summary>点击展开查看 vue-cli 项目配置</summary>
+  <summary>点击展开查看 <b>vue-cli</b> 项目配置</summary>
 
 ```js
 // vue.config.js
@@ -144,7 +144,7 @@ module.exports = {
 </details>
 
 <details>
-  <summary>点击展开查看 nuxt 项目配置</summary>
+  <summary>点击展开查看 <b>nuxt</b> 项目配置</summary>
 
 nuxt3.x :
 
@@ -179,7 +179,7 @@ export default {
 </details>
 
 <details>
-  <summary>点击展开查看 next 项目配置</summary>
+  <summary>点击展开查看 <b>next.js</b> 项目配置</summary>
 
 ```js
 // next.config.js
@@ -198,7 +198,7 @@ module.exports = nextConfig;
 </details>
 
 <details>
-  <summary>点击展开查看 umi 项目配置</summary>
+  <summary>点击展开查看 <b>umi.js</b> 项目配置</summary>
 
 ```js
 // umi.config.js or umirc.js

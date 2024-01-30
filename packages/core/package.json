@@ -24,7 +24,7 @@
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "homepage": "https://inspector.fe-dev.cn/en",
-  "description": "点击页面上的元素，将自动打开你的代码编辑器并将光标定位到元素对应的代码位置。",
+  "description": "Click the dom on the page, it will open your IDE and position the cursor to the source code location of the dom.",
   "keywords": [
     "webpack",
     "vite",

@@ -64,7 +64,7 @@ Please check here for complete access and usage information: [code-inspector-plu
 ### 1. Configuring Build Tools
 
 <details>
-  <summary>Click to expand: Webpack Project Configuration</summary>
+  <summary>Click to expand: <b>webpack</b> Project Configuration</summary>
 
 ```js
 // webpack.config.js
@@ -82,7 +82,7 @@ module.exports = () => ({
 </details>
 
 <details>
-  <summary>Click to expand: Vite Project Configuration</summary>
+  <summary>Click to expand: <b>vite</b> Project Configuration</summary>
 
 ```js
 // vite.config.js
@@ -101,7 +101,7 @@ export default defineConfig({
 </details>
 
 <details>
-  <summary>Click to expand: Rspack Project Configuration</summary>
+  <summary>Click to expand: <b>rspack</b> Project Configuration</summary>
 
 ```js
 // rspack.config.js
@@ -121,7 +121,7 @@ module.exports = {
 </details>
 
 <details>
-  <summary>Click to expand: Vue-CLI Project Configuration</summary>
+  <summary>Click to expand: <b>vue-cli</b> Project Configuration</summary>
 
 ```js
 // vue.config.js
@@ -142,7 +142,7 @@ module.exports = {
 </details>
 
 <details>
-  <summary>Click to expand: Nuxt Project Configuration</summary>
+  <summary>Click to expand: <b>nuxt</b> Project Configuration</summary>
 
 For nuxt3.x :
 
@@ -177,7 +177,7 @@ export default {
 </details>
 
 <details>
-  <summary>Click to expand: Next.js Project Configuration</summary>
+  <summary>Click to expand: <b>next.js</b> Project Configuration</summary>
 
 ```js
 // next.config.js
@@ -196,7 +196,7 @@ module.exports = nextConfig;
 </details>
 
 <details>
-  <summary>Click to expand: Umi.js Project Configuration</summary>
+  <summary>Click to expand: <b>umi.js</b> Project Configuration</summary>
 
 ```js
 // umi.config.js or umirc.js
