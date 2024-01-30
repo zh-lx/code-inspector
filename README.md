@@ -28,6 +28,25 @@ Click the element on the page, it can automatically open the code editor and pos
 - [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
 - [svelte online demo](https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts)
 
+## 🎨 Support
+
+The following are which compilers, web frameworks and editors we supported now:
+
+- The following bundlers are currently supported:<br />
+  ✅ webpack<br />
+  ✅ vite<br />
+  ✅ rspack<br />
+  ✅ Next.js / Nuxt / Umi.js eg.<br />
+- The following Web frameworks are currently supported:<br />
+  ✅ vue2<br />
+  ✅ vue3<br />
+  ✅ react<br />
+  ✅ preact<br />
+  ✅ solid<br />
+  ✅ svelte
+- The following code editors are currently supported:<br />
+  [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+
 ## 🚀 Install
 
 ```perl
@@ -42,23 +61,176 @@ pnpm add code-inspector-plugin -D
 
 Please check here for complete access and usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
 
-## 🎨 Support
+### 1. Configuring Build Tools
 
-The following are which compilers, web frameworks and editors we supported now:
+<details>
+  <summary>Click to expand: Webpack Project Configuration</summary>
 
-- The following bundlers are currently supported:<br />
-  ✅ webpack<br />
-  ✅ vite<br />
-  ✅ rspack
-- The following Web frameworks are currently supported:<br />
-  ✅ vue2<br />
-  ✅ vue3<br />
-  ✅ react<br />
-  ✅ preact<br />
-  ✅ solid<br />
-  ✅ svelte
-- The following code editors are currently supported:<br />
-  [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+```js
+// webpack.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports = () => ({
+  plugins: [
+    CodeInspectorPlugin({
+      bundler: 'webpack',
+    }),
+  ],
+});
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Vite Project Configuration</summary>
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import { CodeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  plugins: [
+    CodeInspectorPlugin({
+      bundler: 'vite',
+    }),
+  ],
+});
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Rspack Project Configuration</summary>
+
+```js
+// rspack.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports = {
+  // other config...
+  plugins: [
+    CodeInspectorPlugin({
+      bundler: 'rspack',
+    }),
+    // other plugins...
+  ],
+};
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Vue-CLI Project Configuration</summary>
+
+```js
+// vue.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports = {
+  // ...other code
+  chainWebpack: (config) => {
+    config.plugin('code-inspector-plugin').use(
+      CodeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+};
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Nuxt Project Configuration</summary>
+
+For nuxt3.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  vite: {
+    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+  },
+});
+```
+
+For nuxt2.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default {
+  build: {
+    extend(config) {
+      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+      return config;
+    },
+  },
+};
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Next.js Project Configuration</summary>
+
+```js
+// next.config.js
+const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+const nextConfig = {
+  webpack: (config, { dev, isServer }) => {
+    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+```
+
+</details>
+
+<details>
+  <summary>Click to expand: Umi.js Project Configuration</summary>
+
+```js
+// umi.config.js or umirc.js
+import { defineConfig } from '@umijs/max';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  chainWebpack(memo) {
+    memo.plugin('code-inspector-plugin').use(
+      codeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+  // other config
+});
+```
+
+</details>
+
+### 2. Configuring VSCode Command Line Tool
+
+> **Tip:** Skip for Windows or other IDEs <br />
+> This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
+
+- In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
+  ![image](https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png)
+- If you see the dialog box below, the configuration was successful:
+  ![image](https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png)
+
+### 3. Usage
+
+When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
+![image](https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e)
 
 ## 👨‍💻 Contributors
 

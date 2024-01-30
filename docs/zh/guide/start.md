@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack/vite/rspack` 作为打包器的项目中使用，支持 `vue/react/preact/solid/svelte` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack/vite/rspack/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/svelte` 等框架，请参考如下的接入教程。
 
 ## 安装
 
@@ -26,7 +26,7 @@ pnpm add code-inspector-plugin -D
 
 ### 1. 配置打包工具
 
-在 webpack 中使用：
+::: details 点击展开查看 webpack 项目配置
 
 ```js
 // webpack.config.js
@@ -41,7 +41,9 @@ module.exports = () => ({
 });
 ```
 
-在 vite 中使用：
+:::
+
+::: details 点击展开查看 vite 项目配置
 
 ```js
 // vite.config.js
@@ -57,7 +59,9 @@ export default defineConfig({
 });
 ```
 
-在 rspack 中使用：
+:::
+
+::: details 点击展开查看 rspack 项目配置
 
 ```js
 // rspack.config.js
@@ -74,6 +78,101 @@ module.exports =  = {
 };
 ```
 
+:::
+
+::: details 点击展开查看 vue-cli 项目配置
+
+```js
+// vue.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports = {
+  // ...other code
+  chainWebpack: (config) => {
+    config.plugin('code-inspector-plugin').use(
+      CodeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+};
+```
+
+:::
+
+::: details 点击展开查看 nuxt 项目配置
+
+nuxt3.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  vite: {
+    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+  },
+});
+```
+
+nuxt2.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default {
+  build: {
+    extend(config) {
+      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+      return config;
+    },
+  },
+};
+```
+
+:::
+
+::: details 点击展开查看 next 项目配置
+
+```js
+// next.config.js
+const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+const nextConfig = {
+  webpack: (config, { dev, isServer }) => {
+    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+```
+
+:::
+
+::: details 点击展开查看 umi 项目配置
+
+```js
+// umi.config.js or umirc.js
+import { defineConfig } from '@umijs/max';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  chainWebpack(memo) {
+    memo.plugin('code-inspector-plugin').use(
+      codeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+  // other config
+});
+```
+
+:::
+
 ### 2. 配置 vscode 命令行工具
 
 ::: tip Windows 或者其他 IDE 可跳过
@@ -81,12 +180,9 @@ module.exports =  = {
 :::
 
 - 在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
-
-  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
-
+  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 - 如果出现如下弹窗，说明配置成功了:
-
-  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
+  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
 ## 使用
 

@@ -1,6 +1,6 @@
 # Get Started
 
-`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack` as bundlers and works with frameworks such as `vue/react/preact/solid/svelte`. Please refer to the integration tutorial below.
+`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack/nextjs/nuxt/umijs` as bundlers and works with frameworks such as `vue/react/preact/solid/svelte`. Please refer to the integration tutorial below.
 
 ## Installation
 
@@ -26,7 +26,7 @@ pnpm add code-inspector-plugin -D
 
 ### 1.Config bundler
 
-Use in webpack：
+::: details Click to expand: webpack Project Configuration
 
 ```js
 // webpack.config.js
@@ -41,7 +41,11 @@ module.exports = () => ({
 });
 ```
 
-Use in vite：
+````
+
+:::
+
+::: details Click to expand: vite Project Configuration
 
 ```js
 // vite.config.js
@@ -57,7 +61,9 @@ export default defineConfig({
 });
 ```
 
-Use in rspack：
+:::
+
+::: details Click to expand: rspack Project Configuration
 
 ```js
 // rspack.config.js
@@ -73,6 +79,102 @@ module.exports =  = {
   ],
 };
 ```
+
+:::
+
+::: details Click to expand: vue-cli Project Configuration
+
+```js
+// vue.config.js
+const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+module.exports = {
+  // ...other code
+  chainWebpack: (config) => {
+    config.plugin('code-inspector-plugin').use(
+      CodeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+};
+```
+
+:::
+
+::: details Click to expand: nuxt Project Configuration
+
+nuxt3.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  vite: {
+    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+  },
+});
+```
+
+nuxt2.x :
+
+```js
+// nuxt.config.js
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default {
+  build: {
+    extend(config) {
+      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+      return config;
+    },
+  },
+};
+```
+
+:::
+
+::: details Click to expand: next Project Configuration
+
+```js
+// next.config.js
+const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+const nextConfig = {
+  webpack: (config, { dev, isServer }) => {
+    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+```
+
+:::
+
+::: details Click to expand: umi Project Configuration
+
+```js
+// umi.config.js or umirc.js
+import { defineConfig } from '@umijs/max';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  chainWebpack(memo) {
+    memo.plugin('code-inspector-plugin').use(
+      codeInspectorPlugin({
+        bundler: 'webpack',
+      })
+    );
+  },
+  // other config
+});
+```
+
+:::
+
 
 ### 2.Config VSCode
 
@@ -102,3 +204,5 @@ When holding down the specified shortcut keys on the page, a mask layer will app
 When the `showSwitch: true` option is configured in the plugin parameters, a `Code Inspection Switch Button` will be displayed on the page. Clicking it will toggle the `Code Inspection Mode` on/off. When `Code Inspection Mode` is enabled, use it the same way as in <b>Method1</b> by holding down the shortcut keys. When the switch is in color <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" /> , `Code Inspection Mode` is enabled; when the switch is colorless <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />, `Code Inspection Mode` is disabled.
 
 ![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
+```
+````
