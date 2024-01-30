@@ -41,8 +41,6 @@ module.exports = () => ({
 });
 ```
 
-````
-
 :::
 
 ::: details Click to expand: vite Project Configuration
@@ -175,7 +173,6 @@ export default defineConfig({
 
 :::
 
-
 ### 2.Config VSCode
 
 ::: tip For Windows or other IDEs, you can skip this step
@@ -184,11 +181,11 @@ This step is only necessary if your computer is a Mac, and you are using VSCode 
 
 - Execution `command + shift + p` in vscode, search and click `Shell Command: Install 'code' command in PATH`:
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="60%" />
+  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 
 - If the prompt window appears as shown below, the configuration is successful:
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="40%" />
+  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
 ## Usage
 
@@ -204,5 +201,3 @@ When holding down the specified shortcut keys on the page, a mask layer will app
 When the `showSwitch: true` option is configured in the plugin parameters, a `Code Inspection Switch Button` will be displayed on the page. Clicking it will toggle the `Code Inspection Mode` on/off. When `Code Inspection Mode` is enabled, use it the same way as in <b>Method1</b> by holding down the shortcut keys. When the switch is in color <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" /> , `Code Inspection Mode` is enabled; when the switch is colorless <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />, `Code Inspection Mode` is disabled.
 
 ![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
-```
-````

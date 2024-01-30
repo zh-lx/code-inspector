@@ -180,8 +180,11 @@ export default defineConfig({
 :::
 
 - 在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
+
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+
 - 如果出现如下弹窗，说明配置成功了:
+
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
 ## 使用

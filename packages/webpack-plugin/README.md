@@ -36,7 +36,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ webpack<br />
   ✅ vite<br />
   ✅ rspack<br />
-  ✅ Next.js / Nuxt / Umi.js eg.<br />
+  ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
   ✅ vue3<br />
@@ -223,14 +223,18 @@ export default defineConfig({
 > This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
 
 - In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
-  ![image](https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png)
+
+  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+
 - If you see the dialog box below, the configuration was successful:
-  ![image](https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png)
+
+  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
 ### 3. Usage
 
 When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
-![image](https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e)
+
+<img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
 
 ## 👨‍💻 Contributors
 
