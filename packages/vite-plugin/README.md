@@ -59,9 +59,11 @@ pnpm add code-inspector-plugin -D
 
 ## 🌈 Usage
 
-Please check here for complete access and usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
+Please check here for more usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
 
 ### 1. Configuring Build Tools
+
+<div style="margin-left: 16px;">
 
 <details>
   <summary>Click to expand: <b>webpack</b> Project Configuration</summary>
@@ -217,24 +219,34 @@ export default defineConfig({
 
 </details>
 
+</div>
+
 ### 2. Configuring VSCode Command Line Tool
+
+<div style="margin-left: 16px;">
 
 > **Tip:** Skip for Windows or other IDEs <br />
 > This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
 
-- In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
+In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 
-- If you see the dialog box below, the configuration was successful:
+If you see the dialog box below, the configuration was successful:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
+</div>
+
 ### 3. Usage
+
+<div style="margin-left: 16px;">
 
 When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
 
 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+
+</div>
 
 ## 👨‍💻 Contributors
 

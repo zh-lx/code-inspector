@@ -65,6 +65,8 @@ pnpm add code-inspector-plugin -D
 
 ### 1. 配置打包工具
 
+<div style="margin-left: 16px;">
+
 <details>
   <summary>点击展开查看 <b>webpack</b> 项目配置</summary>
 
@@ -219,24 +221,34 @@ export default defineConfig({
 
 </details>
 
+</div>
+
 ### 2. 配置 vscode 命令行工具
+
+<div style="margin-left: 16px;">
 
 > **Tip:** Windows 或者其他 IDE 可跳过 <br />
 > 仅当你的电脑为 Mac 且使用 vscode 作为 IDE 时需要配置此步，电脑为 Windows 或者使用其他 IDE 可以跳过此步。
 
-- 在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
+在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 
-- 如果出现如下弹窗，说明配置成功了:
+如果出现如下弹窗，说明配置成功了:
 
   <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
+</div>
+
 ### 3. 使用功能
+
+<div style="margin-left: 16px;">
 
 在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，在浏览器控制台会输出相关组合键提示)
 
 <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+
+</div>
 
 ## 👨‍💻 Contributors
 
