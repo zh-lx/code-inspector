@@ -1,6 +1,6 @@
 import path, { isAbsolute, dirname } from 'path';
 import fs from 'fs';
-import type { CodeOptions } from '../index';
+import type { CodeOptions, RecordInfo } from '../index';
 import { startServer } from './index';
 import { PathName } from '../shared/constant';
 import {
@@ -75,15 +75,7 @@ const eliminateVueWarningCode = `
 /* eslint-disable */
 `;
 
-export type RecordInfo = {
-  port: number;
-  entry: string;
-  nextInjectedFile: string;
-  useEffectFile: string;
-  injectAll: boolean;
-};
-
-export async function getServedCode(
+export async function getCodeWithWebComponent(
   options: CodeOptions,
   file: string,
   code: string,

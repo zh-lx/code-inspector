@@ -1,13 +1,11 @@
 // 启动本地接口，访问时唤起vscode
 import http from 'http';
 import portFinder from 'portfinder';
-import path from 'path';
 import launchEditor from './launch-editor';
-export { enhanceCode } from './enhance';
-import { parse } from '@vue/compiler-sfc';
 import { DefaultPort, Editor } from '../shared/constant';
-export { getServedCode } from './inject-code';
-export type { RecordInfo } from './inject-code';
+
+export { transformCode } from './transform';
+export { getCodeWithWebComponent } from './inject-code';
 
 export function startServer(callback: (port: number) => any, editor?: Editor) {
   const server = http.createServer((req: any, res: any) => {
@@ -36,16 +34,3 @@ export function startServer(callback: (port: number) => any, editor?: Editor) {
     });
   });
 }
-
-export function normalizePath(filepath: string) {
-  let normalizedPath = path.normalize(filepath);
-
-  // Convert Windows path separators to Mac path separators
-  if (process.platform === 'win32') {
-    normalizedPath = normalizedPath.replace(/\\/g, '/');
-  }
-
-  return normalizedPath;
-}
-
-export const parseSFC = parse;

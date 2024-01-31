@@ -18,7 +18,7 @@ const escapeTags = [
   'fragment',
 ];
 
-export function enhanceSvelte(content: string, filePath: string) {
+export function transformSvelte(content: string, filePath: string) {
   const s = new MagicString(content);
 
   const html = parseSvelte(content).html;

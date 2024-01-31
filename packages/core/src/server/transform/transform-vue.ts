@@ -21,7 +21,7 @@ const escapeTags = [
 
 const VueElementType = 1;
 
-export function enhanceVue(content: string, filePath: string) {
+export function transformVue(content: string, filePath: string) {
   const s = new MagicString(content);
 
   const ast = parse(content, {

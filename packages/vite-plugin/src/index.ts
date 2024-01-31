@@ -1,8 +1,8 @@
 import {
-  enhanceCode,
+  transformCode,
   normalizePath,
   CodeOptions,
-  getServedCode,
+  getCodeWithWebComponent,
   RecordInfo,
   isJsTypeFile,
 } from 'code-inspector-core';
@@ -48,7 +48,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       }
 
       // start server and inject client code to entry file
-      code = await getServedCode(options, id, code, record);
+      code = await getCodeWithWebComponent(options, id, code, record);
       
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
@@ -66,7 +66,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
             params.get('lang') === 'tsx' ||
             params.get('lang') === 'jsx'));
       if (isJsx) {
-        return enhanceCode({ content: code, filePath, fileType: 'jsx' });
+        return transformCode({ content: code, filePath, fileType: 'jsx' });
       }
 
       // vue
@@ -75,13 +75,13 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         params.get('type') !== 'style' &&
         params.get('raw') === null;
       if (isVue) {
-        return enhanceCode({ content: code, filePath, fileType: 'vue' });
+        return transformCode({ content: code, filePath, fileType: 'vue' });
       }
 
       // svelte
       const isSvelte = filePath.endsWith('.svelte');
       if (isSvelte) {
-        return enhanceCode({ content: code, filePath, fileType: 'svelte' });
+        return transformCode({ content: code, filePath, fileType: 'svelte' });
       }
 
       return code;

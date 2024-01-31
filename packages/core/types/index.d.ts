@@ -48,6 +48,13 @@ export type CodeOptions = {
      */
     match?: RegExp;
 };
-export { startServer, enhanceCode, normalizePath, parseSFC, getServedCode, } from './server';
-export type { RecordInfo } from './server';
-export { fileURLToPath, isJsTypeFile } from './shared/utils';
+export type RecordInfo = {
+    port: number;
+    entry: string;
+    nextInjectedFile: string;
+    useEffectFile: string;
+    injectAll: boolean;
+};
+export { parse as parseSFC } from '@vue/compiler-sfc';
+export { startServer, transformCode, getCodeWithWebComponent, } from './server';
+export * from './shared/utils';

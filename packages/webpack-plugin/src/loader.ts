@@ -1,5 +1,5 @@
 import {
-  enhanceCode,
+  transformCode,
   normalizePath,
   parseSFC,
   isJsTypeFile,
@@ -18,7 +18,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
   if (isJSX) {
-    return enhanceCode({ content, filePath, fileType: 'jsx' });
+    return transformCode({ content, filePath, fileType: 'jsx' });
   }
 
   // vue jsx
@@ -37,7 +37,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     ];
     for (const script of scripts) {
       if (!script) continue;
-      const newScript = enhanceCode({
+      const newScript = transformCode({
         content: script,
         filePath,
         fileType: 'jsx',
@@ -54,13 +54,13 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     params.get('type') !== 'script' &&
     params.get('raw') === null;
   if (isVue) {
-    return enhanceCode({ content, filePath, fileType: 'vue' });
+    return transformCode({ content, filePath, fileType: 'vue' });
   }
 
   // svelte
   const isSvelte = filePath.endsWith('.svelte');
   if (isSvelte) {
-    return enhanceCode({ content, filePath, fileType: 'svelte' });
+    return transformCode({ content, filePath, fileType: 'svelte' });
   }
 
   return content;

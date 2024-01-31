@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { PathName } from '../../shared/constant';
 import vueJsxPlugin from '@vue/babel-plugin-jsx';
 // @ts-ignore
-import { parse as babelParse, traverse as babelTraverse } from '@babel/core';
+import { parse, traverse } from '@babel/core';
 // @ts-ignore
 import tsPlugin from '@babel/plugin-transform-typescript';
 // @ts-ignore
@@ -26,10 +26,10 @@ const escapeTags = [
   'fragment',
 ];
 
-export function enhanceJsx(content: string, filePath: string) {
+export function transformJsx(content: string, filePath: string) {
   const s = new MagicString(content);
 
-  const ast = babelParse(content, {
+  const ast = parse(content, {
     babelrc: false,
     comments: true,
     configFile: false,
@@ -41,7 +41,7 @@ export function enhanceJsx(content: string, filePath: string) {
     ],
   });
 
-  babelTraverse(ast, {
+  traverse(ast, {
     enter({ node }: any) {
       const nodeName = node?.openingElement?.name?.name || '';
       const attributes = node?.openingElement?.attributes || [];
