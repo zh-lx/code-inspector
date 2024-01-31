@@ -1,11 +1,11 @@
 # API
 
-`CodeInspectorPlugin` 的详细参数配置如下所示：
+`codeInspectorPlugin` 的详细参数配置如下所示：
 
 ```typescript
-import { CodeInspectorPlugin } from 'code-inspector-plugin';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-CodeInspectorPlugin({
+codeInspectorPlugin({
   bundler: 'vite',
   hotKeys: ['altKey', 'shiftKey'],
   showSwitch: false,

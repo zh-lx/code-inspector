@@ -30,11 +30,11 @@ pnpm add code-inspector-plugin -D
 
 ```js
 // webpack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
+const { codeInspectorPlugin } = require('code-inspector-plugin');
 
 module.exports = () => ({
   plugins: [
-    CodeInspectorPlugin({
+    codeInspectorPlugin({
       bundler: 'webpack',
     }),
   ],
@@ -48,11 +48,11 @@ module.exports = () => ({
 ```js
 // vite.config.js
 import { defineConfig } from 'vite';
-import { CodeInspectorPlugin } from 'code-inspector-plugin';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
 
 export default defineConfig({
   plugins: [
-    CodeInspectorPlugin({
+    codeInspectorPlugin({
       bundler: 'vite',
     }),
   ],
@@ -65,12 +65,12 @@ export default defineConfig({
 
 ```js
 // rspack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
+const { codeInspectorPlugin } = require('code-inspector-plugin');
 
 module.exports =  = {
   // other config...
   plugins: [
-    CodeInspectorPlugin({
+    codeInspectorPlugin({
       bundler: 'rspack',
     }),
     // other plugins...
@@ -84,13 +84,13 @@ module.exports =  = {
 
 ```js
 // vue.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
+const { codeInspectorPlugin } = require('code-inspector-plugin');
 
 module.exports = {
   // ...other code
   chainWebpack: (config) => {
     config.plugin('code-inspector-plugin').use(
-      CodeInspectorPlugin({
+      codeInspectorPlugin({
         bundler: 'webpack',
       })
     );
@@ -134,7 +134,7 @@ export default {
 
 :::
 
-::: details 点击展开查看 next 项目配置
+::: details 点击展开查看 next.js 项目配置
 
 ```js
 // next.config.js
@@ -152,7 +152,7 @@ module.exports = nextConfig;
 
 :::
 
-::: details 点击展开查看 umi 项目配置
+::: details 点击展开查看 umi.js 项目配置
 
 ```js
 // umi.config.js or umirc.js

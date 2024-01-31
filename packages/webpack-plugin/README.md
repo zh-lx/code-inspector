@@ -68,11 +68,11 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   ```js
   // webpack.config.js
-  const { CodeInspectorPlugin } = require('code-inspector-plugin');
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
 
   module.exports = () => ({
     plugins: [
-      CodeInspectorPlugin({
+      codeInspectorPlugin({
         bundler: 'webpack',
       }),
     ],
@@ -87,11 +87,11 @@ Please check here for more usage information: [code-inspector-plugin configurati
   ```js
   // vite.config.js
   import { defineConfig } from 'vite';
-  import { CodeInspectorPlugin } from 'code-inspector-plugin';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
   export default defineConfig({
     plugins: [
-      CodeInspectorPlugin({
+      codeInspectorPlugin({
         bundler: 'vite',
       }),
     ],
@@ -105,12 +105,12 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   ```js
   // rspack.config.js
-  const { CodeInspectorPlugin } = require('code-inspector-plugin');
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
 
   module.exports = {
     // other config...
     plugins: [
-      CodeInspectorPlugin({
+      codeInspectorPlugin({
         bundler: 'rspack',
       }),
       // other plugins...
@@ -125,13 +125,13 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   ```js
   // vue.config.js
-  const { CodeInspectorPlugin } = require('code-inspector-plugin');
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
 
   module.exports = {
     // ...other code
     chainWebpack: (config) => {
       config.plugin('code-inspector-plugin').use(
-        CodeInspectorPlugin({
+        codeInspectorPlugin({
           bundler: 'webpack',
         })
       );

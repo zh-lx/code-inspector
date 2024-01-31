@@ -2,12 +2,12 @@
 
 ## Parameters
 
-The parameters of `CodeInspectorPlugin` are as follows:
+The parameters of `codeInspectorPlugin` are as follows:
 
 ```typescript
-import { CodeInspectorPlugin } from 'code-inspector-plugin';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-CodeInspectorPlugin({
+codeInspectorPlugin({
   bundler: 'vite',
   showSwitch: false,
   hotKeys: ['altKey', 'shiftKey'],
