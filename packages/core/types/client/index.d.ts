@@ -61,6 +61,7 @@ export declare class CodeInspectorComponent extends LitElement {
     removeGlobalCursorStyle: () => void;
     trackCode: () => void;
     moveSwitch: (e: MouseEvent) => void;
+    handleMouseup: () => void;
     handleMouseMove: (e: MouseEvent) => void;
     handleMouseClick: (e: any) => void;
     handlePointerDown: (e: any) => void;

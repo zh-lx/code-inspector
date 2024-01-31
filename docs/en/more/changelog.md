@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+- 【fix】Fixed the issue where clicking was not effective in `showSwitch: true` mode on mobile devices.
+
 ## 0.6.1
 
 - 【fix】Fixed the issue of code location requests failing due to `XHR` cross-origin in certain scenarios.
