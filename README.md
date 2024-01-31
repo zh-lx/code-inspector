@@ -3,7 +3,7 @@
 
 <p align="center">
   <h2>code-inspector</h2>
-  <span>English Doc</span> | <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Read Docs for More</a>
+  <span>English Docs</span> | <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Documentation Site</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)
@@ -61,180 +61,180 @@ pnpm add code-inspector-plugin -D
 
 Please check here for more usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
 
-### 1. Configuring Build Tools
+- 1.Configuring Build Tools
 
-<details>
-  <summary>Click to expand: <b>webpack</b> Project Configuration</summary>
+  <details>
+    <summary>Click to expand configuration about: <b>webpack</b></summary>
 
-```js
-// webpack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
+  ```js
+  // webpack.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
-module.exports = () => ({
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'webpack',
-    }),
-  ],
-});
-```
-
-</details>
-
-<details>
-  <summary>Click to expand: <b>vite</b> Project Configuration</summary>
-
-```js
-// vite.config.js
-import { defineConfig } from 'vite';
-import { CodeInspectorPlugin } from 'code-inspector-plugin';
-
-export default defineConfig({
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'vite',
-    }),
-  ],
-});
-```
-
-</details>
-
-<details>
-  <summary>Click to expand: <b>rspack</b> Project Configuration</summary>
-
-```js
-// rspack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
-
-module.exports = {
-  // other config...
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'rspack',
-    }),
-    // other plugins...
-  ],
-};
-```
-
-</details>
-
-<details>
-  <summary>Click to expand: <b>vue-cli</b> Project Configuration</summary>
-
-```js
-// vue.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
-
-module.exports = {
-  // ...other code
-  chainWebpack: (config) => {
-    config.plugin('code-inspector-plugin').use(
+  module.exports = () => ({
+    plugins: [
       CodeInspectorPlugin({
         bundler: 'webpack',
-      })
-    );
-  },
-};
-```
+      }),
+    ],
+  });
+  ```
 
-</details>
+  </details>
 
-<details>
-  <summary>Click to expand: <b>nuxt</b> Project Configuration</summary>
+  <details>
+    <summary>Click to expand configuration about: <b>vite</b></summary>
 
-For nuxt3.x :
+  ```js
+  // vite.config.js
+  import { defineConfig } from 'vite';
+  import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  export default defineConfig({
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'vite',
+      }),
+    ],
+  });
+  ```
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  vite: {
-    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
-  },
-});
-```
+  </details>
 
-For nuxt2.x :
+  <details>
+    <summary>Click to expand configuration about: <b>rspack</b></summary>
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // rspack.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
-export default {
-  build: {
-    extend(config) {
+  module.exports = {
+    // other config...
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'rspack',
+      }),
+      // other plugins...
+    ],
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>vue-cli</b></summary>
+
+  ```js
+  // vue.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+  module.exports = {
+    // ...other code
+    chainWebpack: (config) => {
+      config.plugin('code-inspector-plugin').use(
+        CodeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>nuxt</b></summary>
+
+  For nuxt3.x :
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  // https://nuxt.com/docs/api/configuration/nuxt-config
+  export default defineNuxtConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+    },
+  });
+  ```
+
+  For nuxt2.x :
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default {
+    build: {
+      extend(config) {
+        config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+        return config;
+      },
+    },
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>next.js</b></summary>
+
+  ```js
+  // next.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+  const nextConfig = {
+    webpack: (config, { dev, isServer }) => {
       config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
       return config;
     },
-  },
-};
-```
+  };
 
-</details>
+  module.exports = nextConfig;
+  ```
 
-<details>
-  <summary>Click to expand: <b>next.js</b> Project Configuration</summary>
+  </details>
 
-```js
-// next.config.js
-const { codeInspectorPlugin } = require('code-inspector-plugin');
+  <details>
+    <summary>Click to expand configuration about: <b>umi.js</b></summary>
 
-const nextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-    return config;
-  },
-};
+  ```js
+  // umi.config.js or umirc.js
+  import { defineConfig } from '@umijs/max';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-module.exports = nextConfig;
-```
+  export default defineConfig({
+    chainWebpack(memo) {
+      memo.plugin('code-inspector-plugin').use(
+        codeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+    // other config
+  });
+  ```
 
-</details>
+  </details>
 
-<details>
-  <summary>Click to expand: <b>umi.js</b> Project Configuration</summary>
+- 2.Configuring VSCode Command Line Tool
 
-```js
-// umi.config.js or umirc.js
-import { defineConfig } from '@umijs/max';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  > **Tip:** Skip for Windows or other IDEs <br />
+  > This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
 
-export default defineConfig({
-  chainWebpack(memo) {
-    memo.plugin('code-inspector-plugin').use(
-      codeInspectorPlugin({
-        bundler: 'webpack',
-      })
-    );
-  },
-  // other config
-});
-```
+  In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
 
-</details>
+    <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 
-### 2. Configuring VSCode Command Line Tool
+  If you see the dialog box below, the configuration was successful:
 
-> **Tip:** Skip for Windows or other IDEs <br />
-> This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
+    <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
-In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
+- 3.Enjoy using it
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+  When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
 
-If you see the dialog box below, the configuration was successful:
-
-  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
-
-### 3. Usage
-
-When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
-
-<img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
 
 ## 👨‍💻 Contributors
 

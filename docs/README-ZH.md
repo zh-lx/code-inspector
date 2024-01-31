@@ -4,7 +4,7 @@
 <p align="center">
   <h2>code-inspector-plugin</h2>
   <span>中文文档</span> |
-  <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">English Doc</a> | 
+  <a href="https://github.com/zh-lx/code-inspector/blob/main/README.md">English Docs</a> | 
   <a href="https://inspector.fe-dev.cn">完整文档</a>
 </p>
 
@@ -63,180 +63,180 @@ pnpm add code-inspector-plugin -D
 
 完整的接入及使用方式请查看：[code-inspector-plugin 配置](https://inspector.fe-dev.cn/guide/start.html#%E9%85%8D%E7%BD%AE)
 
-### 1. 配置打包工具
+- 1.配置打包工具
 
-<details>
-  <summary>点击展开查看 <b>webpack</b> 项目配置</summary>
+  <details>
+    <summary>点击展开查看 <b>webpack</b> 项目配置</summary>
 
-```js
-// webpack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
+  ```js
+  // webpack.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
-module.exports = () => ({
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'webpack',
-    }),
-  ],
-});
-```
-
-</details>
-
-<details>
-  <summary>点击展开查看 <b>vite</b> 项目配置</summary>
-
-```js
-// vite.config.js
-import { defineConfig } from 'vite';
-import { CodeInspectorPlugin } from 'code-inspector-plugin';
-
-export default defineConfig({
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'vite',
-    }),
-  ],
-});
-```
-
-</details>
-
-<details>
-  <summary>点击展开查看 <b>rspack</b> 项目配置</summary>
-
-```js
-// rspack.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
-
-module.exports =  = {
-  // other config...
-  plugins: [
-    CodeInspectorPlugin({
-      bundler: 'rspack',
-    }),
-    // other plugins...
-  ],
-};
-```
-
-</details>
-
-<details>
-  <summary>点击展开查看 <b>vue-cli</b> 项目配置</summary>
-
-```js
-// vue.config.js
-const { CodeInspectorPlugin } = require('code-inspector-plugin');
-
-module.exports = {
-  // ...other code
-  chainWebpack: (config) => {
-    config.plugin('code-inspector-plugin').use(
+  module.exports = () => ({
+    plugins: [
       CodeInspectorPlugin({
         bundler: 'webpack',
-      })
-    );
-  },
-};
-```
+      }),
+    ],
+  });
+  ```
 
-</details>
+  </details>
 
-<details>
-  <summary>点击展开查看 <b>nuxt</b> 项目配置</summary>
+  <details>
+    <summary>点击展开查看 <b>vite</b> 项目配置</summary>
 
-nuxt3.x :
+  ```js
+  // vite.config.js
+  import { defineConfig } from 'vite';
+  import { CodeInspectorPlugin } from 'code-inspector-plugin';
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  export default defineConfig({
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'vite',
+      }),
+    ],
+  });
+  ```
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  vite: {
-    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
-  },
-});
-```
+  </details>
 
-nuxt2.x :
+  <details>
+    <summary>点击展开查看 <b>rspack</b> 项目配置</summary>
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // rspack.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
 
-export default {
-  build: {
-    extend(config) {
+  module.exports =  = {
+    // other config...
+    plugins: [
+      CodeInspectorPlugin({
+        bundler: 'rspack',
+      }),
+      // other plugins...
+    ],
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>点击展开查看 <b>vue-cli</b> 项目配置</summary>
+
+  ```js
+  // vue.config.js
+  const { CodeInspectorPlugin } = require('code-inspector-plugin');
+
+  module.exports = {
+    // ...other code
+    chainWebpack: (config) => {
+      config.plugin('code-inspector-plugin').use(
+        CodeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>点击展开查看 <b>nuxt</b> 项目配置</summary>
+
+  nuxt3.x :
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  // https://nuxt.com/docs/api/configuration/nuxt-config
+  export default defineNuxtConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+    },
+  });
+  ```
+
+  nuxt2.x :
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default {
+    build: {
+      extend(config) {
+        config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+        return config;
+      },
+    },
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>点击展开查看 <b>next.js</b> 项目配置</summary>
+
+  ```js
+  // next.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+  const nextConfig = {
+    webpack: (config, { dev, isServer }) => {
       config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
       return config;
     },
-  },
-};
-```
+  };
 
-</details>
+  module.exports = nextConfig;
+  ```
 
-<details>
-  <summary>点击展开查看 <b>next.js</b> 项目配置</summary>
+  </details>
 
-```js
-// next.config.js
-const { codeInspectorPlugin } = require('code-inspector-plugin');
+  <details>
+    <summary>点击展开查看 <b>umi.js</b> 项目配置</summary>
 
-const nextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-    return config;
-  },
-};
+  ```js
+  // umi.config.js or umirc.js
+  import { defineConfig } from '@umijs/max';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-module.exports = nextConfig;
-```
+  export default defineConfig({
+    chainWebpack(memo) {
+      memo.plugin('code-inspector-plugin').use(
+        codeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+    // other config
+  });
+  ```
 
-</details>
+  </details>
 
-<details>
-  <summary>点击展开查看 <b>umi.js</b> 项目配置</summary>
+- 2.配置 vscode 命令行工具
 
-```js
-// umi.config.js or umirc.js
-import { defineConfig } from '@umijs/max';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  > **Tip:** Windows 或者其他 IDE 可跳过 <br />
+  > 仅当你的电脑为 Mac 且使用 vscode 作为 IDE 时需要配置此步，电脑为 Windows 或者使用其他 IDE 可以跳过此步。
 
-export default defineConfig({
-  chainWebpack(memo) {
-    memo.plugin('code-inspector-plugin').use(
-      codeInspectorPlugin({
-        bundler: 'webpack',
-      })
-    );
-  },
-  // other config
-});
-```
+  在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
 
-</details>
+    <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
 
-### 2. 配置 vscode 命令行工具
+  如果出现如下弹窗，说明配置成功了:
 
-> **Tip:** Windows 或者其他 IDE 可跳过 <br />
-> 仅当你的电脑为 Mac 且使用 vscode 作为 IDE 时需要配置此步，电脑为 Windows 或者使用其他 IDE 可以跳过此步。
+    <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
 
-在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
+- 3.使用功能
 
-  <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+  在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，在浏览器控制台会输出相关组合键提示)
 
-如果出现如下弹窗，说明配置成功了:
-
-  <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
-
-### 3. 使用功能
-
-在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，在浏览器控制台会输出相关组合键提示)
-
-<img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
 
 ## 👨‍💻 Contributors
 

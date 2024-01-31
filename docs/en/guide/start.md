@@ -26,7 +26,7 @@ pnpm add code-inspector-plugin -D
 
 ### 1.Config bundler
 
-::: details Click to expand: webpack Project Configuration
+::: details Click to expand configuration about: webpack
 
 ```js
 // webpack.config.js
@@ -43,7 +43,7 @@ module.exports = () => ({
 
 :::
 
-::: details Click to expand: vite Project Configuration
+::: details Click to expand configuration about: vite
 
 ```js
 // vite.config.js
@@ -61,7 +61,7 @@ export default defineConfig({
 
 :::
 
-::: details Click to expand: rspack Project Configuration
+::: details Click to expand configuration about: rspack
 
 ```js
 // rspack.config.js
@@ -80,7 +80,7 @@ module.exports =  = {
 
 :::
 
-::: details Click to expand: vue-cli Project Configuration
+::: details Click to expand configuration about: vue-cli
 
 ```js
 // vue.config.js
@@ -100,7 +100,7 @@ module.exports = {
 
 :::
 
-::: details Click to expand: nuxt Project Configuration
+::: details Click to expand configuration about: nuxt
 
 nuxt3.x :
 
@@ -134,7 +134,7 @@ export default {
 
 :::
 
-::: details Click to expand: next Project Configuration
+::: details Click to expand configuration about: next
 
 ```js
 // next.config.js
@@ -152,7 +152,7 @@ module.exports = nextConfig;
 
 :::
 
-::: details Click to expand: umi Project Configuration
+::: details Click to expand configuration about: umi
 
 ```js
 // umi.config.js or umirc.js
