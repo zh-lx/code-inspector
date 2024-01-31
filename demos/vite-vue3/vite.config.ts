@@ -9,6 +9,7 @@ export default defineConfig({
     vue(),
     CodeInspectorPlugin({
       bundler: 'vite',
+      showSwitch: true
     }),
     vueJsx(),
   ],

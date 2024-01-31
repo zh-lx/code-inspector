@@ -225,6 +225,10 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  handleMouseup = () => {
+    this.hoverSwitch = false;
+  }
+
   // 鼠标移动渲染遮罩层位置
   handleMouseMove = (e: MouseEvent) => {
     if (
@@ -358,6 +362,7 @@ export class CodeInspectorComponent extends LitElement {
     }
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousemove', this.moveSwitch);
+    window.addEventListener('mouseup', this.handleMouseup);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
     document.addEventListener('keyup', this.handleKeyUp);
@@ -373,6 +378,7 @@ export class CodeInspectorComponent extends LitElement {
   disconnectedCallback(): void {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mousemove', this.moveSwitch);
+    window.removeEventListener('mouseup', this.handleMouseup);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
     document.removeEventListener('keyup', this.handleKeyUp);
