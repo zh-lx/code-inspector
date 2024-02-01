@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3
+
+- 【fix】Fixed the issue where the Node server fails to start during the second cold start due to `net::ERR_CONNECTION_REFUSED` error when using `webpack` with cache strategy set to `type: filesystem`.
+
 ## 0.6.2
 
 - 【fix】Fixed the issue where clicking was not effective in `showSwitch: true` mode on mobile devices.

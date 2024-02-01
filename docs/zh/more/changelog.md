@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.6.3
+
+- 【fix】修复 `webpack` 的缓存策略为 `type: filesystem` 时，二次冷启动时 node server 启动失败导致 `net::ERR_CONNECTION_REFUSED` 的报错
+
 ## 0.6.2
 
 - 【fix】修复 `showSwitch: true` 模式在移动端点击不生效的问题
