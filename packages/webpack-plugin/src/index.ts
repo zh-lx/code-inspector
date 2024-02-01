@@ -35,7 +35,6 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       use: [
         {
           loader: path.resolve(compatibleDirname, `./loader.js`),
-          options,
         },
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
@@ -50,11 +49,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       use: [
         {
           loader: path.resolve(compatibleDirname, `./inject-loader.js`),
-          options: {
-            ...options,
-            // 冷启动时强制不走缓存，保证 server 启动成功
-            cacheIdentifiers: Date.now() + '-' + Math.random()
-          },
+          options,
         },
       ],
       enforce: 'post',
@@ -100,6 +95,10 @@ class WebpackCodeInspectorPlugin {
       process.env.NODE_ENV !== 'development'
     ) {
       return;
+    }
+
+    if (compiler?.options?.cache?.type === 'filesystem') {
+      compiler.options.cache.version = `code-inspector-${Date.now()}`
     }
 
     const record: RecordInfo = {
