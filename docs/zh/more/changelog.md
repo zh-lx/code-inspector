@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.6.4
+
+- 【fix】优化 vite 项目中客户端代码的注入逻辑
+
 ## 0.6.3
 
 - 【fix】修复 `webpack` 的缓存策略为 `type: filesystem` 时，二次冷启动时 node server 启动失败导致 `net::ERR_CONNECTION_REFUSED` 的报错
