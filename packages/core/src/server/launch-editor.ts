@@ -5,7 +5,7 @@ import child_process from 'child_process';
 import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import { Editor } from '../shared/constant';
+import { Editor } from '../shared';
 
 function isTerminalEditor(editor: string) {
   switch (editor) {

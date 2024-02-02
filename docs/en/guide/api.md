@@ -67,9 +67,9 @@ codeInspectorPlugin({
 
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
-- Optional. Default value is `auto`
-- Type`'auto' | 'all' | string`
-- Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`. When set to `auto`, the `client code` will be injected into the first file that meets the aforementioned conditions. When set to `all`, the `client code` will be injected into every file that meets the aforementioned conditions. Alternatively, you can specify an absolute path to a file for injecting the `client code` (typically used for specifying a client-side file in SSR projects).
+- Optional.
+- Type: `string`
+- Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.(typically used for specifying a client-side file in SSR projects).
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
 

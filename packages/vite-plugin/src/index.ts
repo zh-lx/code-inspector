@@ -5,6 +5,11 @@ import {
   getCodeWithWebComponent,
   RecordInfo,
   isJsTypeFile,
+  getEliminateVueWarningCode,
+  getClientInjectCode,
+  ViteVirtualModule_Client,
+  ViteVirtualModule_EliminateVueWarning,
+  startServer,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
@@ -18,9 +23,8 @@ export function ViteCodeInspectorPlugin(options?: Options) {
   const record: RecordInfo = {
     port: 0,
     entry: '',
-    nextInjectedFile: '',
-    useEffectFile: '',
-    injectAll: false,
+    nextJsEntry: '',
+    ssrEntry: '',
   };
   return {
     name: PluginName,
@@ -42,6 +46,25 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         return !!isDev || command === 'serve';
       }
     },
+    async resolveId(id) {
+      if (!record.started) {
+        await startServer(options, record);
+      }
+      if (id === ViteVirtualModule_EliminateVueWarning) {
+        return `\0${ViteVirtualModule_EliminateVueWarning}`;
+      } else if (id === ViteVirtualModule_Client) {
+        return `\0${ViteVirtualModule_Client}`;
+      }
+      return null;
+    },
+    load(id) {
+      if (id === `\0${ViteVirtualModule_EliminateVueWarning}`) {
+        return getEliminateVueWarningCode();
+      } else if (id === `\0${ViteVirtualModule_Client}`) {
+        return getClientInjectCode(record.port, options);
+      }
+      return null;
+    },
     async transform(code, id) {
       if (id.match('node_modules')) {
         return code;
@@ -49,7 +72,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
 
       // start server and inject client code to entry file
       code = await getCodeWithWebComponent(options, id, code, record);
-      
+
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
       const params = new URLSearchParams(id);

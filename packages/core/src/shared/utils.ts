@@ -1,5 +1,5 @@
 import path from 'path';
-import { JsFileExtList } from "./constant";
+import { JsFileExtList } from './constant';
 
 // 将 import.meta.url 转换为 __dirname: 兼容 mac linux 和 windows
 export function fileURLToPath(fileURL: string) {
@@ -17,13 +17,11 @@ export function fileURLToPath(fileURL: string) {
 
 // 是否为 JS 类型的文件
 export function isJsTypeFile(file: string) {
-  return JsFileExtList.some((ext) =>
-    file.endsWith(ext)
-  );
+  return JsFileExtList.some((ext) => file.endsWith(ext));
 }
 
 // 检测是否为 nextjs 中的 client 文件
-export function isNextClientFile(code: string) {
+export function isNextJsEntry(code: string) {
   return (
     code.trim().startsWith(`"use client"`) ||
     code.trim().startsWith(`'use client'`) ||
@@ -33,7 +31,7 @@ export function isNextClientFile(code: string) {
 }
 
 // 检测是否为 useEffect 文件
-export function isUseEffectFile(code: string) {
+export function isSsrEntry(code: string) {
   return code.includes(`useEffect(`);
 }
 
