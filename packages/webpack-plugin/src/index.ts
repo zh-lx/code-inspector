@@ -104,9 +104,8 @@ class WebpackCodeInspectorPlugin {
     const record: RecordInfo = {
       port: 0,
       entry: '',
-      nextInjectedFile: '',
-      useEffectFile: '',
-      injectAll: false,
+      nextJsEntry: '',
+      ssrEntry: '',
     }
     
     applyLoader({ ...this.options, record }, compiler);
