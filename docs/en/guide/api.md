@@ -41,29 +41,30 @@ codeInspectorPlugin({
 - Type: `boolean`
 - Description: When configured with `showSwitch: true, autoToggle: true`, after triggering the functionality and switching to the IDE, the switch functionality will be automatically turned off to prevent the user from accidentally triggering the functionality by clicking after switching back to the page.
 
-## needEnvInspector
+## behavior <Badge type="tip" text="0.7.0+" vertical="middle" />
 
-- Optional. Default value is `false`
-- Type: `boolean`
-- Description: This configuration can be ignored for most users. When set to true, the plugin functionality will only take effect when the `.env.local` file exists and it contains `CODE_INSPECTOR=true`. (Mainly to address the need of some team members who do not want to use the plugin functionality)
-
-## hideConsole
-
-- Optional. Default value is `false`
-- Type: `boolean`
-- Description: By default, the code-inspector-plugin will print a line of hotKeys prompts on the console when the project is first launched. Set this to 'true' to disable printing
+- Optional. Specifies the behavior triggered by the plugin functionality.
+- The type and description are as follows:
+  ```ts
+  type Behavior = {
+    /*
+     * Enables the feature to jump to IDE to locate code by clicking (default is true).
+     */
+    locate?: boolean;
+    /*
+     * Enables the feature to copy the source code position information by clicking (default is true).
+     * You can also set a string and specify the information format to copy using the {file}, {line}, {column} templates.
+     * The default value of true is equivalent to the "{file}:{line}:{column}" string format.
+     */
+    copy?: boolean | string;
+  };
+  ```
 
 ## editor
 
 - Optional. Default value is `undefined`
 - Type: `string | undefined`, options: `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - Description: The plugin will automatically recognize the IDE running on the current system. When this option is set, it will open the specified IDE (for specifying IDE, it is more recommended to use the method in the [Specify IDE](/guide/ide) section).
-
-## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
-
-- Optional(Only effective for `webpack/rspack`). Default value is `true`
-- Type: `boolean`
-- Description: Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors or duplicate ESLint validation during hot updates, set this option to `false`)
 
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
@@ -77,14 +78,32 @@ codeInspectorPlugin({
 - Type: `boolean | (() => boolean)`
 - Description: Customize the determination logic for the development environment. (The plugin internally recognizes the `development` environment to make the plugin effective. If automatic recognition fails, manual specification is required.)
 
-## forceInjectCache <Badge type="danger" text="deprecated" vertical="middle" />
+## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
 
-- Optional (Effective only for `webpack/rspack`). Used to improve compilation performance.
+- Optional(Only effective for `webpack/rspack`). Default value is `true`
 - Type: `boolean`
-- Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.) <b>After upgrading to version 0.5.1, the cache strategy has been optimized, and it is no longer necessary to set this field.</b>
+- Description: Whether to add `enforce: 'pre'` during the transformation, default value is `true`. (If this plugin causes `eslint-plugin` validation errors or duplicate ESLint validation during hot updates, set this option to `false`)
 
 ## match <Badge type="tip" text="0.5.0+" vertical="middle" />
 
 - Optional. Used to improve compilation performance.
 - Type: `RegExp`
 - Description: Only files that match the `match` regular expression will undergo source code location compilation to reduce the involvement of invalid files in compilation. Default is `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`.
+
+## needEnvInspector
+
+- Optional. Default value is `false`
+- Type: `boolean`
+- Description: This configuration can be ignored for most users. When set to true, the plugin functionality will only take effect when the `.env.local` file exists and it contains `CODE_INSPECTOR=true`. (Mainly to address the need of some team members who do not want to use the plugin functionality)
+
+## hideConsole
+
+- Optional. Default value is `false`
+- Type: `boolean`
+- Description: By default, the code-inspector-plugin will print a line of hotKeys prompts on the console when the project is first launched. Set this to 'true' to disable printing
+
+## forceInjectCache <Badge type="danger" text="deprecated" vertical="middle" />
+
+- Optional (Effective only for `webpack/rspack`). Used to improve compilation performance.
+- Type: `boolean`
+- Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.) <b>After upgrading to version 0.5.1, the cache strategy has been optimized, and it is no longer necessary to set this field.</b>

@@ -40,29 +40,30 @@ codeInspectorPlugin({
 - 类型：`boolean`
 - 说明：当配置了 `showSwitch: true, autoToggloe: true` 时，触发功能跳转 IDE 后，会自动将 `switch` 的功能关闭，主要是为了防止用户切会页面后鼠标点击直接误触发功能
 
-## needEnvInspector
+## behavior <Badge type="tip" text="0.7.0+" vertical="middle" />
 
-- 可选项。默认值为 `false`
-- 类型：`boolean`
-- 说明：对于大多数人可以忽略这个配置。为 `true` 时，仅当 `.env.local` 文件存在且其包含 `CODE_INSPECTOR=true` 时插件功能才生效。（主要是解决团队内有部分成员不想使用该插件功能的需求）
-
-## hideConsole
-
-- 可选项。默认值为 `false`
-- 类型：`boolean`
-- 说明：默认情况下，插件在项目首次启动时会在浏览器控制台打印一行组合键按键的提示，设置此项为 `true` 可以禁用打印
+- 可选项。指定插件功能触发的行为
+- 类型及说明如下：
+  ```ts
+  type Behavior = {
+    /*
+     * 是否启用点击跳转 IDE 定位代码的功能(默认为 true)
+     */
+    locate?: boolean;
+    /*
+     * 是否启动点击复制源代码位置信息(默认为 true)
+     * 也可以设置字符串并通过 {file}、{line}、{column} 模版去指定要复制的信息格式
+     * 默认值 true 相当于 "{file}:{line}:{column}" 的字符串格式
+     */
+    copy?: boolean | string;
+  };
+  ```
 
 ## editor
 
 - 可选项。默认值为 `undefined`
 - 类型：`string | undefined`，可选值有 `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定 IDE](/guide/ide)章节的方式）
-
-## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
-
-- 可选项(仅对 `webpack/rspack` 生效)。默认值为 `true`
-- 类型：`boolean`
-- 说明：是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误或者热跟新时 eslint 的重复校验，需要此项设置为 `false`）。
 
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
@@ -76,14 +77,32 @@ codeInspectorPlugin({
 - 类型：`boolean | (() => boolean)`
 - 说明：自定义 development 环境的判断。（插件内部会识别 `development` 环境以让插件生效，如果自动识别失败，需要手动指定）
 
-## forceInjectCache <Badge type="danger" text="已废弃" vertical="middle" />
+## enforcePre <Badge type="tip" text="0.4.0+" vertical="middle" />
 
-- 可选项(仅对 `webpack/rspack` 生效)。用于提升编译时性能
+- 可选项(仅对 `webpack/rspack` 生效)。默认值为 `true`
 - 类型：`boolean`
-- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)。<b>升级到 `0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段。</b>
+- 说明：是否在转换时添加 `enforce: 'pre'`，默认值为 `true`。（若因该插件引起了 `eslint-plugin` 校验错误或者热跟新时 eslint 的重复校验，需要此项设置为 `false`）。
 
 ## match <Badge type="tip" text="0.5.0+" vertical="middle" />
 
 - 可选项。用于提升编译时性能
 - 类型：`RegExp`
 - 说明：仅对符合 `match` 正则表达式的文件会进行源码定位编译，以减少无效文件参与编译，默认为 `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`
+
+## needEnvInspector
+
+- 可选项。默认值为 `false`
+- 类型：`boolean`
+- 说明：对于大多数人可以忽略这个配置。为 `true` 时，仅当 `.env.local` 文件存在且其包含 `CODE_INSPECTOR=true` 时插件功能才生效。（主要是解决团队内有部分成员不想使用该插件功能的需求）
+
+## hideConsole
+
+- 可选项。默认值为 `false`
+- 类型：`boolean`
+- 说明：默认情况下，插件在项目首次启动时会在浏览器控制台打印一行组合键按键的提示，设置此项为 `true` 可以禁用打印
+
+## forceInjectCache <Badge type="danger" text="已废弃" vertical="middle" />
+
+- 可选项(仅对 `webpack/rspack` 生效)。用于提升编译时性能
+- 类型：`boolean`
+- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)。<b>升级到 `0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段。</b>

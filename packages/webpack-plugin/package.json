@@ -1,6 +1,6 @@
 {
   "name": "webpack-code-inspector-plugin",
-  "version": "0.6.5",
+  "version": "0.7.0",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

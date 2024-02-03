@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.7.0
+
+- 【feat】增加 `behavior` 参数支持自定义点击时的行为
+
 ## 0.6.5
 
 - 【fix】修复 `net::ERR_ADDRESS_INVALID` 的问题

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- 【feat】Added support for the `behavior` parameter to customize behavior when clicked.
+
 ## 0.6.5
 
 - 【fix】Fixed the issue about `net::ERR_ADDRESS_INVALID`
