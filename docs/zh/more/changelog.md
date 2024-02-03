@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.6.5
+
+- 【fix】修复 `net::ERR_ADDRESS_INVALID` 的问题
+
 ## 0.6.4
 
 - 【fix】优化 vite 项目中客户端代码的注入逻辑

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5
+
+- 【fix】Fixed the issue about `net::ERR_ADDRESS_INVALID`
+
 ## 0.6.4
 
 - 【fix】Optimize the injection logic of client-side code in Vite projects.
