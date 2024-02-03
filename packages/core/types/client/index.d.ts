@@ -5,6 +5,8 @@ export declare class CodeInspectorComponent extends LitElement {
     showSwitch: boolean;
     autoToggle: boolean;
     hideConsole: boolean;
+    locate: boolean;
+    copy: boolean | string;
     position: {
         top: number;
         right: number;

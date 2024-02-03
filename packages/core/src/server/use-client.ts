@@ -31,7 +31,9 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
     showSwitch = false,
     hideConsole = false,
     autoToggle = true,
+    behavior = {},
   } = options || ({} as CodeOptions);
+  const { locate = true, copy = false } = behavior;
   return `
 /* eslint-disable */
 ;(function (){
@@ -47,6 +49,8 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
+      inspector.locate = !!${locate};
+      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       document.body.append(inspector);
     }
   }

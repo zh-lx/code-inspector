@@ -9,7 +9,9 @@ export default defineConfig({
     vue(),
     CodeInspectorPlugin({
       bundler: 'vite',
-      showSwitch: true
+      behavior: {
+        copy: '{file}',
+      }
     }),
     vueJsx(),
   ],
