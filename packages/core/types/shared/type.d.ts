@@ -58,5 +58,4 @@ export type RecordInfo = {
     entry: string;
     nextJsEntry: string;
     ssrEntry: string;
-    started?: boolean;
 };
