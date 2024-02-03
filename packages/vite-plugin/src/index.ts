@@ -47,7 +47,7 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       }
     },
     async resolveId(id) {
-      if (!record.started) {
+      if (!record.port) {
         await startServer(options, record);
       }
       if (id === ViteVirtualModule_EliminateVueWarning) {

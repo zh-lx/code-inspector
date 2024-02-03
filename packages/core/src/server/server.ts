@@ -34,8 +34,7 @@ export function createServer(callback: (port: number) => any, editor?: Editor) {
 }
 
 export async function startServer(options: CodeOptions, record: RecordInfo) {
-  if (!record.started) {
-    record.started = true;
+  if (!record.port) {
     record.port = await new Promise((resolve) => {
       createServer((port: number) => {
         resolve(port);
