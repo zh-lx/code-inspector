@@ -66,4 +66,5 @@ export type RecordInfo = {
   entry: string;
   nextJsEntry: string;
   ssrEntry: string;
+  findPort?: Promise<number>;
 };

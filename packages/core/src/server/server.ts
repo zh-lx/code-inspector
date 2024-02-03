@@ -35,10 +35,13 @@ export function createServer(callback: (port: number) => any, editor?: Editor) {
 
 export async function startServer(options: CodeOptions, record: RecordInfo) {
   if (!record.port) {
-    record.port = await new Promise((resolve) => {
-      createServer((port: number) => {
-        resolve(port);
-      }, options?.editor);
-    });
+    if (!record.findPort) {
+      record.findPort = new Promise((resolve) => {
+        createServer((port: number) => {
+          resolve(port);
+        }, options?.editor);
+      });
+    }
+    record.port = await record.findPort;
   }
 }
