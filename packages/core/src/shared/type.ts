@@ -8,6 +8,10 @@ export type Editor =
   | 'webstorm'
   | 'hbuilder';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+export type Behavior = {
+  locate?: boolean;
+  copy?: boolean | string;
+}
 export type CodeOptions = {
   /**
    * @zh 指定项目的打包器
@@ -60,6 +64,11 @@ export type CodeOptions = {
    * @en Only files that match the regular expression specified by `match` will undergo source code location compilation (precise matching of file types to reduce unnecessary files participating in compilation, improving performance); the default is /\.(vue|jsx|tsx|js|ts|mjs|mts)$/
    */
   match?: RegExp;
+  /**
+   * @cn 功能触发时的行为
+   * @en The behavior 
+   */
+  behavior?: Behavior;
 };
 export type RecordInfo = {
   port: number;

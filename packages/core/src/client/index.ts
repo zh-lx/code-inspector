@@ -31,6 +31,10 @@ export class CodeInspectorComponent extends LitElement {
   autoToggle: boolean = false;
   @property()
   hideConsole: boolean = false;
+  @property()
+  locate: boolean = true;
+  @property()
+  copy: boolean | string = false;
 
   @state()
   position = {
@@ -200,11 +204,23 @@ export class CodeInspectorComponent extends LitElement {
 
   // 请求本地服务端，打开vscode
   trackCode = () => {
-    const file = encodeURIComponent(this.element.path);
-    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
-    // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
-    const img = document.createElement('img');
-    img.src = url;
+    if (this.locate) {
+      const file = encodeURIComponent(this.element.path);
+      const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+      // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
+      const img = document.createElement('img');
+      img.src = url;
+    }
+    if (this.copy) {
+      let text = `${this.element.path}:${this.element.line}:${this.element.column}`;
+      if (typeof this.copy === 'string') {
+        text = this.copy
+          .replace('{file}', this.element.path)
+          .replace('{line}', String(this.element.line))
+          .replace('{column}', String(this.element.column));
+      }
+      navigator.clipboard.writeText(text);
+    }
   };
 
   // 移动按钮
@@ -227,7 +243,7 @@ export class CodeInspectorComponent extends LitElement {
 
   handleMouseup = () => {
     this.hoverSwitch = false;
-  }
+  };
 
   // 鼠标移动渲染遮罩层位置
   handleMouseMove = (e: MouseEvent) => {
@@ -292,7 +308,7 @@ export class CodeInspectorComponent extends LitElement {
         }
       }
     }
-  }
+  };
 
   // 监听键盘抬起，清除遮罩层
   handleKeyUp = (e: any) => {
