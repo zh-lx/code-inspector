@@ -67,12 +67,13 @@ export function getEliminateVueWarningCode() {
       return;
     }
     var originWarn = console.warn;
-    var warning = "[Vue warn]: Extraneous non-props attributes (${PathName})";
+    var warning = "[Vue warn]: Extraneous non-props attributes";
+    var path = "${PathName}";
     console.warn = function () {
       globalThis.__code_inspector_warning = true;
       var args = Array.prototype.slice.call(arguments);
       var firstParam = args && args[0];
-      if (typeof firstParam === 'string' && firstParam.indexOf(warning) !== -1) {
+      if (typeof firstParam === 'string' && firstParam.indexOf(warning) !== -1 && firstParam.indexOf(path) !== -1) {
         return;
       } else {
         originWarn.apply(null, args);
