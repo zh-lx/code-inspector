@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-plugin",
-  "version": "0.7.1-beta.4",
+  "version": "0.7.1-beta.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
