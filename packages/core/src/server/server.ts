@@ -3,9 +3,9 @@ import http from 'http';
 import portFinder from 'portfinder';
 import launchEditor from './launch-editor';
 import { DefaultPort } from '../shared/constant';
-import type { CodeOptions, Editor, RecordInfo } from '../shared';
+import type { CodeOptions, RecordInfo } from '../shared';
 
-export function createServer(callback: (port: number) => any, editor?: Editor) {
+export function createServer(callback: (port: number) => any, options?: CodeOptions) {
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
@@ -19,7 +19,7 @@ export function createServer(callback: (port: number) => any, editor?: Editor) {
       'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
-    launchEditor(file, line, column, editor);
+    launchEditor(file, line, column, options?.editor, options?.openIn);
   });
 
   // 寻找可用接口
@@ -39,7 +39,7 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
       record.findPort = new Promise((resolve) => {
         createServer((port: number) => {
           resolve(port);
-        }, options?.editor);
+        }, options);
       });
     }
     record.port = await record.findPort;
