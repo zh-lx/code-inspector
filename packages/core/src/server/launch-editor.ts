@@ -297,6 +297,33 @@ function getArgumentsForLineNumber(
   );
 }
 
+function getEnvFormatPath() {
+  // webpack
+  if (process.env.CODE_INSPECTOR_FORMAT_PATH) {
+    try {
+      return JSON.parse(process.env.CODE_INSPECTOR_FORMAT_PATH);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // vite
+  const envPath = path.resolve(process.cwd(), '.env.local');
+  if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf-8');
+    const envConfig = dotenv.parse(envFile || '');
+    if (envConfig.CODE_INSPECTOR_FORMAT_PATH) {
+      try {
+        return JSON.parse(envConfig.CODE_INSPECTOR_FORMAT_PATH);
+      } catch (error) {
+        return null;
+      }
+    }
+  }
+
+  return null;
+}
+
 function guessEditor(_editor?: Editor) {
   let customEditors = null;
 
@@ -491,6 +518,9 @@ function launchEditor(
   }
 
   let [editor, ...args] = guessEditor(_editor);
+
+  // 获取 path format
+  pathFormat = getEnvFormatPath() || pathFormat;
 
   if (!editor || editor.toLowerCase() === 'none') {
     console.log(
