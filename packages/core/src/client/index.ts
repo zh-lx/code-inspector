@@ -219,9 +219,22 @@ export class CodeInspectorComponent extends LitElement {
           .replace('{line}', String(this.element.line))
           .replace('{column}', String(this.element.column));
       }
-      navigator.clipboard.writeText(text);
+      this.copyToClipboard(text);
     }
   };
+
+  copyToClipboard(text: string) {
+    if (typeof navigator?.clipboard?.writeText === 'function') {
+      navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  }
 
   // 移动按钮
   moveSwitch = (e: MouseEvent) => {
