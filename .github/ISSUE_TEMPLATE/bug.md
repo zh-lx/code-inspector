@@ -39,6 +39,6 @@ _请描述一下你的 bug，最好附上一张报错截图……_
 
 - [ ] 你的浏览器、IDE、代码是否在一台机器上(非远程开发机或者云开发机情况)
 - [ ] 浏览器控制台是否有打印组合按键提示信息
-      <img src="./console.png" width="500" />
+      <img src="https://github.com/zh-lx/code-inspector/assets/73059627/77bcef30-88a5-4f58-b306-a92e01ecef8f" width="500" />
 - [ ] 页面 DOM 是否有注入 `data-insp-path` 属性
-      <img src="./path.png" width="800" />
+      <img src="https://github.com/zh-lx/code-inspector/assets/73059627/036e1bfe-7f46-4048-93e0-94099d4802d7" width="800" />
