@@ -74,4 +74,9 @@ export type CodeOptions = {
      * @en The way to open the IDE window: Use `auto` or `undefined` to automatically find the window; Use `reuse` to reuse the current window; Use `new` to open a new window.
      */
     openIn?: IDEOpenMethod;
+    /**
+     * @cn 自定义跳转 IDE 时的打开路径，默认 "{file}:{line}:{column}"，其中 {xx} 为模版字符
+     * @en Customize the path when open the IDE. Default value is "{file}:{line}:{column}", where {xx} represents template characters.
+     */
+    pathFormat?: string | string[];
 };

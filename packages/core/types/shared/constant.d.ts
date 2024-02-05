@@ -6,3 +6,7 @@ export declare const DefaultPort = 5678;
 export declare const JsFileExtList: string[];
 export declare const ViteVirtualModule_EliminateVueWarning = "virtual:code-inspector-plugin-eliminate-vue-warning-code";
 export declare const ViteVirtualModule_Client = "virtual:code-inspector-plugin-client-code";
+export declare const FormatFile = "{file}";
+export declare const FormatLine = "{line}";
+export declare const FormatColumn = "{column}";
+export declare const DefaultPathFormat: string;

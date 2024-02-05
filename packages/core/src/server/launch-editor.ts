@@ -5,7 +5,14 @@ import child_process from 'child_process';
 import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import { Editor, IDEOpenMethod } from '../shared';
+import {
+  Editor,
+  FormatColumn,
+  FormatFile,
+  FormatLine,
+  IDEOpenMethod,
+  formatOpenPath,
+} from '../shared';
 
 function isTerminalEditor(editor: string) {
   switch (editor) {
@@ -171,7 +178,8 @@ function getArgumentsForLineNumber(
   lineNumber: string,
   colNumber: string,
   workspace: null,
-  openWindowParams: string
+  openWindowParams: string,
+  pathFormat?: string | string[]
 ) {
   const editorBasename = path.basename(editor).replace(/\.(exe|cmd|bat)$/i, '');
   switch (editorBasename) {
@@ -181,24 +189,54 @@ function getArgumentsForLineNumber(
     case 'subl':
     case 'sublime':
     case 'sublime_text':
-      return [fileName + ':' + lineNumber + ':' + colNumber];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || `${FormatFile}:${FormatLine}:${FormatColumn}`
+      );
     case 'wstorm':
     case 'charm':
-      return [fileName + ':' + lineNumber];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || `${FormatFile}:${FormatLine}`
+      );
     case 'notepad++':
-      return ['-n' + lineNumber, '-c' + colNumber, fileName];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || ['-n' + FormatLine, '-c' + FormatColumn, FormatFile]
+      );
     case 'vim':
     case 'mvim':
     case 'joe':
     case 'gvim':
-      return ['+' + lineNumber, fileName];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || ['+' + FormatLine, FormatFile]
+      );
     case 'emacs':
     case 'emacsclient':
-      return ['+' + lineNumber + ':' + colNumber, fileName];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || ['+' + FormatLine + ':' + FormatColumn, FormatFile]
+      );
     case 'rmate':
     case 'mate':
     case 'mine':
-      return ['--line', lineNumber, fileName];
+      return formatOpenPath(
+        fileName,
+        lineNumber,
+        colNumber,
+        pathFormat || ['--line', FormatLine, FormatFile]
+      );
     case 'code':
     case 'Code':
     case 'code-insiders':
@@ -208,11 +246,16 @@ function getArgumentsForLineNumber(
     case 'HBuilderX':
     case 'HBuilder':
       return addWorkspaceToArgumentsIfExists(
-        [
-          '-g',
-          openWindowParams,
-          fileName + ':' + lineNumber + ':' + colNumber,
-        ],
+        formatOpenPath(
+          fileName,
+          lineNumber,
+          colNumber,
+          pathFormat || [
+            '-g',
+            openWindowParams,
+            `${FormatFile}:${FormatLine}:${FormatColumn}`,
+          ]
+        ),
         workspace
       );
     case 'appcode':
@@ -233,7 +276,12 @@ function getArgumentsForLineNumber(
     case 'rider':
     case 'rider64':
       return addWorkspaceToArgumentsIfExists(
-        ['--line', lineNumber, fileName],
+        formatOpenPath(
+          fileName,
+          lineNumber,
+          colNumber,
+          pathFormat || ['--line', FormatLine, FormatFile]
+        ),
         workspace
       );
   }
@@ -241,7 +289,12 @@ function getArgumentsForLineNumber(
   // For all others, drop the lineNumber until we have
   // a mapping above, since providing the lineNumber incorrectly
   // can result in errors or confusing behavior.
-  return [fileName];
+  return formatOpenPath(
+    fileName,
+    lineNumber,
+    colNumber,
+    pathFormat || '{file}'
+  );
 }
 
 function guessEditor(_editor?: Editor) {
@@ -415,7 +468,8 @@ function launchEditor(
   lineNumber: unknown,
   colNumber: unknown,
   _editor?: Editor,
-  ideOpenMethod?: IDEOpenMethod
+  ideOpenMethod?: IDEOpenMethod,
+  pathFormat?: string | string[]
 ) {
   if (!fs.existsSync(fileName)) {
     return;
@@ -498,7 +552,8 @@ function launchEditor(
         lineNumber,
         colNumber,
         workspace,
-        getOpenWindowParams(ideOpenMethod)
+        getOpenWindowParams(ideOpenMethod),
+        pathFormat
       )
     );
   } else {
