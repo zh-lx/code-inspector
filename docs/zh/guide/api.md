@@ -89,6 +89,28 @@ codeInspectorPlugin({
 - 类型：`RegExp`
 - 说明：仅对符合 `match` 正则表达式的文件会进行源码定位编译，以减少无效文件参与编译，默认为 `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`
 
+## pathFormat <Badge type="tip" text="0.8.0+" vertical="middle" />
+
+> 团队协作时推荐在 `.env.local` 中使用 `CODE_INSPECTOR_FORMAT_PATH` 定义本功能，避免影响其他人使用
+
+- 可选项
+- 类型：`string | string[]`
+- 说明：指定打开 IDE 文件时的命令格式，默认值为 `{file}:{line}:{column}`，其中， `{file}`、`{line}`、`{column}` 会作为模版被动态替换。例如文件的源代码在 `/root/my-project/index.ts` 的第 `5` 行第 `11` 列，默认 vscode 执行的命令为 `code -g /root/my-project/index.ts:5:11`；如果我想只定位到对应的文件，不需要具体行列，且在文件最前面加上 `/Users` 参数，则应该设置此项值为 `"/Users{file}"`；如果我要额外添加 vscode 的参数去在新窗口打开，则设置此项值为 `["-n", "/Users{file}"]`。
+
+## openIn <Badge type="tip" text="0.8.0+" vertical="middle" />
+
+- 可选项
+- 类型：`'reuse' | 'new'`
+- 说明：指定打开 IDE 窗口的方式，默认会自动复用当前窗口，传 `reuse` 则复用当前窗口；传 `new` 则打开新窗口。
+
+## pathFormat <Badge type="tip" text="0.8.0+" vertical="middle" />
+
+> 团队协作时推荐在 `.env.local` 中使用 `CODE_INSPECTOR_FORMAT_PATH` 定义本功能，避免影响其他人使用
+
+- 可选项
+- 类型：`string | string[]`
+- 说明：指定打开 IDE 文件时的命令格式，默认值为 `{file}:{line}:{column}`，其中， `{file}`、`{line}`、`{column}` 会作为模版被动态替换。
+
 ## needEnvInspector
 
 - 可选项。默认值为 `false`

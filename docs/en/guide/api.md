@@ -90,6 +90,20 @@ codeInspectorPlugin({
 - Type: `RegExp`
 - Description: Only files that match the `match` regular expression will undergo source code location compilation to reduce the involvement of invalid files in compilation. Default is `/\.(vue|jsx|tsx|js|ts|mjs|mts)$/`.
 
+## pathFormat <Badge type="tip" text="0.8.0+" vertical="middle" />
+
+> It is recommended to define this feature in `.env.local` using `CODE_INSPECTOR_FORMAT_PATH` during team collaboration to avoid affecting others.
+
+- Optional
+- Type: `string | string[]`
+- Description: Specifies the command format when opening IDE files. The default value is `{file}:{line}:{column}`, where `{file}`, `{line}`, and `{column}` are dynamically replaced templates. For example, if the source code file is `/root/my-project/index.ts` and it is located at line `5`, column `11`, the default command executed by VSCode would be `code -g /root/my-project/index.ts:5:11`. If you want to only locate the corresponding file without specific line and column, and add the `/Users` parameter at the beginning of the file, you should set this value to `"/Users{file}"`. If you want to add additional parameters for VSCode to open in a new window, set this value to `["-n", "/Users{file}"]`.
+
+## openIn <Badge type="tip" text="0.8.0+" vertical="middle" />
+
+- Optional
+- Type: `'reuse' | 'new'`
+- Description: Specifies the way to open the IDE window. By default, it will automatically reuse the current window. Passing `reuse` will reuse the current window; passing `new` will open a new window.
+
 ## needEnvInspector
 
 - Optional. Default value is `false`

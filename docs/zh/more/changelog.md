@@ -1,5 +1,12 @@
 # 更新日志
 
+## 0.8.0
+
+- 【feat】增加 `pathFormat` 参数，支持自定义打开 IDE 时的命令格式
+- 【feat】增加 `openIn` 参数，支持打开 IDE 窗口时复用当前窗口还是在新窗口打开
+- 【fix】修复在 vue 中报 `Extraneous non-props attributes` 的警告
+- 【fix】修复非 https 中使用 `behavior.copy` 失败的问题
+
 ## 0.7.0
 
 - 【feat】增加 `behavior` 参数支持自定义点击时的行为

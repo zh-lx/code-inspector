@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+
+- 【feat】Added `pathFormat` parameter to support customizing the command format when opening the IDE.
+- 【feat】Added `openIn` parameter to support reusing the current IDE window or opening in a new window.
+- 【fix】Resolved warning about `Extraneous non-props attributes` in Vue.
+- 【fix】Fixed issue where `behavior.copy` failed in non-HTTPS environments.
+
 ## 0.7.0
 
 - 【feat】Added support for the `behavior` parameter to customize behavior when clicked.
