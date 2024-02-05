@@ -42,4 +42,4 @@ _请描述一下你的 bug，最好附上一张报错截图……_
       <img src="https://github.com/zh-lx/code-inspector/assets/73059627/77bcef30-88a5-4f58-b306-a92e01ecef8f" width="500" />
 
 - [ ] 页面 DOM 是否有注入 `data-insp-path` 属性<br />
-      <img src="https://github.com/zh-lx/code-inspector/assets/73059627/036e1bfe-7f46-4048-93e0-94099d4802d7" width="800" />
+      <img src="https://github.com/zh-lx/code-inspector/assets/73059627/0523f9fb-e755-4561-9284-8970e4081bcc" width="600" />
