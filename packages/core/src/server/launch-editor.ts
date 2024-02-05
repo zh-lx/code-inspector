@@ -5,7 +5,7 @@ import child_process from 'child_process';
 import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import { Editor } from '../shared';
+import { Editor, IDEOpenMethod } from '../shared';
 
 function isTerminalEditor(editor: string) {
   switch (editor) {
@@ -170,7 +170,8 @@ function getArgumentsForLineNumber(
   fileName: string,
   lineNumber: string,
   colNumber: string,
-  workspace: null
+  workspace: null,
+  openWindowParams: string
 ) {
   const editorBasename = path.basename(editor).replace(/\.(exe|cmd|bat)$/i, '');
   switch (editorBasename) {
@@ -207,7 +208,11 @@ function getArgumentsForLineNumber(
     case 'HBuilderX':
     case 'HBuilder':
       return addWorkspaceToArgumentsIfExists(
-        ['-g', fileName + ':' + lineNumber + ':' + colNumber],
+        [
+          '-g',
+          openWindowParams,
+          fileName + ':' + lineNumber + ':' + colNumber,
+        ],
         workspace
       );
     case 'appcode':
@@ -395,11 +400,22 @@ let _childProcess:
   | any
   | null = null;
 
+function getOpenWindowParams(ideOpenMethod?: IDEOpenMethod) {
+  if (ideOpenMethod === 'reuse') {
+    return '-r';
+  } else if (ideOpenMethod === 'new') {
+    return '-n';
+  } else {
+    return '';
+  }
+}
+
 function launchEditor(
   fileName: string,
   lineNumber: unknown,
   colNumber: unknown,
-  _editor?: Editor
+  _editor?: Editor,
+  ideOpenMethod?: IDEOpenMethod
 ) {
   if (!fs.existsSync(fileName)) {
     return;
@@ -481,7 +497,8 @@ function launchEditor(
         // @ts-ignore
         lineNumber,
         colNumber,
-        workspace
+        workspace,
+        getOpenWindowParams(ideOpenMethod)
       )
     );
   } else {

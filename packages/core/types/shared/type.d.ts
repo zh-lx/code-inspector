@@ -4,6 +4,14 @@ export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
 };
+export type RecordInfo = {
+    port: number;
+    entry: string;
+    nextJsEntry: string;
+    ssrEntry: string;
+    findPort?: Promise<number>;
+};
+export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type CodeOptions = {
     /**
      * @zh 指定项目的打包器
@@ -61,11 +69,9 @@ export type CodeOptions = {
      * @en The behavior
      */
     behavior?: Behavior;
-};
-export type RecordInfo = {
-    port: number;
-    entry: string;
-    nextJsEntry: string;
-    ssrEntry: string;
-    findPort?: Promise<number>;
+    /**
+     * @cn 打开 IDE 窗口的方式: 不传或者 `auto` 为自动寻找窗口；`reuse` 将复用当前窗口；`new` 为打开新窗口
+     * @en The way to open the IDE window: Use `auto` or `undefined` to automatically find the window; Use `reuse` to reuse the current window; Use `new` to open a new window.
+     */
+    openIn?: IDEOpenMethod;
 };
