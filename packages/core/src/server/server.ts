@@ -19,7 +19,7 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
       'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
-    launchEditor(file, line, column, options?.editor, options?.openIn);
+    launchEditor(file, line, column, options?.editor, options?.openIn, options?.pathFormat);
   });
 
   // 寻找可用接口

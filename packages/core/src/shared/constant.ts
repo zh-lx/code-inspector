@@ -8,3 +8,7 @@ export const ViteVirtualModule_EliminateVueWarning =
   'virtual:code-inspector-plugin-eliminate-vue-warning-code';
 export const ViteVirtualModule_Client =
   'virtual:code-inspector-plugin-client-code';
+export const FormatFile = "{file}";
+export const FormatLine = "{line}";
+export const FormatColumn = "{column}";
+export const DefaultPathFormat = `${FormatFile}:${FormatLine}:${FormatColumn}`;

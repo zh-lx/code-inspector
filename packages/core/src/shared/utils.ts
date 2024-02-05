@@ -1,5 +1,5 @@
 import path from 'path';
-import { JsFileExtList } from './constant';
+import { FormatColumn, FormatFile, FormatLine, JsFileExtList } from './constant';
 
 // 将 import.meta.url 转换为 __dirname: 兼容 mac linux 和 windows
 export function fileURLToPath(fileURL: string) {
@@ -52,4 +52,27 @@ export function normalizePath(filepath: string) {
   }
 
   return normalizedPath;
+}
+
+export function formatOpenPath(
+  file: string,
+  line: string,
+  column: string,
+  format: string | string[] | boolean
+) {
+  let path = `${file}:${line}:${column}`;
+  if (typeof format === 'string') {
+    path = format
+      .replace(FormatFile, file)
+      .replace(FormatLine, line)
+      .replace(FormatColumn, column);
+  } else if (format instanceof Array) {
+    return format.map((item) => {
+      return item
+      .replace(FormatFile, file)
+      .replace(FormatLine, line)
+      .replace(FormatColumn, column);
+    });
+  }
+  return [path];
 }

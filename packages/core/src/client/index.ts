@@ -2,7 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { composedPath } from './util';
-import { PathName, DefaultPort } from '../shared/constant';
+import { PathName, DefaultPort, formatOpenPath } from '../shared';
 
 const styleId = '__code-inspector-unique-id';
 
@@ -212,14 +212,13 @@ export class CodeInspectorComponent extends LitElement {
       img.src = url;
     }
     if (this.copy) {
-      let text = `${this.element.path}:${this.element.line}:${this.element.column}`;
-      if (typeof this.copy === 'string') {
-        text = this.copy
-          .replace('{file}', this.element.path)
-          .replace('{line}', String(this.element.line))
-          .replace('{column}', String(this.element.column));
-      }
-      this.copyToClipboard(text);
+      const path = formatOpenPath(
+        this.element.path,
+        String(this.element.line),
+        String(this.element.column),
+        this.copy
+      );
+      this.copyToClipboard(path[0]);
     }
   };
 

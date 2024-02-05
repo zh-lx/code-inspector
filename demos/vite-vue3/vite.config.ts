@@ -11,7 +11,8 @@ export default defineConfig({
       bundler: 'vite',
       behavior: {
         copy: '{file}',
-      }
+      },
+      // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),
     vueJsx(),
   ],
