@@ -67,7 +67,7 @@ export function getEliminateVueWarningCode() {
       return;
     }
     var originWarn = console.warn;
-    var warning = "[Vue warn]: Extraneous non-props attributes";
+    var warning = "Extraneous non-props attributes";
     var path = "${PathName}";
     console.warn = function () {
       globalThis.__code_inspector_warning = true;
