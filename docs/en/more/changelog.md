@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1
+
+- 【fix】Fix the issue of code command not working properly when running multiple IDEs in Windows.
+
 ## 0.8.0
 
 - 【feat】Added `pathFormat` parameter to support customizing the command format when opening the IDE.
