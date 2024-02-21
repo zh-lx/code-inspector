@@ -3,6 +3,7 @@
 ## 0.8.1
 
 - 【fix】Fix the issue of code command not working properly when running multiple IDEs in Windows.
+- 【fix】Fix the issue where the position of the overlay appears incorrectly when the `body` is styled with a `transform` property.
 
 ## 0.8.0
 
