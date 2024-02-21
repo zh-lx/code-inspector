@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.8.1
+
+- 【fix】修复在 windows 中运行多个 IDE 时，指定 code 失效的问题
+
 ## 0.8.0
 
 - 【feat】增加 `pathFormat` 参数，支持自定义打开 IDE 时的命令格式
