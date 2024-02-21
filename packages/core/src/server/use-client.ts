@@ -38,7 +38,7 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
 /* eslint-disable */
 ;(function (){
   if (typeof window !== 'undefined') {
-    if (!document.body.querySelector('code-inspector-component')) {
+    if (!document.documentElement.querySelector('code-inspector-component')) {
       var script = document.createElement('script');
       script.setAttribute('type', 'text/javascript');
       script.textContent = ${`${jsClientCode}`};
@@ -51,7 +51,7 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
-      document.body.append(inspector);
+      document.documentElement.append(inspector);
     }
   }
 })();
