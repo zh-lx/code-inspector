@@ -2,8 +2,9 @@
 
 ## 0.8.1
 
-- 【fix】修复在 windows 中运行多个 IDE 时，指定 code 失效的问题
-- 【fix】修复当 `body` 设置了 `transform` 样式时，遮罩层出现的位置错误的问题
+- 【fix】修复了在 windows 中运行多个 IDE 时，指定 IDE 为 `code` 无法打开 vscode 的问题
+- 【fix】修复了当 `body` 设置了 `transform` 样式时，遮罩层出现的位置错误的问题
+- 【fix】修复了代码中使用 `debugger` 调试时，debugger 位置指向错误的问题
 
 ## 0.8.0
 

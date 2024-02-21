@@ -2,8 +2,9 @@
 
 ## 0.8.1
 
-- 【fix】Fix the issue of code command not working properly when running multiple IDEs in Windows.
-- 【fix】Fix the issue where the position of the overlay appears incorrectly when the `body` is styled with a `transform` property.
+- 【fix】Fixed the issue where specifying IDE as `code` cannot open VSCode when running multiple IDEs in Windows.
+- 【fix】Fixed the issue where the position of the overlay appears incorrectly when the `body` is styled with a `transform` property.
+- 【fix】Fixed the issue where the debugger position points to the wrong location when using `debugger` for debugging in the code.
 
 ## 0.8.0
 
