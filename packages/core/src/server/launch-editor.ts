@@ -87,21 +87,7 @@ const getEditorByCustom = (
     return CodeMap.mac[editor] ? [CodeMap.mac[editor]] : null;
   } else if (process.platform === 'win32') {
     // windows 系统
-    const output = child_process
-      .execSync(
-        'wmic process where "executablepath is not null" get executablepath'
-      )
-      .toString();
-    const runningProcesses = output.split('\r\n');
-
-    for (let i = 0; i < runningProcesses.length; i++) {
-      const processPath = runningProcesses[i].trim();
-      const processName = path.basename(processPath);
-      if (CodeMap.win[editor]?.includes(processName)) {
-        return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
-      }
-    }
-    return null;
+    return CodeMap.win[editor] ? CodeMap.win[editor] : null;
   } else if (process.platform === 'linux') {
     // linux 系统
     return CodeMap.linux[editor] ? [CodeMap.linux[editor]] : null;
