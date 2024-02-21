@@ -16,6 +16,13 @@ about: 这是一个 bug
 
 _请描述一下你的 bug，最好附上一张报错截图……_
 
+## 系统
+
+- [ ] windows(未使用 wsl 虚拟机)
+- [ ] windows(使用了 wsl 虚拟机)
+- [ ] mac
+- [ ] linux
+
 ## 你使用的打包器及版本
 
 - [ ] webpack
