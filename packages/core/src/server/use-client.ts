@@ -61,8 +61,8 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
 
 export function getEliminateVueWarningCode() {
   return `
-  /* eslint-disable */
-  ;(function(){
+  ;/* eslint-disable */
+  (function(){
     if (globalThis.__code_inspector_warning) {
       return;
     }
@@ -81,7 +81,7 @@ export function getEliminateVueWarningCode() {
     };
   })();
   /* eslint-disable */
-  `;
+  `.replace(/\n/g, '');
 }
 
 // normal entry file
@@ -141,7 +141,7 @@ export async function getCodeWithWebComponent(
     if (options.bundler === 'vite') {
       code = `import '${ViteVirtualModule_EliminateVueWarning}';\n${code}`;
     } else {
-      code = `${getEliminateVueWarningCode()}\n${code}`;
+      code = `${getEliminateVueWarningCode()}${code}`;
     }
   }
   // 注入 web component 组件代码
