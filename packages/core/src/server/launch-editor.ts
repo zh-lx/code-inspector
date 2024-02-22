@@ -238,7 +238,7 @@ function getArgumentsForLineNumber(
           colNumber,
           pathFormat || [
             '-g',
-            openWindowParams,
+            ...(openWindowParams ? [openWindowParams] : []),
             `${FormatFile}:${FormatLine}:${FormatColumn}`,
           ]
         ),
