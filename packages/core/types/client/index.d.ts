@@ -54,6 +54,7 @@ export declare class CodeInspectorComponent extends LitElement {
     moved: boolean;
     hoverSwitch: boolean;
     preUserSelect: string;
+    sendType: 'xhr' | 'img';
     inspectorSwitchRef: HTMLDivElement;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
@@ -61,6 +62,8 @@ export declare class CodeInspectorComponent extends LitElement {
     removeCover: () => void;
     addGlobalCursorStyle: () => void;
     removeGlobalCursorStyle: () => void;
+    sendXHR: () => void;
+    sendImg: () => void;
     trackCode: () => void;
     copyToClipboard(text: string): void;
     moveSwitch: (e: MouseEvent) => void;
