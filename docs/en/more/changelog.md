@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.9.1
+## 0.9.2
 
-- 【optimize】Optimized the node server request method.
+- 【fix】Fixed the issue of being unable to open the source code in StackBlitz.
 
 ## 0.9.0
 

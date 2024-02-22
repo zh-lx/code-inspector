@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.9.2
+
+- 【fix】修复在 stackblitz 中无法打开源代码的问题
+
 ## 0.9.1
 
 - 【optimize】优化 node server 请求方式
