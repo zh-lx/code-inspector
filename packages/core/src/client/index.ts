@@ -81,6 +81,8 @@ export class CodeInspectorComponent extends LitElement {
   hoverSwitch = false;
   @state()
   preUserSelect = '';
+  @state()
+  sendType: 'xhr' | 'img' = 'xhr';
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -210,14 +212,34 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  sendXHR = () => {
+    const file = encodeURIComponent(this.element.path);
+    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.send();
+    xhr.addEventListener('error', () => {
+      this.sendType = 'img';
+      this.sendImg();
+    });
+  };
+
+  // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
+  sendImg = () => {
+    const file = encodeURIComponent(this.element.path);
+    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    const img = document.createElement('img');
+    img.src = url;
+  };
+
   // 请求本地服务端，打开vscode
   trackCode = () => {
     if (this.locate) {
-      const file = encodeURIComponent(this.element.path);
-      const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
-      // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
-      const img = document.createElement('img');
-      img.src = url;
+      if (this.sendType === 'xhr') {
+        this.sendXHR();
+      } else {
+        this.sendImg();
+      }
     }
     if (this.copy) {
       const path = formatOpenPath(
