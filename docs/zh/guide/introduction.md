@@ -2,7 +2,7 @@
 
 `code-inspector-plugin` 是一款基于 `webpack/vite/rspack/nextjs/nuxt/umijs plugin` 的提升开发效率的工具，点击页面上的 DOM，它能够自动打开你的 IDE 并将光标定位到 DOM 对应的源代码位置。
 
-![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
+![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)
 
 ## 动机
 
@@ -22,4 +22,4 @@
 
 ### 适配性强
 
-支持在 `webpack/vite/rspack/nextjs/nuxt/umijs` 中使用，支持 `vue/react/preact/solid/svelte` 等多个框架
+支持在 `webpack/vite/rspack/nextjs/nuxt/umijs` 中使用，支持 `vue/react/preact/solid/svelte/astro` 等多个框架

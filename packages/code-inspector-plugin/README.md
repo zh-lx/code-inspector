@@ -18,7 +18,7 @@
 
 Click the element on the page, it can automatically open the code editor and position the cursor to the source code of the element.
 
-![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
+![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)
 
 ## 💻 Try it out online
 
@@ -27,6 +27,7 @@ Click the element on the page, it can automatically open the code editor and pos
 - [preact online demo](https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts)
 - [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
 - [svelte online demo](https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts)
+- [astro online demo](https://stackblitz.com/edit/withastro-astro-f5xq1t?file=astro.config.mjs)
 
 ## 🎨 Support
 
@@ -43,7 +44,8 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ react<br />
   ✅ preact<br />
   ✅ solid<br />
-  ✅ svelte
+  ✅ svelte<br />
+  ✅ astro
 - The following code editors are currently supported:<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
@@ -224,17 +226,17 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
 
-    <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/vscode-command-line.png" width="400px" />
 
   If you see the dialog box below, the configuration was successful:
 
-    <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
+    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/command-line-success.png" width="300px" />
 
 - 3.Enjoy using it
 
   When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
 
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/console-success.png" width="700px" />
 
 ## 👨‍💻 Contributors
 
@@ -248,7 +250,19 @@ For any usage issues, please leave a message below my [Twitter](https://twitter.
 For Chinese users, you can you can join the QQ group `769748484` add the author's WeiXin account `zhoulx1688888` for consultation and feedback:
 
 <div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6f0c8197-21e3-48d7-b9db-ffeb0e0d4ba7" width="200" height="272" />
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/ce4e8328-a787-44f8-af9c-2331b73cffea" width="200" height="272" />
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/28ebb97a-a114-4598-a6f2-0e45103284cc" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/qq-group.png" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-group.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-qrcode.jpg" width="200" height="272" />
+</div>
+
+## 💖 Sponsor
+
+Sponsor this project to support my better creation. It is recommended to use afdian to subscribe, and your avatar will appear in this project.
+
+- Afdian(爱发电): https://afdian.net/a/zhoulixiang
+- Alipay or WeChatPay:
+
+<div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wxpay.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.jpg" width="180" height="272" />
 </div>

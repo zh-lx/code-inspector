@@ -38,6 +38,7 @@ _请描述一下你的 bug，最好附上一张报错截图……_
 - [ ] nuxt
 - [ ] next.js
 - [ ] svelte
+- [ ] astro
 - [ ] solid
 - [ ] preact
 - [ ] 其他

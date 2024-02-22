@@ -2,7 +2,7 @@
 
 `code-inspector-plugin` is a tool designed to enhance development efficiency based on `webpack/vite/rspack/nextjs/nuxt/umijs plugin`. By clicking on the DOM elements in your web page, it automatically opens your IDE and positions the cursor at the corresponding source code location.
 
-![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
+![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)
 
 ## Motive
 
@@ -24,4 +24,4 @@ No intrusion into the source code, effective by simply including it in the bundl
 
 ### Strong Adaptability
 
-Supports usage in `webpack/vite/rspack/nextjs/nuxt/umijs`, and supports multiple frameworks such as `Vue/React/Preact/Solid/Svelte`.
+Supports usage in `webpack/vite/rspack/nextjs/nuxt/umijs`, and supports multiple frameworks such as `Vue/React/Preact/Solid/Svelte/Astro`.

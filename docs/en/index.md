@@ -26,5 +26,5 @@ features:
     details: No intrusion into the source code, effective by simply including it in the bundler, the entire integration process is as easy as drinking water.
   - icon: 🎨
     title: Strong Adaptability
-    details: Supports usage in webpack/vite/rspack/nextjs/nuxt/umijs, and supports multiple frameworks such as Vue/React/Preact/Solid/Svelte.
+    details: Supports usage in webpack/vite/rspack/nextjs/nuxt/umijs, and supports multiple frameworks such as Vue/React/Preact/Solid/Svelte/Astro.
 ---

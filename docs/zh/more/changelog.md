@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.9.0
+
+- 【feat】支持在以 `astro` 为框架的项目中使用
+
 ## 0.8.1
 
 - 【fix】修复了在 windows 中运行多个 IDE 时，指定 IDE 为 `code` 无法打开 vscode 的问题

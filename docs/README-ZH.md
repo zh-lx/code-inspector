@@ -20,7 +20,7 @@
 
 点击页面上的元素，能够自动打开你的代码编辑器并将光标定位到元素对应的代码位置。
 
-![code-inspector](https://github.com/zh-lx/code-inspector/assets/73059627/ad7974e6-e8b5-4bda-a005-d8387108e997)
+![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)
 
 ## 💻 在线体验
 
@@ -29,6 +29,7 @@
 - [preact online demo](https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts)
 - [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
 - [svelte online demo](https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts)
+- [astro online demo](https://stackblitz.com/edit/withastro-astro-f5xq1t?file=astro.config.mjs)
 
 ## 🎨 支持列表
 
@@ -45,7 +46,8 @@
   ✅ react<br />
   ✅ preact<br />
   ✅ solid<br />
-  ✅ svelte
+  ✅ svelte<br />
+  ✅ astro
 - 当前支持以下代码编辑器<br />
   [VSCode](https://code.visualstudio.com/) | [Visual Studio Code - Insiders](https://code.visualstudio.com/insiders/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
@@ -226,17 +228,17 @@ pnpm add code-inspector-plugin -D
 
   在 VSCode 中执行 `command + shift + p` 命令, 搜索并点击 `Shell Command: Install 'code' command in PATH`:
 
-    <img src="https://s3.bmp.ovh/imgs/2021/08/a99ec7b8e93f55fd.png" width="400px" />
+    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/vscode-command-line.png" width="400px" />
 
   如果出现如下弹窗，说明配置成功了:
 
-    <img src="https://s3.bmp.ovh/imgs/2021/08/c3d00a8efbb20feb.png" width="300px" />
+    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/command-line-success.png" width="300px" />
 
 - 3.使用功能
 
   在页面上按住组合键时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，点击一下将自动打开 IDE 并将光标定位到元素对应的代码位置。 (Mac 系统默认组合键是 `Option + Shift`；Window 的默认组合键是 `Alt + Shift`，在浏览器控制台会输出相关组合键提示)
 
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/a6c72278-d312-45b2-ab76-076a9837439e" width="700px" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/console-success.png" width="700px" />
 
 ## 👨‍💻 Contributors
 
@@ -248,7 +250,19 @@ pnpm add code-inspector-plugin -D
 任何使用问题可以加入 QQ 群 `769748484`、微信群或者添加作者微信 `zhoulx1688888` 进行咨询与反馈:
 
 <div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6f0c8197-21e3-48d7-b9db-ffeb0e0d4ba7" width="200" height="272" />
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/ce4e8328-a787-44f8-af9c-2331b73cffea" width="200" height="272" />
-  <img src="https://github.com/zh-lx/code-inspector/assets/73059627/28ebb97a-a114-4598-a6f2-0e45103284cc" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/qq-group.png" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-group.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-qrcode.jpg" width="200" height="272" />
+</div>
+
+## 💖 赞助
+
+赞助此项目可以帮助作者更好地创作。推荐使用爱发电赞助，这样你的头像可以出现在项目的赞助者列表中。
+
+- Afdian(爱发电): https://afdian.net/a/zhoulixiang
+- 支付宝或微信支付:
+
+<div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wxpay.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.jpg" width="180" height="272" />
 </div>

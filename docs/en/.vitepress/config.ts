@@ -29,6 +29,7 @@ export default defineConfig({
           { text: 'Changelog', link: '/more/changelog' },
           { text: 'Common Problems', link: '/more/question' },
           { text: 'Feedback', link: '/more/feedback' },
+          { text: 'Sponsor', link: '/more/sponsor' },
         ],
       },
     ],
@@ -59,6 +60,11 @@ export default defineConfig({
           {
             text: 'Svelte Demo',
             link: 'https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts',
+            target: '_blank',
+          },
+          {
+            text: 'Astro Demo',
+            link: 'https://stackblitz.com/edit/withastro-astro-f5xq1t?file=astro.config.mjs',
             target: '_blank',
           },
         ],

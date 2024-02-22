@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+
+- 【feat】Support usage in projects based on the `Astro` framework.
+
 ## 0.8.1
 
 - 【fix】Fixed the issue where specifying IDE as `code` cannot open VSCode when running multiple IDEs in Windows.
