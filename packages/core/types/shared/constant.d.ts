@@ -10,3 +10,4 @@ export declare const FormatFile = "{file}";
 export declare const FormatLine = "{line}";
 export declare const FormatColumn = "{column}";
 export declare const DefaultPathFormat: string;
+export declare const AstroToolbarFile = "\0astro:dev-toolbar";
