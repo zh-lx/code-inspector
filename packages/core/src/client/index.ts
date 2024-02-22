@@ -167,7 +167,15 @@ export class CodeInspectorComponent extends LitElement {
     }
     document.body.style.userSelect = 'none';
     // 获取元素信息
-    const paths = target.getAttribute(PathName) || '';
+    let paths = target.getAttribute(PathName) || '';
+    // Todo: transform astro inside
+    if (!paths && target.getAttribute('data-astro-source-file')) {
+      paths = `${target.getAttribute(
+        'data-astro-source-file'
+      )}:${target.getAttribute(
+        'data-astro-source-loc'
+      )}:${target.tagName.toLowerCase()}`;
+    }
     const segments = paths.split(':');
     const name = segments[segments.length - 1];
     const column = Number(segments[segments.length - 2]);
@@ -269,6 +277,11 @@ export class CodeInspectorComponent extends LitElement {
       for (let i = 0; i < nodePath.length; i++) {
         const node = nodePath[i];
         if (node.hasAttribute && node.hasAttribute(PathName)) {
+          targetNode = node;
+          break;
+        }
+        // Todo: transform astro inside
+        if (node.hasAttribute && node.hasAttribute('data-astro-source-file')) {
           targetNode = node;
           break;
         }

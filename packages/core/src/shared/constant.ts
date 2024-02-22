@@ -12,3 +12,5 @@ export const FormatFile = "{file}";
 export const FormatLine = "{line}";
 export const FormatColumn = "{column}";
 export const DefaultPathFormat = `${FormatFile}:${FormatLine}:${FormatColumn}`;
+
+export const AstroToolbarFile = '\0astro:dev-toolbar'

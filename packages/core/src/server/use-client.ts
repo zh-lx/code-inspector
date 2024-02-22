@@ -11,6 +11,7 @@ import {
   fileURLToPath,
   ViteVirtualModule_Client,
   ViteVirtualModule_EliminateVueWarning,
+  AstroToolbarFile,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -137,7 +138,10 @@ export async function getCodeWithWebComponent(
   recordSSREntry(record, file, code);
 
   // 注入消除 warning 代码
-  if (isJsTypeFile(file) && getFilenameWithoutExt(file) === record.entry) {
+  if (
+    (isJsTypeFile(file) && getFilenameWithoutExt(file) === record.entry) ||
+    file === AstroToolbarFile
+  ) {
     if (options.bundler === 'vite') {
       code = `import '${ViteVirtualModule_EliminateVueWarning}';\n${code}`;
     } else {
@@ -146,10 +150,11 @@ export async function getCodeWithWebComponent(
   }
   // 注入 web component 组件代码
   if (
-    isJsTypeFile(file) &&
-    [record.entry, record.nextJsEntry, record.ssrEntry].includes(
-      getFilenameWithoutExt(file)
-    )
+    (isJsTypeFile(file) &&
+      [record.entry, record.nextJsEntry, record.ssrEntry].includes(
+        getFilenameWithoutExt(file)
+      )) ||
+    file === AstroToolbarFile
   ) {
     if (options.bundler === 'vite') {
       code = `import '${ViteVirtualModule_Client}';\n${code}`;
