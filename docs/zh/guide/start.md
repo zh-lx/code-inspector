@@ -173,6 +173,22 @@ export default defineConfig({
 
 :::
 
+::: details 点击展开查看 astro 项目配置
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  vite: {
+    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+  },
+});
+```
+
+:::
+
 ### 2. 配置 vscode 命令行工具
 
 ::: tip Windows 或者其他 IDE 可跳过

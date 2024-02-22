@@ -173,6 +173,22 @@ export default defineConfig({
 
 :::
 
+::: details Click to expand configuration about: astro
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  vite: {
+    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+  },
+});
+```
+
+:::
+
 ### 2.Config VSCode
 
 ::: tip For Windows or other IDEs, you can skip this step

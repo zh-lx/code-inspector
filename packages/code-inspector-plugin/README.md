@@ -219,6 +219,23 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   </details>
 
+  <details>
+    <summary>Click to expand configuration about: <b>astro</b></summary>
+
+  ```js
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default defineConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+    },
+  });
+  ```
+
+  </details>
+
 - 2.Configuring VSCode Command Line Tool
 
   > **Tip:** Skip for Windows or other IDEs <br />

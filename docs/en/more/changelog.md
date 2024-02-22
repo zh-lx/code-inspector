@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+- 【optimize】Optimized the node server request method.
+
 ## 0.9.0
 
 - 【feat】Support usage in projects based on the `Astro` framework.

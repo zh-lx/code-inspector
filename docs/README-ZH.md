@@ -221,6 +221,23 @@ pnpm add code-inspector-plugin -D
 
   </details>
 
+  <details>
+    <summary>点击展开查看 <b>astro</b> 项目配置</summary>
+
+  ```js
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default defineConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
+    },
+  });
+  ```
+
+  </details>
+
 - 2.配置 vscode 命令行工具
 
   > **Tip:** Windows 或者其他 IDE 可跳过 <br />
