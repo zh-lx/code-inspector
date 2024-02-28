@@ -270,7 +270,7 @@ pnpm add code-inspector-plugin -D
 
 <div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/qq-group.png" width="200" height="272" />
-  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-group.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-group-0305.jpg" width="200" height="272" />
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wx-qrcode.jpg" width="200" height="272" />
 </div>
 
