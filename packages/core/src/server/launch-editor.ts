@@ -353,16 +353,16 @@ function guessEditor(_editor?: Editor) {
 
     if (process.platform === 'darwin') {
       const output = child_process.execSync('ps aux').toString();
-      const processNames = Object.keys(COMMON_EDITORS_OSX);
-      for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[i] as keyof typeof COMMON_EDITORS_OSX;
-        if (output.indexOf(processName) !== -1) {
-          if (customEditors?.includes(processName)) {
+      const editorNames = Object.keys(COMMON_EDITORS_OSX);
+      for (let i = 0; i < editorNames.length; i++) {
+        const editorName = editorNames[i] as keyof typeof COMMON_EDITORS_OSX;
+        if (output.indexOf(editorName) !== -1) {
+          if (customEditors?.includes(editorName)) {
             // 优先返回用户自定义
-            return [COMMON_EDITORS_OSX[processName]];
+            return [COMMON_EDITORS_OSX[editorName]];
           }
           if (!first) {
-            first = [COMMON_EDITORS_OSX[processName]];
+            first = [COMMON_EDITORS_OSX[editorName]];
           }
         }
       }
@@ -374,17 +374,20 @@ function guessEditor(_editor?: Editor) {
           'wmic process where "executablepath is not null" get executablepath'
         )
         .toString();
-      const runningProcesses = output.split('\r\n');
+      const runningProcesses = output.split('\r\n').map((item) => item.trim());
 
-      for (let i = 0; i < runningProcesses.length; i++) {
-        const processPath = runningProcesses[i].trim();
-        const processName = path.basename(processPath);
-        if (COMMON_EDITORS_WIN.indexOf(processName) !== -1) {
+      for (let i = 0; i < COMMON_EDITORS_WIN.length; i++) {
+        const editorName = COMMON_EDITORS_WIN[i].toLowerCase();
+        const process = runningProcesses.find((process) =>
+          process.toLowerCase().endsWith(`/${editorName}`)
+        );
+        if (process) {
+          const processName = path.basename(process);
           if (customEditors?.includes(processName)) {
-            return [COMMON_EDITORS_WIN_MAP[processName] || processPath];
+            return [COMMON_EDITORS_WIN_MAP[processName] || process];
           }
           if (!first) {
-            first = [COMMON_EDITORS_WIN_MAP[processName] || processPath];
+            first = [COMMON_EDITORS_WIN_MAP[processName] || process];
           }
         }
       }
@@ -395,19 +398,17 @@ function guessEditor(_editor?: Editor) {
       const output = child_process
         .execSync('ps -eo comm --sort=comm')
         .toString();
-      const processNames = Object.keys(COMMON_EDITORS_LINUX);
+      const editorNames = Object.keys(COMMON_EDITORS_LINUX);
       let first: any;
-      for (let i = 0; i < processNames.length; i++) {
-        const processName = processNames[
-          i
-        ] as keyof typeof COMMON_EDITORS_LINUX;
-        if (output.indexOf(processName) !== -1) {
-          if (customEditors?.includes(processName)) {
+      for (let i = 0; i < editorNames.length; i++) {
+        const editorName = editorNames[i] as keyof typeof COMMON_EDITORS_LINUX;
+        if (output.indexOf(editorName) !== -1) {
+          if (customEditors?.includes(editorName)) {
             // 优先返回用户自定义
-            return [COMMON_EDITORS_LINUX[processName]];
+            return [COMMON_EDITORS_LINUX[editorName]];
           }
           if (!first) {
-            first = [COMMON_EDITORS_LINUX[processName]];
+            first = [COMMON_EDITORS_LINUX[editorName]];
           }
         }
       }
