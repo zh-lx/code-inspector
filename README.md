@@ -3,7 +3,7 @@
 
 <p align="center">
   <h2>code-inspector</h2>
-  <span>English Docs</span> | <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Documentation Site</a>
+  <a href="https://inspector.fe-dev.cn">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Documentation</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)
@@ -285,3 +285,9 @@ Sponsor this project to support my better creation. It is recommended to use afd
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wxpay.jpg" width="200" height="272" />
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.jpg" width="180" height="272" />
 </div>
+
+Thanks to the following sponsors:
+
+<a href="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.sponsorkit/sponsors.svg">
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/sponsorkit/sponsors.svg">
+</a>

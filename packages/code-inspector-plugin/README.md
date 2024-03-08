@@ -3,7 +3,7 @@
 
 <p align="center">
   <h2>code-inspector</h2>
-  <span>English Docs</span> | <a href="https://github.com/zh-lx/code-inspector/blob/main/docs/README-ZH.md">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Documentation Site</a>
+  <a href="https://inspector.fe-dev.cn">中文文档</a> | <a href="https://inspector.fe-dev.cn/en">Documentation</a>
 </p>
 
 [![NPM version](https://img.shields.io/npm/v/code-inspector-plugin.svg)](https://www.npmjs.com/package/code-inspector-plugin)

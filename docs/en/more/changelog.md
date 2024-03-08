@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3
+
+- 【feat】Optimized IDE prioritization for simultaneously opening multiple IDEs on Windows
+- 【fix】Fixed the Issue of failure to automatically recognize IDE path with Chinese Characters on Windows
+
 ## 0.9.2
 
 - 【fix】Fixed the issue of being unable to open the source code in StackBlitz.
