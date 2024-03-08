@@ -378,8 +378,8 @@ function guessEditor(_editor?: Editor) {
 
       for (let i = 0; i < COMMON_EDITORS_WIN.length; i++) {
         const editorName = COMMON_EDITORS_WIN[i].toLowerCase();
-        const process = runningProcesses.find((process) =>
-          process.toLowerCase().endsWith(`/${editorName}`)
+        const process = runningProcesses.find(
+          (process) => path.basename(process).toLowerCase() === editorName
         );
         if (process) {
           const processName = path.basename(process);
