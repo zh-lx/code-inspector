@@ -12,6 +12,13 @@ export type RecordInfo = {
     findPort?: Promise<number>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
+export type UnsafeLifeCycle = {
+    /**
+     * @zh 接收到唤起请求时的生命周期
+     * @en life cycle when an evocation request is received
+     */
+    afterReceiveRequestWithWakeUp?: () => void;
+};
 export type CodeOptions = {
     /**
      * @zh 指定项目的打包器
@@ -79,4 +86,9 @@ export type CodeOptions = {
      * @en Customize the path when open the IDE. Default value is "{file}:{line}:{column}", where {xx} represents template characters.
      */
     pathFormat?: string | string[];
+    /**
+     * @zh 生命周期定义
+     * @en life cycle definition
+     */
+    UNSAFE_lifeCycle?: UnsafeLifeCycle;
 };

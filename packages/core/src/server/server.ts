@@ -7,6 +7,7 @@ import type { CodeOptions, RecordInfo } from '../shared';
 
 export function createServer(callback: (port: number) => any, options?: CodeOptions) {
   const server = http.createServer((req: any, res: any) => {
+    options?.UNSAFE_lifeCycle?.afterReceiveRequestWithWakeUp?.();
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
     const file = decodeURIComponent(params.get('file') as string);
