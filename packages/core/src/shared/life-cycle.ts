@@ -3,7 +3,7 @@ import { TLifeCycle, ELifeCycle, CodeOptions } from './type'
 class LifeCycle {
   lifeCycle: TLifeCycle | undefined;
 
-  loopLifeCycle() {};
+  noopLifeCycle() {};
 
   init(options: CodeOptions) {
     if (options.lifeCycle) {
@@ -15,7 +15,7 @@ class LifeCycle {
     if (this.lifeCycle?.[lifeCycleName]) {
       return this.lifeCycle[lifeCycleName]
     }
-    return this.loopLifeCycle
+    return this.noopLifeCycle
   }
 
 
