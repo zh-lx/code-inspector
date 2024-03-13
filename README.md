@@ -288,6 +288,6 @@ Sponsor this project to support my better creation. It is recommended to use afd
 
 Thanks to the following sponsors:
 
-<a href="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.sponsorkit/sponsors.svg">
+<a href="https://cdn.jsdelivr.net/gh/zh-lx/static-img/sponsorkit/sponsors.svg">
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/sponsorkit/sponsors.svg">
 </a>
