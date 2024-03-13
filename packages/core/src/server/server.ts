@@ -3,11 +3,13 @@ import http from 'http';
 import portFinder from 'portfinder';
 import launchEditor from './launch-editor';
 import { DefaultPort } from '../shared/constant';
-import type { CodeOptions, RecordInfo } from '../shared';
+import { ELifeCycle, type CodeOptions, type RecordInfo } from '../shared';
+import lifeCycle from '../shared/life-cycle';
 
 export function createServer(callback: (port: number) => any, options?: CodeOptions) {
   const server = http.createServer((req: any, res: any) => {
-    options?.UNSAFE_lifeCycle?.afterReceiveRequestWithWakeUp?.();
+    // 调用 UNSAFE_AfterReceiveRequestWithWakeUp 生命周期
+    lifeCycle.runLifeCycle(ELifeCycle.UNSAFE_AfterReceiveRequestWithWakeUp);
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
     const file = decodeURIComponent(params.get('file') as string);

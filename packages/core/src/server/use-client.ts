@@ -1,6 +1,7 @@
 import path, { isAbsolute, dirname } from 'path';
 import fs from 'fs';
 import { startServer } from './server';
+import lifeCycle from '../shared/life-cycle';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
@@ -115,6 +116,8 @@ export async function getCodeWithWebComponent(
   code: string,
   record: RecordInfo
 ) {
+  // lifeCycle init
+  lifeCycle.init(options);
   // start server
   await startServer(options, record);
 

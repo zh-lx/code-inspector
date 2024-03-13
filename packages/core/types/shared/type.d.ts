@@ -12,12 +12,19 @@ export type RecordInfo = {
     findPort?: Promise<number>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
-export type UnsafeLifeCycle = {
+export declare enum ELifeCycle {
+    /**
+     * @zh 接收到唤起请求时的生命周期(因参数及生命周期名未确定，命名为UNSAFE)
+     * @en life cycle when an evocation request is received
+     */
+    UNSAFE_AfterReceiveRequestWithWakeUp = "UNSAFE_afterReceiveRequestWithWakeUp"
+}
+export type TLifeCycle = {
     /**
      * @zh 接收到唤起请求时的生命周期
      * @en life cycle when an evocation request is received
      */
-    afterReceiveRequestWithWakeUp?: () => void;
+    [ELifeCycle.UNSAFE_AfterReceiveRequestWithWakeUp]?: () => void;
 };
 export type CodeOptions = {
     /**
@@ -90,5 +97,5 @@ export type CodeOptions = {
      * @zh 生命周期定义
      * @en life cycle definition
      */
-    UNSAFE_lifeCycle?: UnsafeLifeCycle;
+    lifeCycle?: TLifeCycle;
 };
