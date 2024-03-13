@@ -20,6 +20,21 @@ export type RecordInfo = {
   findPort?: Promise<number>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
+
+type SourceInfo = {
+  file: string;
+  line: number;
+  column: number;
+}
+
+export type Hooks = {
+  /**
+   * @zh server 端接收到 DOM 源代码定位请求后的钩子函数
+   * @en The hook triggered when the server receives a request to locate the DOM source code.
+   */
+  afterInspectRequest?: (options: CodeOptions, source: SourceInfo) => void;
+}
+
 export type CodeOptions = {
   /**
    * @zh 指定项目的打包器
@@ -87,4 +102,9 @@ export type CodeOptions = {
    * @en Customize the path when open the IDE. Default value is "{file}:{line}:{column}", where {xx} represents template characters.
    */
   pathFormat?: string | string[];
+  /**
+   * @zh 钩子函数
+   * @en hooks
+   */
+  hooks?: Hooks;
 };
