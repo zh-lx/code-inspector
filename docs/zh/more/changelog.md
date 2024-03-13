@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.10.0
+
+- 【feat】增加 hooks 回调函数配置
+- 【fix】优化关于 `data-insp-path` 的告警问题
+
 ## 0.9.3
 
 - 【feat】优化在 windows 系统上同时打开多个 IDE 时唤起的优先级

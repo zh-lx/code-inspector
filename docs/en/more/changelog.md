@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0
+
+- 【feat】 Added configuration for hooks callback functions.
+- 【fix】 Optimized the warning issue regarding `data-insp-path`.
+
 ## 0.9.3
 
 - 【feat】Optimized IDE prioritization for simultaneously opening multiple IDEs on Windows

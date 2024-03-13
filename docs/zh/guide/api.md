@@ -5,15 +5,16 @@
 ```typescript
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-codeInspectorPlugin({
+const options = {
   bundler: 'vite',
-  hotKeys: ['altKey', 'shiftKey'],
-  showSwitch: false,
-  autoToggle: false,
-  needEnvInspector: false,
-  hideConsole: false,
-  editor: undefined,
-});
+};
+
+codeInspectorPlugin(options);
+
+interface CodeInspectorOptins {
+  bunlder: 'vite' | 'webpack' | 'rspack';
+  // 其他属性见下方说明...
+}
 ```
 
 ## bundler
@@ -103,15 +104,7 @@ codeInspectorPlugin({
 - 类型：`'reuse' | 'new'`
 - 说明：指定打开 IDE 窗口的方式，默认会自动复用当前窗口，传 `reuse` 则复用当前窗口；传 `new` 则打开新窗口。
 
-## pathFormat <Badge type="tip" text="0.8.0+" vertical="middle" />
-
-> 团队协作时推荐在 `.env.local` 中使用 `CODE_INSPECTOR_FORMAT_PATH` 定义本功能，避免影响其他人使用
-
-- 可选项
-- 类型：`string | string[]`
-- 说明：指定打开 IDE 文件时的命令格式，默认值为 `{file}:{line}:{column}`，其中， `{file}`、`{line}`、`{column}` 会作为模版被动态替换。
-
-## needEnvInspector
+## needEnvInspector <Badge type="danger" text="已废弃" vertical="middle" />
 
 - 可选项。默认值为 `false`
 - 类型：`boolean`
@@ -128,3 +121,34 @@ codeInspectorPlugin({
 - 可选项(仅对 `webpack/rspack` 生效)。用于提升编译时性能
 - 类型：`boolean`
 - 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(设置此项为 `true` 时，可能导致无法启动 node server 引起的代码定位请求失败，慎用)。<b>升级到 `0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段。</b>
+
+## hooks <Badge type="tip" text="0.10.0+" vertical="middle" />
+
+- 可选项。默认值为 `null`
+- 类型如下：
+  ```ts
+  type SourceInfo = {
+    file: string;
+    line: number;
+    column: number;
+  };
+  type Hooks = {
+    /*
+     * server 端接收到 DOM 源代码定位请求后的钩子函数
+     */
+    afterInspectRequest?: (
+      options: CodeInspectorOptions,
+      source: SourceInfo
+    ) => void;
+  };
+  // 例如
+  codeInspectorPlugin({
+    bundler: 'vite',
+    hooks: {
+      afterInspectRequest: (options, source) => {
+        console.log(source);
+      },
+    },
+  });
+  ```
+- 说明：设置 `code-inspector-plugin` 某些生命周期的 hooks 回调

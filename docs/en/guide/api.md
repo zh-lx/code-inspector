@@ -1,20 +1,20 @@
 # API
 
-## Parameters
-
 The parameters of `codeInspectorPlugin` are as follows:
 
 ```typescript
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-codeInspectorPlugin({
+const options = {
   bundler: 'vite',
-  showSwitch: false,
-  hotKeys: ['altKey', 'shiftKey'],
-  autoToggle: true,
-  needEnvInspector: false,
-  hideConsole: false,
-});
+};
+
+codeInspectorPlugin(options);
+
+interface CodeInspectorOptins {
+  bunlder: 'vite' | 'webpack' | 'rspack';
+  // For other keys, see the instructions below...
+}
 ```
 
 ## bundler
@@ -104,7 +104,7 @@ codeInspectorPlugin({
 - Type: `'reuse' | 'new'`
 - Description: Specifies the way to open the IDE window. By default, it will automatically reuse the current window. Passing `reuse` will reuse the current window; passing `new` will open a new window.
 
-## needEnvInspector
+## needEnvInspector <Badge type="danger" text="deprecated" vertical="middle" />
 
 - Optional. Default value is `false`
 - Type: `boolean`
@@ -121,3 +121,34 @@ codeInspectorPlugin({
 - Optional (Effective only for `webpack/rspack`). Used to improve compilation performance.
 - Type: `boolean`
 - Description: Forcefully set the caching strategy for the injection loader of the interaction logic in `webpack/rspack`; when true, fully cache; when false, do not cache; if not set, automatically determine to cache only the entry file and not cache other files. (Setting this to `true` may lead to failure in locating code requests caused by the inability to start the node server. Use with caution.) <b>After upgrading to version 0.5.1, the cache strategy has been optimized, and it is no longer necessary to set this field.</b>
+
+## Hooks <Badge type="tip" text="0.10.0+" vertical="middle" />
+
+- Optional. Default value is `null`.
+- Type is as follows:
+  ```ts
+  type SourceInfo = {
+    file: string;
+    line: number;
+    column: number;
+  };
+  type Hooks = {
+    /*
+     * Hook function after the server-side receives a request for locating DOM source code
+     */
+    afterInspectRequest?: (
+      options: CodeInspectorOptions,
+      source: SourceInfo
+    ) => void;
+  };
+  // Example
+  codeInspectorPlugin({
+    bundler: 'vite',
+    hooks: {
+      afterInspectRequest: (options, source) => {
+        console.log(source);
+      },
+    },
+  });
+  ```
+- Description: Sets callbacks for certain lifecycle hooks of `code-inspector-plugin`.
