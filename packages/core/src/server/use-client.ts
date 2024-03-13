@@ -64,22 +64,26 @@ export function getEliminateVueWarningCode() {
   return `
   ;/* eslint-disable */
   (function(){
-    if (globalThis.__code_inspector_warning) {
+    if (globalThis.__code_inspector_console) {
       return;
     }
-    var originWarn = console.warn;
-    var warning = "Extraneous non-props attributes";
+    globalThis.__code_inspector_console = true;
     var path = "${PathName}";
-    console.warn = function () {
-      globalThis.__code_inspector_warning = true;
-      var args = Array.prototype.slice.call(arguments);
-      var firstParam = args && args[0];
-      if (typeof firstParam === 'string' && firstParam.indexOf(warning) !== -1 && firstParam.indexOf(path) !== -1) {
-        return;
-      } else {
-        originWarn.apply(null, args);
-      }
+    var wraps = {
+      warn: console.warn,
+      error: console.error,
     };
+    for (var key in wraps) {
+      console[key] = function () {
+        var args = Array.prototype.slice.call(arguments);
+        var firstParam = args && args[0];
+        if (typeof firstParam === 'string' && firstParam.indexOf(path) !== -1) {
+          return;
+        } else {
+          wraps[key].apply(null, args);
+        }
+      }
+    }
   })();
   /* eslint-disable */
   `.replace(/\n/g, '');
