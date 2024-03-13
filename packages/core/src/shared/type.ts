@@ -21,20 +21,18 @@ export type RecordInfo = {
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 
-export enum ELifeCycle {
-  /**
-   * @zh 接收到唤起请求时的生命周期(因参数及生命周期名未确定，命名为UNSAFE)
-   * @en life cycle when an evocation request is received
-   */
-  UNSAFE_AfterReceiveRequestWithWakeUp = 'UNSAFE_afterReceiveRequestWithWakeUp',
+type SourceInfo = {
+  file: string;
+  line: number;
+  column: number;
 }
 
-export type TLifeCycle = {
+export type Hooks = {
   /**
-   * @zh 接收到唤起请求时的生命周期
-   * @en life cycle when an evocation request is received
+   * @zh server 端接收到 DOM 源代码定位请求后的钩子函数
+   * @en The hook triggered when the server receives a request to locate the DOM source code.
    */
-  [ELifeCycle.UNSAFE_AfterReceiveRequestWithWakeUp]?: () => void;
+  afterInspectRequest?: (options: CodeOptions, source: SourceInfo) => void;
 }
 
 export type CodeOptions = {
@@ -104,10 +102,9 @@ export type CodeOptions = {
    * @en Customize the path when open the IDE. Default value is "{file}:{line}:{column}", where {xx} represents template characters.
    */
   pathFormat?: string | string[];
-
   /**
-   * @zh 生命周期定义
-   * @en life cycle definition
+   * @zh 钩子函数
+   * @en hooks
    */
-  lifeCycle?: TLifeCycle
+  hooks?: Hooks;
 };

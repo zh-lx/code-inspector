@@ -3,13 +3,10 @@ import http from 'http';
 import portFinder from 'portfinder';
 import launchEditor from './launch-editor';
 import { DefaultPort } from '../shared/constant';
-import { ELifeCycle, type CodeOptions, type RecordInfo } from '../shared';
-import lifeCycle from '../shared/life-cycle';
+import type { CodeOptions, RecordInfo } from '../shared';
 
 export function createServer(callback: (port: number) => any, options?: CodeOptions) {
   const server = http.createServer((req: any, res: any) => {
-    // 调用 UNSAFE_AfterReceiveRequestWithWakeUp 生命周期
-    lifeCycle.runLifeCycle(ELifeCycle.UNSAFE_AfterReceiveRequestWithWakeUp);
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
     const file = decodeURIComponent(params.get('file') as string);
@@ -22,7 +19,11 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
       'Access-Control-Allow-Private-Network': 'true',
     });
     res.end('ok');
+    // 调用 hooks
+    options?.hooks?.afterInspectRequest?.(options, { file, line, column });
+    // 打开 IDE
     launchEditor(file, line, column, options?.editor, options?.openIn, options?.pathFormat);
+    
   });
 
   // 寻找可用接口
