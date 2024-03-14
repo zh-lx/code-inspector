@@ -46,7 +46,7 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
   
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
-      inspector.hotkeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
+      inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
