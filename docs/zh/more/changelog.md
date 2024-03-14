@@ -3,6 +3,7 @@
 ## 0.10.0
 
 - 【feat】增加 hooks 回调函数配置
+- 【fix】修复 `hotKeys` 配置不生效的问题
 - 【fix】优化关于 `data-insp-path` 的告警问题
 
 ## 0.9.3
