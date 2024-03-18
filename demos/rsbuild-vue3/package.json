@@ -1,0 +1,19 @@
+{
+  "name": "rsbuild-vue3",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "rsbuild dev --open",
+    "build": "rsbuild build",
+    "preview": "rsbuild preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.19"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^0.4.15",
+    "@rsbuild/plugin-vue": "^0.4.15",
+    "code-inspector-plugin": "^0.10.0",
+    "typescript": "^5.4.2"
+  }
+}

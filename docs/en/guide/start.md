@@ -80,6 +80,30 @@ module.exports =  = {
 
 :::
 
+::: details Click to expand configuration about: rsbuild
+
+```js
+// rsbuild.config.js
+import { defineConfig } from '@rsbuild/core';
+const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+export default defineConfig({
+  // ...other config
+  tools: {
+    rspack: {
+      plugins: [
+        codeInspectorPlugin({
+          bundler: "rspack"
+        })
+      ]
+    }
+  }
+});
+
+```
+
+:::
+
 ::: details Click to expand configuration about: vue-cli
 
 ```js
