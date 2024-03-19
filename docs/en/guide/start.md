@@ -93,13 +93,12 @@ export default defineConfig({
     rspack: {
       plugins: [
         codeInspectorPlugin({
-          bundler: "rspack"
-        })
-      ]
-    }
-  }
+          bundler: 'rspack',
+        }),
+      ],
+    },
+  },
 });
-
 ```
 
 :::

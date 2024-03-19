@@ -38,7 +38,7 @@
 - 当前支持以下打包工具<br />
   ✅ webpack<br />
   ✅ vite<br />
-  ✅ rspack<br />
+  ✅ rspack / rsbuild<br />
   ✅ next.js / Nuxt / Umijs 等
 - 当前支持以下 Web 框架<br />
   ✅ vue2<br />
@@ -119,6 +119,29 @@ pnpm add code-inspector-plugin -D
       }),
       // other plugins...
     ],
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>点击展开查看 <b>rsbuild</b> 项目配置</summary>
+
+  ```js
+  // rsbuild.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+  module.exports = {
+    // other config...
+    tools: {
+      rspack: {
+        plugins: [
+          codeInspectorPlugin({
+            bundler: 'rspack',
+          }),
+        ],
+      },
+    },
   };
   ```
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1
+
+- 【fix】 Optimized the warning issue regarding `data-insp-path`.
+
 ## 0.10.0
 
 - 【feat】 Added configuration for hooks callback functions.

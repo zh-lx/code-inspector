@@ -38,7 +38,7 @@ The following are which compilers, web frameworks and editors we supported now:
 - The following bundlers are currently supported:<br />
   ✅ webpack<br />
   ✅ vite<br />
-  ✅ rspack<br />
+  ✅ rspack / rsbuild<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -119,6 +119,29 @@ Please check here for more usage information: [code-inspector-plugin configurati
       }),
       // other plugins...
     ],
+  };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>rsbuild</b></summary>
+
+  ```js
+  // rsbuild.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+  module.exports = {
+    // other config...
+    tools: {
+      rspack: {
+        plugins: [
+          codeInspectorPlugin({
+            bundler: 'rspack',
+          }),
+        ],
+      },
+    },
   };
   ```
 
