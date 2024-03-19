@@ -137,13 +137,14 @@ Please check here for more usage information: [code-inspector-plugin configurati
       rspack: {
         plugins: [
           codeInspectorPlugin({
-            bundler: "rspack"
-          })
-        ]
-      }
-    }
+            bundler: 'rspack',
+          }),
+        ],
+      },
+    },
   };
   ```
+
   </details>
 
   <details>
@@ -298,7 +299,7 @@ For Chinese users, you can join the QQ group `769748484` or add the author's Wei
 
 ## 💖 Sponsor
 
-Sponsor this project to support my better creation. It is recommended to use afdian to subscribe, and your avatar will appear in this project.
+Sponsoring this project can help the author create better. If you needed, you can contact the author to have your avatar added to the list of sponsors.
 
 - Afdian(爱发电): https://afdian.net/a/zhoulixiang
 - Alipay or WeChatPay:
