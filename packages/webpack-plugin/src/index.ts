@@ -35,6 +35,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       use: [
         {
           loader: path.resolve(compatibleDirname, `./loader.js`),
+          options,
         },
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),

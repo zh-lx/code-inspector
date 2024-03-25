@@ -1,5 +1,6 @@
 import path from 'path';
 import { FormatColumn, FormatFile, FormatLine, JsFileExtList } from './constant';
+import { EscapeTags } from './type';
 
 // 将 import.meta.url 转换为 __dirname: 兼容 mac linux 和 windows
 export function fileURLToPath(fileURL: string) {
@@ -75,4 +76,14 @@ export function formatOpenPath(
     });
   }
   return [path];
+}
+
+export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
+  return escapeTags.some(escapeTag => {
+    if (typeof escapeTag === 'string') {
+      return escapeTag.toLowerCase() === tag.toLowerCase();
+    } else {
+      return escapeTag.test(tag) || escapeTag.test(tag.toLowerCase());
+    }
+  }) 
 }

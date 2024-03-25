@@ -27,6 +27,8 @@ type SourceInfo = {
   column: number;
 }
 
+export type EscapeTags = (string | RegExp)[];
+
 export type Hooks = {
   /**
    * @zh server 端接收到 DOM 源代码定位请求后的钩子函数
@@ -107,4 +109,9 @@ export type CodeOptions = {
    * @en hooks
    */
   hooks?: Hooks;
+  /**
+   * @zh 不注入 `data-insp-path` 的标签
+   * @en tags without injecting data-insp-path
+   */
+  escapeTags?: EscapeTags;
 };
