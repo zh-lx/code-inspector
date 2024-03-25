@@ -152,3 +152,9 @@ interface CodeInspectorOptins {
   });
   ```
 - 说明：设置 `code-inspector-plugin` 某些生命周期的 hooks 回调
+
+## escapeTags <Badge type="tip" text="0.11.0+" vertical="middle" />
+
+- 可选项
+- 类型：`(string | RegExp)[]`
+- 说明：满足上述数组的标签，不会在编译时注入 `data-insp-path` 属性，以用于解决某些场景的告警问题。

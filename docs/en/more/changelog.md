@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.0
+
+- 【feat】 Added `escapeTags` property to support custom tags without injecting `data-insp-path`
+- 【feat】 Optimized request method to prioritize `http` requests over `img` requests
+
 ## 0.10.1
 
 - 【fix】 Optimized the warning issue regarding `data-insp-path`.

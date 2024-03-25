@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.11.0
+
+- 【feat】新增 `escapeTags` 属性，支持自定义不注入 `data-insp-path` 的标签
+- 【feat】优化请求方式为先 `http` 请求，后 `img` 请求
+
 ## 0.10.1
 
 - 【fix】优化关于 `data-insp-path` 的告警问题

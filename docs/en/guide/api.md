@@ -152,3 +152,9 @@ interface CodeInspectorOptins {
   });
   ```
 - Description: Sets callbacks for certain lifecycle hooks of `code-inspector-plugin`.
+
+## escapeTags <Badge type="tip" text="0.11.0+" vertical="middle" />
+
+- Optional.
+- Type: `(string | RegExp)[]`
+- Description: Tags that match the above array will not inject the `data-insp-path` attribute during compilation, to address alerting issues in certain scenarios.
