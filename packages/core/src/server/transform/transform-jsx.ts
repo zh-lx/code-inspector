@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { PathName } from '../../shared/constant';
+import { PathName, EscapeTags, isEscapeTags } from '../../shared';
 import vueJsxPlugin from '@vue/babel-plugin-jsx';
 // @ts-ignore
 import { parse, traverse } from '@babel/core';
@@ -10,23 +10,7 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-ignore
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
-const escapeTags = [
-  'style',
-  'script',
-  'template',
-  'transition',
-  'keepalive',
-  'keep-alive',
-  'component',
-  'slot',
-  'teleport',
-  'transition-group',
-  'transitiongroup',
-  'suspense',
-  'fragment',
-];
-
-export function transformJsx(content: string, filePath: string) {
+export function transformJsx(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
   const ast = parse(content, {
@@ -48,7 +32,7 @@ export function transformJsx(content: string, filePath: string) {
       if (
         node.type === 'JSXElement' &&
         nodeName &&
-        escapeTags.indexOf(nodeName.toLowerCase()) === -1
+        !isEscapeTags(escapeTags, nodeName)
       ) {
         if (
           attributes.some(

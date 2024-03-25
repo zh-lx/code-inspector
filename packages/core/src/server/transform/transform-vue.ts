@@ -1,27 +1,11 @@
 import MagicString from 'magic-string';
-import { PathName } from '../../shared/constant';
+import { EscapeTags, PathName, isEscapeTags } from '../../shared';
 import type { TemplateChildNode, NodeTransform } from '@vue/compiler-dom';
 import { parse, transform } from '@vue/compiler-dom';
 
-const escapeTags = [
-  'style',
-  'script',
-  'template',
-  'transition',
-  'keepalive',
-  'keep-alive',
-  'component',
-  'slot',
-  'teleport',
-  'transition-group',
-  'transitiongroup',
-  'suspense',
-  'fragment',
-];
-
 const VueElementType = 1;
 
-export function transformVue(content: string, filePath: string) {
+export function transformVue(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
   const ast = parse(content, {
@@ -34,7 +18,7 @@ export function transformVue(content: string, filePath: string) {
         if (
           !node.loc.source.includes(PathName) &&
           node.type === VueElementType &&
-          escapeTags.indexOf(node.tag.toLowerCase()) === -1
+          !isEscapeTags(escapeTags, node.tag)
         ) {
           // 向 dom 上添加一个带有 filepath/row/column 的属性
           const insertPosition = node.loc.start.offset + node.tag.length + 1;

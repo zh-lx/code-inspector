@@ -11,6 +11,8 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   this.cacheable && this.cacheable(true);
   const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource);
+  const options = this.query;
+  const { escapeTags = [] } = options || {};
 
   // jsx 语法
   const isJSX =
@@ -18,7 +20,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
   if (isJSX) {
-    return transformCode({ content, filePath, fileType: 'jsx' });
+    return transformCode({ content, filePath, fileType: 'jsx', escapeTags });
   }
 
   // vue jsx
@@ -41,6 +43,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
         content: script,
         filePath,
         fileType: 'jsx',
+        escapeTags,
       });
       content = content.replace(script, newScript);
     }
@@ -54,13 +57,13 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     params.get('type') !== 'script' &&
     params.get('raw') === null;
   if (isVue) {
-    return transformCode({ content, filePath, fileType: 'vue' });
+    return transformCode({ content, filePath, fileType: 'vue', escapeTags });
   }
 
   // svelte
   const isSvelte = filePath.endsWith('.svelte');
   if (isSvelte) {
-    return transformCode({ content, filePath, fileType: 'svelte' });
+    return transformCode({ content, filePath, fileType: 'svelte', escapeTags });
   }
 
   return content;

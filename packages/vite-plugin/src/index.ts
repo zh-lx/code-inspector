@@ -81,6 +81,8 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         return code;
       }
 
+      const { escapeTags = [] } = options || {};
+
       // jsx
       const isJsx =
         isJsTypeFile(filePath) ||
@@ -89,7 +91,12 @@ export function ViteCodeInspectorPlugin(options?: Options) {
             params.get('lang') === 'tsx' ||
             params.get('lang') === 'jsx'));
       if (isJsx) {
-        return transformCode({ content: code, filePath, fileType: 'jsx' });
+        return transformCode({
+          content: code,
+          filePath,
+          fileType: 'jsx',
+          escapeTags,
+        });
       }
 
       // vue
@@ -98,13 +105,23 @@ export function ViteCodeInspectorPlugin(options?: Options) {
         params.get('type') !== 'style' &&
         params.get('raw') === null;
       if (isVue) {
-        return transformCode({ content: code, filePath, fileType: 'vue' });
+        return transformCode({
+          content: code,
+          filePath,
+          fileType: 'vue',
+          escapeTags,
+        });
       }
 
       // svelte
       const isSvelte = filePath.endsWith('.svelte');
       if (isSvelte) {
-        return transformCode({ content: code, filePath, fileType: 'svelte' });
+        return transformCode({
+          content: code,
+          filePath,
+          fileType: 'svelte',
+          escapeTags,
+        });
       }
 
       return code;

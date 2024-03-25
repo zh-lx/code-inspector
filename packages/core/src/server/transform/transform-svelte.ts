@@ -1,24 +1,8 @@
 import MagicString from 'magic-string';
-import { PathName } from '../../shared/constant';
+import { EscapeTags, PathName, isEscapeTags } from '../../shared';
 import { parse as parseSvelte, walk } from 'svelte/compiler';
 
-const escapeTags = [
-  'style',
-  'script',
-  'template',
-  'transition',
-  'keepalive',
-  'keep-alive',
-  'component',
-  'slot',
-  'teleport',
-  'transition-group',
-  'transitiongroup',
-  'suspense',
-  'fragment',
-];
-
-export function transformSvelte(content: string, filePath: string) {
+export function transformSvelte(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
   const html = parseSvelte(content).html;
@@ -27,7 +11,7 @@ export function transformSvelte(content: string, filePath: string) {
     enter(node: any) {
       if (
         node.type === 'Element' &&
-        escapeTags.indexOf(node.name.toLowerCase()) === -1 &&
+        !isEscapeTags(escapeTags, node.name) &&
         !node?.attributes?.some((attr: any) => attr?.name === PathName)
       ) {
         const insertPosition = node.start + node.name.length + 1;
