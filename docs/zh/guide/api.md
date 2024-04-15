@@ -158,3 +158,9 @@ interface CodeInspectorOptins {
 - 可选项
 - 类型：`(string | RegExp)[]`
 - 说明：满足上述数组的标签，不会在编译时注入 `data-insp-path` 属性，以用于解决某些场景的告警问题。
+
+## hideDomPathAttr <Badge type="tip" text="0.12.0+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean`。默认值 `false`
+- 说明：是否隐藏 DOM 元素上的 `data-insp-path` 属性

@@ -158,3 +158,9 @@ interface CodeInspectorOptins {
 - Optional.
 - Type: `(string | RegExp)[]`
 - Description: Tags that match the above array will not inject the `data-insp-path` attribute during compilation, to address alerting issues in certain scenarios.
+
+## hideDomPathAttr <Badge type="tip" text="0.12.0+" vertical="middle" />
+
+- Optional
+- Type: `boolean`. Default value `false`
+- Description: Whether to hide the `data-insp-path` attribute on DOM elements.
