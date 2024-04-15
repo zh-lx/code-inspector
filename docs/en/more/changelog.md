@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.0
+
+- 【feat】 Added `hideDomPathAttr` to hide the `data-insp-path` attribute on the DOM, improving DOM screening efficiency.
+- 【feat】 Removed file path validation in Windows systems.
+
 ## 0.11.0
 
 - 【feat】 Added `escapeTags` property to support custom tags without injecting `data-insp-path`
