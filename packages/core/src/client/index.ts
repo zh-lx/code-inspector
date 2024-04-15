@@ -20,6 +20,10 @@ const WindowsHotKeyMap = {
   shiftKey: '⇧Shift',
 };
 
+interface CodeInspectorHtmlElement extends HTMLElement {
+  'data-insp-path': string;
+}
+
 export class CodeInspectorComponent extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
@@ -169,7 +173,7 @@ export class CodeInspectorComponent extends LitElement {
     }
     document.body.style.userSelect = 'none';
     // 获取元素信息
-    let paths = target.getAttribute(PathName) || '';
+    let paths = target.getAttribute(PathName) || (target as CodeInspectorHtmlElement)[PathName] || '';
     // Todo: transform astro inside
     if (!paths && target.getAttribute('data-astro-source-file')) {
       paths = `${target.getAttribute(
@@ -298,7 +302,7 @@ export class CodeInspectorComponent extends LitElement {
       // 寻找第一个有 data-insp-path 属性的元素
       for (let i = 0; i < nodePath.length; i++) {
         const node = nodePath[i];
-        if (node.hasAttribute && node.hasAttribute(PathName)) {
+        if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
           targetNode = node;
           break;
         }

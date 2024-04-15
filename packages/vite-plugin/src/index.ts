@@ -5,10 +5,10 @@ import {
   getCodeWithWebComponent,
   RecordInfo,
   isJsTypeFile,
-  getEliminateVueWarningCode,
+  getPrependCode,
   getClientInjectCode,
-  ViteVirtualModule_Client,
-  ViteVirtualModule_EliminateVueWarning,
+  ViteVirtualModule_ClientCode,
+  ViteVirtualModule_PrependCode,
   startServer,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
@@ -50,17 +50,17 @@ export function ViteCodeInspectorPlugin(options?: Options) {
       if (!record.port) {
         await startServer(options, record);
       }
-      if (id === ViteVirtualModule_EliminateVueWarning) {
-        return `\0${ViteVirtualModule_EliminateVueWarning}`;
-      } else if (id === ViteVirtualModule_Client) {
-        return `\0${ViteVirtualModule_Client}`;
+      if (id === ViteVirtualModule_PrependCode) {
+        return `\0${ViteVirtualModule_PrependCode}`;
+      } else if (id === ViteVirtualModule_ClientCode) {
+        return `\0${ViteVirtualModule_ClientCode}`;
       }
       return null;
     },
     load(id) {
-      if (id === `\0${ViteVirtualModule_EliminateVueWarning}`) {
-        return getEliminateVueWarningCode();
-      } else if (id === `\0${ViteVirtualModule_Client}`) {
+      if (id === `\0${ViteVirtualModule_PrependCode}`) {
+        return getPrependCode(options);
+      } else if (id === `\0${ViteVirtualModule_ClientCode}`) {
         return getClientInjectCode(record.port, options);
       }
       return null;

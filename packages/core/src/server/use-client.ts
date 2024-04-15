@@ -9,8 +9,8 @@ import {
   isSsrEntry,
   getFilenameWithoutExt,
   fileURLToPath,
-  ViteVirtualModule_Client,
-  ViteVirtualModule_EliminateVueWarning,
+  ViteVirtualModule_ClientCode,
+  ViteVirtualModule_PrependCode,
   AstroToolbarFile,
 } from '../shared';
 
@@ -60,7 +60,15 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
 `;
 }
 
-export function getEliminateVueWarningCode() {
+export function getPrependCode(options?: CodeOptions) {
+  let code = eliminateVueWarningCode();
+  if (options?.hideDomPathAttr) {
+    code += hidePathAttributeCode();
+  }
+  return code;
+}
+
+export function eliminateVueWarningCode() {
   return `
   ;/* eslint-disable */
   (function(){
@@ -80,6 +88,68 @@ export function getEliminateVueWarningCode() {
         originWarn.apply(null, args);
       }
     };
+
+    if (typeof Element === 'undefined' || globalThis.__code_inspector_setAttribute) {
+      return;
+    }
+    var originSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function () {
+      globalThis.__code_inspector_setAttribute = true;
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length === 2 && args[0] === '${PathName}') {
+        this['${PathName}'] = args[1];
+      } else {
+        originSetAttribute.apply(this, args);
+      }
+    };
+  })();
+  /* eslint-disable */
+  `.replace(/\n/g, '');
+}
+
+
+export function hidePathAttributeCode() {
+  return `
+  ;/* eslint-disable */
+  (function(){
+    if (typeof window === 'undefined' || globalThis.__code_inspector_observed) {
+      return;
+    };
+    function covertAttrToValue(node) {
+      if (!node) {
+        return;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.getAttribute && node.getAttribute("${PathName}")) {
+          node["${PathName}"] = node.getAttribute("${PathName}");
+          node.removeAttribute("${PathName}");
+        }
+      }
+      if (node.childNodes) {
+        node.childNodes.forEach(childNode => {
+          covertAttrToValue(childNode);
+        });
+      }
+    }
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          covertAttrToValue(node);
+        });
+        if (mutation.type === 'attributes') {
+          if (mutation.target.getAttribute && mutation.target.getAttribute("${PathName}")) {
+            mutation.target["${PathName}"] = mutation.target.getAttribute("${PathName}");
+            mutation.target.removeAttribute("${PathName}");
+          }
+        }
+      });
+    });
+    observer.observe(document, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+    globalThis.__code_inspector_observed = true;
   })();
   /* eslint-disable */
   `.replace(/\n/g, '');
@@ -143,9 +213,9 @@ export async function getCodeWithWebComponent(
     file === AstroToolbarFile
   ) {
     if (options.bundler === 'vite') {
-      code = `import '${ViteVirtualModule_EliminateVueWarning}';\n${code}`;
+      code = `import '${ViteVirtualModule_PrependCode}';\n${code}`;
     } else {
-      code = `${getEliminateVueWarningCode()}${code}`;
+      code = `${getPrependCode(options)}${code}`;
     }
   }
   // 注入 web component 组件代码
@@ -157,11 +227,9 @@ export async function getCodeWithWebComponent(
     file === AstroToolbarFile
   ) {
     if (options.bundler === 'vite') {
-      code = `import '${ViteVirtualModule_Client}';\n${code}`;
+      code = `import '${ViteVirtualModule_ClientCode}';\n${code}`;
     } else {
-      const clientCode = getClientInjectCode(record.port, {
-        ...(options || {}),
-      });
+      const clientCode = getClientInjectCode(record.port, options);
       code = `${code}\n${clientCode}`;
     }
   }

@@ -114,4 +114,9 @@ export type CodeOptions = {
    * @en tags without injecting data-insp-path
    */
   escapeTags?: EscapeTags;
+  /**
+   * @zh 是否隐藏控制台中 dom 的 `data-insp-path` 属性
+   * @en Whether to hide the `data-insp-path` attribute of DOM in the console
+   */
+  hideDomPathAttr?: boolean;
 };
