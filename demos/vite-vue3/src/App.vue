@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HelloWorld from './components/HelloWorld.vue';
 import Detail from './components/detail.jsx';
-import About from './components/about.vue';
+import About from './components/about.[test].vue';
 </script>
 
 <template>
@@ -32,3 +32,4 @@ import About from './components/about.vue';
   filter: drop-shadow(0 0 2em #42b883aa);
 }
 </style>
+./components/about.[test].vue
