@@ -32,4 +32,3 @@ import About from './components/about.[test].vue';
   filter: drop-shadow(0 0 2em #42b883aa);
 }
 </style>
-./components/about.[test].vue
