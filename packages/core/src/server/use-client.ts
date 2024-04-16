@@ -101,33 +101,10 @@ export function hidePathAttributeCode() {
     if (typeof window === 'undefined' || globalThis.__code_inspector_observed) {
       return;
     };
-    function covertAttrToValue(node) {
-      if (!node) {
-        return;
-      }
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.getAttribute && node.getAttribute("${PathName}")) {
-          node["${PathName}"] = node.getAttribute("${PathName}");
-          node.removeAttribute("${PathName}");
-        }
-      }
-      if (node.childNodes) {
-        node.childNodes.forEach(childNode => {
-          covertAttrToValue(childNode);
-        });
-      }
-    }
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          covertAttrToValue(node);
-        });
-        if (mutation.type === 'attributes') {
-          if (mutation.target.getAttribute && mutation.target.getAttribute("${PathName}")) {
-            mutation.target["${PathName}"] = mutation.target.getAttribute("${PathName}");
-            mutation.target.removeAttribute("${PathName}");
-          }
-        }
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll("[${PathName}]").forEach((node) => {
+        node["${PathName}"] = node.getAttribute("${PathName}");
+        node.removeAttribute("${PathName}");
       });
     });
     observer.observe(document, {
