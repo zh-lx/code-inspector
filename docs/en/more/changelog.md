@@ -2,27 +2,27 @@
 
 ## 0.12.1
 
-- 【fix】Fixed the issue where the `data-insp-path` attribute was enabled by default.
+- 【fix】Fixed the issue where `data-insp-path` attribute is hidden by default.
 
 ## 0.12.0
 
-- 【feat】 Added `hideDomPathAttr` to hide the `data-insp-path` attribute on the DOM, improving DOM screening efficiency.
-- 【feat】 Removed file path validation in Windows systems.
+- 【feat】Added `hideDomPathAttr` to hide the `data-insp-path` attribute on the DOM, improving DOM screening efficiency.
+- 【feat】Removed file path validation in Windows systems.
 
 ## 0.11.0
 
-- 【feat】 Added `escapeTags` property to support custom tags without injecting `data-insp-path`
-- 【feat】 Optimized request method to prioritize `http` requests over `img` requests
+- 【feat】Added `escapeTags` property to support custom tags without injecting `data-insp-path`
+- 【feat】Optimized request method to prioritize `http` requests over `img` requests
 
 ## 0.10.1
 
-- 【fix】 Optimized the warning issue regarding `data-insp-path`.
+- 【fix】Optimized the warning issue regarding `data-insp-path`.
 
 ## 0.10.0
 
-- 【feat】 Added configuration for hooks callback functions.
+- 【feat】Added configuration for hooks callback functions.
 - 【fix】Fixed the issue of the `hotKeys` configuration not taking effect.
-- 【fix】 Optimized the warning issue regarding `data-insp-path`.
+- 【fix】Optimized the warning issue regarding `data-insp-path`.
 
 ## 0.9.3
 

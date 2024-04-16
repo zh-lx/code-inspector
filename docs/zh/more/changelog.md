@@ -2,7 +2,7 @@
 
 ## 0.12.1
 
-- 【fix】修复 `data-insp-path` 属性默认生效的问题
+- 【fix】修复默认会隐藏 `data-insp-path` 属性的问题
 
 ## 0.12.0
 
