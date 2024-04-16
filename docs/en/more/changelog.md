@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.1
+
+- 【fix】Fixed the issue where the `data-insp-path` attribute was enabled by default.
+
 ## 0.12.0
 
 - 【feat】 Added `hideDomPathAttr` to hide the `data-insp-path` attribute on the DOM, improving DOM screening efficiency.
