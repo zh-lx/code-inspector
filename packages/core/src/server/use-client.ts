@@ -88,20 +88,6 @@ export function eliminateVueWarningCode() {
         originWarn.apply(null, args);
       }
     };
-
-    if (typeof Element === 'undefined' || globalThis.__code_inspector_setAttribute) {
-      return;
-    }
-    var originSetAttribute = Element.prototype.setAttribute;
-    Element.prototype.setAttribute = function () {
-      globalThis.__code_inspector_setAttribute = true;
-      var args = Array.prototype.slice.call(arguments);
-      if (args.length === 2 && args[0] === '${PathName}') {
-        this['${PathName}'] = args[1];
-      } else {
-        originSetAttribute.apply(this, args);
-      }
-    };
   })();
   /* eslint-disable */
   `.replace(/\n/g, '');
