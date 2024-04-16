@@ -34,6 +34,10 @@ If this plugin causes Eslint Loader to repeatedly execute hot updates, please ad
 
 For bundle speed optimization in `webpack`, you can use parameters such as `enforcePre`, `forceInjectCache`, `match`, etc., as referenced in the [API](/guide/api) section for optimization.
 
+## Hide File Paths on DOM
+
+Starting from version `0.12.0`, you can hide file paths on the DOM by setting `hideDomPathAttr: true`.
+
 ## Other Issues
 
 If you encounter unresolved issues, please leave a message below [my Twitter](https://twitter.com/zhulxing312147) post or submit an issue on [Github](https://github.com/zh-lx/code-inspector/issues).

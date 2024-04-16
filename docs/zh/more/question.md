@@ -34,6 +34,10 @@
 
 对于 `webpack` 中的打包速度优化，可以使用参考 [API](/guide/api) 一节中的 `enforcePre`、`forceInjectCache`、`match` 等参数进行优化。
 
+## 隐藏 DOM 上的文件路径
+
+`0.12.0` 版本之后，可以通过设置 `hideDomPathAttr: true` 的方式，隐藏 DOM 上的文件路径。
+
 ## 其他问题
 
 如果遇到无法解决的问题，请 [加入用户群](/more/feedback) 或到 github 提 [issue](https://github.com/zh-lx/code-inspector/issues)，加群咨询能够解决绝大部分问题。
