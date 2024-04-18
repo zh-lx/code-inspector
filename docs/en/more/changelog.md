@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.2
+
+- 【perf】优化隐藏 `data-insp-path` 的逻辑
+
 ## 0.12.1
 
 - 【fix】Fixed the issue where `data-insp-path` attribute is hidden by default.

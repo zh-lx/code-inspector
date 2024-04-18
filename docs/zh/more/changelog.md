@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.12.2
+
+- 【perf】优化隐藏 `data-insp-path` 的逻辑
+
 ## 0.12.1
 
 - 【fix】修复默认会隐藏 `data-insp-path` 属性的问题
