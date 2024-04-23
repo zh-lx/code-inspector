@@ -58,7 +58,6 @@
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
     "@types/node": "^18.14.1",
-    "@types/pug": "^2.0.10",
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-sfc": "^3.3.4",
     "dotenv": "^16.1.4",
