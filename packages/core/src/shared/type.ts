@@ -119,4 +119,9 @@ export type CodeOptions = {
    * @en Whether to hide the `data-insp-path` attribute of DOM in the console
    */
   hideDomPathAttr?: boolean;
+  /**
+   * @zh 点击 DOM 向 node server 发送请求时，是否使用 ip 代替 localhost。默认为 `false`
+   * @en When sending request node server by clicking on the DOM, whether to use IP instead of localhost. Default value is `false`
+   */
+  ip?: boolean | string;
 };

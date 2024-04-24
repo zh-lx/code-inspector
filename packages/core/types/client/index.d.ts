@@ -7,6 +7,7 @@ export declare class CodeInspectorComponent extends LitElement {
     hideConsole: boolean;
     locate: boolean;
     copy: boolean | string;
+    ip: string;
     position: {
         top: number;
         right: number;
