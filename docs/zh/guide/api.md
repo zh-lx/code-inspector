@@ -164,3 +164,9 @@ interface CodeInspectorOptins {
 - 可选项
 - 类型：`boolean`。默认值 `false`
 - 说明：是否隐藏 DOM 元素上的 `data-insp-path` 属性
+
+## ip <Badge type="tip" text="0.13.0+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean | string`。默认值 `false`
+- 说明：是否通过 ip 的方式向 node server 发送请求。默认值为 `false`，通过 `localhost` 发送请求；设置为 `true` 时，会自动检测本地的 ip，通过 ip 发送请求；指定为 `string` 类型时，通过指定的值发送请求

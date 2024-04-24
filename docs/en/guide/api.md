@@ -162,5 +162,11 @@ interface CodeInspectorOptins {
 ## hideDomPathAttr <Badge type="tip" text="0.12.0+" vertical="middle" />
 
 - Optional
-- Type: `boolean`. Default value `false`
+- Type: `boolean`. Default value is `false`
 - Description: Whether to hide the `data-insp-path` attribute on DOM elements.
+
+## ip <Badge type="tip" text="0.13.0+" vertical="middle" />
+
+- Optional
+- Type: `boolean | string`. Default value is `false`.
+- Description: Whether to send requests to the node server via IP address. When set to `false` (default), requests are sent via `localhost`. When set to `true`, the local IP is automatically detected and used to send requests. When specified as a `string` type, requests are sent using the specified value.
