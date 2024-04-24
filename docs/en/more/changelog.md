@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.0
+
+- 【feat】Added support for element positioning in Vue files using pug syntax.
+- 【feat】Added support for sending requests to the node server via IP address.
+
 ## 0.12.2
 
 - 【perf】优化隐藏 `data-insp-path` 的逻辑

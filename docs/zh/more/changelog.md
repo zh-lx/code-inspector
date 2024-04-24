@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.13.0
+
+- 【feat】支持使用了 `pug` 语法的 Vue 文件的元素定位功能
+- 【feat】支持通过 ip 地址的方式向 node server 发送请求
+
 ## 0.12.2
 
 - 【perf】优化隐藏 `data-insp-path` 的逻辑
