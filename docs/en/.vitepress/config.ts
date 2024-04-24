@@ -58,6 +58,11 @@ export default defineConfig({
             target: '_blank',
           },
           {
+            text: 'Qwik Demo',
+            link: 'https://stackblitz.com/edit/vitejs-vite-antzds?file=vite.config.ts',
+            target: '_blank',
+          },
+          {
             text: 'Svelte Demo',
             link: 'https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts',
             target: '_blank',

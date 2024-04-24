@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width=160px" style="margin-bottom: 12px;" />
+<img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="160px" style="margin-bottom: 12px;" />
 
 <p align="center">
   <h2>code-inspector-plugin</h2>
@@ -28,6 +28,7 @@
 - [react online demo](https://stackblitz.com/edit/vitejs-vite-svtwrr?file=vite.config.ts)
 - [preact online demo](https://stackblitz.com/edit/vitejs-vite-iyawbf?file=vite.config.ts)
 - [solid online demo](https://stackblitz.com/edit/solidjs-templates-6u76jn?file=vite.config.ts)
+- [qwik online demo](https://stackblitz.com/edit/vitejs-vite-antzds?file=vite.config.ts)
 - [svelte online demo](https://stackblitz.com/edit/vitejs-vite-zoncqr?file=vite.config.ts)
 - [astro online demo](https://stackblitz.com/edit/withastro-astro-f5xq1t?file=astro.config.mjs)
 
@@ -46,6 +47,7 @@
   ✅ react<br />
   ✅ preact<br />
   ✅ solid<br />
+  ✅ qwik<br />
   ✅ svelte<br />
   ✅ astro
 - 当前支持以下代码编辑器<br />
@@ -283,7 +285,7 @@ pnpm add code-inspector-plugin -D
 ## 👨‍💻 Contributors
 
 特别鸣谢本项目的贡献者：<br />
-<img src="https://contrib.rocks/image?repo=zh-lx/code-inspector" />
+<img src="https://contrib.rocks/image?repo=zh-lx/code-inspector" height="40" />
 
 ## 📧 交流与反馈
 

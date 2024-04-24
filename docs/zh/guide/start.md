@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/svelte/astro` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
 
 ## 安装
 
@@ -93,13 +93,12 @@ export default defineConfig({
     rspack: {
       plugins: [
         codeInspectorPlugin({
-          bundler: "rspack"
-        })
-      ]
-    }
-  }
+          bundler: 'rspack',
+        }),
+      ],
+    },
+  },
 });
-
 ```
 
 :::
