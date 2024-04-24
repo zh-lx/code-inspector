@@ -39,6 +39,8 @@ export class CodeInspectorComponent extends LitElement {
   locate: boolean = true;
   @property()
   copy: boolean | string = false;
+  @property()
+  ip: string = 'localhost';
 
   @state()
   position = {
@@ -218,7 +220,7 @@ export class CodeInspectorComponent extends LitElement {
 
   sendXHR = () => {
     const file = encodeURIComponent(this.element.path);
-    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    const url = `http://${this.ip}:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.send();
@@ -231,7 +233,7 @@ export class CodeInspectorComponent extends LitElement {
   // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
   sendImg = () => {
     const file = encodeURIComponent(this.element.path);
-    const url = `http://localhost:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    const url = `http://${this.ip}:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
     const img = document.createElement('img');
     img.src = url;
   };

@@ -1,6 +1,30 @@
 import path from 'path';
+import os from 'os';
 import { FormatColumn, FormatFile, FormatLine, JsFileExtList } from './constant';
 import { EscapeTags } from './type';
+
+//获取本机ip地址
+export function getIP(ip: boolean | string) {
+  if (typeof ip === 'string' && ip !== '') {
+    return ip;
+  } else if (ip === true) {
+    let interfaces = os.networkInterfaces();
+    for (let devName in interfaces) {
+      let iface = interfaces[devName] as os.NetworkInterfaceInfo[];
+      for (let i = 0; i < iface.length; i++) {
+        let alias = iface[i];
+        if (
+          alias.family === 'IPv4' &&
+          alias.address !== '127.0.0.1' &&
+          !alias.internal
+        ) {
+          return alias.address;
+        }
+      }
+    }
+  }
+  return 'localhost';
+}
 
 // 将 import.meta.url 转换为 __dirname: 兼容 mac linux 和 windows
 export function fileURLToPath(fileURL: string) {

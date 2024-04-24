@@ -12,6 +12,7 @@ import {
   ViteVirtualModule_ClientCode,
   ViteVirtualModule_PrependCode,
   AstroToolbarFile,
+  getIP,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -33,6 +34,7 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
     hideConsole = false,
     autoToggle = true,
     behavior = {},
+    ip = false,
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false } = behavior;
   return `
@@ -52,6 +54,7 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.ip = '${getIP(ip)}';
       document.documentElement.append(inspector);
     }
   }

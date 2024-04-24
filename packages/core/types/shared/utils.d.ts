@@ -1,4 +1,5 @@
 import { EscapeTags } from './type';
+export declare function getIP(ip: boolean | string): string;
 export declare function fileURLToPath(fileURL: string): string;
 export declare function isJsTypeFile(file: string): boolean;
 export declare function isNextJsEntry(code: string): boolean;
