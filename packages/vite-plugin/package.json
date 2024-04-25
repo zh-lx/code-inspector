@@ -46,7 +46,8 @@
     "vite": "^4.3.9"
   },
   "scripts": {
-    "build": "tsc && vite build",
+    "clear": "rimraf ./dist && rimraf ./types",
+    "build": "pnpm clear && tsc && vite build",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   }

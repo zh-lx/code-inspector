@@ -29,6 +29,7 @@
     "node": ">=16.20.0"
   },
   "devDependencies": {
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "rimraf": "^5.0.5"
   }
 }

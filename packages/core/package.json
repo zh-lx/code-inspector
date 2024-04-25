@@ -42,8 +42,8 @@
     "build:server": "vite build",
     "build:client": " vite build --config ./vite.client.config.ts",
     "build:client:watch": " vite build --config ./vite.client.config.ts --watch",
-    "build": "tsc && pnpm build:server && pnpm build:client",
-    "build:watch": "tsc && pnpm build:server && pnpm build:client",
+    "clear": "rimraf ./dist && rimraf ./types",
+    "build": "pnpm clear && tsc && pnpm build:server && pnpm build:client",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   },

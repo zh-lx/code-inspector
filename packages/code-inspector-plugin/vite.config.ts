@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'CodeInspectorPlugin',
     },
     minify: true,
-    emptyOutDir: true,
+    emptyOutDir: false,
     rollupOptions: {
       external: [
         'vite-code-inspector-plugin',
