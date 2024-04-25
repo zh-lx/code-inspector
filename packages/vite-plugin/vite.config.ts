@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'ViteCodeInspectorPlugin',
     },
     minify: true,
-    emptyOutDir: true,
+    emptyOutDir: false,
     rollupOptions: {
       external: ['code-inspector-core', 'path'],
     },

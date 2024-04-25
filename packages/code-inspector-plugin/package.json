@@ -8,7 +8,8 @@
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && vite build",
+    "clear": "rimraf ./dist && rimraf ./types",
+    "build": "pnpm clear && tsc && vite build",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   },

@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'viteInspectorCore',
     },
     minify: true,
-    emptyOutDir: true,
+    emptyOutDir: false,
     rollupOptions: {
       external: [
         'os',
