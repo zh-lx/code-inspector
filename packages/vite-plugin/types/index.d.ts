@@ -2,7 +2,7 @@ import { CodeOptions } from 'code-inspector-core';
 interface Options extends CodeOptions {
     close?: boolean;
 }
-export declare function ViteCodeInspectorPlugin(options?: Options): {
+export declare function ViteCodeInspectorPlugin(options: Options): {
     apply(_: any, { command }: {
         command: any;
     }): boolean;

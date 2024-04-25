@@ -19,7 +19,7 @@ interface Options extends CodeOptions {
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
-export function ViteCodeInspectorPlugin(options?: Options) {
+export function ViteCodeInspectorPlugin(options: Options) {
   const record: RecordInfo = {
     port: 0,
     entry: '',
