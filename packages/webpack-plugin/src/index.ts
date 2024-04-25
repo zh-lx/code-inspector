@@ -66,8 +66,8 @@ interface Options extends CodeOptions {
 class WebpackCodeInspectorPlugin {
   options: Options;
 
-  constructor(options?: Options) {
-    this.options = options || {};
+  constructor(options: Options) {
+    this.options = options;
   }
 
   apply(compiler) {
