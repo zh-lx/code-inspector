@@ -45,21 +45,6 @@ export function isJsTypeFile(file: string) {
   return JsFileExtList.some((ext) => file.endsWith(ext));
 }
 
-// 检测是否为 nextjs 中的 client 文件
-export function isNextJsEntry(code: string) {
-  return (
-    code.trim().startsWith(`"use client"`) ||
-    code.trim().startsWith(`'use client'`) ||
-    code.trim().startsWith(`"use client;"`) ||
-    code.trim().startsWith(`'use client;'`)
-  );
-}
-
-// 检测是否为 useEffect 文件
-export function isSsrEntry(code: string) {
-  return code.includes(`useEffect(`);
-}
-
 // 获取不带文件后缀名的文件路径
 export function getFilenameWithoutExt(filePath: string) {
   while (path.parse(filePath).ext) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.0
+
+- 【Refactor】Refactor the interaction and writing logic to perfectly solve the issue of interaction code injection failure in pure server-side rendering (SSR) scenarios such as `Next.js`.
+
 ## 0.13.0
 
 - 【feat】Added support for element positioning in Vue files using pug syntax.

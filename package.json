@@ -21,7 +21,7 @@
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" run build",
     "pub": "pnpm --filter \"./packages/*\" run pub",
-    "pub:beta": "pnpm --filter \"./packages/*\" run pub:beta"
+    "pub:beta": "pnpm --filter \"./packages/*\" run pub:beta --no-git-checks"
   },
   "private": true,
   "main": "index.js",

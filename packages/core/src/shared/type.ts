@@ -15,8 +15,7 @@ export type Behavior = {
 export type RecordInfo = {
   port: number;
   entry: string;
-  nextJsEntry: string;
-  ssrEntry: string;
+  output: string; // web component 文件要写入的目录
   findPort?: Promise<number>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';

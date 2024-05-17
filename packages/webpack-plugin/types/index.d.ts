@@ -1,7 +1,7 @@
 import { CodeOptions } from 'code-inspector-core';
 interface Options extends CodeOptions {
     close?: boolean;
-    time?: number;
+    output: string;
 }
 declare class WebpackCodeInspectorPlugin {
     options: Options;

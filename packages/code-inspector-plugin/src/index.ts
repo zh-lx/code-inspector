@@ -1,9 +1,9 @@
 import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
-import { CodeOptions } from 'code-inspector-core';
+import { CodeOptions, fileURLToPath } from 'code-inspector-core';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import path from 'path';
+import path, { dirname } from 'path';
 import fs from 'fs';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
@@ -49,14 +49,24 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     }
   }
 
+  let compatibleDirname = '';
+  if (typeof __dirname !== 'undefined') {
+    compatibleDirname = __dirname;
+  } else {
+    compatibleDirname = dirname(fileURLToPath(import.meta.url));
+  }
+  const params = {
+    ...options,
+    close,
+    output: path.resolve(compatibleDirname, './'),
+  }
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
-    return new WebpackCodeInspectorPlugin({ ...options, close });
+    return new WebpackCodeInspectorPlugin(params);
   } else {
     // 使用 vite 插件
-    return ViteCodeInspectorPlugin({ ...options, close });
+    return ViteCodeInspectorPlugin(params);
   }
 }
-
 
 export const codeInspectorPlugin = CodeInspectorPlugin;

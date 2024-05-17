@@ -5,12 +5,8 @@ import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
   isJsTypeFile,
-  isNextJsEntry,
-  isSsrEntry,
   getFilenameWithoutExt,
   fileURLToPath,
-  ViteVirtualModule_ClientCode,
-  ViteVirtualModule_PrependCode,
   AstroToolbarFile,
   getIP,
 } from '../shared';
@@ -27,7 +23,17 @@ if (typeof __dirname !== 'undefined') {
 export const clientJsPath = path.resolve(compatibleDirname, './client.umd.js');
 const jsClientCode = fs.readFileSync(clientJsPath, 'utf-8');
 
-export function getClientInjectCode(port: number, options?: CodeOptions) {
+export function getInjectedCode(options: CodeOptions, port: number) {
+  let code = `'use client';`;
+  code += getEliminateWarningCode();
+  if (options?.hideDomPathAttr) {
+    code += getHidePathAttrCode();
+  }
+  code += getWebComponentCode(options, port);
+  return `/* eslint-disable */\n` + code.replace(/\n/g, '');
+}
+
+export function getWebComponentCode(options: CodeOptions, port: number) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
@@ -38,7 +44,6 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false } = behavior;
   return `
-/* eslint-disable */
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
@@ -59,25 +64,15 @@ export function getClientInjectCode(port: number, options?: CodeOptions) {
     }
   }
 })();
-/* eslint-disable */
 `;
 }
 
-export function getPrependCode(options?: CodeOptions) {
-  let code = eliminateVueWarningCode();
-  if (options?.hideDomPathAttr) {
-    code += hidePathAttributeCode();
-  }
-  return code;
-}
-
-export function eliminateVueWarningCode() {
+export function getEliminateWarningCode() {
   return `
-  ;/* eslint-disable */
-  (function(){
+  ;(function(){
     if (globalThis.__code_inspector_warning) {
       return;
-    }
+    };
     var originWarn = console.warn;
     var warning = "Extraneous non-props attributes";
     var path = "${PathName}";
@@ -89,18 +84,15 @@ export function eliminateVueWarningCode() {
         return;
       } else {
         originWarn.apply(null, args);
-      }
+      };
     };
   })();
-  /* eslint-disable */
-  `.replace(/\n/g, '');
+  `;
 }
 
-
-export function hidePathAttributeCode() {
+export function getHidePathAttrCode() {
   return `
-  ;/* eslint-disable */
-  (function(){
+  ;(function(){
     if (typeof window === 'undefined' || globalThis.__code_inspector_observed) {
       return;
     };
@@ -117,31 +109,13 @@ export function hidePathAttributeCode() {
     });
     globalThis.__code_inspector_observed = true;
   })();
-  /* eslint-disable */
-  `.replace(/\n/g, '');
+  `;
 }
 
 // normal entry file
-function recordNormalEntry(record: RecordInfo, file: string) {
+function recordEntry(record: RecordInfo, file: string) {
   if (!record.entry && isJsTypeFile(file) && !file.includes('/.svelte-kit/')) {
     record.entry = getFilenameWithoutExt(file);
-  }
-}
-// nextjs entry file
-function recordNextjsEntry(record: RecordInfo, file: string, code: string) {
-  if (!record.nextJsEntry && isJsTypeFile(file) && isNextJsEntry(code)) {
-    record.nextJsEntry = getFilenameWithoutExt(file);
-  }
-}
-// ssr(not nextjs) entry file
-function recordSSREntry(record: RecordInfo, file: string, code: string) {
-  if (
-    !record.nextJsEntry &&
-    !record.ssrEntry &&
-    isJsTypeFile(file) &&
-    isSsrEntry(code)
-  ) {
-    record.ssrEntry = getFilenameWithoutExt(file);
   }
 }
 
@@ -169,35 +143,51 @@ export async function getCodeWithWebComponent(
     }
   }
 
-  recordNormalEntry(record, file);
-  recordNextjsEntry(record, file, code);
-  recordSSREntry(record, file, code);
+  recordEntry(record, file);
 
   // 注入消除 warning 代码
   if (
     (isJsTypeFile(file) && getFilenameWithoutExt(file) === record.entry) ||
     file === AstroToolbarFile
   ) {
-    if (options.bundler === 'vite') {
-      code = `import '${ViteVirtualModule_PrependCode}';\n${code}`;
-    } else {
-      code = `${getPrependCode(options)}${code}`;
-    }
-  }
-  // 注入 web component 组件代码
-  if (
-    (isJsTypeFile(file) &&
-      [record.entry, record.nextJsEntry, record.ssrEntry].includes(
-        getFilenameWithoutExt(file)
-      )) ||
-    file === AstroToolbarFile
-  ) {
-    if (options.bundler === 'vite') {
-      code = `import '${ViteVirtualModule_ClientCode}';\n${code}`;
-    } else {
-      const clientCode = getClientInjectCode(record.port, options);
-      code = `${code}\n${clientCode}`;
+    writeEslintRcFile(record.output);
+    const webComponentNpmPath = writeWebComponentFile(
+      record.output,
+      getInjectedCode(options, record.port),
+      record.port
+    );
+    if (!file.match(webComponentNpmPath)) {
+      code = `import '${webComponentNpmPath}';${code}`;
     }
   }
   return code;
+}
+
+function writeEslintRcFile(targetPath: string) {
+  const eslintFilePath = path.resolve(targetPath, './.eslintrc.js');
+  if (!fs.existsSync(eslintFilePath)) {
+    const content = `
+module.exports = {
+  root: true,
+  parserOptions: {
+    ecmaVersion: 6
+  },
+}
+`;
+    fs.writeFileSync(eslintFilePath, content, 'utf-8');
+  }
+}
+
+function writeWebComponentFile(
+  targetPath: string,
+  content: string,
+  port: number,
+) {
+  const webComponentFileName = `append-code-${port}.js`;
+  const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;
+  const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
+  if (!fs.existsSync(webComponentFilePath)) {
+    fs.writeFileSync(webComponentFilePath, content, 'utf-8');
+  }
+  return webComponentNpmPath;
 }
