@@ -5,16 +5,12 @@ import {
   getCodeWithWebComponent,
   RecordInfo,
   isJsTypeFile,
-  getPrependCode,
-  getClientInjectCode,
-  ViteVirtualModule_ClientCode,
-  ViteVirtualModule_PrependCode,
-  startServer,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
 interface Options extends CodeOptions {
   close?: boolean;
+  output: string;
 }
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
@@ -23,8 +19,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
   const record: RecordInfo = {
     port: 0,
     entry: '',
-    nextJsEntry: '',
-    ssrEntry: '',
+    output: options.output,
   };
   return {
     name: PluginName,
@@ -45,25 +40,6 @@ export function ViteCodeInspectorPlugin(options: Options) {
       } else {
         return !!isDev || command === 'serve';
       }
-    },
-    async resolveId(id) {
-      if (!record.port) {
-        await startServer(options, record);
-      }
-      if (id === ViteVirtualModule_PrependCode) {
-        return `\0${ViteVirtualModule_PrependCode}`;
-      } else if (id === ViteVirtualModule_ClientCode) {
-        return `\0${ViteVirtualModule_ClientCode}`;
-      }
-      return null;
-    },
-    load(id) {
-      if (id === `\0${ViteVirtualModule_PrependCode}`) {
-        return getPrependCode(options);
-      } else if (id === `\0${ViteVirtualModule_ClientCode}`) {
-        return getClientInjectCode(record.port, options);
-      }
-      return null;
     },
     async transform(code, id) {
       if (id.match('node_modules')) {

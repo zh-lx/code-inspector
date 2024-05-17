@@ -27,6 +27,14 @@
         "types": "./types/index.d.ts",
         "default": "./dist/index.js"
       }
+    },
+    "./dist/*": {
+      "import": {
+        "default": "./dist/*"
+      },
+      "require": {
+        "default": "./dist/*"
+      }
     }
   },
   "homepage": "https://inspector.fe-dev.cn/en",

@@ -60,7 +60,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
 
 interface Options extends CodeOptions {
   close?: boolean;
-  time?: number;
+  output: string;
 }
 
 class WebpackCodeInspectorPlugin {
@@ -105,8 +105,7 @@ class WebpackCodeInspectorPlugin {
     const record: RecordInfo = {
       port: 0,
       entry: '',
-      nextJsEntry: '',
-      ssrEntry: '',
+      output: this.options.output,
     }
     
     applyLoader({ ...this.options, record }, compiler);

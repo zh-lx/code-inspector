@@ -4,10 +4,6 @@ export const PathName = 'data-insp-path'; // 注入的路径名称
 export const NodeName = 'data-insp-node'; // 注入的节点名称
 export const DefaultPort = 5678;
 export const JsFileExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
-export const ViteVirtualModule_PrependCode =
-  'virtual:code-inspector-plugin-eliminate-vue-warning-code';
-export const ViteVirtualModule_ClientCode =
-  'virtual:code-inspector-plugin-client-code';
 export const FormatFile = "{file}";
 export const FormatLine = "{line}";
 export const FormatColumn = "{column}";

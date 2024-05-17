@@ -7,8 +7,7 @@ export type Behavior = {
 export type RecordInfo = {
     port: number;
     entry: string;
-    nextJsEntry: string;
-    ssrEntry: string;
+    output: string;
     findPort?: Promise<number>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
