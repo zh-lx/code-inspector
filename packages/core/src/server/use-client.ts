@@ -150,14 +150,19 @@ export async function getCodeWithWebComponent(
     (isJsTypeFile(file) && getFilenameWithoutExt(file) === record.entry) ||
     file === AstroToolbarFile
   ) {
-    writeEslintRcFile(record.output);
-    const webComponentNpmPath = writeWebComponentFile(
-      record.output,
-      getInjectedCode(options, record.port),
-      record.port
-    );
-    if (!file.match(webComponentNpmPath)) {
-      code = `import '${webComponentNpmPath}';${code}`;
+    const injectCode = getInjectedCode(options, record.port);
+    if (options.importClient === 'code') {
+        code = `${injectCode};${code}`;
+    } else {
+      writeEslintRcFile(record.output);
+      const webComponentNpmPath = writeWebComponentFile(
+        record.output,
+        injectCode,
+        record.port
+      );
+      if (!file.match(webComponentNpmPath)) {
+        code = `import '${webComponentNpmPath}';${code}`;
+      }
     }
   }
   return code;
