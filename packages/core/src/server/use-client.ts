@@ -96,17 +96,14 @@ export function getHidePathAttrCode() {
     if (typeof window === 'undefined' || globalThis.__code_inspector_observed) {
       return;
     };
-    const observer = new MutationObserver(() => {
+    function observe() {
       document.querySelectorAll("[${PathName}]").forEach((node) => {
         node["${PathName}"] = node.getAttribute("${PathName}");
         node.removeAttribute("${PathName}");
       });
-    });
-    observer.observe(document, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
+      setTimeout(observe, 1000);
+    }
+    observe();
     globalThis.__code_inspector_observed = true;
   })();
   `;
