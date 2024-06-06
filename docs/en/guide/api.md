@@ -170,3 +170,9 @@ interface CodeInspectorOptins {
 - Optional
 - Type: `boolean | string`. Default value is `false`.
 - Description: Whether to send requests to the node server via IP address. When set to `false` (default), requests are sent via `localhost`. When set to `true`, the local IP is automatically detected and used to send requests. When specified as a `string` type, requests are sent using the specified value.
+
+## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
+
+- Optional
+- Type: `string`. Default value is `file`
+- Description: Method for importing client interaction code: `file` to import the file containing the interaction code; `code` to directly inject the interaction code into the page.

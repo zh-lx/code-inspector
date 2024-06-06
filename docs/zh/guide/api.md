@@ -170,3 +170,9 @@ interface CodeInspectorOptins {
 - 可选项
 - 类型：`boolean | string`。默认值 `false`
 - 说明：是否通过 ip 的方式向 node server 发送请求。默认值为 `false`，通过 `localhost` 发送请求；设置为 `true` 时，会自动检测本地的 ip，通过 ip 发送请求；指定为 `string` 类型时，通过指定的值发送请求
+
+## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
+
+- 可选项
+- 类型：`string`。默认值为 `file`
+- 说明：引入客户端交互代码的方式: `file` 为引入交互代码所在的文件; `code` 为直接将交互代码注入页面。

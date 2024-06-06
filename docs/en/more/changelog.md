@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.1
+
+- 【feat】Added `importClient` property to support user-defined methods for injecting client code.
+- 【perf】Optimized the logic for hiding the `data-insp-path` attribute.
+
 ## 0.14.0
 
 - 【Refactor】Refactor the interaction and writing logic to perfectly solve the issue of interaction code injection failure in pure server-side rendering (SSR) scenarios such as `Next.js`.
