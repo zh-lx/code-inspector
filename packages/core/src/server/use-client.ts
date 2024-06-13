@@ -188,8 +188,6 @@ function writeWebComponentFile(
   const webComponentFileName = `append-code-${port}.js`;
   const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
-  if (!fs.existsSync(webComponentFilePath)) {
-    fs.writeFileSync(webComponentFilePath, content, 'utf-8');
-  }
+  fs.writeFileSync(webComponentFilePath, content, 'utf-8');
   return webComponentNpmPath;
 }
