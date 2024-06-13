@@ -46,11 +46,8 @@ export function isJsTypeFile(file: string) {
 }
 
 // 获取不带文件后缀名的文件路径
-export function getFilenameWithoutExt(filePath: string) {
-  while (path.parse(filePath).ext) {
-    filePath = path.parse(filePath).name;
-  }
-  return filePath;
+export function getFilePathWithoutExt(filePath: string) {
+  return filePath.slice(0, filePath.lastIndexOf('.'));
 }
 
 export function normalizePath(filepath: string) {
