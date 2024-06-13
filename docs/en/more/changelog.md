@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.2
+
+- 【fix】Fixed the issue where interaction code was being injected into multiple files repeatedly.
+- 【fix】Fixed the issue where caching of the interaction code file `append-code-{port}.js` caused web component configurations to not take effect.
+
 ## 0.14.1
 
 - 【feat】Added `importClient` property to support user-defined methods for injecting client code.
