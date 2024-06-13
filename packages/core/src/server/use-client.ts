@@ -5,7 +5,7 @@ import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
   isJsTypeFile,
-  getFilenameWithoutExt,
+  getFilePathWithoutExt,
   fileURLToPath,
   AstroToolbarFile,
   getIP,
@@ -112,7 +112,7 @@ export function getHidePathAttrCode() {
 // normal entry file
 function recordEntry(record: RecordInfo, file: string) {
   if (!record.entry && isJsTypeFile(file) && !file.includes('/.svelte-kit/')) {
-    record.entry = getFilenameWithoutExt(file);
+    record.entry = getFilePathWithoutExt(file);
   }
 }
 
@@ -136,7 +136,7 @@ export async function getCodeWithWebComponent(
         `The ext of "injectTo" in code-inspector-plugin must in '.js/.ts/.mjs/.mts/.jsx/.tsx'`
       );
     } else {
-      record.entry = getFilenameWithoutExt(options.injectTo);
+      record.entry = getFilePathWithoutExt(options.injectTo);
     }
   }
 
@@ -144,7 +144,7 @@ export async function getCodeWithWebComponent(
 
   // 注入消除 warning 代码
   if (
-    (isJsTypeFile(file) && getFilenameWithoutExt(file) === record.entry) ||
+    (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
     file === AstroToolbarFile
   ) {
     const injectCode = getInjectedCode(options, record.port);
@@ -188,8 +188,6 @@ function writeWebComponentFile(
   const webComponentFileName = `append-code-${port}.js`;
   const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
-  if (!fs.existsSync(webComponentFilePath)) {
-    fs.writeFileSync(webComponentFilePath, content, 'utf-8');
-  }
+  fs.writeFileSync(webComponentFilePath, content, 'utf-8');
   return webComponentNpmPath;
 }
