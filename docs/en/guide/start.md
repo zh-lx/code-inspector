@@ -1,6 +1,6 @@
 # Get Started
 
-`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack/nextjs/nuxt/umijs` as bundlers and works with frameworks such as `vue/react/preact/solid/qwik/svelte/astro`. Please refer to the integration tutorial below.
+`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack/rsbuild/farm/nextjs/nuxt/umijs` as bundlers and works with frameworks such as `vue/react/preact/solid/qwik/svelte/astro`. Please refer to the integration tutorial below.
 
 ## Installation
 
@@ -98,6 +98,25 @@ export default defineConfig({
       ],
     },
   },
+});
+```
+
+:::
+
+::: details Click to expand configuration about: farm
+
+```js
+// farm.config.js
+import { defineConfig } from '@farmfe/core';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  vitePlugins: [
+    codeInspectorPlugin({
+      bundler: 'vite'
+    }),
+    // ...other code
+  ]
 });
 ```
 

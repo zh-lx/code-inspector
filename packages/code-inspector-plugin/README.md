@@ -40,6 +40,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ webpack<br />
   ✅ vite<br />
   ✅ rspack / rsbuild<br />
+  ✅ farm<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -145,6 +146,26 @@ Please check here for more usage information: [code-inspector-plugin configurati
       },
     },
   };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>farm</b></summary>
+
+  ```js
+  // farm.config.js
+  import { defineConfig } from '@farmfe/core';
+  import { codeInspectorPlugin } from 'code-inspector-plugin'
+
+  export default defineConfig({
+    vitePlugins: [
+      codeInspectorPlugin({
+        bundler: 'vite'
+      }),
+      // ...other code
+    ]
+  });
   ```
 
   </details>

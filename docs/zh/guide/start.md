@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/farm/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
 
 ## 安装
 
@@ -98,6 +98,25 @@ export default defineConfig({
       ],
     },
   },
+});
+```
+
+:::
+
+::: details 点击展开查看 farm 项目配置
+
+```js
+// farm.config.js
+import { defineConfig } from '@farmfe/core';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+export default defineConfig({
+  vitePlugins: [
+    codeInspectorPlugin({
+      bundler: 'vite'
+    }),
+    // ...other code
+  ]
 });
 ```
 
