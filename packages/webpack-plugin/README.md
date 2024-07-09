@@ -40,6 +40,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ webpack<br />
   ✅ vite<br />
   ✅ rspack / rsbuild<br />
+  ✅ farm<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -145,6 +146,26 @@ Please check here for more usage information: [code-inspector-plugin configurati
       },
     },
   };
+  ```
+
+  </details>
+
+  <details>
+    <summary>Click to expand configuration about: <b>farm</b></summary>
+
+  ```js
+  // farm.config.js
+  import { defineConfig } from '@farmfe/core';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default defineConfig({
+    vitePlugins: [
+      codeInspectorPlugin({
+        bundler: 'vite'
+      }),
+      // ...other code
+    ]
+  });
   ```
 
   </details>
@@ -292,7 +313,7 @@ Special thanks to the contributors of this project:<br />
 
 For any usage issues, please leave a message below my [Twitter](https://twitter.com/zhulxing312147) post or [submit an issue](https://github.com/zh-lx/code-inspector/issues) on Github.
 
-For Chinese users, you can join the QQ group `769748484` add the author's WeiXin account `zhoulx1688888` for consultation and feedback:
+For Chinese users, you can join the QQ group `769748484` or add the author's WeiXin account `zhoulx1688888` for consultation and feedback:
 
 <div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/qq-group.png" width="200" height="272" />

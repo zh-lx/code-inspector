@@ -22,4 +22,4 @@
 
 ### 适配性强
 
-支持在 `webpack/vite/rspack/nextjs/nuxt/umijs` 中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等多个框架
+支持在 `webpack/vite/rspack/rsbuild/farm/nextjs/nuxt/umijs` 中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等多个框架
