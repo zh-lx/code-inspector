@@ -25,45 +25,45 @@ function isTerminalEditor(editor: string) {
 }
 
 type CodeMapType = {
-  mac: {
-    [key in Editor]: string;
+  darwin: {
+    [key in Editor]: string[];
   };
   linux: {
-    [key in Editor]: string;
+    [key in Editor]: string[];
   };
-  win: {
+  win32: {
     [key in Editor]: string[];
   };
 };
 
 const CodeMap: CodeMapType = {
-  mac: {
-    code: '/Visual Studio Code.app/', // confirmed
-    code_insiders: '/Visual Studio Code - Insiders.app/', // confirmed
-    webstorm: '/WebStorm.app/', // confirmed
-    atom: '/Atom.app/', // confirmed
-    hbuilder: '/HBuilderX.app/', // confirmed
-    phpstorm: '/PhpStorm.app/', // confirmed
-    pycharm: '/PyCharm.app/', // confirmed
-    idea: '/IntelliJ IDEA.app/', // confirmed
-    // sublime_text: '/Applications/Sublime Text.app/Contents/MacOS/sublime_text', // can't open the opened project
-    // brackets: '/Applications/Brackets.app/Contents/MacOS/Brackets', // can't open file
-    // vscodium: 'codium', // cant't open the specific line and column
+  darwin: {
+    code: ['/Visual Studio Code.app/'], // confirmed
+    code_insiders: ['/Visual Studio Code - Insiders.app/'], // confirmed
+    webstorm: ['/WebStorm.app/'], // confirmed
+    atom: ['/Atom.app/'], // confirmed
+    hbuilder: ['/HBuilderX.app/'], // confirmed
+    phpstorm: ['/PhpStorm.app/'], // confirmed
+    pycharm: ['/PyCharm.app/'], // confirmed
+    idea: ['/IntelliJ IDEA.app/'], // confirmed
+    codium: ['/VSCodium.app/'], // cant't open the specific line and column
+    // sublime_text: ['/Applications/Sublime Text.app/Contents/MacOS/sublime_text'], // can't open the opened project
+    // brackets: ['/Applications/Brackets.app/Contents/MacOS/Brackets'], // can't open file
   },
   linux: {
-    code: 'code',
-    code_insiders: 'code-insiders',
-    webstorm: 'webstorm.sh',
-    atom: 'atom',
-    hbuilder: 'hbuilderx.sh',
-    phpstorm: 'phpstorm.sh',
-    pycharm: 'pycharm.sh',
-    idea: 'idea.sh',
-    // brackets: 'brackets',
-    // vscodium: 'vscodium',
-    // sublime_text: 'sublime_text',
+    code: ['code'],
+    code_insiders: ['code-insiders'],
+    webstorm: ['webstorm.sh'],
+    atom: ['atom'],
+    hbuilder: ['hbuilderx.sh'],
+    phpstorm: ['phpstorm.sh'],
+    pycharm: ['pycharm.sh'],
+    idea: ['idea.sh'],
+    codium: ['vscodium'],
+    // brackets: ['brackets'],
+    // sublime_text: ['sublime_text'],
   },
-  win: {
+  win32: {
     code: ['Code.exe'], // confirmed
     code_insiders: ['Code - Insiders.exe'],
     webstorm: ['webstorm.exe', 'webstorm64.exe'],
@@ -72,27 +72,24 @@ const CodeMap: CodeMapType = {
     phpstorm: ['phpstorm.exe', 'phpstorm64.exe'],
     pycharm: ['pycharm.exe', 'pycharm64.exe'],
     idea: ['idea.exe', 'idea64.exe'],
+    codium: ['VSCodium.exe'],
     // brackets: ['Brackets.exe'],
-    // vscodium: ['VSCodium.exe'],
-    // sublime_text: [ 'sublime_text.exe', ],
+    // sublime_text: ['sublime_text.exe'],
   },
 };
 
+const ProcessExectionMap = {
+  darwin: 'ps aux',
+  linux: 'ps -eo comm --sort=comm',
+  win32: 'wmic process where "executablepath is not null" get executablepath',
+}
+
 // 用户指定了 IDE 时，优先走此处
 const getEditorByCustom = (
-  editor: keyof typeof CodeMap.mac
+  editor: keyof typeof CodeMap.darwin
 ): string[] | null => {
-  if (process.platform === 'darwin') {
-    // mac 系统
-    return CodeMap.mac[editor] ? [CodeMap.mac[editor]] : null;
-  } else if (process.platform === 'win32') {
-    // windows 系统
-    return CodeMap.win[editor] ? CodeMap.win[editor] : null;
-  } else if (process.platform === 'linux') {
-    // linux 系统
-    return CodeMap.linux[editor] ? [CodeMap.linux[editor]] : null;
-  }
-  return null;
+  const platform = process.platform as keyof CodeMapType;
+  return (CodeMap[platform] && CodeMap[platform][editor]) || null;
 };
 
 // Map from full process name to binary that starts the process
@@ -101,6 +98,7 @@ const getEditorByCustom = (
 const COMMON_EDITORS_OSX = {
   '/Visual Studio Code.app/': 'code',
   '/Visual Studio Code - Insiders.app/': 'code-insiders',
+  '/VSCodium.app/': 'codium',
   '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
   '/Atom.app/': 'atom',
   '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
@@ -113,6 +111,8 @@ const COMMON_EDITORS_OSX = {
 const COMMON_EDITORS_LINUX = {
   code: 'code',
   'code-insiders': 'code-insiders',
+  codium: 'codium',
+  vscodium: 'vscodium',
   'webstorm.sh': 'webstorm',
   atom: 'atom',
   hbuilderx: 'hbuilderx',
@@ -122,49 +122,57 @@ const COMMON_EDITORS_LINUX = {
   'idea.sh': 'idea',
 };
 
-const COMMON_EDITORS_WIN = [
-  'Code.exe',
-  'Code - Insiders.exe',
-  'webstorm.exe',
-  'webstorm64.exe',
-  'atom.exe',
-  'HBuilderX.exe',
-  'HBuilder.exe',
-  'HBuilderX64.exe',
-  'HBuilder64.exe',
-  'phpstorm.exe',
-  'phpstorm64.exe',
-  'pycharm.exe',
-  'pycharm64.exe',
-  'idea.exe',
-  'idea64.exe',
-];
-
-const COMMON_EDITORS_WIN_MAP: { [key: string]: string } = {
+const COMMON_EDITORS_WIN: { [key: string]: string } = {
   'Code.exe': 'code',
   'Code - Insiders.exe': 'code-insiders',
+  'VSCodium.exe': 'codium',
+  'webstorm.exe': '',
+  'webstorm64.exe': '',
+  'atom.exe': '',
+  'HBuilderX.exe': '',
+  'HBuilder.exe': '',
+  'HBuilderX64.exe': '',
+  'HBuilder64.exe': '',
+  'phpstorm.exe': '',
+  'phpstorm64.exe': '',
+  'pycharm.exe': '',
+  'pycharm64.exe': '',
+  'idea.exe': '',
+  'idea64.exe': '',
 };
 
-// Transpiled version of: /^([A-Za-z]:[/\\])?[\p{L}0-9/.\-_\\]+$/u
-// Non-transpiled version requires support for Unicode property regex. Allows
-// alphanumeric characters, periods, dashes, slashes, and underscores.
-
-function addWorkspaceToArgumentsIfExists(args: any[], workspace: any) {
-  if (workspace) {
-    args.unshift(workspace);
-  }
-  return args;
-}
+const COMMON_EDITORS_MAP = {
+  darwin: COMMON_EDITORS_OSX,
+  linux: COMMON_EDITORS_LINUX,
+  win32: COMMON_EDITORS_WIN,
+};
 
 function getArgumentsForLineNumber(
-  editor: any,
+  editor: string,
   fileName: string,
   lineNumber: string,
   colNumber: string,
-  workspace: null,
+  workspace: string | null,
   openWindowParams: string,
   pathFormat?: string | string[]
 ) {
+  const params = { editor, openWindowParams, workspace };
+  const format =
+    getFormatByEditor(params) || getDefaultPathFormat(params) || '{file}';
+  // For all others, drop the lineNumber until we have
+  // a mapping above, since providing the lineNumber incorrectly
+  // can result in errors or confusing behavior.
+  return formatOpenPath(fileName, lineNumber, colNumber, pathFormat || format);
+}
+interface GetEditorFormatParams {
+  editor: string;
+  openWindowParams?: string;
+  workspace?: string | null;
+}
+
+// 已知 editor，返回对应 format
+function getFormatByEditor(params: GetEditorFormatParams) {
+  const { editor, openWindowParams, workspace } = params;
   const editorBasename = path.basename(editor).replace(/\.(exe|cmd|bat)$/i, '');
   switch (editorBasename) {
     case 'atom':
@@ -173,75 +181,40 @@ function getArgumentsForLineNumber(
     case 'subl':
     case 'sublime':
     case 'sublime_text':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || `${FormatFile}:${FormatLine}:${FormatColumn}`
-      );
+      return `${FormatFile}:${FormatLine}:${FormatColumn}`;
     case 'wstorm':
     case 'charm':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || `${FormatFile}:${FormatLine}`
-      );
+      return `${FormatFile}:${FormatLine}`;
     case 'notepad++':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || ['-n' + FormatLine, '-c' + FormatColumn, FormatFile]
-      );
+      return ['-n' + FormatLine, '-c' + FormatColumn, FormatFile];
     case 'vim':
     case 'mvim':
     case 'joe':
     case 'gvim':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || ['+' + FormatLine, FormatFile]
-      );
+      return ['+' + FormatLine, FormatFile];
     case 'emacs':
     case 'emacsclient':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || ['+' + FormatLine + ':' + FormatColumn, FormatFile]
-      );
+      return ['+' + FormatLine + ':' + FormatColumn, FormatFile];
     case 'rmate':
     case 'mate':
     case 'mine':
-      return formatOpenPath(
-        fileName,
-        lineNumber,
-        colNumber,
-        pathFormat || ['--line', FormatLine, FormatFile]
-      );
+      return ['--line', FormatLine, FormatFile];
     case 'code':
     case 'Code':
     case 'code-insiders':
     case 'Code - Insiders':
+    case 'codium':
+    case 'Codium':
     case 'vscodium':
     case 'VSCodium':
     case 'HBuilderX':
     case 'HBuilder':
-      return addWorkspaceToArgumentsIfExists(
-        formatOpenPath(
-          fileName,
-          lineNumber,
-          colNumber,
-          pathFormat || [
-            '-g',
-            ...(openWindowParams ? [openWindowParams] : []),
-            `${FormatFile}:${FormatLine}:${FormatColumn}`,
-          ]
-        ),
-        workspace
-      );
+      return [
+        ...(workspace ? [workspace] : []),
+        '-g',
+        ...(openWindowParams ? [openWindowParams] : []),
+        `${FormatFile}:${FormatLine}:${FormatColumn}`,
+      ];
     case 'appcode':
     case 'clion':
     case 'clion64':
@@ -259,26 +232,29 @@ function getArgumentsForLineNumber(
     case 'goland64':
     case 'rider':
     case 'rider64':
-      return addWorkspaceToArgumentsIfExists(
-        formatOpenPath(
-          fileName,
-          lineNumber,
-          colNumber,
-          pathFormat || ['--line', FormatLine, FormatFile]
-        ),
-        workspace
-      );
+      return [
+        ...(workspace ? [workspace] : []),
+        '--line',
+        FormatLine,
+        FormatFile,
+      ];
   }
+  return '';
+}
 
-  // For all others, drop the lineNumber until we have
-  // a mapping above, since providing the lineNumber incorrectly
-  // can result in errors or confusing behavior.
-  return formatOpenPath(
-    fileName,
-    lineNumber,
-    colNumber,
-    pathFormat || '{file}'
-  );
+// 根据用户自定义 editor 路径，返回对应 format
+function getDefaultPathFormat(params: GetEditorFormatParams) {
+  const { editor } = params;
+  let editorBasename: string | undefined = editor;
+  const commonEditors =
+    COMMON_EDITORS_MAP[process.platform as keyof typeof COMMON_EDITORS_MAP];
+  if (commonEditors) {
+    const key = Object.keys(commonEditors).find((key) => editor.includes(key));
+    if (key) {
+      editorBasename = commonEditors[key as keyof typeof commonEditors] || key;
+    }
+  }
+  return getFormatByEditor({ ...params, editor: editorBasename });
 }
 
 function getEnvFormatPath() {
@@ -347,69 +323,48 @@ function guessEditor(_editor?: Editor) {
   // `ps x` on macOS and Linux
   // `Get-Process` on Windows
   try {
-    let first: any;
+    let first: string[] | undefined;
 
-    if (process.platform === 'darwin') {
-      const output = child_process.execSync('ps aux', { encoding: 'utf-8' });
-      const editorNames = Object.keys(COMMON_EDITORS_OSX);
-      for (let i = 0; i < editorNames.length; i++) {
-        const editorName = editorNames[i] as keyof typeof COMMON_EDITORS_OSX;
-        if (output.indexOf(editorName) !== -1) {
-          if (customEditors?.includes(editorName)) {
-            // 优先返回用户自定义
-            return [COMMON_EDITORS_OSX[editorName]];
-          }
-          if (!first) {
-            first = [COMMON_EDITORS_OSX[editorName]];
-          }
-        }
-      }
-    } else if (process.platform === 'win32') {
-      // Some processes need elevated rights to get its executable path.
-      // Just filter them out upfront. This also saves 10-20ms on the command.
-      const output = child_process.execSync(
-        'wmic process where "executablepath is not null" get executablepath',
-        { encoding: 'utf8' }
-      );
-      const runningProcesses = output.split('\r\n').map((item) => item.trim());
+    const platform = process.platform as 'darwin' | 'linux' | 'win32';
 
-      for (let i = 0; i < COMMON_EDITORS_WIN.length; i++) {
-        const editorName = COMMON_EDITORS_WIN[i];
+    const execution = ProcessExectionMap[platform];
+    const commonEditors = COMMON_EDITORS_MAP[platform];
+    const output = child_process.execSync(execution, { encoding: 'utf-8' });
+    const editorNames = Object.keys(commonEditors);
+    const runningProcesses = output.split('\r\n').map((item) => item.trim()); // 仅 win32
+
+    for (let i = 0; i < editorNames.length; i++) {
+      const editorName = editorNames[i] as keyof typeof commonEditors;
+      let editor: string = ''; // 要返回的 editor 结果
+      let runningEditor: string = ''; // 正在运行的 editor 进程名称
+
+      // 检测当前 editorName 是否正在运行
+      if (platform === 'win32') {
         const process = runningProcesses.find(
           (process) => path.basename(process) === editorName
         );
         if (process) {
-          const processName = path.basename(process);
-          if (customEditors?.includes(processName)) {
-            return [COMMON_EDITORS_WIN_MAP[processName] || process];
-          }
-          if (!first) {
-            first = [COMMON_EDITORS_WIN_MAP[processName] || process];
-          }
+          runningEditor = path.basename(process);
+          editor = COMMON_EDITORS_WIN[runningEditor] || process;
+        }
+      } else {
+        if (output.indexOf(editorName) !== -1) {
+          runningEditor = editorName;
+          editor = commonEditors[editorName];
         }
       }
-    } else if (process.platform === 'linux') {
-      // --no-heading No header line
-      // x List all processes owned by you
-      // -o comm Need only names column
-      const output = child_process.execSync('ps -eo comm --sort=comm', {
-        encoding: 'utf8',
-      });
-      const editorNames = Object.keys(COMMON_EDITORS_LINUX);
-      let first: any;
-      for (let i = 0; i < editorNames.length; i++) {
-        const editorName = editorNames[i] as keyof typeof COMMON_EDITORS_LINUX;
-        if (output.indexOf(editorName) !== -1) {
-          if (customEditors?.includes(editorName)) {
-            // 优先返回用户自定义
-            return [COMMON_EDITORS_LINUX[editorName]];
-          }
-          if (!first) {
-            first = [COMMON_EDITORS_LINUX[editorName]];
-          }
+      
+      if (runningEditor && editor) {
+        if (customEditors?.includes(runningEditor)) {
+          // 优先返回用户自定义的 editor
+          return [editor];
+        }
+        if (!first) {
+          first = [editor];
         }
       }
     }
+    
     if (first) {
       return first;
     }
@@ -566,7 +521,7 @@ function launchEditor(
     // launch .exe files.
     _childProcess = child_process.spawn(
       'cmd.exe',
-      ['/C', editor].concat(args),
+      ['/C', editor].concat(args as string[]),
       {
         stdio: 'inherit',
         env: {
@@ -576,7 +531,7 @@ function launchEditor(
       }
     );
   } else {
-    _childProcess = child_process.spawn(editor, args, {
+    _childProcess = child_process.spawn(editor, args as string[], {
       stdio: 'inherit',
       env: {
         ...process.env,

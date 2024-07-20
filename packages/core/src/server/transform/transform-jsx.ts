@@ -25,7 +25,7 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
     ],
   });
 
-  traverse(ast, {
+  traverse(ast!, {
     enter({ node }: any) {
       const nodeName = node?.openingElement?.name?.name || '';
       const attributes = node?.openingElement?.attributes || [];

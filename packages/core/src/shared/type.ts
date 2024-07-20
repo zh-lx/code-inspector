@@ -6,7 +6,8 @@ export type Editor =
   | 'phpstorm'
   | 'pycharm'
   | 'webstorm'
-  | 'hbuilder';
+  | 'hbuilder'
+  | 'codium';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
   locate?: boolean;
