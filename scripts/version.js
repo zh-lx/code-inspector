@@ -35,8 +35,11 @@ fs.readdir(packagesDir, (err, files) => {
 
                 if (updateType === 'major') {
                     versionParts[0] += 1;
+                    versionParts[1] = 0;
+                    versionParts[2] = 0;
                 } else if (updateType === 'minor') {
                     versionParts[1] += 1;
+                    versionParts[2] = 0;
                 } else if (updateType === 'patch') {
                     versionParts[2] += 1;
                 }

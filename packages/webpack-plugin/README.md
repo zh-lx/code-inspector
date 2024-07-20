@@ -41,6 +41,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ vite<br />
   ✅ rspack / rsbuild<br />
   ✅ farm<br />
+  ✅ esbuild<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -151,6 +152,23 @@ Please check here for more usage information: [code-inspector-plugin configurati
   </details>
 
   <details>
+    <summary>Click to expand configuration about: <b>esbuild</b></summary>
+
+  ```js
+  // esbuild.config.js
+  const esbuild = require('esbuild');
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+  esbuild.build({
+    // other configs...
+    // [注意] esbuild 中使用时，dev 函数的返回值需自己根据环境判断，本地开发的环境返回 true，线上打包返回 false
+    plugins: [codeInspectorPlugin({ bundler: 'esbuild', dev: () => true })],
+  });
+  ```
+
+  </details>
+
+  <details>
     <summary>Click to expand configuration about: <b>farm</b></summary>
 
   ```js
@@ -161,10 +179,10 @@ Please check here for more usage information: [code-inspector-plugin configurati
   export default defineConfig({
     vitePlugins: [
       codeInspectorPlugin({
-        bundler: 'vite'
+        bundler: 'vite',
       }),
       // ...other code
-    ]
+    ],
   });
   ```
 
