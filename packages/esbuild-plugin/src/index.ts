@@ -31,7 +31,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
     name: PluginName,
     setup(build) {
       // 判断开发环境
-      if (options?.close || !judgeEnv(options.dev)) {
+      if (options.close || !judgeEnv(options.dev)) {
         return;
       }
 
@@ -48,7 +48,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
 
       // 监听文件变化
       build.onLoad(
-        { filter: options?.match || /\.(jsx|tsx|js|ts|mjs|mts)?$/ },
+        { filter: options.match || /\.(jsx|tsx|js|ts|mjs|mts)?$/ },
         async (args) => {
           const filePath = args.path;
           let originCode = await fs.promises.readFile(filePath, 'utf8');
