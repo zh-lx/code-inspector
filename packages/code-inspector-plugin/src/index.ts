@@ -1,5 +1,6 @@
 import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
+import { EsbuildCodeInspectorPlugin } from 'esbuild-code-inspector-plugin';
 import { CodeOptions, fileURLToPath } from 'code-inspector-core';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
@@ -11,7 +12,7 @@ export interface CodeInspectorPluginOptions extends CodeOptions {
    * @zh 指定项目的打包器
    * @en specify the bundler of the project
    */
-  bundler: 'vite' | 'webpack' | 'rspack';
+  bundler: 'vite' | 'webpack' | 'rspack' | 'esbuild';
   /**
    * @zh 设置为 true 时，仅当 .env.local 文件存在且其包含 CODE_INSPECTOR=true 时插件生效；默认值为 false
    * @en When set the value to true, only if the .env.local file exists and it contains CODE_INSPECTOR=true, the plugin takes effect; The default value is false
@@ -63,6 +64,8 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
     return new WebpackCodeInspectorPlugin(params);
+  } else if (options.bundler === 'esbuild') {
+    return EsbuildCodeInspectorPlugin(params);
   } else {
     // 使用 vite 插件
     return ViteCodeInspectorPlugin(params);
