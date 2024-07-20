@@ -59,43 +59,33 @@ export function ViteCodeInspectorPlugin(options: Options) {
 
       const { escapeTags = [] } = options || {};
 
-      // jsx
-      const isJsx =
+      let fileType = '';
+      if (
         isJsTypeFile(filePath) ||
         (filePath.endsWith('.vue') &&
           (jsxParamList.some((param) => params.get(param) !== null) ||
             params.get('lang') === 'tsx' ||
-            params.get('lang') === 'jsx'));
-      if (isJsx) {
-        return transformCode({
-          content: code,
-          filePath,
-          fileType: 'jsx',
-          escapeTags,
-        });
-      }
-
-      // vue
-      const isVue =
+            params.get('lang') === 'jsx'))
+      ) {
+        // jsx 代码
+        fileType = 'jsx';
+      } else if (
         filePath.endsWith('.vue') &&
         params.get('type') !== 'style' &&
-        params.get('raw') === null;
-      if (isVue) {
-        return transformCode({
-          content: code,
-          filePath,
-          fileType: 'vue',
-          escapeTags,
-        });
+        params.get('raw') === null
+      ) {
+        // vue 代码
+        fileType = 'vue';
+      } else if (filePath.endsWith('.svelte')) {
+        // svelte 代码
+        fileType = 'svelte';
       }
 
-      // svelte
-      const isSvelte = filePath.endsWith('.svelte');
-      if (isSvelte) {
+      if (fileType) {
         return transformCode({
           content: code,
           filePath,
-          fileType: 'svelte',
+          fileType,
           escapeTags,
         });
       }
