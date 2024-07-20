@@ -1,0 +1,82 @@
+import {
+  transformCode,
+  CodeOptions,
+  getCodeWithWebComponent,
+  RecordInfo,
+  isJsTypeFile,
+} from 'code-inspector-core';
+import fs from 'fs';
+import path from 'path';
+
+const PluginName = 'esbuild-code-inspector-plugin';
+
+interface Options extends CodeOptions {
+  close?: boolean;
+  output: string;
+}
+
+function judgeEnv(dev?: boolean | (() => boolean)) {
+  let isDev: boolean;
+  if (typeof dev === 'function') {
+    isDev = dev();
+  } else {
+    isDev = dev;
+  }
+  return !!isDev;
+}
+
+export function EsbuildCodeInspectorPlugin(options: Options) {
+  return {
+    name: PluginName,
+    setup(build) {
+      // 判断开发环境
+      if (options?.close || !judgeEnv(options.dev)) {
+        return;
+      }
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: options.output,
+      };
+      const { escapeTags = [] } = options;
+      const cache = new Map<string, { originCode: string; output: { contents: string, loader: string } }>();
+
+      // 监听文件变化
+      build.onLoad({ filter: options?.match || /\.(jsx|tsx|js|ts|mjs|mts)?$/ }, async (args) => {
+        const filePath = args.path;
+        let originCode = await fs.promises.readFile(filePath, 'utf8');
+        let result = cache.get(filePath);
+
+        // 文件首次编译或者发生修改
+        if (!result || result.originCode !== originCode) {
+          let code = await getCodeWithWebComponent(options, filePath, originCode, record);
+
+          let fileType = '';
+          if (isJsTypeFile(filePath)) {
+            fileType = 'jsx';
+          } else if (filePath.endsWith('.vue')) {
+            fileType = 'vue';
+          } else if (filePath.endsWith('.svelte')) {
+            fileType = 'svelte'
+          }
+
+          if (fileType) {
+            code = transformCode({
+              content: code,
+              filePath,
+              fileType,
+              escapeTags,
+            });
+          }
+
+          const ext = path.extname(filePath).replace('.', '');
+          result = { originCode, output: { contents: code, loader: ext } }
+          cache.set(filePath, result)
+        }
+
+        return result.output;
+      });
+    },
+  };
+}
