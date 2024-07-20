@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/farm/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
 
 ## 安装
 
@@ -103,6 +103,23 @@ export default defineConfig({
 
 :::
 
+::: details 点击展开查看 esbuild 项目配置
+
+```js
+// esbuild.config.js
+const esbuild = require('esbuild');
+const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+esbuild.build({
+  // other configs...
+
+  // [注意] esbuild 中使用时，dev 函数的返回值需自己根据环境判断，本地开发的环境返回 true，线上打包返回 false
+  plugins: [codeInspectorPlugin({ bundler: 'esbuild', dev: () => true })],
+});
+```
+
+:::
+
 ::: details 点击展开查看 farm 项目配置
 
 ```js
@@ -113,10 +130,10 @@ import { codeInspectorPlugin } from 'code-inspector-plugin';
 export default defineConfig({
   vitePlugins: [
     codeInspectorPlugin({
-      bundler: 'vite'
+      bundler: 'vite',
     }),
     // ...other code
-  ]
+  ],
 });
 ```
 
