@@ -111,7 +111,15 @@ export function getHidePathAttrCode() {
 
 // normal entry file
 function recordEntry(record: RecordInfo, file: string) {
-  if (!record.entry && isJsTypeFile(file) && !file.includes('/.svelte-kit/')) {
+  if (!record.entry && isJsTypeFile(file)) {
+    // exclude svelte kit server entry file
+    if (file.includes('/.svelte-kit/')) {
+      return;
+    }
+    // exclude nextjs layout entry
+    if (file.replace(path.extname(file), '').endsWith('/app/layout')) {
+      return;
+    }
     record.entry = getFilePathWithoutExt(file);
   }
 }
