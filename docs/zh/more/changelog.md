@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.15.1
+
+- 【fix】修复 Next.js 中编译后偶尔不生效的问题
+
 ## 0.15.0
 
 - 【fix】修复指定 IDE 完整路径时代码定位无法精确到行/列的问题 [#191](https://github.com/zh-lx/code-inspector/pull/191)、[#193](https://github.com/zh-lx/code-inspector/pull/193)
