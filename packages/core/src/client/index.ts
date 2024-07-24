@@ -17,7 +17,7 @@ const WindowsHotKeyMap = {
   ctrlKey: 'Ctrl',
   altKey: 'Alt',
   metaKey: '⊞Windows',
-  shiftKey: '⇧Shift',
+  shiftKey: 'Shift',
 };
 
 interface CodeInspectorHtmlElement extends HTMLElement {
@@ -385,15 +385,16 @@ export class CodeInspectorComponent extends LitElement {
       .fill('')
       .map((_, index) => {
         if (index % 2 === 0) {
-          return 'color: #42b983; font-weight: bold; font-family: PingFang SC;';
+          return 'color: #42b983; font-family: PingFang SC;';
         } else {
           return 'color: #006aff; font-weight: bold; font-family: PingFang SC;';
         }
       });
     console.log(
-      `%c同时按住 [${keys.join(
+      `%c[code-inspector-plugin]%c同时按住 ${keys.join(
         ' %c+ '
-      )}%c] 时启用 inspector 功能(点击页面元素可定位至编辑器源代码)`,
+      )}%c 时启用功能(点击页面元素可定位至编辑器源代码)`,
+      'color: #006aff; font-weight: bolder;',
       ...colors
     );
   };
