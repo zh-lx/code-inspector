@@ -1,8 +1,12 @@
 # 更新日志
 
+## 0.15.2
+
+- 【chore】优化控制台提示 [#199](https://github.com/zh-lx/code-inspector/pull/199)
+
 ## 0.15.1
 
-- 【fix】修复 Next.js 中编译后偶尔不生效的问题
+- 【fix】修复 Next.js 中编译后偶尔不生效的问题 [#198](https://github.com/zh-lx/code-inspector/pull/198)
 
 ## 0.15.0
 

@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.15.2
+
+- 【chore】Optimized console messages [#199](https://github.com/zh-lx/code-inspector/pull/199)
+
 ## 0.15.1
 
-- 【fix】Fixed the issue where it occasionally did not work after compilation in Next.js
+- 【fix】Fixed the issue where it occasionally did not work after compilation in Next.js [#198](https://github.com/zh-lx/code-inspector/pull/198)
 
 ## 0.15.0
 
