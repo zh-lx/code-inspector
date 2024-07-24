@@ -5,3 +5,4 @@ dist
 cache
 .temp
 dist.zip
+.DS_Store
