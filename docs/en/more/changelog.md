@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.16.0
+
+- 【perf】Optimize the injection logic of the client code. By default, inject using the `code` method, and for Next.js projects, it will automatically recognize and inject using the `file` method [#203](https://github.com/zh-lx/code-inspector/pull/203).
+
 ## 0.15.2
 
-- 【chore】Optimized console messages [#199](https://github.com/zh-lx/code-inspector/pull/199)
+- 【perf】Optimized console messages [#199](https://github.com/zh-lx/code-inspector/pull/199)
 
 ## 0.15.1
 
@@ -69,6 +73,10 @@
 
 - 【fix】Fixed the issue of being unable to open the source code in StackBlitz.
 
+## 0.9.1
+
+- 【perf】optimize the request for node server
+
 ## 0.9.0
 
 - 【feat】Support usage in projects based on the `Astro` framework.
@@ -122,11 +130,11 @@
 
 ## 0.5.1
 
-- 【optimize】Enhance the cache strategy for injecting loader in `webpack`, significantly improving the performance of HMR.
+- 【perf】Enhance the cache strategy for injecting loader in `webpack`, significantly improving the performance of HMR.
 
 ## 0.5.0
 
-- 【optimize】When the `injectTo` option is set, the injection loader of the interaction logic in `webpack/rspack` only takes effect for files specified in `injectTo`.
+- 【perf】When the `injectTo` option is set, the injection loader of the interaction logic in `webpack/rspack` only takes effect for files specified in `injectTo`.
 - 【feat】Added `dev` parameter, allowing users to customize the logic for determining the development environment.
 - 【feat】Added `forceInjectCache` parameter, allowing users to enforce the caching strategy for the injection loader of the interaction logic in `webpack/rspack`.
 - 【feat】Added `match` parameter, allowing users to specify the file types participating in source code location compilation to reduce the compilation of irrelevant files.
@@ -134,7 +142,7 @@
 ## 0.4.6
 
 - 【fix】Resolved the issue where opening the corresponding code in VSCode was not possible on Windows systems when the installation path of VSCode contained Chinese characters.
-- 【optimize】Improved the caching logic of `inject-loader` in `webpack/rspack`.
+- 【perf】Improved the caching logic of `inject-loader` in `webpack/rspack`.
 
 ## 0.4.5
 
@@ -191,7 +199,7 @@
 
 ## 0.1.11
 
-- 【optimize】Optimize dependencies version
+- 【chore】Optimize dependencies version
 
 ## 0.1.10
 
@@ -199,11 +207,11 @@
 
 ## 0.1.9
 
-- 【optimize】Removing file path verification for Windows systems
+- 【perf】Removing file path verification for Windows systems
 
 ## 0.1.8
 
-- 【feature】Added the `needEnvInspector` parameter to support scenarios where the plugin only takes effect when `CODE_INSPECTOR=true` is configured in `.local.env`
+- 【feat】Added the `needEnvInspector` parameter to support scenarios where the plugin only takes effect when `CODE_INSPECTOR=true` is configured in `.local.env`
 - 【fix】Fix the issue of full page refresh during hot updates when used in webpack
 
 ## 0.1.7
@@ -216,7 +224,7 @@
 
 ## 0.1.5
 
-【feature】Add the locating of jsx syntax in ``.js' and '.ts' files
+【feat】Add the locating of jsx syntax in ``.js' and '.ts' files
 
 ## 0.1.4
 
@@ -228,7 +236,7 @@
 
 ## 0.1.2
 
-【feature】Optimize the combination key prompt function in the browser console on Mac and Windows systems
+【perf】Optimize the combination key prompt function in the browser console on Mac and Windows systems
 
 ## 0.1.1
 
@@ -236,4 +244,4 @@
 
 ## 0.1.0
 
-【feature】First Release!
+【feat】First Release!

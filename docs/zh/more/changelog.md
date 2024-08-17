@@ -1,8 +1,12 @@
 # 更新日志
 
+## 0.16.0
+
+- 【perf】优化客户端代码的注入逻辑，默认通过 `code` 方式注入，对于 Nextjs 项目会自动识别并通过 `file` 方式注入 [#203](https://github.com/zh-lx/code-inspector/pull/203)
+
 ## 0.15.2
 
-- 【chore】优化控制台提示 [#199](https://github.com/zh-lx/code-inspector/pull/199)
+- 【perf】优化控制台提示 [#199](https://github.com/zh-lx/code-inspector/pull/199)
 
 ## 0.15.1
 
@@ -70,7 +74,7 @@
 
 ## 0.9.1
 
-- 【optimize】优化 node server 请求方式
+- 【perf】优化 node server 请求方式
 
 ## 0.9.0
 
@@ -125,11 +129,11 @@
 
 ## 0.5.1
 
-- 【optimize】优化 `webpack` 中 inject loader 的缓存策略，大幅提升热更新性能
+- 【perf】优化 `webpack` 中 inject loader 的缓存策略，大幅提升热更新性能
 
 ## 0.5.0
 
-- 【optimize】设置 `injectTo` 选项时，`webpakc/rspack` 的交互逻辑的注入 loader 仅对 `injectTo` 文件生效
+- 【perf】设置 `injectTo` 选项时，`webpakc/rspack` 的交互逻辑的注入 loader 仅对 `injectTo` 文件生效
 - 【feat】新增 `dev` 参数，支持用户自定义开发环境的判断逻辑
 - 【feat】新增 `forceInjectCache` 参数，支持用户强制设置`webpakc/rspack` 的交互逻辑的注入 loader 的缓存策略
 - 【feat】新增 `match` 参数，支持用户指定参与源码定位编译的文件类型以减少无关文件的编译
@@ -137,7 +141,7 @@
 ## 0.4.6
 
 - 【fix】修复 windows 系统中 vscode 安装路径存在中文时，无法打开 vscode 对应代码的问题
-- 【optimize】优化 `webpack/rspack` 中 `inject-loader` 的缓存逻辑
+- 【perf】优化 `webpack/rspack` 中 `inject-loader` 的缓存逻辑
 
 ## 0.4.5
 
@@ -194,7 +198,7 @@
 
 ## 0.1.11
 
-- 【optimize】优化依赖项版本
+- 【chore】优化依赖项版本
 
 ## 0.1.10
 
@@ -202,11 +206,11 @@
 
 ## 0.1.9
 
-- 【optimize】移除 windows 系统的文件路径校验
+- 【perf】移除 windows 系统的文件路径校验
 
 ## 0.1.8
 
-- 【feature】新增 `needEnvInspector` 可选配置项
+- 【feat】新增 `needEnvInspector` 可选配置项
 - 【fix】修复在 webpack 中使用会导致热更新时页面全量刷新的问题
 
 ## 0.1.7
@@ -219,7 +223,7 @@
 
 ## 0.1.5
 
-【feature】增加对于 `.js`，`.ts` 文件中 jsx 语法的定位
+【feat】增加对于 `.js`，`.ts` 文件中 jsx 语法的定位
 
 ## 0.1.4
 
@@ -231,7 +235,7 @@
 
 ## 0.1.2
 
-【feature】优化 Mac 系统、Windows 系统中浏览器控制台的按键提示功能
+【perf】优化 Mac 系统、Windows 系统中浏览器控制台的按键提示功能
 
 ## 0.1.1
 
@@ -239,4 +243,4 @@
 
 ## 0.1.0
 
-【feature】首次发布
+【feat】首次发布

@@ -174,5 +174,5 @@ interface CodeInspectorOptins {
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 
 - Optional
-- Type: `string`. Default value is `file`
+- Type: `string`. The default value for versions `0.16.x` and later is `code`, while for versions before `0.15.x`, the default value is `file`.
 - Description: Method for importing client interaction code: `file` to import the file containing the interaction code; `code` to directly inject the interaction code into the page.
