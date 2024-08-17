@@ -9,6 +9,7 @@ import {
   fileURLToPath,
   AstroToolbarFile,
   getIP,
+  getDenpendencies,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -156,9 +157,7 @@ export async function getCodeWithWebComponent(
     file === AstroToolbarFile
   ) {
     const injectCode = getInjectedCode(options, record.port);
-    if (options.importClient === 'code') {
-        code = `${injectCode};${code}`;
-    } else {
+    if (isNextjsProject() || options.importClient === 'file') {
       writeEslintRcFile(record.output);
       const webComponentNpmPath = writeWebComponentFile(
         record.output,
@@ -168,6 +167,8 @@ export async function getCodeWithWebComponent(
       if (!file.match(webComponentNpmPath)) {
         code = `import '${webComponentNpmPath}';${code}`;
       }
+    } else {
+      code = `${injectCode};${code}`;
     }
   }
   return code;
@@ -198,4 +199,9 @@ function writeWebComponentFile(
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
   fs.writeFileSync(webComponentFilePath, content, 'utf-8');
   return webComponentNpmPath;
+}
+
+function isNextjsProject() {
+  const dependencies = getDenpendencies();
+  return dependencies.includes('next');
 }
