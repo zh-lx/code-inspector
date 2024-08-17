@@ -126,12 +126,8 @@ export type CodeOptions = {
    */
   ip?: boolean | string;
   /**
-   * @zh 点击 DOM 向 node server 发送请求时，是否使用 ip 代替 localhost。默认为 `false`
-   * @en When sending request node server by clicking on the DOM, whether to use IP instead of localhost. Default value is `false`
+   * @zh 引入客户端交互代码的方式: file 为通过文件引入交互代码; code 为直接将交互代码注入页面。`0.16.x` 及之后的版本值默认为 `code`, `0.15.x` 之前的版本默认值为 `file`.
+   * @en How to import client interaction code: `file` means import interaction code through a file; `code` means directly injecting the interaction code into the page. The default value for versions `0.16.x` and later is `code`, while for versions before `0.15.x`, the default value is `file`.
    */
   importClient?: ImportClientWay;
-  /**
-   * @zh 引入客户端交互代码的方式: file 为通过文件引入交互代码; code 为直接将交互代码注入页面。默认为 `file`
-   * @en How to import client interaction code: `file` means import interaction code through a file; `code` means directly injecting the interaction code into the page. The default is `file`.
-   */
 };

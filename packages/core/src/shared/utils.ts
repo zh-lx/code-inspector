@@ -1,5 +1,6 @@
 import path from 'path';
 import os from 'os';
+import fs from 'fs';
 import { FormatColumn, FormatFile, FormatLine, JsFileExtList } from './constant';
 import { EscapeTags } from './type';
 
@@ -92,4 +93,18 @@ export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
       return escapeTag.test(tag) || escapeTag.test(tag.toLowerCase());
     }
   }) 
+}
+
+export function getDenpendencies() {
+  const packageJsonPath = path.resolve(process.cwd(), './package.json');
+  if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8') || '{}');
+      const dependencies = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+        ...packageJson.peerDependencies
+      }
+      return Array.from(new Set(Object.keys(dependencies)));
+  }
+  return [];
 }
