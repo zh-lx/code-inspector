@@ -1,4 +1,4 @@
-export type Editor = 'atom' | 'code' | 'code_insiders' | 'idea' | 'phpstorm' | 'pycharm' | 'webstorm' | 'hbuilder' | 'codium';
+export type Editor = 'atom' | 'code' | 'code_insiders' | 'idea' | 'phpstorm' | 'pycharm' | 'webstorm' | 'hbuilder' | 'codium' | 'cursor';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
     locate?: boolean;
