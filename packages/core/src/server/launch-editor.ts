@@ -133,7 +133,7 @@ const COMMON_EDITORS_WIN: { [key: string]: string } = {
   'VSCodium.exe': 'codium',
   'webstorm.exe': '',
   'webstorm64.exe': '',
-  'Cursor.exe': 'cursor',
+  'Cursor.exe': '',
   'atom.exe': '',
   'HBuilderX.exe': '',
   'HBuilder.exe': '',
