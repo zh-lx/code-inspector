@@ -2,7 +2,8 @@
 
 ## 0.16.0
 
-- 【perf】Optimize the injection logic of the client code. By default, inject using the `code` method, and for Next.js projects, it will automatically recognize and inject using the `file` method [#203](https://github.com/zh-lx/code-inspector/pull/203).
+- 【feat】Built-in recognition of cursor IDE. [207](https://github.com/zh-lx/code-inspector/pull/207)
+- 【perf】Optimize the injection logic of the client code. By default, inject using the `code` method, and for Next.js projects, it will automatically recognize and inject using the `file` method. [#203](https://github.com/zh-lx/code-inspector/pull/203).
 
 ## 0.15.2
 

@@ -2,6 +2,7 @@
 
 ## 0.16.0
 
+- 【feat】内置了 cursor IDE 的识别 [207](https://github.com/zh-lx/code-inspector/pull/207)
 - 【perf】优化客户端代码的注入逻辑，默认通过 `code` 方式注入，对于 Nextjs 项目会自动识别并通过 `file` 方式注入 [#203](https://github.com/zh-lx/code-inspector/pull/203)
 
 ## 0.15.2
