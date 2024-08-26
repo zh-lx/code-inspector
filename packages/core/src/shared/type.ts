@@ -7,7 +7,8 @@ export type Editor =
   | 'pycharm'
   | 'webstorm'
   | 'hbuilder'
-  | 'codium';
+  | 'codium'
+  | 'cursor';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
   locate?: boolean;

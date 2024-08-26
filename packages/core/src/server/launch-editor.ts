@@ -41,6 +41,7 @@ const CodeMap: CodeMapType = {
     code: ['/Visual Studio Code.app/'], // confirmed
     code_insiders: ['/Visual Studio Code - Insiders.app/'], // confirmed
     webstorm: ['/WebStorm.app/'], // confirmed
+    cursor: ['/Cursor.app/'],
     atom: ['/Atom.app/'], // confirmed
     hbuilder: ['/HBuilderX.app/'], // confirmed
     phpstorm: ['/PhpStorm.app/'], // confirmed
@@ -54,6 +55,7 @@ const CodeMap: CodeMapType = {
     code: ['code'],
     code_insiders: ['code-insiders'],
     webstorm: ['webstorm.sh'],
+    cursor: ['cursor'],
     atom: ['atom'],
     hbuilder: ['hbuilderx.sh'],
     phpstorm: ['phpstorm.sh'],
@@ -67,6 +69,7 @@ const CodeMap: CodeMapType = {
     code: ['Code.exe'], // confirmed
     code_insiders: ['Code - Insiders.exe'],
     webstorm: ['webstorm.exe', 'webstorm64.exe'],
+    cursor: ['Cursor.exe'],
     atom: ['atom.exe'],
     hbuilder: ['HBuilderX.exe', 'HBuilder.exe'],
     phpstorm: ['phpstorm.exe', 'phpstorm64.exe'],
@@ -100,6 +103,7 @@ const COMMON_EDITORS_OSX = {
   '/Visual Studio Code - Insiders.app/': 'code-insiders',
   '/VSCodium.app/': 'codium',
   '/WebStorm.app/': '/Applications/WebStorm.app/Contents/MacOS/webstorm',
+  '/Cursor.app/': '/Applications/Cursor.app/Contents/MacOS/Cursor',
   '/Atom.app/': 'atom',
   '/HBuilderX.app/': '/Applications/HBuilderX.app/Contents/MacOS/HBuilderX',
   '/PhpStorm.app/': '/Applications/PhpStorm.app/Contents/MacOS/phpstorm',
@@ -114,6 +118,7 @@ const COMMON_EDITORS_LINUX = {
   codium: 'codium',
   vscodium: 'vscodium',
   'webstorm.sh': 'webstorm',
+  'cursor': 'cursor',
   atom: 'atom',
   hbuilderx: 'hbuilderx',
   'hbuilderx.sh': 'hbuilderx',
@@ -128,6 +133,7 @@ const COMMON_EDITORS_WIN: { [key: string]: string } = {
   'VSCodium.exe': 'codium',
   'webstorm.exe': '',
   'webstorm64.exe': '',
+  'Cursor.exe': '',
   'atom.exe': '',
   'HBuilderX.exe': '',
   'HBuilder.exe': '',
@@ -205,6 +211,8 @@ function getFormatByEditor(params: GetEditorFormatParams) {
     case 'Code - Insiders':
     case 'codium':
     case 'Codium':
+    case 'Cursor':
+    case 'cursor':
     case 'vscodium':
     case 'VSCodium':
     case 'HBuilderX':
