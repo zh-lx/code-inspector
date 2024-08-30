@@ -1,9 +1,10 @@
 import {
   CodeOptions,
   RecordInfo,
-  fileURLToPath
+  fileURLToPath,
+  isDev,
 } from 'code-inspector-core';
-import path, {dirname} from 'path';
+import path, { dirname } from 'path';
 
 let compatibleDirname = '';
 
@@ -16,7 +17,7 @@ if (typeof __dirname !== 'undefined') {
 let isFirstLoad = true;
 
 interface LoaderOptions extends CodeOptions {
-  record: RecordInfo,
+  record: RecordInfo;
 }
 
 const applyLoader = (options: LoaderOptions, compiler: any) => {
@@ -56,7 +57,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       enforce: 'post',
     }
   );
-}
+};
 
 interface Options extends CodeOptions {
   close?: boolean;
@@ -73,41 +74,27 @@ class WebpackCodeInspectorPlugin {
   apply(compiler) {
     isFirstLoad = true;
 
-    if (this.options.close) {
-      return;
-    }
-
-    // 自定义 dev 环境判断
-    let isDev: boolean;
-    if (typeof this.options?.dev === 'function') {
-      isDev = this.options?.dev();
-    } else {
-      isDev = this.options?.dev;
-    }
-
-    if (isDev === false) {
-      return;
-    }
-
-    // 仅在开发环境下使用
     if (
-      !isDev &&
-      compiler?.options?.mode !== 'development' &&
-      process.env.NODE_ENV !== 'development'
+      this.options.close ||
+      !isDev(
+        this.options.dev,
+        compiler?.options?.mode === 'development' ||
+          process.env.NODE_ENV === 'development'
+      )
     ) {
       return;
     }
 
     if (compiler?.options?.cache?.type === 'filesystem') {
-      compiler.options.cache.version = `code-inspector-${Date.now()}`
+      compiler.options.cache.version = `code-inspector-${Date.now()}`;
     }
 
     const record: RecordInfo = {
       port: 0,
       entry: '',
       output: this.options.output,
-    }
-    
+    };
+
     applyLoader({ ...this.options, record }, compiler);
   }
 }

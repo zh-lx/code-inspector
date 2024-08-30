@@ -5,6 +5,7 @@ import {
   getCodeWithWebComponent,
   RecordInfo,
   isJsTypeFile,
+  isDev,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
@@ -25,21 +26,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
     name: PluginName,
     ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
     apply(_, { command }) {
-      if (options?.close) {
-        return false;
-      }
-      // 自定义 dev 环境判断
-      let isDev: boolean;
-      if (typeof options?.dev === 'function') {
-        isDev = options?.dev();
-      } else {
-        isDev = options?.dev;
-      }
-      if (isDev === false) {
-        return false;
-      } else {
-        return !!isDev || command === 'serve';
-      }
+      return !options?.close && isDev(options.dev, command === 'serve');
     },
     async transform(code, id) {
       if (id.match('node_modules')) {

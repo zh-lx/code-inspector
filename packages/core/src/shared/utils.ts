@@ -1,7 +1,12 @@
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { FormatColumn, FormatFile, FormatLine, JsFileExtList } from './constant';
+import {
+  FormatColumn,
+  FormatFile,
+  FormatLine,
+  JsFileExtList,
+} from './constant';
 import { EscapeTags } from './type';
 
 //获取本机ip地址
@@ -77,34 +82,51 @@ export function formatOpenPath(
   } else if (format instanceof Array) {
     return format.map((item) => {
       return item
-      .replace(FormatFile, file)
-      .replace(FormatLine, line)
-      .replace(FormatColumn, column);
+        .replace(FormatFile, file)
+        .replace(FormatLine, line)
+        .replace(FormatColumn, column);
     });
   }
   return [path];
 }
 
 export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
-  return escapeTags.some(escapeTag => {
+  return escapeTags.some((escapeTag) => {
     if (typeof escapeTag === 'string') {
       return escapeTag.toLowerCase() === tag.toLowerCase();
     } else {
       return escapeTag.test(tag) || escapeTag.test(tag.toLowerCase());
     }
-  }) 
+  });
 }
 
 export function getDenpendencies() {
   const packageJsonPath = path.resolve(process.cwd(), './package.json');
   if (fs.existsSync(packageJsonPath)) {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8') || '{}');
-      const dependencies = {
-        ...packageJson.dependencies,
-        ...packageJson.devDependencies,
-        ...packageJson.peerDependencies
-      }
-      return Array.from(new Set(Object.keys(dependencies)));
+    const packageJson = JSON.parse(
+      fs.readFileSync(packageJsonPath, 'utf-8') || '{}'
+    );
+    const dependencies = {
+      ...packageJson.dependencies,
+      ...packageJson.devDependencies,
+      ...packageJson.peerDependencies,
+    };
+    return Array.from(new Set(Object.keys(dependencies)));
   }
   return [];
+}
+
+type BooleanFunction = () => boolean;
+// 判断当前是否为 development 环境; 优先判定用户指定的环境；其次判断系统默认的环境
+export function isDev(userDev: boolean | BooleanFunction | undefined, systemDev: boolean) {
+  let dev: boolean | undefined;
+  if (typeof userDev === 'function') {
+    dev = userDev();
+  } else {
+    dev = userDev;
+  }
+  if (dev === false) {
+    return false;
+  }
+  return dev || systemDev;
 }

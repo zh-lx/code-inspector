@@ -5,6 +5,7 @@ import {
   RecordInfo,
   isJsTypeFile,
   parseSFC,
+  isDev,
 } from 'code-inspector-core';
 import fs from 'fs';
 import path from 'path';
@@ -16,22 +17,12 @@ interface Options extends CodeOptions {
   output: string;
 }
 
-function judgeEnv(dev?: boolean | (() => boolean)) {
-  let isDev: boolean;
-  if (typeof dev === 'function') {
-    isDev = dev();
-  } else {
-    isDev = dev;
-  }
-  return !!isDev;
-}
-
 export function EsbuildCodeInspectorPlugin(options: Options) {
   return {
     name: PluginName,
     setup(build) {
       // 判断开发环境
-      if (options.close || !judgeEnv(options.dev)) {
+      if (options.close || !isDev(options.dev, false)) {
         return;
       }
 
