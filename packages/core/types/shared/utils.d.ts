@@ -7,3 +7,6 @@ export declare function normalizePath(filepath: string): string;
 export declare function formatOpenPath(file: string, line: string, column: string, format: string | string[] | boolean): string[];
 export declare function isEscapeTags(escapeTags: EscapeTags, tag: string): boolean;
 export declare function getDenpendencies(): string[];
+type BooleanFunction = () => boolean;
+export declare function isDev(userDev: boolean | BooleanFunction | undefined, systemDev: boolean): boolean;
+export {};
