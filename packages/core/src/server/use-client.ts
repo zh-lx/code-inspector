@@ -71,7 +71,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
 export function getEliminateWarningCode() {
   return `
   ;(function(){
-    if (globalThis.__code_inspector_warning) {
+    if (typeof globalThis === 'undefined' || globalThis.__code_inspector_warning) {
       return;
     };
     var originWarn = console.warn;
@@ -94,7 +94,7 @@ export function getEliminateWarningCode() {
 export function getHidePathAttrCode() {
   return `
   ;(function(){
-    if (typeof window === 'undefined' || globalThis.__code_inspector_observed) {
+    if (typeof window === 'undefined' || window.__code_inspector_observed) {
       return;
     };
     function observe() {
@@ -105,7 +105,7 @@ export function getHidePathAttrCode() {
       setTimeout(observe, 1000);
     }
     observe();
-    globalThis.__code_inspector_observed = true;
+    window.__code_inspector_observed = true;
   })();
   `;
 }
