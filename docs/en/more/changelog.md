@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.16.1
+
+- 【fix】Fixed the issue where lower version browsers do not support the `globalThis` variable. [#210](https://github.com/zh-lx/code-inspector/pull/210)
+- 【refactor】Optimized the code for checking the `development` environment. [#209](https://github.com/zh-lx/code-inspector/pull/209)
+
 ## 0.16.0
 
-- 【feat】Built-in recognition of cursor IDE. [207](https://github.com/zh-lx/code-inspector/pull/207)
+- 【feat】Built-in recognition of cursor IDE. [#207](https://github.com/zh-lx/code-inspector/pull/207)
 - 【perf】Optimize the injection logic of the client code. By default, inject using the `code` method, and for Next.js projects, it will automatically recognize and inject using the `file` method. [#203](https://github.com/zh-lx/code-inspector/pull/203).
 
 ## 0.15.2

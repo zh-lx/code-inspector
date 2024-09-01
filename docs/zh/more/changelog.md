@@ -1,8 +1,13 @@
 # 更新日志
 
+## 0.16.1
+
+- 【fix】修复了低版本浏览器不支持 `globalThis` 变量的问题 [#210](https://github.com/zh-lx/code-inspector/pull/210)
+- 【refactor】优化判断 `development` 环境的代码 [#209](https://github.com/zh-lx/code-inspector/pull/209)
+
 ## 0.16.0
 
-- 【feat】内置了 cursor IDE 的识别 [207](https://github.com/zh-lx/code-inspector/pull/207)
+- 【feat】内置了 cursor IDE 的识别 [#207](https://github.com/zh-lx/code-inspector/pull/207)
 - 【perf】优化客户端代码的注入逻辑，默认通过 `code` 方式注入，对于 Nextjs 项目会自动识别并通过 `file` 方式注入 [#203](https://github.com/zh-lx/code-inspector/pull/203)
 
 ## 0.15.2
