@@ -218,11 +218,18 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
-  sendXHR = () => {
+  getUrl = () => {
     const file = encodeURIComponent(this.element.path);
-    const url = `http://${this.ip}:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    if (this.port) {
+      return `http://${this.ip}:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
+    } else {
+      return `${window.origin}/__open-in-editor?file=${file}:${this.element.line}:${this.element.column}`;
+    }
+  };
+
+  sendXHR = () => {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', this.getUrl(), true);
     xhr.send();
     xhr.addEventListener('error', () => {
       this.sendType = 'img';
@@ -232,10 +239,8 @@ export class CodeInspectorComponent extends LitElement {
 
   // 通过img方式发送请求，防止类似企业微信侧边栏等内置浏览器拦截逻辑
   sendImg = () => {
-    const file = encodeURIComponent(this.element.path);
-    const url = `http://${this.ip}:${this.port}/?file=${file}&line=${this.element.line}&column=${this.element.column}`;
     const img = document.createElement('img');
-    img.src = url;
+    img.src = this.getUrl();
   };
 
   // 请求本地服务端，打开vscode

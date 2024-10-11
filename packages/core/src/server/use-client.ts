@@ -142,8 +142,15 @@ export async function getCodeWithWebComponent(
   code: string,
   record: RecordInfo
 ) {
-  // start server
-  await startServer(options, record);
+  // vite and rsbuild add the middleware [__open-in-editor] by default,So no need to start service
+  if (
+    (["esbuild", "webpack"] as Array<CodeOptions["bundler"]>).includes(
+      options.bundler
+    )
+  ) {
+    // start server
+    await startServer(options, record);
+  }
 
   // injectTo
   if (options?.injectTo) {
