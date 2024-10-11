@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.16.2
+
+- 【fix】修复了在 Nextjs 项目中使用 `hideDomPathAttr` 属性时，控制台会打印 hydrate 警告的问题 [#219](https://github.com/zh-lx/code-inspector/pull/219)
+
 ## 0.16.1
 
 - 【fix】修复了低版本浏览器不支持 `globalThis` 变量的问题 [#210](https://github.com/zh-lx/code-inspector/pull/210)

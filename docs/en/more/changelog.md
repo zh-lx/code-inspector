@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.2
+
+- 【fix】Fixed the issue when using `hideDomPathAttr` in Nextjs, browser console will print hydrate warning [#219](https://github.com/zh-lx/code-inspector/pull/219)
+
 ## 0.16.1
 
 - 【fix】Fixed the issue where lower version browsers do not support the `globalThis` variable. [#210](https://github.com/zh-lx/code-inspector/pull/210)
