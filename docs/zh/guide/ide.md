@@ -15,42 +15,127 @@ CODE_EDITOR=code
 
 支持自动识别的 IDE 及对应的 IDE 编码名称如下表：
 
+
+
 <table>
     <tr>
         <th>IDE</th>
         <th>IDE编码名称</th>
+        <th>MacOS</th>
+        <th>Windows</th>
+        <th>Linux</th>        
     </tr>
     <tr>
-        <td>Visual Studio Code（vscode）</td>
+        <td><a href="https://code.visualstudio.com/" target="_blank">Visual Studio Code</a></td>
         <td>code</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
     <tr>
-        <td>Visual Studio Code - Insiders（vscode 内部版）</td>
-        <td>code_insiders</td>
+        <td><a href="https://www.cursor.com/" target="_blank">Cursor</a></td>
+        <td>cursor</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td></td>
     </tr>
     <tr>
-        <td>WebStorm</td>
+        <td><a href="https://insiders.vscode.dev/" target="_blank">Visual Studio Code - Insiders</a></td>
+        <td>code-insiders</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://vscodium.com/" target="_blank">VSCodium</a></td>
+        <td>codium</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.jetbrains.com/webstorm/" target="_blank">WebStorm</a></td>
         <td>webstorm</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
     <tr>
-        <td>Atom</td>
+        <td><a href="https://atom-editor.cc/" target="_blank">Atom</a></td>
         <td>atom</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
     <tr>
-        <td>HBuilderX</td>
+        <td><a href="https://www.dcloud.io/hbuilderx.html" target="_blank">HBuilderX</a></td>
         <td>hbuilder</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td></td>
     </tr>
     <tr>
-        <td>PhpStorm</td>
+        <td><a href="https://www.jetbrains.com/phpstorm/" target="_blank">PhpStorm</a></td>
         <td>phpstorm</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
     <tr>
-        <td>Pycharm</td>
+        <td><a href="https://www.jetbrains.com/pycharm/" target="_blank">Pycharm</a></td>
         <td>pycharm</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
     <tr>
-        <td>IntelliJ IDEA</td>
+        <td><a href="https://www.jetbrains.com/idea/" target="_blank">IntelliJ IDEA</a></td>
         <td>idea</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://brackets.io/" target="_blank">Brackets</a></td>
+        <td>brackets</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.jetbrains.com/objc/" target="_blank">Appcode</a></td>
+        <td>appcode</td>
+        <td>✅</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://atom-editor.cc/beta/" target="_blank">Atom Beta</a></td>
+        <td>atom-beta</td>
+        <td>✅</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://www.jetbrains.com/clion/" target="_blank">Clion</a></td>
+        <td>clion</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://www.jetbrains.com/rider/" target="_blank">Rider</a></td>
+        <td>rider</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.jetbrains.com/ruby/" target="_blank">Rubymine</a></td>
+        <td>rubymine</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
     </tr>
 </table>
 

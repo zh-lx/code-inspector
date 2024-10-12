@@ -63,7 +63,7 @@ interface CodeInspectorOptins {
 ## editor
 
 - Optional. Default value is `undefined`
-- Type: `string | undefined`, options: `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
+- Type: `string | undefined`, options: `atom / code / code-insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - Description: The plugin will automatically recognize the IDE running on the current system. When this option is set, it will open the specified IDE (for specifying IDE, it is more recommended to use the method in the [Specify IDE](/guide/ide) section).
 
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
