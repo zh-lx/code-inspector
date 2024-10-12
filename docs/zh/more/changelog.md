@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.0
+
+- 【refactor】优化了 IDE 的识别逻辑，并支持更多 IDE 的识别 [#222](https://github.com/zh-lx/code-inspector/pull/222)
+
 ## 0.16.2
 
 - 【fix】修复了在 Nextjs 项目中使用 `hideDomPathAttr` 属性时，控制台会打印 hydrate 警告的问题 [#219](https://github.com/zh-lx/code-inspector/pull/219)

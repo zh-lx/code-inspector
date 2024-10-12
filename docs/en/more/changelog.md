@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.0
+
+- 【refactor】Optimized the recognition logic for IDEs and added support for more IDEs [#222](https://github.com/zh-lx/code-inspector/pull/222)
+
 ## 0.16.2
 
 - 【fix】Fixed the issue when using `hideDomPathAttr` in Nextjs, browser console will print hydrate warning [#219](https://github.com/zh-lx/code-inspector/pull/219)
