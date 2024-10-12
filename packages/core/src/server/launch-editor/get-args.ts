@@ -49,7 +49,7 @@ function getEditorBasenameByProcessName(processName: string) {
     }
   }
 
-  return editorBasename;
+  return editorBasename.toLowerCase();
 }
 
 
@@ -59,8 +59,7 @@ function getFormatByEditor(params: GetEditorFormatParams) {
   
   switch (editorBasename) {
     case 'atom':
-    case 'Atom':
-    case 'Atom Beta':
+    case 'atom beta':
     case 'subl':
     case 'sublime':
     case 'sublime_text':
@@ -84,17 +83,13 @@ function getFormatByEditor(params: GetEditorFormatParams) {
     case 'mine':
       return ['--line', FormatLine, FormatFile];
     case 'code':
-    case 'Code':
     case 'code-insiders':
-    case 'Code - Insiders':
+    case 'code - insiders':
     case 'codium':
-    case 'Codium':
-    case 'Cursor':
     case 'cursor':
     case 'vscodium':
-    case 'VSCodium':
-    case 'HBuilderX':
-    case 'HBuilder':
+    case 'hbuilderx':
+    case 'hbuilder':
       return [
         ...(workspace ? [workspace] : []),
         '-g',
