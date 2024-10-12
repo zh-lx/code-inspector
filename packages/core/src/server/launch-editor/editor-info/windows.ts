@@ -1,5 +1,6 @@
 import { EDITOR_PROCESS_MAP } from "../type";
 
+// 有顺序优先级
 export const COMMON_EDITORS_WIN: { [key: string]: string } = {
   'Cursor.exe': '',
   'Code.exe': '',
@@ -8,8 +9,8 @@ export const COMMON_EDITORS_WIN: { [key: string]: string } = {
   'webstorm.exe': '',
   'webstorm64.exe': '',
   'HBuilderX.exe': '',
-  'HBuilder.exe': '',
   'HBuilderX64.exe': '',
+  'HBuilder.exe': '',
   'HBuilder64.exe': '',
   'Brackets.exe': '',
   'atom.exe': '',
@@ -33,7 +34,7 @@ export const COMMON_EDITORS_WIN: { [key: string]: string } = {
 
 export const EDITOR_PROCESS_MAP_WIN: EDITOR_PROCESS_MAP = {
   code: ['Code.exe'],
-  code_insiders: ['Code - Insiders.exe'],
+  'code-insiders': ['Code - Insiders.exe'],
   webstorm: ['webstorm.exe', 'webstorm64.exe'],
   cursor: ['Cursor.exe'],
   atom: ['atom.exe'],
@@ -42,4 +43,9 @@ export const EDITOR_PROCESS_MAP_WIN: EDITOR_PROCESS_MAP = {
   pycharm: ['pycharm.exe', 'pycharm64.exe'],
   idea: ['idea.exe', 'idea64.exe'],
   codium: ['VSCodium.exe'],
+  goland: ['goland.exe', 'goland64.exe'],
+  colin: ['clion.exe', 'clion64.exe'],
+  brackets: ['Brackets.exe'],
+  rider: ['rider.exe', 'rider64.exe'],
+  rubymine: ['rubymine.exe', 'rubymine64.exe']
 }

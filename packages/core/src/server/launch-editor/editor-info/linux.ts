@@ -1,5 +1,6 @@
 import { EDITOR_PROCESS_MAP } from "../type";
 
+// 有顺序优先级
 export const COMMON_EDITORS_LINUX = {
   cursor: 'cursor',
   code: 'code',
@@ -32,7 +33,7 @@ export const COMMON_EDITORS_LINUX = {
 
 export const EDITOR_PROCESS_MAP_LINUX: EDITOR_PROCESS_MAP = {
   code: ['code'],
-  code_insiders: ['code-insiders'],
+  'code-insiders': ['code-insiders'],
   webstorm: ['webstorm.sh'],
   cursor: ['cursor'],
   atom: ['atom'],
@@ -41,4 +42,8 @@ export const EDITOR_PROCESS_MAP_LINUX: EDITOR_PROCESS_MAP = {
   pycharm: ['pycharm.sh'],
   idea: ['idea.sh'],
   codium: ['vscodium'],
+  goland: ['goland'],
+  brackets: ['Brackets'],
+  rider: ['rider'],
+  rubymine: ['rubymine.sh'],
 }

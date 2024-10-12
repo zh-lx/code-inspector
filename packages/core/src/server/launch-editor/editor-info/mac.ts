@@ -1,10 +1,14 @@
 import { EDITOR_PROCESS_MAP } from '../type';
 
+// 有顺序优先级
 export const COMMON_EDITORS_OSX = {
+  // cursor
   '/Cursor.app/Contents/MacOS/Cursor': '/Cursor.app/Contents/MacOS/Cursor',
+  // vscode 系列
   '/Visual Studio Code.app/Contents/MacOS/Electron': '/Visual Studio Code.app/Contents/MacOS/Electron',
   '/Visual Studio Code - Insiders.app/Contents/MacOS/Electron': '/Visual Studio Code - Insiders.app/Contents/MacOS/Electron',
   '/VSCodium.app/Contents/MacOS/Electron': '/VSCodium.app/Contents/MacOS/Electron',
+  // webstorm
   '/WebStorm.app/Contents/MacOS/webstorm':
     '/WebStorm.app/Contents/MacOS/webstorm',
   '/HBuilderX.app/Contents/MacOS/HBuilderX':
@@ -45,7 +49,7 @@ export const COMMON_EDITORS_OSX = {
 
 export const EDITOR_PROCESS_MAP_OSX: EDITOR_PROCESS_MAP = {
   code: ['/Visual Studio Code.app/Contents/MacOS/Electron'],
-  code_insiders: ['/Visual Studio Code - Insiders.app/Contents/MacOS/Electron'],
+  'code-insiders': ['/Visual Studio Code - Insiders.app/Contents/MacOS/Electron'],
   webstorm: ['/WebStorm.app/Contents/MacOS/webstorm'],
   cursor: ['/Cursor.app/Contents/MacOS/Cursor'],
   atom: ['/Atom.app/Contents/MacOS/Atom'],
@@ -54,4 +58,11 @@ export const EDITOR_PROCESS_MAP_OSX: EDITOR_PROCESS_MAP = {
   pycharm: ['/PyCharm.app/Contents/MacOS/pycharm'],
   idea: ['/IntelliJ IDEA.app/Contents/MacOS/idea'],
   codium: ['/VSCodium.app/Contents/MacOS/Electron'],
+  goland: ['/GoLand.app/Contents/MacOS/goland'],
+  colin: ['/CLion.app/Contents/MacOS/clion'],
+  appcode: ['/AppCode.app/Contents/MacOS/appcode'],
+  'atom-beta': ['/Atom Beta.app/Contents/MacOS/Atom Beta'],
+  brackets: ['/Brackets.app/Contents/MacOS/Brackets'],
+  rider: ['/Rider.app/Contents/MacOS/rider'],
+  rubymine: ['/RubyMine.app/Contents/MacOS/rubymine']
 }

@@ -1,14 +1,22 @@
 export type Editor =
+  | 'appcode'
   | 'atom'
+  | 'atom-beta'
+  | 'brackets'
   | 'code'
-  | 'code_insiders'
+  | 'code-insiders'
   | 'idea'
   | 'phpstorm'
   | 'pycharm'
   | 'webstorm'
   | 'hbuilder'
   | 'codium'
-  | 'cursor';
+  | 'cursor'
+  | 'goland'
+  | 'colin'
+  | 'rider'
+  | 'rubymine';
+
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
   locate?: boolean;

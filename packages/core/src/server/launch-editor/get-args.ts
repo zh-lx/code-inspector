@@ -42,7 +42,7 @@ function getEditorBasenameByProcessName(processName: string) {
   const platform = process.platform as Platform;
   const editorBasenames = Object.keys(COMMON_EDITOR_PROCESS_MAP[platform]);
   for (let i = 0; i < editorBasenames.length; i++) {
-    const editorPaths = COMMON_EDITOR_PROCESS_MAP[platform][editorBasenames[i] as Editor];
+    const editorPaths = COMMON_EDITOR_PROCESS_MAP[platform][editorBasenames[i] as Editor] || [];
     if (editorPaths.some(editorPath => processName.endsWith(editorPath))) {
       editorBasename = editorBasenames[i];
       break;
@@ -86,7 +86,6 @@ function getFormatByEditor(params: GetEditorFormatParams) {
     case 'code':
     case 'Code':
     case 'code-insiders':
-    case 'code_insiders':
     case 'Code - Insiders':
     case 'codium':
     case 'Codium':
