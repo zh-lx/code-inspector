@@ -63,7 +63,7 @@ interface CodeInspectorOptins {
 ## editor
 
 - 可选项。默认值为 `undefined`
-- 类型：`string | undefined`，可选值有 `atom / code / code_insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
+- 类型：`string | undefined`，可选值有 `atom / code / code-insiders / idea / phpstorm / pycharm / webstorm / hbuilder`
 - 说明：插件默认会自动识别当前系统中运行的 IDE，设置此项时，会打开指定的 IDE（对于指定 IDE 更推荐使用[指定 IDE](/guide/ide)章节的方式）
 
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />

@@ -69,22 +69,22 @@ export function normalizePath(filepath: string) {
 
 export function formatOpenPath(
   file: string,
-  line: string,
-  column: string,
+  line: string | number,
+  column: string | number,
   format: string | string[] | boolean
 ) {
   let path = `${file}:${line}:${column}`;
   if (typeof format === 'string') {
     path = format
       .replace(FormatFile, file)
-      .replace(FormatLine, line)
-      .replace(FormatColumn, column);
+      .replace(FormatLine, line.toString())
+      .replace(FormatColumn, column.toString());
   } else if (format instanceof Array) {
     return format.map((item) => {
       return item
         .replace(FormatFile, file)
-        .replace(FormatLine, line)
-        .replace(FormatColumn, column);
+        .replace(FormatLine, line.toString())
+        .replace(FormatColumn, column.toString());
     });
   }
   return [path];
