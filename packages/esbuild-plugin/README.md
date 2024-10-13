@@ -1,1 +1,0 @@
-../code-inspector-plugin/README.md
