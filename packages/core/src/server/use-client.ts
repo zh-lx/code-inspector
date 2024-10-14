@@ -89,9 +89,9 @@ export function getEliminateWarningCode() {
     wrappers.forEach(wrapper => {
       console[wrapper.type] = function () {
         var args = Array.prototype.slice.call(arguments) || [];
-        var firstParam = args[0] || ''; /* compatible for vue warning */
-        var secondParam = args[1] || ''; /* compatible for nextjs hydrate */
-        if (firstParam.indexOf(path) !== -1 || secondParam.indexOf(path) !== -1) {
+        var hasVueWarning = typeof args[0] === 'string' && args[0].indexOf(path) !== -1; /* compatible for vue warning */
+        var hasNextWarning = typeof args[1] === 'string' && args[1].indexOf(path) !== -1; /* compatible for nextjs hydrate */
+        if (hasVueWarning || hasNextWarning) {
           return;
         } else {
           wrapper.origin.apply(null, args);
