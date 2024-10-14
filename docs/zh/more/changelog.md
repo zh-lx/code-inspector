@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.1
+
+- 【fix】修复 `console.warn` 及 `console.error` 前两个参数非 `string` 类型时的报错问题 [#223](https://github.com/zh-lx/code-inspector/pull/223)
+
 ## 0.17.0
 
 - 【refactor】优化了 IDE 的识别逻辑，并支持更多 IDE 的识别 [#222](https://github.com/zh-lx/code-inspector/pull/222)

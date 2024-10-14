@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.1
+
+- 【fix】Fix the error issue when the first two parameters of console.warn and console.error are not of string type. [#223](https://github.com/zh-lx/code-inspector/pull/223)
+
 ## 0.17.0
 
 - 【refactor】Optimized the recognition logic for IDEs and added support for more IDEs [#222](https://github.com/zh-lx/code-inspector/pull/222)
