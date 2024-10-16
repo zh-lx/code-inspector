@@ -4,10 +4,7 @@ import child_process from 'child_process';
 import os from 'os';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
-import {
-  Editor,
-  IDEOpenMethod,
-} from '../../shared';
+import { Editor, IDEOpenMethod } from '../../shared';
 import { getArguments } from './get-args';
 import { guessEditor } from './guess';
 
@@ -20,7 +17,6 @@ function isTerminalEditor(editor: string) {
   }
   return false;
 }
-
 
 function getEnvFormatPath() {
   // webpack
@@ -166,7 +162,7 @@ function launchEditor(
         colNumber,
         workspace,
         openWindowParams: getOpenWindowParams(ideOpenMethod),
-        pathFormat
+        pathFormat,
       })
     );
   } else {
@@ -181,19 +177,33 @@ function launchEditor(
   }
 
   if (process.platform === 'win32') {
-    // On Windows, launch the editor in a shell because spawn can only
-    // launch .exe files.
-    _childProcess = child_process.spawn(
-      'cmd.exe',
-      ['/C', editor].concat(args as string[]),
-      {
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          NODE_OPTIONS: '',
-        },
+    // this two funcs according to launch-editor
+    // compatible for some special characters
+    const escapeCmdArgs = (cmdArgs: string | null) => {
+      return cmdArgs!.replace(/([&|<>,;=^])/g, '^$1');
+    };
+    const doubleQuoteIfNeeded = (str: string | null) => {
+      if (str!.includes('^')) {
+        return `^"${str}^"`;
+      } else if (str!.includes(' ')) {
+        return `"${str}"`;
       }
-    );
+      return str;
+    };
+
+    const launchCommand = [editor, ...args.map(escapeCmdArgs)]
+      .map(doubleQuoteIfNeeded)
+      .join(' ');
+
+    _childProcess = child_process.exec(launchCommand, {
+      stdio: 'inherit',
+      // @ts-ignore
+      shell: true,
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '',
+      },
+    });
   } else {
     _childProcess = child_process.spawn(editor, args as string[], {
       stdio: 'inherit',

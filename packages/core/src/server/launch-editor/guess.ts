@@ -14,14 +14,6 @@ const ProcessExectionMap = {
   win32: 'powershell -NoProfile -Command "Get-CimInstance -Query \\"select executablepath from win32_process where executablepath is not null\\" | % { $_.ExecutablePath }"',
 }
 
-// 用户指定了 IDE 时，优先走此处
-const getEditorByCustom = (
-  editor: Editor
-): string[] | null => {
-  const platform = process.platform as Platform;
-  return (COMMON_EDITOR_PROCESS_MAP[platform] && COMMON_EDITOR_PROCESS_MAP[platform][editor]) || null;
-};
-
 export function guessEditor(_editor?: Editor) {
   let customEditors = null;
 
@@ -64,6 +56,9 @@ export function guessEditor(_editor?: Editor) {
 
     const execution = ProcessExectionMap[platform];
     const commonEditors = COMMON_EDITORS_MAP[platform];
+
+    compatibleWithChineseCharacter(platform);
+    
     const output = child_process.execSync(execution, { encoding: 'utf-8' });
     const editorNames = Object.keys(commonEditors);
     const runningProcesses = output.split(platform === 'win32' ? '\r\n' : '\n').map((item) => item.trim());
@@ -130,3 +125,26 @@ export function guessEditor(_editor?: Editor) {
 
   return [null];
 }
+
+
+// 用户指定了 IDE 时，优先走此处
+const getEditorByCustom = (
+  editor: Editor
+): string[] | null => {
+  const platform = process.platform as Platform;
+  return (COMMON_EDITOR_PROCESS_MAP[platform] && COMMON_EDITOR_PROCESS_MAP[platform][editor]) || null;
+};
+
+// 兼容中文编码
+const compatibleWithChineseCharacter = (
+  platform: Platform
+): void => {
+  if (platform === 'win32') {
+    // 兼容 windows 系统 powershell 中文乱码问题
+    try {
+      child_process.execSync('chcp 65001');
+    } catch (error) {
+      // ignore errors
+    }
+  }
+};
