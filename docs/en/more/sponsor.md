@@ -4,7 +4,7 @@
 
 Sponsoring this project can help the author create better . If you needed, you can contact the author to have your avatar added to the list of sponsors.
 
-- Afdian(爱发电): https://afdian.net/a/zhoulixiang
+- Afdian(爱发电): https://afdian.com/a/zhoulixiang
 - Alipay or WeChatPay:
 
 <div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
