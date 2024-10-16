@@ -64,7 +64,15 @@ export function guessEditor(_editor?: Editor) {
 
     const execution = ProcessExectionMap[platform];
     const commonEditors = COMMON_EDITORS_MAP[platform];
+
+    // 兼容 windows 系统 powershell 中文编码不识别问题
+    try {
+      child_process.execSync('chcp 65001');
+    } catch (error) {
+      // ignore
+    }
     const output = child_process.execSync(execution, { encoding: 'utf-8' });
+
     const editorNames = Object.keys(commonEditors);
     const runningProcesses = output.split(platform === 'win32' ? '\r\n' : '\n').map((item) => item.trim());
 
