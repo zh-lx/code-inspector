@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.2
+
+- 【fix】修复 windows 系统中对于中文及特殊字符的兼容 [#225](https://github.com/zh-lx/code-inspector/pull/225)
+
 ## 0.17.1
 
 - 【fix】修复 `console.warn` 及 `console.error` 前两个参数非 `string` 类型时的报错问题 [#223](https://github.com/zh-lx/code-inspector/pull/223)

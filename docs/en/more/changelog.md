@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.2
+
+- 【fix】Fix compatibility issues with Chinese and special characters in Windows systems [#225](https://github.com/zh-lx/code-inspector/pull/225)
+
 ## 0.17.1
 
 - 【fix】Fix the error issue when the first two parameters of console.warn and console.error are not of string type. [#223](https://github.com/zh-lx/code-inspector/pull/223)
