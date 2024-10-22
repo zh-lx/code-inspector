@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.17.3
+
+- 【fix】修复了在 `无界` 这种 web component 方案中使用时，无法筛选 web component `ShadowRoot` 内部元素的问题 [#227](https://github.com/zh-lx/code-inspector/pull/227)
+- 【fix】修复了在 Nextjs v15+ 项目中使用 `hideDomPathAttr` 属性时，控制台会打印 hydrate 警告的问题 [#226](https://github.com/zh-lx/code-inspector/pull/226)
+
 ## 0.17.2
 
 - 【fix】修复 windows 系统中对于中文及特殊字符的兼容 [#225](https://github.com/zh-lx/code-inspector/pull/225)

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.3
+
+- 【fix】Fixed the issue where elements inside the `ShadowRoot` of a web component could not be hovered when using the `无界` web component solution [#227](https://github.com/zh-lx/code-inspector/pull/227).
+- 【fix】Fixed the issue where a hydrate warning would be printed in the console when using the `hideDomPathAttr` attribute in Next.js v15+ projects [#226](https://github.com/zh-lx/code-inspector/pull/226).
+
 ## 0.17.2
 
 - 【fix】Fix compatibility issues with Chinese and special characters in Windows systems [#225](https://github.com/zh-lx/code-inspector/pull/225)
