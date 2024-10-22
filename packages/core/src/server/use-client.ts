@@ -90,12 +90,18 @@ export function getEliminateWarningCode() {
       console[wrapper.type] = function () {
         var args = Array.prototype.slice.call(arguments) || [];
         var hasVueWarning = typeof args[0] === 'string' && args[0].indexOf(path) !== -1; /* compatible for vue warning */
-        var hasNextWarning = typeof args[1] === 'string' && args[1].indexOf(path) !== -1; /* compatible for nextjs hydrate */
-        if (hasVueWarning || hasNextWarning) {
+        if (hasVueWarning) {
           return;
-        } else {
-          wrapper.origin.apply(null, args);
-        };
+        }
+        var hasNextWarning = typeof args[1] === 'string' && args[1].indexOf(path) !== -1; /* compatible for nextjs hydrate */
+        if (hasNextWarning) {
+          return;
+        }
+        var hasNextWarningV15 = typeof args[2] === 'string' && args[2].indexOf(path) !== -1; /* compatible for nextjs(v15.0.0+) hydrate */
+        if (hasNextWarningV15) {
+          return;
+        }
+        wrapper.origin.apply(null, args);
       };
     });
   })();
