@@ -5,6 +5,7 @@ import {
   isDev,
 } from 'code-inspector-core';
 import path, { dirname } from 'path';
+import { getWebpackEntrys } from './entry';
 
 let compatibleDirname = '';
 
@@ -71,7 +72,7 @@ class WebpackCodeInspectorPlugin {
     this.options = options;
   }
 
-  apply(compiler) {
+  async apply(compiler) {
     isFirstLoad = true;
 
     if (
@@ -93,6 +94,7 @@ class WebpackCodeInspectorPlugin {
       port: 0,
       entry: '',
       output: this.options.output,
+      inputs: getWebpackEntrys(compiler.options?.entry, compiler.options?.context),
     };
 
     applyLoader({ ...this.options, record }, compiler);

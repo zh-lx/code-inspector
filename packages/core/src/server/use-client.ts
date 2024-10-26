@@ -10,6 +10,7 @@ import {
   AstroToolbarFile,
   getIP,
   getDenpendencies,
+  normalizePath,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -142,6 +143,16 @@ function recordEntry(record: RecordInfo, file: string) {
   }
 }
 
+// target file to inject code
+async function isTargetFileToInject(file: string, record: RecordInfo) {
+  const inputs: string[] = await (record.inputs || []);
+  return (
+    (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
+    file === AstroToolbarFile ||
+    inputs?.indexOf(normalizePath(file)) !== -1
+  );
+}
+
 export async function getCodeWithWebComponent(
   options: CodeOptions,
   file: string,
@@ -169,10 +180,8 @@ export async function getCodeWithWebComponent(
   recordEntry(record, file);
 
   // 注入消除 warning 代码
-  if (
-    (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
-    file === AstroToolbarFile
-  ) {
+  const isTargetFile = await isTargetFileToInject(file, record);
+  if (isTargetFile) {
     const injectCode = getInjectedCode(options, record.port);
     if (isNextjsProject() || options.importClient === 'file') {
       writeEslintRcFile(record.output);
@@ -209,7 +218,7 @@ module.exports = {
 function writeWebComponentFile(
   targetPath: string,
   content: string,
-  port: number,
+  port: number
 ) {
   const webComponentFileName = `append-code-${port}.js`;
   const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;

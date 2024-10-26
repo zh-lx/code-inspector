@@ -9,6 +9,7 @@ export type RecordInfo = {
     entry: string;
     output: string;
     findPort?: Promise<number>;
+    inputs?: Promise<string[]>;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

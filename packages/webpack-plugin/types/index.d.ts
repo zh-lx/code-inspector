@@ -6,6 +6,6 @@ interface Options extends CodeOptions {
 declare class WebpackCodeInspectorPlugin {
     options: Options;
     constructor(options: Options);
-    apply(compiler: any): void;
+    apply(compiler: any): Promise<void>;
 }
 export default WebpackCodeInspectorPlugin;
