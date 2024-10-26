@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.4
+
+- 【fix】Fixed the issue where it only worked on the first HTML page when used in MPA projects [#229](https://github.com/zh-lx/code-inspector/pull/229)
+
 ## 0.17.3
 
 - 【fix】Fixed the issue where elements inside the `ShadowRoot` of a web component could not be hovered when using the `无界` web component solution [#227](https://github.com/zh-lx/code-inspector/pull/227).

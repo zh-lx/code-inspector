@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.4
+
+- 【fix】修复了在 MPA 项目中使用时，只会在第一个 html 页面中会生效的问题 [#229](https://github.com/zh-lx/code-inspector/pull/229)
+
 ## 0.17.3
 
 - 【fix】修复了在 `无界` 这种 web component 方案中使用时，无法筛选 web component `ShadowRoot` 内部元素的问题 [#227](https://github.com/zh-lx/code-inspector/pull/227)
