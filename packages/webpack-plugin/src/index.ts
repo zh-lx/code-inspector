@@ -94,7 +94,7 @@ class WebpackCodeInspectorPlugin {
       port: 0,
       entry: '',
       output: this.options.output,
-      inputs: getWebpackEntrys(compiler.options?.entry, compiler.options?.context),
+      inputs: getWebpackEntrys(compiler?.options?.entry, compiler?.options?.context),
     };
 
     applyLoader({ ...this.options, record }, compiler);
