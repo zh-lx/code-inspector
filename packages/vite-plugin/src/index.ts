@@ -79,5 +79,18 @@ export function ViteCodeInspectorPlugin(options: Options) {
 
       return code;
     },
+    // 追加到 html 中，适配 MPA 项目
+    async transformIndexHtml(html) {
+      const code = await getCodeWithWebComponent(
+        { ...options, importClient: 'code' },
+        'main.js',
+        '',
+        record
+      );
+      return html.replace(
+        '<head>',
+        `<head><script type="module">\n${code}\n</script>`
+      );
+    },
   };
 }

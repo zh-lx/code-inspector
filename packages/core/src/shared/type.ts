@@ -27,6 +27,7 @@ export type RecordInfo = {
   entry: string;
   output: string; // web component 文件要写入的目录
   findPort?: Promise<number>;
+  inputs?: Promise<string[]>; // 入口文件，适配 MPA 项目
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';
