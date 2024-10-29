@@ -34,7 +34,12 @@ export function ViteCodeInspectorPlugin(options: Options) {
       }
 
       // start server and inject client code to entry file
-      code = await getCodeWithWebComponent(options, id, code, record);
+      code = await getCodeWithWebComponent({
+        options,
+        file: id,
+        code,
+        record,
+      });
 
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
@@ -81,12 +86,13 @@ export function ViteCodeInspectorPlugin(options: Options) {
     },
     // 追加到 html 中，适配 MPA 项目
     async transformIndexHtml(html) {
-      const code = await getCodeWithWebComponent(
-        { ...options, importClient: 'code' },
-        'main.js',
-        '',
-        record
-      );
+      const code = await getCodeWithWebComponent({
+        options: { ...options, importClient: 'code' },
+        file: 'main.js',
+        code: '',
+        record,
+        inject: true,
+      });
       return html.replace(
         '<head>',
         `<head><script type="module">\n${code}\n</script>`

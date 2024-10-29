@@ -11,7 +11,12 @@ export default async function WebpackCodeInjectLoader(
   const options = this.query;
 
   // start server and inject client code to entry file
-  content = await getCodeWithWebComponent(options, filePath, content, options.record);
+  content = await getCodeWithWebComponent({
+    options,
+    file: filePath,
+    code: content,
+    record: options.record,
+  });
 
   this.callback(null, content, source, meta);
 }
