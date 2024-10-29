@@ -153,12 +153,19 @@ async function isTargetFileToInject(file: string, record: RecordInfo) {
   );
 }
 
-export async function getCodeWithWebComponent(
-  options: CodeOptions,
-  file: string,
-  code: string,
-  record: RecordInfo
-) {
+export async function getCodeWithWebComponent({
+  options,
+  record,
+  file,
+  code,
+  inject = false,
+}: {
+  options: CodeOptions;
+  record: RecordInfo;
+  file: string;
+  code: string;
+  inject?: boolean;
+}) {
   // start server
   await startServer(options, record);
 
@@ -180,7 +187,7 @@ export async function getCodeWithWebComponent(
   recordEntry(record, file);
 
   // 注入消除 warning 代码
-  const isTargetFile = await isTargetFileToInject(file, record);
+  const isTargetFile = await isTargetFileToInject(file, record) || inject;
   if (isTargetFile) {
     const injectCode = getInjectedCode(options, record.port);
     if (isNextjsProject() || options.importClient === 'file') {

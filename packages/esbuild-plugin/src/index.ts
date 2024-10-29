@@ -49,12 +49,12 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
           if (!result || result.originCode !== originCode) {
 
             // 注入交互代码
-            let code = await getCodeWithWebComponent(
+            let code = await getCodeWithWebComponent({
               options,
-              filePath,
-              originCode,
-              record
-            );
+              file: filePath,
+              code: originCode,
+              record,
+            });
 
             let fileType = '';
             if (isJsTypeFile(filePath)) {
