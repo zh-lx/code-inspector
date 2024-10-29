@@ -135,7 +135,7 @@ class WebpackCodeInspectorPlugin {
 
     applyLoader({ ...this.options, record }, compiler);
 
-    if (compiler.hooks.emit) {
+    if (compiler?.hooks?.emit) {
       const options = this.options;
       compiler.hooks.emit.tapAsync(
         'WebpackCodeInspectorPlugin',
