@@ -1,5 +1,6 @@
 import path, { isAbsolute, dirname } from 'path';
 import fs from 'fs';
+import chalk from 'chalk';
 import { startServer } from './server';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
@@ -149,8 +150,36 @@ async function isTargetFileToInject(file: string, record: RecordInfo) {
   return (
     (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
     file === AstroToolbarFile ||
+    record.injectTo?.indexOf(normalizePath(file)) !== -1 ||
     inputs?.indexOf(normalizePath(file)) !== -1
   );
+}
+
+function recordInjectTo(record: RecordInfo, options: CodeOptions) {
+  if (options?.injectTo) {
+    const injectTo = Array.isArray(options.injectTo)
+      ? options.injectTo
+      : [options.injectTo];
+    injectTo.forEach((injectToPath) => {
+      if (!isAbsolute(injectToPath)) {
+        console.log(
+          chalk.cyan('injectTo') +
+            chalk.red(' in ') +
+            chalk.cyan('code-inspector-plugin') +
+            chalk.red('must be an absolute file path!')
+        );
+      } else if (!isJsTypeFile(injectToPath)) {
+        console.log(
+          chalk.red('The ext of ') +
+            chalk.cyan('injectTo') +
+            chalk.red(' in ') +
+            chalk.cyan('code-inspector-plugin') +
+            chalk.red('must in .js/.ts/.mjs/.mts/.jsx/.tsx')
+        );
+      }
+    });
+    record.injectTo = (injectTo || []).map(file => normalizePath(file));
+  }
 }
 
 export async function getCodeWithWebComponent({
@@ -169,25 +198,11 @@ export async function getCodeWithWebComponent({
   // start server
   await startServer(options, record);
 
-  // injectTo
-  if (options?.injectTo) {
-    if (!isAbsolute(options.injectTo)) {
-      console.error(
-        `"injectTo" in code-inspector-plugin must be an absolute file path!`
-      );
-    } else if (!isJsTypeFile(options.injectTo)) {
-      console.error(
-        `The ext of "injectTo" in code-inspector-plugin must in '.js/.ts/.mjs/.mts/.jsx/.tsx'`
-      );
-    } else {
-      record.entry = getFilePathWithoutExt(options.injectTo);
-    }
-  }
-
+  recordInjectTo(record, options);
   recordEntry(record, file);
 
   // 注入消除 warning 代码
-  const isTargetFile = await isTargetFileToInject(file, record) || inject;
+  const isTargetFile = (await isTargetFileToInject(file, record)) || inject;
   if (isTargetFile) {
     const injectCode = getInjectedCode(options, record.port);
     if (isNextjsProject() || options.importClient === 'file') {
