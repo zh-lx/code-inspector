@@ -150,8 +150,8 @@ async function isTargetFileToInject(file: string, record: RecordInfo) {
   return (
     (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
     file === AstroToolbarFile ||
-    record.injectTo?.indexOf(normalizePath(file)) !== -1 ||
-    inputs?.indexOf(normalizePath(file)) !== -1
+    record.injectTo?.includes(normalizePath(file)) ||
+    inputs?.includes(normalizePath(file))
   );
 }
 
@@ -202,8 +202,8 @@ export async function getCodeWithWebComponent({
   recordEntry(record, file);
 
   // 注入消除 warning 代码
-  const isTargetFile = (await isTargetFileToInject(file, record)) || inject;
-  if (isTargetFile) {
+  const isTargetFile = await isTargetFileToInject(file, record);
+  if (isTargetFile  || inject) {
     const injectCode = getInjectedCode(options, record.port);
     if (isNextjsProject() || options.importClient === 'file') {
       writeEslintRcFile(record.output);
