@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.5
+
+- 【perf】The `injectTo` parameter now supports passing an array to allow injecting multiple files simultaneously [#231](https://github.com/zh-lx/code-inspector/pull/231)
+- 【feat】Webpack will also inject client code into HTML files to support some MPA-type projects [#230](https://github.com/zh-lx/code-inspector/pull/230)
+
 ## 0.17.4
 
 - 【fix】Fixed the issue where it only worked on the first HTML page when used in MPA projects [#229](https://github.com/zh-lx/code-inspector/pull/229)

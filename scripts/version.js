@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 // 获取命令行参数
-const [,, updateType] = process.argv;
+const [,, updateType, tagType] = process.argv;
 
-if (!['major', 'minor', 'patch'].includes(updateType)) {
-    console.error('Invalid argument. Please use "major"、 "minor" or "patch".');
+if (!['major', 'minor', 'patch', 'prod', 'beta'].includes(updateType)) {
+    console.error('Invalid argument. Please use "major"、 "minor"、 "patch"、 "prod" or "beta".');
     process.exit(1);
 }
 
@@ -31,9 +31,17 @@ fs.readdir(packagesDir, (err, files) => {
 
             try {
                 const packageJson = JSON.parse(data);
-                const versionParts = packageJson.version.split('.').map(Number);
+                const [version, tagParts] = packageJson.version.split('-'); // 兼容 x.x.x-beta.x
+                const versionParts = version.split('.').map(Number);
 
-                if (updateType === 'major') {
+                let [tagName, tagVersion] = (tagParts || 'beta.0').split('.');
+
+                if (updateType === 'prod') {
+                    // 删除 tag
+                } else if (updateType === 'beta') {
+                    // 仅升级 tag 版本
+                    tagVersion = (Number(tagVersion) + 1);
+                } else if (updateType === 'major') {
                     versionParts[0] += 1;
                     versionParts[1] = 0;
                     versionParts[2] = 0;
@@ -45,6 +53,10 @@ fs.readdir(packagesDir, (err, files) => {
                 }
 
                 packageJson.version = versionParts.join('.');
+
+                if (tagType || updateType === 'beta') {
+                    packageJson.version = `${packageJson.version}-${tagType || tagName}.${tagVersion}`;
+                }
 
                 // 写回更新后的 package.json 文件
                 fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf8', err => {

@@ -69,8 +69,8 @@ interface CodeInspectorOptins {
 ## injectTo <Badge type="tip" text="0.5.0+" vertical="middle" />
 
 - Optional.
-- Type: `string`
-- Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.(typically used for specifying a client-side file in SSR projects).
+- Type: `string | string[]`
+- Description: A file used for injecting `client code` related to DOM filtering and click navigation in VSCode. The file must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.(typically used for specifying a client-side file in SSR projects). The `string[]` type is only supported in `0.17.5` or higher versions.
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
 

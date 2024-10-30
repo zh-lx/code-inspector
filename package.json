@@ -25,7 +25,9 @@
     "pub:beta": "pnpm --filter \"./packages/*\" run pub:beta --no-git-checks",
     "version:major": "node ./scripts/version major",
     "version:minor": "node ./scripts/version minor",
-    "version:patch": "node ./scripts/version patch"
+    "version:patch": "node ./scripts/version patch",
+    "version:prod": "node ./scripts/version prod",
+    "version:beta": "node ./scripts/version beta"
   },
   "private": true,
   "main": "index.js",

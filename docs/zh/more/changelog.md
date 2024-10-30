@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.17.5
+
+- 【perf】`injectTo` 参数支持传入数组，以支持同时注入多个文件 [#231](https://github.com/zh-lx/code-inspector/pull/231)
+- 【feat】webpack 会像 html 文件也注入 client 代码，以支持部分 MPA 类型的项目 [#230](https://github.com/zh-lx/code-inspector/pull/230)
+
 ## 0.17.4
 
 - 【fix】修复了在 MPA 项目中使用时，只会在第一个 html 页面中会生效的问题 [#229](https://github.com/zh-lx/code-inspector/pull/229)
