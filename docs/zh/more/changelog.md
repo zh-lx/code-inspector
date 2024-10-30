@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.6
+
+- 【fix】修复构建错误问题 [#232](https://github.com/zh-lx/code-inspector/pull/232)
+
 ## 0.17.5
 
 - 【perf】`injectTo` 参数支持传入数组，以支持同时注入多个文件 [#231](https://github.com/zh-lx/code-inspector/pull/231)

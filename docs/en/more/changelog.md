@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.6
+
+- 【fix】Fix the issue about building error [#232](https://github.com/zh-lx/code-inspector/pull/232)
+
 ## 0.17.5
 
 - 【perf】The `injectTo` parameter now supports passing an array to allow injecting multiple files simultaneously [#231](https://github.com/zh-lx/code-inspector/pull/231)
