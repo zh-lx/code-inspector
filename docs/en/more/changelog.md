@@ -2,7 +2,7 @@
 
 ## 0.17.7
 
-- 【fix】Fixed the issue about building error when used in a few versions of webpack [#233](https://github.com/zh-lx/code-inspector/pull/233)
+- 【fix】Fixed the issue about building error when used in a few versions of webpack [#234](https://github.com/zh-lx/code-inspector/pull/234)
 
 ## 0.17.6
 
