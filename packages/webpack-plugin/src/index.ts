@@ -85,15 +85,17 @@ async function replaceHtml({
       inject: true,
     });
     files.forEach((filename: string) => {
-      const source = assets[filename].source();
-      const sourceCode = source.replace(
-        '<head>',
-        `<head><script type="module">\n${code}\n</script>`
-      );
-      assets[filename] = {
-        source: () => sourceCode,
-        size: () => sourceCode.length,
-      };
+      const source = assets[filename]?.source?.();
+      if (typeof source === 'string') {
+        const sourceCode = source.replace(
+          '<head>',
+          `<head><script type="module">\n${code}\n</script>`
+        );
+        assets[filename] = {
+          source: () => sourceCode,
+          size: () => sourceCode.length,
+        };
+      }
     });
   }
 }
