@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.7
+
+- 【fix】Fixed the issue about building error when used in a few versions of webpack [#233](https://github.com/zh-lx/code-inspector/pull/233)
+
 ## 0.17.6
 
 - 【fix】Fix the issue about building error [#232](https://github.com/zh-lx/code-inspector/pull/232)

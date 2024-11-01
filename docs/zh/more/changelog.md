@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.7
+
+- 【fix】修复了在 webpack 部分版本中使用时，构建错误的问题 [#233](https://github.com/zh-lx/code-inspector/pull/233)
+
 ## 0.17.6
 
 - 【fix】修复构建错误问题 [#232](https://github.com/zh-lx/code-inspector/pull/232)
