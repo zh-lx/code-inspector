@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.17.8
+
+- 【fix】修复了点击 `disabled` DOM 的子元素时不生效的问题 [#237](https://github.com/zh-lx/code-inspector/pull/237)
+
 ## 0.17.7
 
 - 【fix】修复了在 webpack 部分版本中使用时，构建错误的问题 [#234](https://github.com/zh-lx/code-inspector/pull/234)

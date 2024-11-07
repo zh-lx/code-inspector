@@ -1,6 +1,6 @@
 {
   "name": "vite-code-inspector-plugin",
-  "version": "0.17.7",
+  "version": "0.17.8",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

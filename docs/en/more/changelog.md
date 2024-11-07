@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.8
+
+- 【fix】Fixed the issue where clicking a `disabled` DOM's child element would not work [#237](https://github.com/zh-lx/code-inspector/pull/237)
+
 ## 0.17.7
 
 - 【fix】Fixed the issue about building error when used in a few versions of webpack [#234](https://github.com/zh-lx/code-inspector/pull/234)
