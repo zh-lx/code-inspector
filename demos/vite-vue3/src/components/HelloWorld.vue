@@ -12,6 +12,7 @@ const count = ref(0);
   <div class="card">
     <button type="button" @click="count++" disabled>
       count is {{ count }}
+      <span>试一试</span>
     </button>
     <p>
       Edit
