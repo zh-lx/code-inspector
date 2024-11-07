@@ -341,9 +341,18 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
-  // disabled 无法触发 click 事件
+  // disabled 的元素及其子元素无法触发 click 事件
   handlePointerDown = (e: any) => {
-    if (!e.target?.disabled) {
+    let disabled = false;
+    let element = e.target as HTMLInputElement;
+    while (element) {
+      if (element.disabled) {
+        disabled = true;
+        break;
+      }
+      element = element.parentElement as HTMLInputElement;
+    }
+    if (!disabled) {
       return;
     }
     if (this.isTracking(e) || this.open) {
