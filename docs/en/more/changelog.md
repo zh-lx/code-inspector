@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.9
+
+- 【perf】Optimized the interaction experience on mobile devices [#240](https://github.com/zh-lx/code-inspector/pull/240)
+- 【perf】Improved the performance of IDE recognition and invocation on Windows systems [#239](https://github.com/zh-lx/code-inspector/pull/239)
+
 ## 0.17.8
 
 - 【fix】Fixed the issue where clicking a `disabled` DOM's child element would not work [#237](https://github.com/zh-lx/code-inspector/pull/237)

@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.17.9
+
+- 【perf】优化在移动端的交互体验 [#240](https://github.com/zh-lx/code-inspector/pull/240)
+- 【perf】提升在 Windows 系统中 IDE 识别唤起的性能 [#239](https://github.com/zh-lx/code-inspector/pull/239)
+
 ## 0.17.8
 
 - 【fix】修复了点击 `disabled` DOM 的子元素时不生效的问题 [#237](https://github.com/zh-lx/code-inspector/pull/237)
