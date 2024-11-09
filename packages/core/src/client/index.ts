@@ -165,7 +165,7 @@ export class CodeInspectorComponent extends LitElement {
           left +
           this.getDomPropertyValue(target, 'margin-right') +
           this.getDomPropertyValue(target, 'margin-left'),
-        300
+        Math.min(300, Math.max(leftToViewPort, rightToViewPort)),
       ) + 'px';
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
@@ -272,7 +272,7 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   // 移动按钮
-  moveSwitch = (e: MouseEvent) => {
+  moveSwitch = (e: MouseEvent | TouchEvent) => {
     if (composedPath(e).includes(this)) {
       this.hoverSwitch = true;
     } else {
@@ -282,19 +282,15 @@ export class CodeInspectorComponent extends LitElement {
     if (this.dragging) {
       this.moved = true;
       this.inspectorSwitchRef.style.left =
-        this.mousePosition.baseX + (e.pageX - this.mousePosition.moveX) + 'px';
+        this.mousePosition.baseX + ((e instanceof MouseEvent ? e.pageX : e.touches[0].pageX) - this.mousePosition.moveX) + 'px';
       this.inspectorSwitchRef.style.top =
-        this.mousePosition.baseY + (e.pageY - this.mousePosition.moveY) + 'px';
+        this.mousePosition.baseY + ((e instanceof MouseEvent ? e.pageY : e.touches[0].pageY) - this.mousePosition.moveY) + 'px';
       return;
     }
   };
 
-  handleMouseup = () => {
-    this.hoverSwitch = false;
-  };
-
   // 鼠标移动渲染遮罩层位置
-  handleMouseMove = (e: MouseEvent) => {
+  handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
@@ -316,6 +312,8 @@ export class CodeInspectorComponent extends LitElement {
       }
       if (targetNode) {
         this.renderCover(targetNode);
+      } else {
+        this.removeCover();
       }
     } else {
       this.removeCover();
@@ -323,7 +321,7 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 鼠标点击唤醒遮罩层
-  handleMouseClick = (e: any) => {
+  handleMouseClick = (e: MouseEvent | TouchEvent) => {
     if (this.isTracking(e) || this.open) {
       if (this.show) {
         // 阻止冒泡
@@ -342,7 +340,7 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // disabled 的元素及其子元素无法触发 click 事件
-  handlePointerDown = (e: any) => {
+  handlePointerDown = (e: PointerEvent) => {
     let disabled = false;
     let element = e.target as HTMLInputElement;
     while (element) {
@@ -373,7 +371,7 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 监听键盘抬起，清除遮罩层
-  handleKeyUp = (e: any) => {
+  handleKeyUp = (e: KeyboardEvent) => {
     if (!this.isTracking(e) && !this.open) {
       this.removeCover();
     }
@@ -409,20 +407,26 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 记录鼠标按下时初始位置
-  recordMousePosition = (e: MouseEvent) => {
+  recordMousePosition = (e: MouseEvent | TouchEvent) => {
     this.mousePosition = {
       baseX: this.inspectorSwitchRef.offsetLeft,
       baseY: this.inspectorSwitchRef.offsetTop,
-      moveX: e.pageX,
-      moveY: e.pageY,
+      moveX: e instanceof MouseEvent ? e.pageX : e.touches[0].pageX,
+      moveY: e instanceof MouseEvent ? e.pageY : e.touches[0].pageY,
     };
     this.dragging = true;
     e.preventDefault();
   };
 
   // 结束拖拽
-  handleMouseUp = () => {
-    this.dragging = false;
+  handleMouseUp = (e: MouseEvent | TouchEvent) => {
+    this.hoverSwitch = false;
+    if (this.dragging) {
+      this.dragging = false;
+      if (e instanceof TouchEvent) {
+        this.switch(e);
+      }
+    }
   };
 
   // 切换开关
@@ -440,15 +444,21 @@ export class CodeInspectorComponent extends LitElement {
       this.printTip();
     }
     window.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('touchmove', this.handleMouseMove);
     window.addEventListener('mousemove', this.moveSwitch);
-    window.addEventListener('mouseup', this.handleMouseup);
+    window.addEventListener('touchmove', this.moveSwitch);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
     document.addEventListener('keyup', this.handleKeyUp);
     document.addEventListener('mouseleave', this.removeCover);
     document.addEventListener('mouseup', this.handleMouseUp);
+    document.addEventListener('touchend', this.handleMouseUp);
     this.inspectorSwitchRef.addEventListener(
-      'mousedown',
+      'mousedown',    
+      this.recordMousePosition
+    );
+    this.inspectorSwitchRef.addEventListener(
+      'touchstart',
       this.recordMousePosition
     );
     this.inspectorSwitchRef.addEventListener('click', this.switch);
@@ -456,19 +466,26 @@ export class CodeInspectorComponent extends LitElement {
 
   disconnectedCallback(): void {
     window.removeEventListener('mousemove', this.handleMouseMove);
+    window.removeEventListener('touchmove', this.handleMouseMove);
     window.removeEventListener('mousemove', this.moveSwitch);
-    window.removeEventListener('mouseup', this.handleMouseup);
+    window.removeEventListener('touchmove', this.moveSwitch);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
     document.removeEventListener('keyup', this.handleKeyUp);
     document.removeEventListener('mouseleave', this.removeCover);
     document.removeEventListener('mouseup', this.handleMouseUp);
-    this.inspectorSwitchRef &&
+    document.removeEventListener('touchend', this.handleMouseUp);
+    if (this.inspectorSwitchRef) {
       this.inspectorSwitchRef.removeEventListener(
         'mousedown',
         this.recordMousePosition
       );
-    this.inspectorSwitchRef.removeEventListener('click', this.switch);
+      this.inspectorSwitchRef.removeEventListener(
+        'touchstart',
+        this.recordMousePosition
+      );
+      this.inspectorSwitchRef.removeEventListener('click', this.switch);
+    }
   }
 
   render() {
@@ -639,7 +656,7 @@ export class CodeInspectorComponent extends LitElement {
     .code-inspector-container {
       position: fixed;
       pointer-events: none;
-      z-index: 999999;
+      z-index: 9999999999999;
       font-family: 'PingFang SC';
       .margin-overlay {
         position: absolute;
@@ -716,11 +733,11 @@ export class CodeInspectorComponent extends LitElement {
     }
     .inspector-switch {
       position: fixed;
-      z-index: 9999999;
-      top: 16px;
-      left: 50%;
+      z-index: 9999999999999;
+      top: 50%;
+      right: 24px;
       font-size: 22px;
-      transform: translateX(-50%);
+      transform: translateY(-100%);
       display: flex;
       align-items: center;
       justify-content: center;
