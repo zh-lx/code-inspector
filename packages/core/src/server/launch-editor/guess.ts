@@ -2,17 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import child_process from 'child_process';
 import dotenv from 'dotenv';
-import {
-  Editor,
-} from '../../shared';
+import { Editor } from '../../shared';
 import { Platform } from './type';
 import { COMMON_EDITOR_PROCESS_MAP, COMMON_EDITORS_MAP } from './editor-info';
 
-const ProcessExectionMap = {
+const ProcessExecutionMap = {
   darwin: 'ps ax -o comm=',
   linux: 'ps -eo comm --sort=comm',
-  win32: 'powershell -NoProfile -Command "Get-CimInstance -Query \\"select executablepath from win32_process where executablepath is not null\\" | % { $_.ExecutablePath }"',
-}
+  // wmic's performance is better, but window11 not build in
+  win32: 'wmic process where "executablepath is not null" get executablepath',
+};
+
+// powershell's compatibility is better
+const winExecBackup =
+  'powershell -NoProfile -Command "Get-CimInstance -Query \\"select executablepath from win32_process where executablepath is not null\\" | % { $_.ExecutablePath }"';
 
 export function guessEditor(_editor?: Editor) {
   let customEditors = null;
@@ -53,15 +56,26 @@ export function guessEditor(_editor?: Editor) {
     let first: string[] | undefined;
 
     const platform = process.platform as 'darwin' | 'linux' | 'win32';
+    const isWin32 = process.platform === 'win32';
 
-    const execution = ProcessExectionMap[platform];
+    const execution = ProcessExecutionMap[platform];
     const commonEditors = COMMON_EDITORS_MAP[platform];
 
-    compatibleWithChineseCharacter(platform);
-    
-    const output = child_process.execSync(execution, { encoding: 'utf-8' });
+    compatibleWithChineseCharacter(isWin32);
+
+    let output = '';
+    try {
+      output = child_process.execSync(execution, { encoding: 'utf-8' });
+    } catch (error) {
+      if (isWin32) {
+        output = child_process.execSync(winExecBackup, { encoding: 'utf-8' });
+      }
+    }
+
     const editorNames = Object.keys(commonEditors);
-    const runningProcesses = output.split(platform === 'win32' ? '\r\n' : '\n').map((item) => item.trim());
+    const runningProcesses = output
+      .split(isWin32 ? '\r\n' : '\n')
+      .map((item) => item.trim());
 
     for (let i = 0; i < editorNames.length; i++) {
       const editorName = editorNames[i] as keyof typeof commonEditors;
@@ -69,7 +83,7 @@ export function guessEditor(_editor?: Editor) {
       let runningEditor: string = ''; // 正在运行的 editor 进程名称
 
       // 检测当前 editorName 是否正在运行
-      if (platform === 'win32') {
+      if (isWin32) {
         const processPath = runningProcesses.find(
           (_process) => path.basename(_process) === editorName
         );
@@ -78,7 +92,9 @@ export function guessEditor(_editor?: Editor) {
           editor = processPath;
         }
       } else if (platform === 'darwin') {
-        const runningProcess = runningProcesses.find((_process) => _process.endsWith(editorName));
+        const runningProcess = runningProcesses.find((_process) =>
+          _process.endsWith(editorName)
+        );
         // 命中了 IDE
         if (runningProcess) {
           const prefixPath = runningProcess.replace(editorName, '');
@@ -98,7 +114,7 @@ export function guessEditor(_editor?: Editor) {
           editor = commonEditors[editorName];
         }
       }
-      
+
       if (runningEditor && editor) {
         if (customEditors?.includes(runningEditor)) {
           // 优先返回用户自定义的 editor
@@ -109,7 +125,7 @@ export function guessEditor(_editor?: Editor) {
         }
       }
     }
-    
+
     if (first) {
       return first;
     }
@@ -126,20 +142,19 @@ export function guessEditor(_editor?: Editor) {
   return [null];
 }
 
-
 // 用户指定了 IDE 时，优先走此处
-const getEditorByCustom = (
-  editor: Editor
-): string[] | null => {
+const getEditorByCustom = (editor: Editor): string[] | null => {
   const platform = process.platform as Platform;
-  return (COMMON_EDITOR_PROCESS_MAP[platform] && COMMON_EDITOR_PROCESS_MAP[platform][editor]) || null;
+  return (
+    (COMMON_EDITOR_PROCESS_MAP[platform] &&
+      COMMON_EDITOR_PROCESS_MAP[platform][editor]) ||
+    null
+  );
 };
 
 // 兼容中文编码
-const compatibleWithChineseCharacter = (
-  platform: Platform
-): void => {
-  if (platform === 'win32') {
+const compatibleWithChineseCharacter = (isWin32: boolean): void => {
+  if (isWin32) {
     // 兼容 windows 系统 powershell 中文乱码问题
     try {
       child_process.execSync('chcp 65001');
