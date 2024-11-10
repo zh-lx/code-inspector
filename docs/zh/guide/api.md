@@ -176,3 +176,9 @@ interface CodeInspectorOptins {
 - 可选项
 - 类型：`string`。引入客户端交互代码的方式: file 为通过文件引入交互代码; code 为直接将交互代码注入页面。`0.16.x` 及之后的版本值默认为 `code`, `0.15.x` 之前的版本默认值为 `file`。
 - 说明：引入客户端交互代码的方式: `file` 为引入交互代码所在的文件; `code` 为直接将交互代码注入页面。
+
+## include <Badge type="tip" text="0.18.0+" vertical="middle" />
+
+- 可选项
+- 类型：`string | RegExp | (string | RegExp)[]`
+- 说明：指定 `node_modules` 中的包名以让其内部文件参与编译注入 `path` 信息(多用于部分 monorepo 项目场景)

@@ -176,3 +176,9 @@ interface CodeInspectorOptins {
 - Optional
 - Type: `string`. The default value for versions `0.16.x` and later is `code`, while for versions before `0.15.x`, the default value is `file`.
 - Description: Method for importing client interaction code: `file` to import the file containing the interaction code; `code` to directly inject the interaction code into the page.
+
+## include <Badge type="tip" text="0.18.0+" vertical="middle" />
+
+- Optional
+- Type: `string | RegExp | (string | RegExp)[]`
+- Description: Specify the package name in `node_modules` to participate in the compilation injection of `path` information (mainly used for monorepo projects).
