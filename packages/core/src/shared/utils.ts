@@ -7,7 +7,7 @@ import {
   FormatLine,
   JsFileExtList,
 } from './constant';
-import { EscapeTags } from './type';
+import { Condition, EscapeTags } from './type';
 
 //获取本机ip地址
 export function getIP(ip: boolean | string) {
@@ -129,4 +129,15 @@ export function isDev(userDev: boolean | BooleanFunction | undefined, systemDev:
     return false;
   }
   return dev || systemDev;
+}
+
+export function matchCondition(condition: Condition, file: string) {
+  if (typeof condition === 'string') {
+    return file.includes(condition);
+  } else if (condition instanceof RegExp) {
+    return condition.test(file);
+  } else if (condition.some((item) => matchCondition(item, file))) {
+    return true;
+  }
+  return false;
 }

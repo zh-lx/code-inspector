@@ -31,6 +31,10 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
+  let include = options.include || [];
+  if (!Array.isArray(include)) {
+    include = [include];
+  }
   rules.push(
     {
       test: options?.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
@@ -43,6 +47,20 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
     },
+    ...(include || []).map(condition => {
+      return {
+        resource: {
+          and: [condition, /\.(vue|jsx|tsx|js|ts|mjs|mts)$/],
+        },
+        use: [
+          {
+            loader: path.resolve(compatibleDirname, `./loader.js`),
+            options,
+          },
+        ],
+        ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
+      }
+    }),
     {
       ...(options?.injectTo
         ? { resource: options?.injectTo }

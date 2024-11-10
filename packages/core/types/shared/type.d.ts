@@ -27,6 +27,7 @@ export type Hooks = {
      */
     afterInspectRequest?: (options: CodeOptions, source: SourceInfo) => void;
 };
+export type Condition = string | RegExp | (string | RegExp)[];
 export type CodeOptions = {
     /**
      * @zh 指定项目的打包器
@@ -119,5 +120,10 @@ export type CodeOptions = {
      * @en How to import client interaction code: `file` means import interaction code through a file; `code` means directly injecting the interaction code into the page. The default value for versions `0.16.x` and later is `code`, while for versions before `0.15.x`, the default value is `file`.
      */
     importClient?: ImportClientWay;
+    /**
+     * @zh 额外要参与编译的文件(用于让 node_modules 中的部分文件参与编译以注入 path 信息)
+     * @en Additional files to be compiled (used to make some files in `node_modules` participate in compilation to inject path information)
+     */
+    include?: Condition;
 };
 export {};
