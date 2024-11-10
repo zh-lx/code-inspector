@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.17.9",
+  "version": "0.18.0",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",

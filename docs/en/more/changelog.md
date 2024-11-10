@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.0
+
+- 【feat】Support specifying package names in `node_modules` through the `include` parameter to allow internal files to participate in compilation and inject `path` information [#241](https://github.com/zh-lx/code-inspector/pull/241)
+
 ## 0.17.9
 
 - 【perf】Optimized the interaction experience on mobile devices [#240](https://github.com/zh-lx/code-inspector/pull/240)

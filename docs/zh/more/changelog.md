@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.18.0
+
+- 【feat】支持通过 `include` 指定 `node_modules` 中的包名以让其内部文件参与编译注入 `path` 信息 [#241](https://github.com/zh-lx/code-inspector/pull/241)
+
 ## 0.17.9
 
 - 【perf】优化在移动端的交互体验 [#240](https://github.com/zh-lx/code-inspector/pull/240)
