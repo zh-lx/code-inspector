@@ -6,6 +6,7 @@ import {
   RecordInfo,
   isJsTypeFile,
   isDev,
+  matchCondition,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
@@ -30,16 +31,18 @@ export function ViteCodeInspectorPlugin(options: Options) {
     },
     async transform(code, id) {
       if (id.match('node_modules')) {
-        return code;
+        if (!matchCondition(options.include || [], id)) {
+          return code;
+        }
+      } else {
+        // start server and inject client code to entry file
+        code = await getCodeWithWebComponent({
+          options,
+          file: id,
+          code,
+          record,
+        });
       }
-
-      // start server and inject client code to entry file
-      code = await getCodeWithWebComponent({
-        options,
-        file: id,
-        code,
-        record,
-      });
 
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       const filePath = normalizePath(_completePath);
