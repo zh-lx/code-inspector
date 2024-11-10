@@ -47,7 +47,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
     },
-    ...(include || []).map(condition => {
+    ...include.map(condition => {
       return {
         resource: {
           and: [condition, /\.(vue|jsx|tsx|js|ts|mjs|mts)$/],
