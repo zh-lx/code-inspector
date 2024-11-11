@@ -45,16 +45,17 @@ export function ViteCodeInspectorPlugin(options: Options) {
         });
       }
 
+      const { escapeTags = [], mappings } = options || {};
+
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       let filePath = normalizePath(_completePath);
-      filePath = getMappingFilePath(filePath, options.mappings);
+      filePath = getMappingFilePath(filePath, mappings);
       const params = new URLSearchParams(id);
       // 仅对符合正则的生效
       if (options?.match && !options.match.test(filePath)) {
         return code;
       }
 
-      const { escapeTags = [] } = options || {};
 
       let fileType = '';
       if (
