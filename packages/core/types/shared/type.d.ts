@@ -125,5 +125,13 @@ export type CodeOptions = {
      * @en Additional files to be compiled (used to make some files in `node_modules` participate in compilation to inject path information)
      */
     include?: Condition;
+    /**
+     * @zh 用于映射文件路径，多用于将 node_modules 中的文件路径映射为项目中的文件路径
+     * @en Used to map file paths, often used to map the file path in `node_modules` to the file path in the project
+     */
+    mappings?: Record<string, string> | Array<{
+        find: string | RegExp;
+        replacement: string;
+    }>;
 };
 export {};

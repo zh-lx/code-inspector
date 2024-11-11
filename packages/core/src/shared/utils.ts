@@ -141,3 +141,66 @@ export function matchCondition(condition: Condition, file: string) {
   }
   return false;
 }
+
+export function getMappingFilePath(file: string, mappings?: Record<string, string> | Array<{ find: string | RegExp, replacement: string }>): string {
+  if (!mappings) {
+    return file;
+  }
+  if (Array.isArray(mappings)) {
+    for (let i = 0; i < mappings.length; i++) {
+      let find = mappings[i].find;
+      let replacement = mappings[i].replacement;
+      if (typeof find === 'string') {
+        if (replaceFileWithString(file, find, replacement) !== file) {
+          return replaceFileWithString(file, find, replacement);
+        }
+      } else if (find instanceof RegExp) {
+        if (replaceFileWithRegExp(file, find, replacement) !== file) {
+          return replaceFileWithRegExp(file, find, replacement);
+        }
+      }
+    }
+  } else {
+    for (let find in mappings) {
+      const replacement = mappings[find];
+      if (replaceFileWithString(file, find, replacement) !== file) {
+        return replaceFileWithString(file, find, replacement);
+      }
+    }
+  }
+  return file;
+}
+
+function replaceFileWithString(file: string, find: string, replacement: string): string {
+  find = handlePathWithSlash(find);
+  replacement = handlePathWithSlash(replacement);
+  if (file.startsWith(find)) {
+    return file.replace(find, replacement);
+  } else {
+    find = `/node_modules/${find}`;
+    const index = file.indexOf(find);
+    if (index !== -1) {
+      return replacement + file.slice(index + find.length);
+    }
+  }
+  return file;
+}
+
+function replaceFileWithRegExp(file: string, find: RegExp, replacement: string): string {
+  const match = find.exec(file);
+  if (match) {
+    replacement = handlePathWithSlash(replacement);
+    const index = match.index;
+    const content = match[0];
+    let suffix = file.slice(index + content.length);
+    if (suffix.startsWith('/')) {
+      suffix = suffix.slice(1);
+    }
+    return replacement + suffix;
+  }
+  return file;
+}
+
+function handlePathWithSlash(path: string) {
+  return path.endsWith('/') ? path : `${path}/`;
+}

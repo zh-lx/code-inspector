@@ -3,16 +3,18 @@ import {
   normalizePath,
   parseSFC,
   isJsTypeFile,
+  getMappingFilePath,
 } from 'code-inspector-core';
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
 export default async function WebpackCodeInspectorLoader(content: string) {
   this.cacheable && this.cacheable(true);
-  const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
+  let filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource);
   const options = this.query;
-  const { escapeTags = [] } = options || {};
+  const { escapeTags = [], mappings } = options || {};
+  filePath = getMappingFilePath(filePath, mappings);
 
   // jsx 语法
   const isJSX =
