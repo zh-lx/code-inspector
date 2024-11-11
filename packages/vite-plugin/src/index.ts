@@ -7,6 +7,7 @@ import {
   isJsTypeFile,
   isDev,
   matchCondition,
+  getMappingFilePath,
 } from 'code-inspector-core';
 const PluginName = 'vite-code-inspector-plugin';
 
@@ -45,7 +46,8 @@ export function ViteCodeInspectorPlugin(options: Options) {
       }
 
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
-      const filePath = normalizePath(_completePath);
+      let filePath = normalizePath(_completePath);
+      filePath = getMappingFilePath(filePath, options.mappings);
       const params = new URLSearchParams(id);
       // 仅对符合正则的生效
       if (options?.match && !options.match.test(filePath)) {
