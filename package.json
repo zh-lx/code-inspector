@@ -19,6 +19,7 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "scripts": {
+    "test": "vitest run --coverage",
     "build": "pnpm --filter \"./packages/*\" run build",
     "build:docs": "pnpm --filter \"./docs/*\" run docs:build && node ./scripts/zip",
     "pub": "pnpm --filter \"./packages/*\" run pub",
@@ -35,9 +36,11 @@
     "node": ">=16.20.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "2.1.4",
     "fs-extra": "^10.0.0",
     "husky": "^8.0.3",
     "rimraf": "^5.0.5",
+    "vitest": "^2.1.4",
     "zip-a-folder": "^3.1.7"
   },
   "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a"
