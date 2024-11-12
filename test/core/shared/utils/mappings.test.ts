@@ -1,13 +1,13 @@
-import { getMappingFilePath } from '../../../packages/core/src/shared/utils';
+import { getMappingFilePath } from '@/core/src/shared/utils';
 import { expect, describe, it } from 'vitest';
 
-const file = '/Users/zlx/code-inspector/node_modules/three-pkg/a/b/c';
-const correntPath = '/Users/zlx/code-inspector/packages/three-pkg/a/b/c';
-
 describe('mappings', () => {
+  const file = '/Users/zlx/code-inspector/node_modules/pkg-1/a/b/c';
+  const correntPath = '/Users/zlx/code-inspector/packages/pkg-1/a/b/c';
+
   it('record: short find no slash, replacement no slash', () => {
     const mappings = {
-      'three-pkg': '/Users/zlx/code-inspector/packages/three-pkg',
+      'pkg-1': '/Users/zlx/code-inspector/packages/pkg-1',
     }
     const target = getMappingFilePath(file, mappings)
     expect(target).to.be.equal(correntPath);
@@ -15,7 +15,7 @@ describe('mappings', () => {
 
   it('record: short find slash, replacement slash', () => {
     const mappings = {
-      'three-pkg/': '/Users/zlx/code-inspector/packages/three-pkg/',
+      'pkg-1/': '/Users/zlx/code-inspector/packages/pkg-1/',
     }
     const target = getMappingFilePath(file, mappings)
     expect(target).to.be.equal(correntPath);
@@ -23,7 +23,7 @@ describe('mappings', () => {
 
   it('record: full find', () => {
     const mappings = {
-      '/Users/zlx/code-inspector/node_modules/three-pkg': '/Users/zlx/code-inspector/packages/three-pkg/',
+      '/Users/zlx/code-inspector/node_modules/pkg-1': '/Users/zlx/code-inspector/packages/pkg-1/',
     }
     const target = getMappingFilePath(file, mappings)
     expect(target).to.be.equal(correntPath);
@@ -31,7 +31,7 @@ describe('mappings', () => {
 
   it('record: no match', () => {
     const mappings = {
-      'four-pkg': '/Users/zlx/code-inspector/packages/four-pkg',
+      'pkg-2': '/Users/zlx/code-inspector/packages/pkg-2',
     }
     const target = getMappingFilePath(file, mappings)
     expect(target).to.be.equal(file);
@@ -40,12 +40,12 @@ describe('mappings', () => {
   it('array: short find', () => {
     const mappings = [
       {
-        find: 'four-pkg',
-        replacement: '/Users/zlx/code-inspector/packages/four-pkg',
+        find: 'pkg-2',
+        replacement: '/Users/zlx/code-inspector/packages/pkg-2',
       },
       {
-        find: 'three-pkg',
-        replacement: '/Users/zlx/code-inspector/packages/three-pkg',
+        find: 'pkg-1',
+        replacement: '/Users/zlx/code-inspector/packages/pkg-1',
       }
     ]
     const target = getMappingFilePath(file, mappings)
@@ -55,12 +55,12 @@ describe('mappings', () => {
   it('array: regexp', () => {
     const mappings = [
       {
-        find: 'four-pkg',
-        replacement: '/Users/zlx/code-inspector/packages/four-pkg',
+        find: 'pkg-2',
+        replacement: '/Users/zlx/code-inspector/packages/pkg-2',
       },
       {
-        find: /three\-pkg/,
-        replacement: '/Users/zlx/code-inspector/packages/three-pkg',
+        find: /pkg\-1/,
+        replacement: '/Users/zlx/code-inspector/packages/pkg-1',
       }
     ]
     const target = getMappingFilePath(file, mappings)
@@ -70,12 +70,12 @@ describe('mappings', () => {
   it('array: no match', () => {
     const mappings = [
       {
-        find: 'four-pkg',
-        replacement: '/Users/zlx/code-inspector/packages/four-pkg',
+        find: 'pkg-2',
+        replacement: '/Users/zlx/code-inspector/packages/pkg-2',
       },
       {
-        find: /five\-pkg/,
-        replacement: '/Users/zlx/code-inspector/packages/three-pkg',
+        find: /pkg\-3/,
+        replacement: '/Users/zlx/code-inspector/packages/pkg-1',
       }
     ]
     const target = getMappingFilePath(file, mappings)
