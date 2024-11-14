@@ -1,5 +1,5 @@
 import { fileURLToPath } from '@/core/src/shared/utils';
-import { expect, describe, test, afterEach, beforeEach, vi } from 'vitest';
+import { expect, describe, test, afterEach, beforeEach } from 'vitest';
 import process from 'process';
 
 describe('fileURLToPath', () => {

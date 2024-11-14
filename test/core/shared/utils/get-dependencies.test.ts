@@ -1,5 +1,5 @@
 import { getDenpendencies } from '@/core/src/shared/utils';
-import { expect, describe, it, afterEach, vi } from 'vitest';
+import { expect, describe, it, vi } from 'vitest';
 import fs from 'fs';
 
 vi.mock('fs');

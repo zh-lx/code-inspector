@@ -1,8 +1,5 @@
-import { getIP, getFilePathWithoutExt, normalizePath, formatOpenPath, isEscapeTags, getDenpendencies, isDev, matchCondition, getMappingFilePath } from '@/core/src/shared/utils';
-import { Condition, EscapeTags } from '@/core/src/shared/type';
-import { FormatColumn, FormatFile, FormatLine } from '@/core/src/shared/constant';
-import { expect, describe, it, afterEach, vi } from 'vitest';
-import path from 'path';
+import { getIP } from '@/core/src/shared/utils';
+import { expect, describe, it, vi } from 'vitest';
 import os from 'os';
 
 describe('getIP', () => {
