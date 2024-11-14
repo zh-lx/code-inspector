@@ -151,42 +151,51 @@ export function getMappingFilePath(file: string, mappings?: Record<string, strin
       let find = mappings[i].find;
       let replacement = mappings[i].replacement;
       if (typeof find === 'string') {
-        if (replaceFileWithString(file, find, replacement) !== file) {
-          return replaceFileWithString(file, find, replacement);
+        const realFilePath = replaceFileWithString(file, find, replacement);
+        if (realFilePath) {
+          return realFilePath;
         }
       } else if (find instanceof RegExp) {
-        if (replaceFileWithRegExp(file, find, replacement) !== file) {
-          return replaceFileWithRegExp(file, find, replacement);
+        const realFilePath = replaceFileWithRegExp(file, find, replacement);
+        if (realFilePath) {
+          return realFilePath;
         }
       }
     }
   } else {
     for (let find in mappings) {
       const replacement = mappings[find];
-      if (replaceFileWithString(file, find, replacement) !== file) {
-        return replaceFileWithString(file, find, replacement);
+      const realFilePath = replaceFileWithString(file, find, replacement);
+      if (realFilePath) {
+        return realFilePath;
       }
     }
   }
   return file;
 }
 
-function replaceFileWithString(file: string, find: string, replacement: string): string {
+function replaceFileWithString(file: string, find: string, replacement: string): string | null {
   find = handlePathWithSlash(find);
   replacement = handlePathWithSlash(replacement);
   if (file.startsWith(find)) {
-    return file.replace(find, replacement);
+    const realFilePath = file.replace(find, replacement);
+    if (fs.existsSync(realFilePath)) {
+      return realFilePath;
+    }
   } else {
     find = `/node_modules/${find}`;
     const index = file.indexOf(find);
     if (index !== -1) {
-      return replacement + file.slice(index + find.length);
+      const realFilePath = replacement + file.slice(index + find.length);
+      if (fs.existsSync(realFilePath)) {
+        return realFilePath;
+      }
     }
   }
-  return file;
+  return null;
 }
 
-function replaceFileWithRegExp(file: string, find: RegExp, replacement: string): string {
+function replaceFileWithRegExp(file: string, find: RegExp, replacement: string): string | null {
   const match = find.exec(file);
   if (match) {
     replacement = handlePathWithSlash(replacement);
@@ -196,9 +205,12 @@ function replaceFileWithRegExp(file: string, find: RegExp, replacement: string):
     if (suffix.startsWith('/')) {
       suffix = suffix.slice(1);
     }
-    return replacement + suffix;
+    const realFilePath = replacement + suffix;
+    if (fs.existsSync(realFilePath)) {
+      return realFilePath;
+    }
   }
-  return file;
+  return null;
 }
 
 function handlePathWithSlash(path: string) {
