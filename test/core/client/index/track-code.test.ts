@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
-import { formatOpenPath } from '@/core/src/shared';
+import { formatOpenPath } from 'launch-ide';
 
 // 模拟 formatOpenPath
-vi.mock('@/core/src/shared', () => ({
+vi.mock('launch-ide', () => ({
   formatOpenPath: vi.fn().mockReturnValue(['formatted/path:10:5']),
+}));
+vi.mock('@/core/src/shared', () => ({
   DefaultPort: 5678
 }));
 

@@ -17,6 +17,7 @@ export default defineConfig({
         'vite-code-inspector-plugin',
         'webpack-code-inspector-plugin',
         'chalk',
+        'dotenv',
         'fs',
         'path',
       ],

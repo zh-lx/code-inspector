@@ -4,8 +4,4 @@ export declare const PathName = "data-insp-path";
 export declare const NodeName = "data-insp-node";
 export declare const DefaultPort = 5678;
 export declare const JsFileExtList: string[];
-export declare const FormatFile = "{file}";
-export declare const FormatLine = "{line}";
-export declare const FormatColumn = "{column}";
-export declare const DefaultPathFormat: string;
 export declare const AstroToolbarFile = "\0astro:dev-toolbar";

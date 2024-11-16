@@ -1,21 +1,4 @@
-export type Editor =
-  | 'appcode'
-  | 'atom'
-  | 'atom-beta'
-  | 'brackets'
-  | 'code'
-  | 'code-insiders'
-  | 'idea'
-  | 'phpstorm'
-  | 'pycharm'
-  | 'webstorm'
-  | 'hbuilder'
-  | 'codium'
-  | 'cursor'
-  | 'goland'
-  | 'colin'
-  | 'rider'
-  | 'rubymine';
+import type { Editor } from 'launch-ide';
 
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
