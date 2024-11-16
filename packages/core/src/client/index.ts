@@ -1,7 +1,8 @@
 import { LitElement, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { PathName, DefaultPort, formatOpenPath } from '../shared';
+import { PathName, DefaultPort } from '../shared';
+import { formatOpenPath } from 'launch-ide';
 
 const styleId = '__code-inspector-unique-id';
 

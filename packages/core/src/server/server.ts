@@ -1,7 +1,7 @@
 // 启动本地接口，访问时唤起vscode
 import http from 'http';
 import portFinder from 'portfinder';
-import launchEditor from './launch-editor';
+import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
 import type { CodeOptions, RecordInfo } from '../shared';
 
@@ -22,8 +22,14 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
     // 调用 hooks
     options?.hooks?.afterInspectRequest?.(options, { file, line, column });
     // 打开 IDE
-    launchEditor(file, line, column, options?.editor, options?.openIn, options?.pathFormat);
-    
+    launchIDE({
+      file,
+      line,
+      column,
+      editor: options?.editor,
+      method: options?.openIn,
+      format: options?.pathFormat,
+    });
   });
 
   // 寻找可用接口

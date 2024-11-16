@@ -2,9 +2,6 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import {
-  FormatColumn,
-  FormatFile,
-  FormatLine,
   JsFileExtList,
 } from './constant';
 import { Condition, EscapeTags } from './type';
@@ -65,29 +62,6 @@ export function normalizePath(filepath: string) {
   }
 
   return normalizedPath;
-}
-
-export function formatOpenPath(
-  file: string,
-  line: string | number,
-  column: string | number,
-  format: string | string[] | boolean
-) {
-  let path = `${file}:${line}:${column}`;
-  if (typeof format === 'string') {
-    path = format
-      .replace(FormatFile, file)
-      .replace(FormatLine, line.toString())
-      .replace(FormatColumn, column.toString());
-  } else if (format instanceof Array) {
-    return format.map((item) => {
-      return item
-        .replace(FormatFile, file)
-        .replace(FormatLine, line.toString())
-        .replace(FormatColumn, column.toString());
-    });
-  }
-  return [path];
 }
 
 export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
