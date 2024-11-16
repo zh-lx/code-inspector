@@ -6,6 +6,8 @@ import {
   isJsTypeFile,
   parseSFC,
   isDev,
+  getMappingFilePath,
+  matchCondition,
 } from 'code-inspector-core';
 import fs from 'fs';
 import path from 'path';
@@ -41,20 +43,28 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
       build.onLoad(
         { filter: options.match || /\.(jsx|tsx|js|ts|mjs|mts)?$/ },
         async (args) => {
-          const filePath = args.path;
+          let filePath = args.path;
+          filePath = getMappingFilePath(filePath, options.mappings);
           let originCode = await fs.promises.readFile(filePath, 'utf8');
           let result = cache.get(filePath);
 
           // 文件首次编译或者发生修改
           if (!result || result.originCode !== originCode) {
 
-            // 注入交互代码
-            let code = await getCodeWithWebComponent({
-              options,
-              file: filePath,
-              code: originCode,
-              record,
-            });
+            let code = originCode;
+            if (filePath.match('node_modules')) {
+              if (!matchCondition(options.include || [], filePath)) {
+                return code;
+              }
+            } else {
+              // start server and inject client code to entry file
+              code = await getCodeWithWebComponent({
+                options,
+                file: filePath,
+                code,
+                record,
+              });
+            }
 
             let fileType = '';
             if (isJsTypeFile(filePath)) {
