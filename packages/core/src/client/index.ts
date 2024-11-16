@@ -1,7 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { composedPath } from './util';
 import { PathName, DefaultPort, formatOpenPath } from '../shared';
 
 const styleId = '__code-inspector-unique-id';
@@ -273,7 +272,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 移动按钮
   moveSwitch = (e: MouseEvent | TouchEvent) => {
-    if (composedPath(e).includes(this)) {
+    if (e.composedPath().includes(this)) {
       this.hoverSwitch = true;
     } else {
       this.hoverSwitch = false;
@@ -282,9 +281,9 @@ export class CodeInspectorComponent extends LitElement {
     if (this.dragging) {
       this.moved = true;
       this.inspectorSwitchRef.style.left =
-        this.mousePosition.baseX + ((e instanceof MouseEvent ? e.pageX : e.touches[0].pageX) - this.mousePosition.moveX) + 'px';
+        this.mousePosition.baseX + (this.getMousePosition(e).x - this.mousePosition.moveX) + 'px';
       this.inspectorSwitchRef.style.top =
-        this.mousePosition.baseY + ((e instanceof MouseEvent ? e.pageY : e.touches[0].pageY) - this.mousePosition.moveY) + 'px';
+        this.mousePosition.baseY + (this.getMousePosition(e).y - this.mousePosition.moveY) + 'px';
       return;
     }
   };
@@ -295,7 +294,7 @@ export class CodeInspectorComponent extends LitElement {
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
     ) {
-      const nodePath = composedPath(e);
+      const nodePath = e.composedPath() as HTMLElement[];
       let targetNode;
       // 寻找第一个有 data-insp-path 属性的元素
       for (let i = 0; i < nodePath.length; i++) {
@@ -381,7 +380,7 @@ export class CodeInspectorComponent extends LitElement {
   printTip = () => {
     const agent = navigator.userAgent.toLowerCase();
     const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
-      (item) => agent.match(item)
+      (item) => agent.toUpperCase().match(item.toUpperCase())
     );
     const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
     const keys = this.hotKeys
@@ -406,13 +405,21 @@ export class CodeInspectorComponent extends LitElement {
     );
   };
 
+  // 获取鼠标位置
+  getMousePosition = (e: MouseEvent | TouchEvent) => {
+    return {
+      x: e instanceof MouseEvent ? e.pageX : e.touches[0]?.pageX,
+      y: e instanceof MouseEvent ? e.pageY : e.touches[0]?.pageY,
+    };
+  };
+
   // 记录鼠标按下时初始位置
   recordMousePosition = (e: MouseEvent | TouchEvent) => {
     this.mousePosition = {
       baseX: this.inspectorSwitchRef.offsetLeft,
       baseY: this.inspectorSwitchRef.offsetTop,
-      moveX: e instanceof MouseEvent ? e.pageX : e.touches[0].pageX,
-      moveY: e instanceof MouseEvent ? e.pageY : e.touches[0].pageY,
+      moveX: this.getMousePosition(e).x,
+      moveY: this.getMousePosition(e).y,
     };
     this.dragging = true;
     e.preventDefault();
