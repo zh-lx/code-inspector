@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
 
 describe('CodeInspectorComponent - copyToClipboard method', () => {

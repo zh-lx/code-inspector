@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
-import { PathName, DefaultPort } from '@/core/src/shared';
+import { PathName } from '@/core/src/shared';
 
 // 模拟 composedPath
 vi.mock('@/core/src/shared', () => ({
