@@ -73,6 +73,10 @@ export declare class CodeInspectorComponent extends LitElement {
     handlePointerDown: (e: PointerEvent) => void;
     handleKeyUp: (e: KeyboardEvent) => void;
     printTip: () => void;
+    getMousePosition: (e: MouseEvent | TouchEvent) => {
+        x: number;
+        y: number;
+    };
     recordMousePosition: (e: MouseEvent | TouchEvent) => void;
     handleMouseUp: (e: MouseEvent | TouchEvent) => void;
     switch: (e: Event) => void;
