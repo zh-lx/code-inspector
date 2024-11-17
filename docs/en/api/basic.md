@@ -24,7 +24,7 @@ codeInspectorPlugin({
 - Optional
 - Type: `string`
 - Available values: `code / cursor / webstorm / appcode / atom / atom-beta / brackets / code-insiders / codium / colin / emacs / goland / hbuilder / idea / notepad / phpstorm / pycharm / rider / rubymine / sublime / vim / zed`
-- Description: By default, `code-inspector-plugin` automatically detects and opens your IDE based on the running processes in your system. When multiple IDEs are running simultaneously, the IDE opened by `code-inspector-plugin` might not be the one you want. In this case, you can specify which IDE to open by setting the `editor` parameter. For more details, refer to the [IDE](http://localhost:5173/guide/ide.html) section
+- Description: By default, `code-inspector-plugin` automatically detects and opens your IDE based on the running processes in your system. When multiple IDEs are running simultaneously, the IDE opened by `code-inspector-plugin` might not be the one you want. In this case, you can specify which IDE to open by setting the `editor` parameter. For more details, refer to the [IDE](/guide/ide.html) section
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
 

@@ -24,7 +24,7 @@ codeInspectorPlugin({
 - 可选项。
 - 类型：`string`
 - 可选值：`code / cursor / webstorm / appcode / atom / atom-beta / brackets / code-insiders / codium / colin / emacs / goland / hbuilder / idea / notepad / phpstorm / pycharm / rider / rubymine / sublime / vim / zed`
-- 说明：`code-inspector-plugin` 默认会根据当前系统中运行的进程，自动识别你所使用的 IDE 并打开。当你的系统中同时运行多个类别的 IDE 时，`code-inspector-plugin` 所打开的 IDE 可能不是你所想打开的那个，此时，你可以通过设置 `editor` 参数来指定打开的 IDE。更多细节可以参考 [IDE](http://localhost:5173/guide/ide.html) 一节
+- 说明：`code-inspector-plugin` 默认会根据当前系统中运行的进程，自动识别你所使用的 IDE 并打开。当你的系统中同时运行多个类别的 IDE 时，`code-inspector-plugin` 所打开的 IDE 可能不是你所想打开的那个，此时，你可以通过设置 `editor` 参数来指定打开的 IDE。更多细节可以参考 [IDE](/guide/ide.html) 一节
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
 
