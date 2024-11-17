@@ -302,7 +302,7 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   </details>
 
-- 2. Using the function
+- 2.Using the function
 
   Now you can enjoy using it!~
 
