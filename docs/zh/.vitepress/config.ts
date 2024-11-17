@@ -18,8 +18,14 @@ export default defineConfig({
         items: [
           { text: '介绍', link: '/guide/introduction' },
           { text: '使用', link: '/guide/start' },
-          { text: '指定 IDE', link: '/guide/ide' },
-          { text: 'API', link: '/guide/api' },
+          { text: 'IDE', link: '/guide/ide' },
+        ],
+      },
+      {
+        text: 'API',
+        items: [
+          { text: '基础配置', link: '/api/basic' },
+          { text: '进阶配置', link: '/api/advance' },
         ],
       },
       {

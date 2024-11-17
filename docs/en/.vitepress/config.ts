@@ -19,8 +19,14 @@ export default defineConfig({
         items: [
           { text: 'Introduction', link: '/guide/introduction' },
           { text: 'Use', link: '/guide/start' },
-          { text: 'Specify IDE', link: '/guide/ide' },
-          { text: 'API', link: '/guide/api' },
+          { text: 'IDE', link: '/guide/ide' },
+        ],
+      },
+      {
+        text: 'API',
+        items: [
+          { text: 'Basic', link: '/api/basic' },
+          { text: 'Advance', link: '/api/advance' },
         ],
       },
       {

@@ -1,24 +1,45 @@
-# Specify IDE
+# IDE
 
-By default, `code-inspector-plugin` scans the applications currently running on the system and automatically opens a running IDE program (automatic recognition is limited to the IDEs supported in the table below), so in most cases, you do not need to manually specify the IDE.
+`code-inspector-plugin` scans currently running processes in the system and automatically recognizes the IDE being used, so in most cases, you don't need to manually specify the IDE.
 
-If you want to specify the IDE, you need to add a file named `.env.local` in the project root and add: `CODE_EDITOR=[IDE Code Name]`.
+## Specifying IDE
 
-Taking vscode as an example, its corresponding `IDE Code Name` is `code`, then add the following content to `.env.local`:
+If `code-inspector-plugin` fails to automatically recognize your IDE, or if you're running multiple IDEs and want to specify which one to open, you have two ways to specify the IDE: through the `.env.local` file or by adding the `editor` parameter in `codeInspectorPlugin`.
 
-```perl
+:::tip
+
+If project team members use different IDEs, using the `editor` parameter might cause conflicts between them, so using `.env.local` file is more recommended
+
+:::
+
+### Specifying via `.env.local` file
+
+Add a file named `.env.local` in the project root directory and add: `CODE_EDITOR=[IDE code name]`. For example, for vscode, its corresponding `IDE code name` is `code`, so add the following to `.env.local`:
+
+```shell
 # Specify IDE as vscode
 CODE_EDITOR=code
 ```
 
-## IDEs Supported for Automatic Recognition
+### Specifying via `editor` parameter
 
-The IDE that supports automatic recognition and the corresponding IDE Encoding Name are shown in the table below:
+You can also specify the IDE by adding the `editor` parameter in `codeInspectorPlugin`:
+
+```ts
+codeInspectorPlugin({
+    bundler: 'vite',
+    editor: 'code', // Specify IDE as vscode
+})
+```
+
+## Supported IDE List
+
+The following table shows the IDEs that support automatic detection, their corresponding IDE code names, and supported systems:
 
 <table>
     <tr>
         <th>IDE</th>
-        <th>IDE Encoding Name</th>
+        <th>IDE Code Name</th>
         <th>MacOS</th>
         <th>Windows</th>
         <th>Linux</th>        
@@ -135,37 +156,69 @@ The IDE that supports automatic recognition and the corresponding IDE Encoding N
         <td>✅</td>
         <td>✅</td>
     </tr>
+    <tr>
+        <td><a href="https://www.gnu.org/software/emacs/" target="_blank">Emacs</a></td>
+        <td>emacs</td>
+        <td></td>
+        <td></td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.sublimetext.com/" target="_blank">Sublime Text</a></td>
+        <td>sublime</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td>✅</td>
+    </tr>
+    <tr>
+        <td><a href="https://notepad-plus-plus.org/download/v7.5.4.html" target="_blank">Notepad++</a></td>
+        <td>notepad</td>
+        <td></td>
+        <td>✅</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="http://www.vim.org/" target="_blank">Vim</a></td>
+        <td>vim</td>
+        <td></td>
+        <td></td>
+        <td>✅</td>
+    </tr>
 </table>
 
 ## Other IDEs
 
-If the IDE you are using is not in the list of supported IDEs for automatic recognition, or if you are using an IDE that is not officially listed but still supported, it may cause recognition failure. You need to add a file named `.env.local` in the project root and add: `CODE_EDITOR=[IDE executable program path]`, where the `IDE executable program path` is referenced as follows.
+If your IDE is not in the above list of automatically supported IDEs, detection may fail. You'll need to add a file named `.env.local` in the project root directory and add: `CODE_EDITOR=[IDE executable path]`. Here's how to find the IDE executable path.
 
-### MAC
+### MAC System
 
-Taking VSCodium as an example (the steps are the same for other IDEs), to obtain the `IDE executable program path` on a MAC system, follow these steps:
+Taking VSCodium as an example (steps are the same for other IDEs), to get the IDE executable path on MAC system:
 
-1. Open the IDE program VSCodium.
-2. Open the `Activity Monitor` on MAC, find VSCodium in the process, and double-click it:
+1. Open the IDE program VSCodium
+2. Open MAC's Activity Monitor, find VSCodium in the processes and double-click:
+
    ![Active_Monitor](https://github.com/zh-lx/code-inspector/assets/73059627/17d65dc1-82ff-439f-aeba-8e3056cd2a1b)
-3. After double-clicking, in the`Open Files and Ports`Tab of the window, find the path corresponding to the first txt, which is the `IDE executable program path`:
+3. After double-clicking, in the "Open Files and Ports" tab of the window, find the path corresponding to the first txt, which is the IDE executable path:
+
    ![Open_Files](https://github.com/zh-lx/code-inspector/assets/73059627/f27a61f4-1c57-4687-83c7-6078533d62b4)
-4. Copy the `IDE executable program path` to the `.env.local` file:
+4. Copy the IDE executable path to the `.env.local` file:
 
 ```perl
 # .env.local
 CODE_EDITOR=/Applications/VSCodium.app/Contents/MacOS/Electron
 ```
 
-### Windows
+### Windows System
 
-Taking WebStorm as an example (the steps are the same for other IDEs), to obtain the `IDE executable program path` on a Windows system, follow these steps:
+Taking Webstorm as an example (steps are the same for other IDEs), to get the IDE executable path on Windows system:
 
-1. Find the shortcut of the IDE (if it doesn't exist, create one), right-click the shortcut, and select【Properties】:
+1. Find the IDE shortcut (create one if it doesn't exist), right-click the shortcut, select "Properties":
+
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6db6899f-fec5-474a-bffb-de8a394df777" style="max-width: 400px" />
-2. After opening, in the【Shortcut】Tab, find【Target】under【Target】, remove the double quotes in【Target】, which is the `IDE executable program path`:
+2. After opening, in the "Shortcut" tab find "Target", remove the quotation marks from the "Target" to get the IDE executable path:
+
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/f5067697-a246-4566-a530-ca83f9803bf5" style="max-width: 400px" />
-3. Copy the `IDE executable program path` to the `.env.local` file:
+3. Copy the IDE executable path to the `.env.local` file:
 
 ```perl
 # .env.local

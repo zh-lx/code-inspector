@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.1
+
+- 【feat】Add `mappings` parameter, support user-defined source code file path mapping relationship, as a supplement to `include` [#242](https://github.com/zh-lx/code-inspector/pull/242)
+
 ## 0.18.0
 
 - 【feat】Support specifying package names in `node_modules` through the `include` parameter to allow internal files to participate in compilation and inject `path` information [#241](https://github.com/zh-lx/code-inspector/pull/241)

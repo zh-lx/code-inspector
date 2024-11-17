@@ -1,22 +1,22 @@
-# Get Started
+# Quick Start
 
-`code-inspector-plugin` supports usage in projects using `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs` as bundlers and works with frameworks such as `vue/react/preact/solid/qwik/svelte/astro`. Please refer to the integration tutorial below.
+`code-inspector-plugin` supports projects using `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs` as bundlers, and works with frameworks like `vue/react/preact/solid/qwik/svelte/astro`. Please refer to the following integration guide.
 
 ## Installation
 
-- Use npm：
+- Install using npm:
 
 ```shell
 npm install code-inspector-plugin -D
 ```
 
-- Use yarn：
+- Install using yarn:
 
 ```shell
 yarn add code-inspector-plugin -D
 ```
 
-- Use pnpm：
+- Install using pnpm:
 
 ```shell
 pnpm add code-inspector-plugin -D
@@ -24,9 +24,9 @@ pnpm add code-inspector-plugin -D
 
 ## Configuration
 
-### 1.Config bundler
+Complete the corresponding configuration based on your bundler.
 
-::: details Click to expand configuration about: webpack
+::: details Click to view webpack project configuration
 
 ```js
 // webpack.config.js
@@ -43,7 +43,7 @@ module.exports = () => ({
 
 :::
 
-::: details Click to expand configuration about: vite
+::: details Click to view vite project configuration
 
 ```js
 // vite.config.js
@@ -61,13 +61,13 @@ export default defineConfig({
 
 :::
 
-::: details Click to expand configuration about: rspack
+::: details Click to view rspack project configuration
 
 ```js
 // rspack.config.js
 const { codeInspectorPlugin } = require('code-inspector-plugin');
 
-module.exports =  = {
+module.exports = {
   // other config...
   plugins: [
     codeInspectorPlugin({
@@ -80,7 +80,7 @@ module.exports =  = {
 
 :::
 
-::: details Click to expand configuration about: rsbuild
+::: details Click to view rsbuild project configuration
 
 ```js
 // rsbuild.config.js
@@ -103,7 +103,7 @@ export default defineConfig({
 
 :::
 
-::: details Click to expand configuration about: esbuild
+::: details Click to view esbuild project configuration
 
 ```js
 // esbuild.config.js
@@ -113,14 +113,15 @@ const { codeInspectorPlugin } = require('code-inspector-plugin');
 esbuild.build({
   // other configs...
 
-  // [Note] When used in esbuild, the return value of the dev function needs to be determined by the environment. Local development environments return true, while online packaging returns false
+  // [Note] When using in esbuild, the dev function's return value needs to be determined based on the environment
+  // Return true for local development, false for production build
   plugins: [codeInspectorPlugin({ bundler: 'esbuild', dev: () => true })],
 });
 ```
 
 :::
 
-::: details Click to expand configuration about: farm
+::: details Click to view farm project configuration
 
 ```js
 // farm.config.js
@@ -139,7 +140,7 @@ export default defineConfig({
 
 :::
 
-::: details Click to expand configuration about: vue-cli
+::: details Click to view vue-cli project configuration
 
 ```js
 // vue.config.js
@@ -159,9 +160,9 @@ module.exports = {
 
 :::
 
-::: details Click to expand configuration about: nuxt
+::: details Click to view nuxt project configuration
 
-nuxt3.x :
+nuxt3.x:
 
 ```js
 // nuxt.config.js
@@ -175,7 +176,7 @@ export default defineNuxtConfig({
 });
 ```
 
-nuxt2.x :
+nuxt2.x:
 
 ```js
 // nuxt.config.js
@@ -193,7 +194,7 @@ export default {
 
 :::
 
-::: details Click to expand configuration about: next.js
+::: details Click to view next.js project configuration
 
 ```js
 // next.config.js
@@ -211,7 +212,7 @@ module.exports = nextConfig;
 
 :::
 
-::: details Click to expand configuration about: umi.js
+::: details Click to view umi.js project configuration
 
 ```js
 // umi.config.js or umirc.js
@@ -232,7 +233,7 @@ export default defineConfig({
 
 :::
 
-::: details Click to expand configuration about: astro
+::: details Click to view astro project configuration
 
 ```js
 // astro.config.mjs
@@ -248,31 +249,17 @@ export default defineConfig({
 
 :::
 
-### 2.Config VSCode
-
-::: tip For Windows or other IDEs, you can skip this step
-This step is only necessary if your computer is a Mac, and you are using VSCode as your IDE. You can skip this step if your computer is Windows or you use another IDE.
-:::
-
-- Execution `command + shift + p` in vscode, search and click `Shell Command: Install 'code' command in PATH`:
-
-  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/vscode-command-line.png" width="400px" />
-
-- If the prompt window appears as shown below, the configuration is successful:
-
-  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/command-line-success.png" width="300px" />
-
 ## Usage
 
-Currently, there are two ways to use the DOM source code positioning feature:
+There are currently two ways to use the DOM source code location feature:
 
-### Method1(Recommend)
+### Method 1 (Recommended)
 
-When holding down the specified shortcut keys on the page, a mask layer will appear on the DOM with relevant information as you move the mouse on the page. Clicking it will automatically open the IDE and position the cursor to the code location corresponding to the element. (The default shortcut keys for Mac are `Option + Shift`; for Windows, the default shortcut keys are `Alt + Shift`, and relevant shortcut key prompts will be output in the browser console.)
+Hold down the keyboard shortcut while moving the mouse over the page, and an overlay will appear on the DOM showing relevant information. Click once to automatically open the IDE and position the cursor at the corresponding code location. (The default shortcut for Mac is `Option + Shift`; for Windows, it's `Alt + Shift`. The browser console will display relevant shortcut hints)
 ![image](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/console-success.png)
 
-### Method2
+### Method 2 (Recommended for Mobile)
 
-When the `showSwitch: true` option is configured in the plugin parameters, a `Code Inspection Switch Button` will be displayed on the page. Clicking it will toggle the `Code Inspection Mode` on/off. When `Code Inspection Mode` is enabled, use it the same way as in <b>Method1</b> by holding down the shortcut keys. When the switch is in color <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" /> , `Code Inspection Mode` is enabled; when the switch is colorless <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />, `Code Inspection Mode` is disabled.
+When `showSwitch: true` is configured in the plugin parameters, a `Code Inspector Switch` button will be displayed on the page. Click to toggle the `Code Inspection Mode` on/off. When the mode is enabled, it works the same way as holding down the shortcut keys in Method 1. When the switch is colored, it indicates that `Code Inspection Mode` is enabled <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block;" />; when the switch is black and white, it indicates that `Code Inspection Mode` is disabled <img src="https://user-images.githubusercontent.com/73059627/230129864-e2813188-8d49-4a8e-a6bc-dda19c79b491.png" width="20" style="display: inline-block;" />.
 
 ![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)

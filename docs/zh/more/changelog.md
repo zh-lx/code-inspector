@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.18.1
+
+- 【feat】增加 `mappings` 参数，支持用户自定义源码文件路径映射关系，作为 `include` 的补充 [#242](https://github.com/zh-lx/code-inspector/pull/242)
+
 ## 0.18.0
 
 - 【feat】支持通过 `include` 指定 `node_modules` 中的包名以让其内部文件参与编译注入 `path` 信息 [#241](https://github.com/zh-lx/code-inspector/pull/241)
