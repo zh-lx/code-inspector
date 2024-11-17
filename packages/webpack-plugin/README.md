@@ -302,20 +302,9 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   </details>
 
-- 2.Configuring VSCode Command Line Tool
+- 2. Using the function
 
-  > **Tip:** Skip for Windows or other IDEs <br />
-  > This step is only required for Mac with vscode as IDE. Skip this step if your computer is Windows or if you use another IDE.
-
-  In VSCode, press `command + shift + p`, search for and click `Shell Command: Install 'code' command in PATH`:
-
-    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/vscode-command-line.png" width="400px" />
-
-  If you see the dialog box below, the configuration was successful:
-
-    <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/command-line-success.png" width="300px" />
-
-- 3.Enjoy using it
+  Now you can enjoy using it!~
 
   When pressing the combination keys on the page, moving the mouse over the page will display a mask layer on the DOM with relevant information. Clicking will automatically open the IDE and position the cursor to the corresponding code location. (The default combination keys for Mac are `Option + Shift`; for Windows, it's `Alt + Shift`, and the browser console will output related combination key prompts)
 
