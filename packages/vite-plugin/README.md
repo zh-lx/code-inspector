@@ -69,7 +69,7 @@ pnpm add code-inspector-plugin -D
 
 Please check here for more usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
 
-- 1.Configuring Build Tools
+1. Configuring Build Tools
 
   <details>
     <summary>Click to expand configuration about: <b>webpack</b></summary>
@@ -302,7 +302,7 @@ Please check here for more usage information: [code-inspector-plugin configurati
 
   </details>
 
-- 2.Using the function
+2. Using the function
 
   Now you can enjoy using it!~
 
