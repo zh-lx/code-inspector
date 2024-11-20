@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.2
+
+- 【perf】Optimized interaction experience: prioritize displaying the source code location of the component call [#248](https://github.com/zh-lx/code-inspector/pull/248)
+
 ## 0.18.1
 
 - 【feat】Add `mappings` parameter, support user-defined source code file path mapping relationship, as a supplement to `include` [#242](https://github.com/zh-lx/code-inspector/pull/242)
