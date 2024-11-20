@@ -68,6 +68,7 @@ export declare class CodeInspectorComponent extends LitElement {
     trackCode: () => void;
     copyToClipboard(text: string): void;
     moveSwitch: (e: MouseEvent | TouchEvent) => void;
+    isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
     handleMouseMove: (e: MouseEvent | TouchEvent) => void;
     handleMouseClick: (e: MouseEvent | TouchEvent) => void;
     handlePointerDown: (e: PointerEvent) => void;

@@ -289,6 +289,12 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  isSamePositionNode = (node1: HTMLElement, node2: HTMLElement) => {
+    const node1Rect = node1.getBoundingClientRect();
+    const node2Rect = node2.getBoundingClientRect();
+    return node1Rect.top === node2Rect.top && node1Rect.left === node2Rect.left && node1Rect.right === node2Rect.right && node1Rect.bottom === node2Rect.bottom;
+  };
+
   // 鼠标移动渲染遮罩层位置
   handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (
@@ -301,8 +307,12 @@ export class CodeInspectorComponent extends LitElement {
       for (let i = 0; i < nodePath.length; i++) {
         const node = nodePath[i];
         if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
-          targetNode = node;
-          break;
+          if (!targetNode) {
+            targetNode = node;
+          } else if (this.isSamePositionNode(targetNode, node)) {
+            // 优先寻找组件被调用处源码
+            targetNode = node;
+          }
         }
         // Todo: transform astro inside
         if (node.hasAttribute && node.hasAttribute('data-astro-source-file')) {
