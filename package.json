@@ -32,9 +32,6 @@
   },
   "private": true,
   "main": "index.js",
-  "engines": {
-    "node": ">=16.20.0"
-  },
   "devDependencies": {
     "@vitest/coverage-v8": "2.1.4",
     "fs-extra": "^10.0.0",
