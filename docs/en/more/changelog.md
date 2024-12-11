@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.3
+
+- 【feat】Supported recognition for `Windsurf` [#254](https://github.com/zh-lx/code-inspector/pull/254)
+
 ## 0.18.2
 
 - 【perf】Optimized interaction experience: prioritize displaying the source code location of the component call [#248](https://github.com/zh-lx/code-inspector/pull/248)
