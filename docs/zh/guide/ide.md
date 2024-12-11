@@ -59,6 +59,13 @@ codeInspectorPlugin({
         <td></td>
     </tr>
     <tr>
+        <td><a href="https://codeium.com/windsurf" target="_blank">Windsurf</a></td>
+        <td>windsurf</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td></td>
+    </tr>
+    <tr>
         <td><a href="https://insiders.vscode.dev/" target="_blank">Visual Studio Code - Insiders</a></td>
         <td>code-insiders</td>
         <td>✅</td>

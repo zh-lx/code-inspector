@@ -51,7 +51,7 @@
   ✅ svelte<br />
   ✅ astro
 - 当前支持以下代码编辑器<br />
-  [VSCode](https://code.visualstudio.com/) | [Cursor](https://www.cursor.com/) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/) | [以及其他 IDE](https://inspector.fe-dev.cn/guide/ide.html)
+  [VSCode](https://code.visualstudio.com/) | [Cursor](https://www.cursor.com/) | [Windsurf](https://codeium.com/windsurf) | [WebStorm](https://www.jetbrains.com/webstorm/) | [Atom](https://atom.io/) | [HBuilderX](https://www.dcloud.io/hbuilderx.html) | [PhpStorm](https://www.jetbrains.com/phpstorm/) | [PyCharm](https://www.jetbrains.com/pycharm/) | [IntelliJ IDEA](https://www.jetbrains.com/idea/) | [以及其他 IDE](https://inspector.fe-dev.cn/guide/ide.html)
 
 ## 🚀 安装
 

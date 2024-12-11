@@ -1,6 +1,6 @@
 {
   "name": "code-inspector-core",
-  "version": "0.18.2",
+  "version": "0.18.3",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
@@ -51,7 +51,7 @@
     "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
-    "launch-ide": "1.0.0",
+    "launch-ide": "1.0.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {

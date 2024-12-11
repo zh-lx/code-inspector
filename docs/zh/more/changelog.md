@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.18.3
+
+- 【feat】支持了 `Windsurf` 的识别 [#254](https://github.com/zh-lx/code-inspector/pull/254)
+
 ## 0.18.2
 
 - 【perf】优化交互体验：优先显示组件被调用处的源码位置 [#248](https://github.com/zh-lx/code-inspector/pull/248)
