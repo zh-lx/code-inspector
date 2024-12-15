@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
+import { getRelativePath } from '../server';
 import { parse as parseSvelte, walk } from 'svelte/compiler';
 
 export function transformSvelte(content: string, filePath: string, escapeTags: EscapeTags) {
@@ -18,7 +19,7 @@ export function transformSvelte(content: string, filePath: string, escapeTags: E
         const line = countLines(content, node.start) + 1;
         const column = node.start - content.lastIndexOf('\n', node.start);
 
-        const addition = ` ${PathName}="${filePath}:${line}:${column}:${
+        const addition = ` ${PathName}="${getRelativePath(filePath)}:${line}:${column}:${
           node.name
         }"${node.attributes.length ? ' ' : ''}`;
         s.prependLeft(insertPosition, addition);

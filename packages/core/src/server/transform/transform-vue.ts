@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
+import { getRelativePath } from '../server';
 import type {
   TemplateChildNode,
   NodeTransform,
@@ -74,10 +75,10 @@ function transformPugAst(params: TransformPugParams) {
       let insertPosition = offset + node.name.length;
       if (content[insertPosition] === '(') {
         // 说明已有 attributes
-        const addition = `${PathName}="${filePath}:${node.line}:${node.column}:${node.name}", `;
+        const addition = `${PathName}="${getRelativePath(filePath)}:${node.line}:${node.column}:${node.name}", `;
         s.prependLeft(insertPosition + 1, addition);
       } else {
-        const addition = `(${PathName}="${filePath}:${node.line}:${node.column}:${node.name}")`;
+        const addition = `(${PathName}="${getRelativePath(filePath)}:${node.line}:${node.column}:${node.name}")`;
         s.prependLeft(insertPosition, addition);
       }
     }
@@ -139,7 +140,7 @@ export function transformVue(
             // 向 dom 上添加一个带有 filepath/row/column 的属性
             const insertPosition = node.loc.start.offset + node.tag.length + 1;
             const { line, column } = node.loc.start;
-            const addition = ` ${PathName}="${filePath}:${line}:${column}:${
+            const addition = ` ${PathName}="${getRelativePath(filePath)}:${line}:${column}:${
               node.tag
             }"${node.props.length ? ' ' : ''}`;
 
