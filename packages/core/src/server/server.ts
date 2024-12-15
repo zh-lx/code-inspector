@@ -21,7 +21,7 @@ function getProjectRoot(): string {
 
 // 项目根目录
 export const ProjectRootPath = getProjectRoot();
-export function getShortagePath(filePath: string): string {
+export function getRelativePath(filePath: string): string {
   if (ProjectRootPath) {
     return filePath.replace(`${ProjectRootPath}/`, '');
   }
