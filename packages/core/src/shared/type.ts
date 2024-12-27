@@ -136,4 +136,9 @@ export type CodeOptions = {
    * @en Used to map file paths, often used to map the file path in `node_modules` to the file path in the project
    */
   mappings?: Record<string, string> | Array<{ find: string | RegExp, replacement: string }>;
+  /**
+   * @zh 支持从指定端口开始寻找可用端口（默认从 5678 开始）
+   * @en Supports finding available ports starting from a specified port (default starts from 5678).
+   */
+  port?: number;
 };
