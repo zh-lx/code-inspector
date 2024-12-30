@@ -7,6 +7,7 @@ import {
 } from 'code-inspector-core';
 import path, { dirname } from 'path';
 import { getWebpackEntrys } from './entry';
+import { Server } from 'http';
 
 let compatibleDirname = '';
 
@@ -118,6 +119,8 @@ async function replaceHtml({
   }
 }
 
+let currentServer: Server | null = null;
+
 class WebpackCodeInspectorPlugin {
   options: Options;
 
@@ -126,6 +129,11 @@ class WebpackCodeInspectorPlugin {
   }
 
   async apply(compiler) {
+    if (currentServer) {
+      currentServer.close();
+      currentServer = null;
+    }
+
     isFirstLoad = true;
 
     if (
@@ -166,6 +174,9 @@ class WebpackCodeInspectorPlugin {
             record,
             assets,
           });
+          if (record.server) {
+            currentServer = record.server;
+          }
           cb();
         }
       );

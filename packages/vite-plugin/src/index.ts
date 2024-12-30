@@ -24,6 +24,8 @@ export function ViteCodeInspectorPlugin(options: Options) {
     entry: '',
     output: options.output,
   };
+  let currentServer = null;
+
   return {
     name: PluginName,
     ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
@@ -99,10 +101,16 @@ export function ViteCodeInspectorPlugin(options: Options) {
         record,
         inject: true,
       });
+      currentServer = record.server;
       return html.replace(
         '<head>',
         `<head><script type="module">\n${code}\n</script>`
       );
+    },
+    configResolved() {
+      // stop server
+      currentServer?.close();
+      currentServer = null;
     },
   };
 }

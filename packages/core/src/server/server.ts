@@ -67,13 +67,14 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
       callback(port);
     });
   });
+  return server;
 }
 
 export async function startServer(options: CodeOptions, record: RecordInfo) {
   if (!record.port) {
     if (!record.findPort) {
       record.findPort = new Promise((resolve) => {
-        createServer((port: number) => {
+        record.server = createServer((port: number) => {
           resolve(port);
         }, options);
       });

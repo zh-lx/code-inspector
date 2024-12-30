@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
@@ -11,6 +13,7 @@ export type RecordInfo = {
     findPort?: Promise<number>;
     inputs?: Promise<string[]>;
     injectTo?: string[];
+    server?: Server;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';
