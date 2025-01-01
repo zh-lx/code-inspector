@@ -59,7 +59,7 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
   });
 
   // 寻找可用接口
-  portFinder.getPort({ port: DefaultPort }, (err: Error, port: number) => {
+  portFinder.getPort({ port: options?.port ?? DefaultPort }, (err: Error, port: number) => {
     if (err) {
       throw err;
     }

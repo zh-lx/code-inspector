@@ -133,5 +133,10 @@ export type CodeOptions = {
         find: string | RegExp;
         replacement: string;
     }>;
+    /**
+     * @zh 支持从指定端口开始寻找可用端口（默认从 5678 开始）
+     * @en Supports finding available ports starting from a specified port (default starts from 5678).
+     */
+    port?: number;
 };
 export {};
