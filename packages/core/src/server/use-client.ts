@@ -131,7 +131,7 @@ export function getHidePathAttrCode() {
 
 // normal entry file
 function recordEntry(record: RecordInfo, file: string) {
-  if (!record.entry && isJsTypeFile(file)) {
+  if (!record.entry && isJsTypeFile(file) && !isNextjsInstrumentationFile(file)) {
     // exclude svelte kit server entry file
     if (file.includes('/.svelte-kit/')) {
       return;
@@ -203,7 +203,7 @@ export async function getCodeWithWebComponent({
 
   // 注入消除 warning 代码
   const isTargetFile = await isTargetFileToInject(file, record);
-  if (isTargetFile  || inject) {
+  if (isTargetFile || inject) {
     const injectCode = getInjectedCode(options, record.port);
     if (isNextjsProject() || options.importClient === 'file') {
       writeEslintRcFile(record.output);
@@ -252,4 +252,8 @@ function writeWebComponentFile(
 function isNextjsProject() {
   const dependencies = getDenpendencies();
   return dependencies.includes('next');
+}
+
+function isNextjsInstrumentationFile(file: string) {
+  return isNextjsProject() && getFilePathWithoutExt(file).endsWith('/instrumentation');
 }
