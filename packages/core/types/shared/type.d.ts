@@ -138,5 +138,10 @@ export type CodeOptions = {
      * @en Supports finding available ports starting from a specified port (default starts from 5678).
      */
     port?: number;
+    /**
+     * @zh 是否在控制台中打印 server 的启动信息
+     * @en Whether to print the server startup information in the console
+     */
+    printServer?: boolean;
 };
 export {};

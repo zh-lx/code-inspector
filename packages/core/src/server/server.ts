@@ -3,9 +3,10 @@ import http, { Server } from 'http';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
-import { type CodeOptions, type RecordInfo } from '../shared';
+import { getIP, type CodeOptions, type RecordInfo } from '../shared';
 import { execSync } from 'child_process';
 import path from 'path';
+import chalk from 'chalk';
 
 // 获取项目 git 根目录
 function getProjectRoot(): string {
@@ -28,7 +29,10 @@ export function getRelativePath(filePath: string): string {
   return filePath;
 }
 
-export function createServer(callback: (port: number) => any, options?: CodeOptions) {
+export function createServer(
+  callback: (port: number) => any,
+  options?: CodeOptions
+) {
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
     const params = new URLSearchParams(req.url.slice(1));
@@ -59,14 +63,17 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
   });
 
   // 寻找可用接口
-  portFinder.getPort({ port: options?.port ?? DefaultPort }, (err: Error, port: number) => {
-    if (err) {
-      throw err;
+  portFinder.getPort(
+    { port: options?.port ?? DefaultPort },
+    (err: Error, port: number) => {
+      if (err) {
+        throw err;
+      }
+      server.listen(port, () => {
+        callback(port);
+      });
     }
-    server.listen(port, () => {
-      callback(port);
-    });
-  });
+  );
   return server;
 }
 
@@ -86,6 +93,17 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
         // create server
         const server = createServer((port: number) => {
           resolve(port);
+          if (options.printServer) {
+            console.log(
+              chalk.blue(`[code-inspector-plugin] `) +
+              chalk.white(`Server is running on: `) +
+              chalk.green(
+                `http://${getIP(options.ip || 'localhost')}:${
+                  options.port ?? DefaultPort
+                }`
+              )
+            );
+          }
         }, options);
         // record the server of current project
         projectServerMap.set(projectName, server);
