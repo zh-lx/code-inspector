@@ -172,3 +172,15 @@ Below are configurations for some non-standard scenarios.
 - Optional
 - Type: `boolean`, default is `false`
 - Description: Forces the cache strategy of the loader for webpack/rspack interaction injection logic; true for full cache; false for no cache; if not set, automatically determines to only not cache entry files while caching other files. (Only works for `webpack/rspack`, after version `0.5.1`, this cache strategy has been optimized and this field is no longer needed).
+
+## port <Badge type="tip" text="0.19.0+" vertical="middle" />
+
+- Optional
+- Type: `number`, default value is `5678`
+- Description: Specifies the starting port for the server of `code-inspector-plugin` to find.
+
+## printServer <Badge type="tip" text="0.19.0+" vertical="middle" />
+
+- Optional
+- Type: `boolean`, default value is `false`
+- Description: Whether to print the server startup information in the console.

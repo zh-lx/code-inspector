@@ -178,4 +178,14 @@
 - 类型：`boolean`，默认为 `false`
 - 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(仅对 `webpack/rspack` 生效，`0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段)。
 
+## port <Badge type="tip" text="0.19.0+" vertical="middle" />
 
+- 可选项
+- 类型：`number`，默认值为 `5678`
+- 说明：指定 `code-inspector-plugin` 的 server 开始寻找的启动端口。
+
+## printServer <Badge type="tip" text="0.19.0+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean`，默认值为 `false`
+- 说明：是否在控制台中打印 server 的启动信息。

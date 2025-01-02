@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.19.0
+
+- 【feat】Support specifying the server port through the `port` parameter [#260](https://github.com/zh-lx/code-inspector/pull/260)
+- 【feat】Support specifying whether to print server startup information in the console through the `printServer` parameter [#265](https://github.com/zh-lx/code-inspector/pull/265)
+- 【fix】Fixed the issue where the `instrumentation.ts` file was not compiled in `nextjs` projects [#264](https://github.com/zh-lx/code-inspector/pull/264)
+- 【fix】Fixed the issue where the server port would be repeatedly started when modifying the `vite.config.ts` file [#261](https://github.com/zh-lx/code-inspector/pull/261)
+- 【perf】Optimized the `data-insp-path` attribute on the DOM from absolute path to relative path [#256](https://github.com/zh-lx/code-inspector/pull/256)
+
 ## 0.18.3
 
 - 【feat】Supported recognition for `Windsurf` [#254](https://github.com/zh-lx/code-inspector/pull/254)

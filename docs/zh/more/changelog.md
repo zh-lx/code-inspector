@@ -1,5 +1,13 @@
 # 更新日志
 
+## 0.19.0
+
+- 【feat】支持通过 `printServer` 参数指定是否在控制台中打印 server 的启动信息 [#265](https://github.com/zh-lx/code-inspector/pull/265)
+- 【feat】支持通过 `port` 参数指定 server 的启动端口 [#260](https://github.com/zh-lx/code-inspector/pull/260)
+- 【fix】修复了在 `nextjs` 项目中使用 `instrumentation.ts` 功能时报错或者插件不生效的问题 [#264](https://github.com/zh-lx/code-inspector/pull/264)
+- 【fix】修复了修改 `vite.config.ts` 文件后服务端口会重复启动多个的问题 [#261](https://github.com/zh-lx/code-inspector/pull/261)
+- 【perf】DOM 上的 `data-insp-path` 属性从绝对路径优化为相对路径 [#256](https://github.com/zh-lx/code-inspector/pull/256)
+
 ## 0.18.3
 
 - 【feat】支持了 `Windsurf` 的识别 [#254](https://github.com/zh-lx/code-inspector/pull/254)
