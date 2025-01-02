@@ -1,5 +1,5 @@
 // 启动本地接口，访问时唤起vscode
-import http from 'http';
+import http, { Server } from 'http';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
@@ -70,13 +70,25 @@ export function createServer(callback: (port: number) => any, options?: CodeOpti
   return server;
 }
 
+// record the server of each project
+const projectServerMap = new Map<string, Server>();
+
 export async function startServer(options: CodeOptions, record: RecordInfo) {
   if (!record.port) {
     if (!record.findPort) {
       record.findPort = new Promise((resolve) => {
-        record.server = createServer((port: number) => {
+        // get current project path
+        const projectName = process.cwd();
+        // close the previous server
+        if (projectServerMap.has(projectName)) {
+          (projectServerMap.get(projectName) as Server)?.close();
+        }
+        // create server
+        const server = createServer((port: number) => {
           resolve(port);
         }, options);
+        // record the server of current project
+        projectServerMap.set(projectName, server);
       });
     }
     record.port = await record.findPort;

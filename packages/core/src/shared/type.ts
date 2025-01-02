@@ -1,4 +1,3 @@
-import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
@@ -13,7 +12,6 @@ export type RecordInfo = {
   findPort?: Promise<number>;
   inputs?: Promise<string[]>; // 入口文件，适配 MPA 项目
   injectTo?: string[]; // 用户自定义的 injectTo 路径
-  server?: Server;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

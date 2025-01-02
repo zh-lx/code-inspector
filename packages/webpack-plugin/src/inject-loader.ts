@@ -17,7 +17,6 @@ export default async function WebpackCodeInjectLoader(
     code: content,
     record: options.record,
   });
-  // record.server 会在 getCodeWithWebComponent 中被设置
 
   this.callback(null, content, source, meta);
 }

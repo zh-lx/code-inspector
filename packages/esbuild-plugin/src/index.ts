@@ -10,7 +10,6 @@ import {
   matchCondition,
 } from 'code-inspector-core';
 import fs from 'fs';
-import { Server } from 'http';
 import path from 'path';
 
 const PluginName = 'esbuild-code-inspector-plugin';
@@ -19,8 +18,6 @@ interface Options extends CodeOptions {
   close?: boolean;
   output: string;
 }
-
-let currentServer: Server | null = null;
 
 export function EsbuildCodeInspectorPlugin(options: Options) {
   return {
@@ -41,11 +38,6 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
         string,
         { originCode: string; output: { contents: string; loader: string } }
       >();
-
-      if (currentServer) {
-        currentServer.close();
-        currentServer = null;
-      }
 
       // 监听文件变化
       build.onLoad(
@@ -72,9 +64,6 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
                 code,
                 record,
               });
-              if (record.server) {
-                currentServer = record.server;
-              }
             }
 
             let fileType = '';
