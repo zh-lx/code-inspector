@@ -43,7 +43,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   }
   rules.push(
     {
-      test: options?.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
+      test: options.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
       exclude: [...exclude, /node_modules/],
       use: [
         {
@@ -68,8 +68,8 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       }
     }),
     {
-      ...(options?.injectTo
-        ? { resource: options?.injectTo }
+      ...(options.injectTo
+        ? { resource: options.injectTo }
         : {
             test: /\.(jsx|tsx|js|ts|mjs|mts)$/,
             exclude: /node_modules/,
