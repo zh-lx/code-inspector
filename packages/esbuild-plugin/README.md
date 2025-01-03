@@ -67,7 +67,7 @@ pnpm add code-inspector-plugin -D
 
 ## 🌈 Usage
 
-Please check here for more usage information: [code-inspector-plugin configuration](https://en.inspector.fe-dev.cn/guide/start.html#configuration)
+Please check here for more usage information: [code-inspector-plugin configuration](https://inspector.fe-dev.cn/en/guide/start.html#configuration)
 
 - 1.Configuring Build Tools
 

@@ -92,7 +92,7 @@ export default defineConfig({
     fr: {
       label: 'English',
       lang: 'en',
-      link: 'https://en.inspector.fe-dev.cn', // default /fr/ -- shows on navbar translations menu, can be external
+      link: 'https://inspector.fe-dev.cn/en', // default /fr/ -- shows on navbar translations menu, can be external
     },
   },
 });
