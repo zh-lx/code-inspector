@@ -31,7 +31,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
       return !options?.close && isDev(options.dev, command === 'serve');
     },
     async transform(code, id) {
-      if (id.match('node_modules')) {
+      if (id.match('node_modules') || matchCondition(options.include || [], id)) {
         if (!matchCondition(options.include || [], id)) {
           return code;
         }

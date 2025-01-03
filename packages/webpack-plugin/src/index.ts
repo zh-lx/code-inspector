@@ -31,14 +31,20 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
+  // 处理 include 配置
   let include = options.include || [];
   if (!Array.isArray(include)) {
     include = [include];
   }
+  // 处理 exclude 配置
+  let exclude = options.exclude || [];
+  if (!Array.isArray(exclude)) {
+    exclude = [exclude];
+  }
   rules.push(
     {
       test: options?.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
-      exclude: /node_modules/,
+      exclude: [...exclude, /node_modules/],
       use: [
         {
           loader: path.resolve(compatibleDirname, `./loader.js`),

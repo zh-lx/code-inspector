@@ -52,7 +52,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
           if (!result || result.originCode !== originCode) {
 
             let code = originCode;
-            if (filePath.match('node_modules')) {
+            if (filePath.match('node_modules') || matchCondition(options.include || [], filePath)) {
               if (!matchCondition(options.include || [], filePath)) {
                 return code;
               }
