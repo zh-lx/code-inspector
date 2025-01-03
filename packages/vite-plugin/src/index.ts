@@ -28,10 +28,10 @@ export function ViteCodeInspectorPlugin(options: Options) {
     name: PluginName,
     ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
     apply(_, { command }) {
-      return !options?.close && isDev(options.dev, command === 'serve');
+      return !options.close && isDev(options.dev, command === 'serve');
     },
     async transform(code, id) {
-      if (id.match('node_modules')) {
+      if (id.match('node_modules') || matchCondition(options.include || [], id)) {
         if (!matchCondition(options.include || [], id)) {
           return code;
         }
@@ -45,14 +45,14 @@ export function ViteCodeInspectorPlugin(options: Options) {
         });
       }
 
-      const { escapeTags = [], mappings } = options || {};
+      const { escapeTags = [], mappings } = options;
 
       const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
       let filePath = normalizePath(_completePath);
       filePath = getMappingFilePath(filePath, mappings);
       const params = new URLSearchParams(id);
       // 仅对符合正则的生效
-      if (options?.match && !options.match.test(filePath)) {
+      if (options.match && !options.match.test(filePath)) {
         return code;
       }
 

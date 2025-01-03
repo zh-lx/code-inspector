@@ -132,6 +132,11 @@ export type CodeOptions = {
    */
   include?: Condition;
   /**
+   * @zh 不参与编译的文件
+   * @en Files not to be compiled
+   */
+  exclude?: Condition;
+  /**
    * @zh 用于映射文件路径，多用于将 node_modules 中的文件路径映射为项目中的文件路径
    * @en Used to map file paths, often used to map the file path in `node_modules` to the file path in the project
    */
