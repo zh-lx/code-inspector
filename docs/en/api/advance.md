@@ -28,6 +28,12 @@ Below are configurations for some non-standard scenarios.
 - Type: `boolean | string`. Default value `false`
 - Description: Whether to send requests to the node server via IP. By default, requests are sent via `localhost`; when set to `true`, it will automatically detect local IP and send requests through IP; when specified as `string` type, it will send requests to the specified value.
 
+## exclude <Badge type="tip" text="0.19.1+" vertical="middle" />
+
+- Optional
+- Type: `string | RegExp | (string | RegExp)[]`
+- Description: Specify files not to be compiled, default is `/node_modules/`, after configuration, it is the union of `/node_modules/` and `exclude`.
+
 ## include <Badge type="tip" text="0.18.0+" vertical="middle" />
 
 - Optional

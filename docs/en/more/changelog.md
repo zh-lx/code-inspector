@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.1
+
+- 【feat】Support specifying files not to be compiled through the `exclude` parameter [#266](https://github.com/zh-lx/code-inspector/pull/266)
+
 ## 0.19.0
 
 - 【feat】Support specifying the server port through the `port` parameter [#260](https://github.com/zh-lx/code-inspector/pull/260)

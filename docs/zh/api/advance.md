@@ -28,6 +28,11 @@
 - 类型：`boolean | string`。默认值 `false`
 - 说明：是否通过 ip 的方式向 node server 发送请求。默认通过 `localhost` 发送请求；设置为 `true` 时，会自动检测本地的 ip，通过 ip 发送请求；指定为 `string` 类型时，会向指定的值发送请求
 
+## exclude <Badge type="tip" text="0.19.1+" vertical="middle" />
+
+- 可选项
+- 类型：`string | RegExp | (string | RegExp)[]`
+- 说明：指定不参与编译的文件，默认为 `/node_modules/`，配置后为 `/node_modules/` 和 `exclude` 的并集。
 
 ## include <Badge type="tip" text="0.18.0+" vertical="middle" />
 

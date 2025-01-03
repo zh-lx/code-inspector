@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.19.1
+
+- 【feat】支持通过 `exclude` 参数指定不参与编译的文件 [#266](https://github.com/zh-lx/code-inspector/pull/266)
+
 ## 0.19.0
 
 - 【feat】支持通过 `printServer` 参数指定是否在控制台中打印 server 的启动信息 [#265](https://github.com/zh-lx/code-inspector/pull/265)
