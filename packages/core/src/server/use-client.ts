@@ -50,10 +50,8 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
-      var script = document.createElement('script');
-      script.setAttribute('type', 'text/javascript');
-      script.textContent = ${`${jsClientCode}`};
-  
+      ${jsClientCode};
+      
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
