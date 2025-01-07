@@ -12,10 +12,12 @@ import chalk from 'chalk';
 function getProjectRoot(): string {
   try {
     const command = 'git rev-parse --show-toplevel';
-    const gitRoot = execSync(command, { encoding: 'utf-8' }).trim();
+    const gitRoot = execSync(command, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
     return gitRoot;
   } catch (error) {
-    console.error(error);
     return '';
   }
 }
