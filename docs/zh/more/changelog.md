@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.19.2
+
+- 【fix】修复了项目没有使用 `git` 时的编译报错问题 [#269](https://github.com/zh-lx/code-inspector/pull/269)
+
 ## 0.19.1
 
 - 【feat】支持通过 `exclude` 参数指定不参与编译的文件 [#266](https://github.com/zh-lx/code-inspector/pull/266)

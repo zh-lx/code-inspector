@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.2
+
+- 【fix】Fixed the compilation error when the project does not use `git` [#269](https://github.com/zh-lx/code-inspector/pull/269)
+
 ## 0.19.1
 
 - 【feat】Support specifying files not to be compiled through the `exclude` parameter [#266](https://github.com/zh-lx/code-inspector/pull/266)
