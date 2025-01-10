@@ -1,4 +1,24 @@
 import { LitElement } from 'lit';
+interface NodeParseResultTracked {
+    isTrackNode: true;
+    isAstroNode: boolean;
+    originNode: HTMLElement;
+    name: string;
+    path: string;
+    line: number;
+    rect: string;
+    column: number;
+}
+interface NodeParseResultUntracked {
+    isTrackNode: false;
+}
+type NodeParseResult = NodeParseResultTracked | NodeParseResultUntracked;
+interface LayerPosition {
+    left?: string;
+    right?: string;
+    top?: string;
+    bottom?: string;
+}
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
     port: number;
@@ -44,6 +64,9 @@ export declare class CodeInspectorComponent extends LitElement {
     };
     infoWidth: string;
     show: boolean;
+    showLayerPanel: boolean;
+    layerPanelPosition: LayerPosition;
+    elementTree: any[];
     dragging: boolean;
     mousePosition: {
         baseX: number;
@@ -57,10 +80,16 @@ export declare class CodeInspectorComponent extends LitElement {
     preUserSelect: string;
     sendType: 'xhr' | 'img';
     inspectorSwitchRef: HTMLDivElement;
+    inspectorLayersRef: HTMLDivElement;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
     renderCover: (target: HTMLElement) => void;
     removeCover: () => void;
+    renderLayerPanel: (nodeTree: NodeParseResult[], { x, y }: {
+        x: number;
+        y: number;
+    }) => void;
+    removeLayerPanel: () => void;
     addGlobalCursorStyle: () => void;
     removeGlobalCursorStyle: () => void;
     sendXHR: () => void;
@@ -71,6 +100,12 @@ export declare class CodeInspectorComponent extends LitElement {
     isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
     handleMouseMove: (e: MouseEvent | TouchEvent) => void;
     handleMouseClick: (e: MouseEvent | TouchEvent) => void;
+    handleContextMenu: (e: MouseEvent) => void;
+    generateNodeTree: (nodePath: HTMLElement[]) => NodeParseResultTracked[];
+    /**
+     * MARK: 解析节点信息
+     */
+    parseNode: (node: HTMLElement) => NodeParseResult;
     handlePointerDown: (e: PointerEvent) => void;
     handleKeyUp: (e: KeyboardEvent) => void;
     printTip: () => void;
@@ -81,8 +116,10 @@ export declare class CodeInspectorComponent extends LitElement {
     recordMousePosition: (e: MouseEvent | TouchEvent) => void;
     handleMouseUp: (e: MouseEvent | TouchEvent) => void;
     switch: (e: Event) => void;
+    handleLayerPanelClick: (e: MouseEvent) => void;
     protected firstUpdated(): void;
     disconnectedCallback(): void;
     render(): import("lit").TemplateResult<1>;
     static styles: import("lit").CSSResult;
 }
+export {};
