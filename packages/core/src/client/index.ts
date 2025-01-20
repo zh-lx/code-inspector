@@ -24,6 +24,28 @@ interface CodeInspectorHtmlElement extends HTMLElement {
   'data-insp-path': string;
 }
 
+interface NodeParseResultTracked {
+  isTrackNode: true;
+  isAstroNode: boolean;
+  originNode: HTMLElement;
+  name: string;
+  path: string;
+  line: number;
+  rect: string;
+  column: number;
+}
+interface NodeParseResultUntracked {
+  isTrackNode: false;
+}
+type NodeParseResult = NodeParseResultTracked | NodeParseResultUntracked;
+
+interface LayerPosition {
+  left?: string;
+  right?: string;
+  top?: string;
+  bottom?: string;
+}
+
 export class CodeInspectorComponent extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
@@ -76,6 +98,12 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   show = false; // 是否展示
   @state()
+  showLayerPanel = false; // 是否展示图层面板
+  @state()
+  layerPanelPosition: LayerPosition = {}; // 图层面板位置
+  @state()
+  elementTree: any[] = []; // 节点树
+  @state()
   dragging = false; // 是否正在拖拽中
   @state()
   mousePosition = { baseX: 0, baseY: 0, moveX: 0, moveY: 0 };
@@ -92,6 +120,9 @@ export class CodeInspectorComponent extends LitElement {
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
+
+  @query('#inspector-layers')
+  inspectorLayersRef!: HTMLDivElement;
 
   isTracking = (e: any) => {
     return (
@@ -152,8 +183,8 @@ export class CodeInspectorComponent extends LitElement {
             ? 'element-info-top-inner'
             : 'element-info-top'
           : bottomToViewPort < 100
-          ? 'element-info-bottom-inner'
-          : 'element-info-bottom',
+            ? 'element-info-bottom-inner'
+            : 'element-info-bottom',
       horizon:
         leftToViewPort >= rightToViewPort
           ? 'element-info-right'
@@ -162,9 +193,9 @@ export class CodeInspectorComponent extends LitElement {
     this.infoWidth =
       Math.max(
         right -
-          left +
-          this.getDomPropertyValue(target, 'margin-right') +
-          this.getDomPropertyValue(target, 'margin-left'),
+        left +
+        this.getDomPropertyValue(target, 'margin-right') +
+        this.getDomPropertyValue(target, 'margin-left'),
         Math.min(300, Math.max(leftToViewPort, rightToViewPort)),
       ) + 'px';
     // 增加鼠标光标样式
@@ -199,6 +230,34 @@ export class CodeInspectorComponent extends LitElement {
     document.body.style.userSelect = this.preUserSelect;
     this.preUserSelect = '';
   };
+  // MARK: 渲染图层面板
+  renderLayerPanel = (nodeTree: NodeParseResult[], { x, y }: { x: number; y: number; }) => {
+
+    const browserWidth = document.documentElement.clientWidth;
+    const browserHeight = document.documentElement.clientHeight;
+
+    const rightToViewPort = browserWidth - x;
+    const bottomToViewPort = browserHeight - y;
+    let position: LayerPosition = {};
+    if (rightToViewPort < 300) {
+      position['right'] = rightToViewPort + 'px';
+    } else {
+      position['left'] = x + 'px';
+    }
+
+    if (bottomToViewPort < 400) {
+      position['bottom'] = bottomToViewPort + 'px';
+    } else {
+      position['top'] = y + 'px';
+    }
+    this.layerPanelPosition = position;
+    this.elementTree = nodeTree;
+    this.showLayerPanel = true;
+  }
+  removeLayerPanel = () => {
+    this.showLayerPanel = false;
+    this.elementTree = [];
+  }
 
   addGlobalCursorStyle = () => {
     if (!document.getElementById(styleId)) {
@@ -347,7 +406,86 @@ export class CodeInspectorComponent extends LitElement {
         }
       }
     }
+    // 点击任意地方关闭图层面板。因为事件用了capture，所以需要延迟执行
+    setTimeout(() => {
+      this.removeLayerPanel();
+    });
   };
+
+  handleContextMenu = (e: MouseEvent) => {
+    if (
+      ((this.isTracking(e) && !this.dragging) || this.open) &&
+      !this.hoverSwitch
+    ) {
+      e.preventDefault();
+      const nodePath = e.composedPath() as HTMLElement[];
+      const nodeTree = this.generateNodeTree(nodePath);
+
+
+      this.renderLayerPanel(nodeTree, { x: e.pageX, y: e.pageY });
+    }
+  }
+
+  generateNodeTree = (nodePath: HTMLElement[]) => {
+    let pointer = null;
+    let results = [];
+    for (let i = 0; i < nodePath.length; i++) {
+      const node = this.parseNode(nodePath[i]);
+      if (!node.isTrackNode) continue;
+      if (!pointer) {
+        pointer = node;
+        continue;
+      }
+      if (pointer.rect === node.rect) {
+        pointer = node;
+        continue;
+      }
+      if (pointer.path !== node.path) {
+        results.push(pointer);
+        pointer = node;
+      }
+    }
+    pointer && results.push(pointer);
+    return results;
+  }
+
+  /**
+   * MARK: 解析节点信息
+   */
+  parseNode = (node: HTMLElement): NodeParseResult => {
+    let paths = node.getAttribute?.(PathName) || (node as CodeInspectorHtmlElement)[PathName] || '';
+    // Todo: transform astro inside
+    if (!paths && node.getAttribute?.('data-astro-source-file')) {
+      paths = `${node.getAttribute?.(
+        'data-astro-source-file'
+      )}:${node.getAttribute?.(
+        'data-astro-source-loc'
+      )}:${node.tagName.toLowerCase()}`;
+    }
+    if (!paths) {
+      return {
+        isTrackNode: false,
+      }
+    }
+
+    const segments = paths.split(':');
+    const name = segments[segments.length - 1];
+    const column = Number(segments[segments.length - 2]);
+    const line = Number(segments[segments.length - 3]);
+    const path = segments.slice(0, segments.length - 3).join(':');
+    const { top, right, bottom, left } = node.getBoundingClientRect();
+
+    return {
+      isTrackNode: true,
+      isAstroNode: !!node.getAttribute('data-astro-source-file'),
+      originNode: node,
+      rect: `${top},${right},${bottom},${left}`,
+      name,
+      path,
+      line,
+      column,
+    }
+  }
 
   // disabled 的元素及其子元素无法触发 click 事件
   handlePointerDown = (e: PointerEvent) => {
@@ -457,6 +595,28 @@ export class CodeInspectorComponent extends LitElement {
     this.moved = false;
   };
 
+  // MARK: 点击图层面板
+  handleLayerPanelClick = (e: MouseEvent) => {
+    const target = e.target as HTMLDivElement;
+    if (!target?.classList?.contains('inspector-layer') || !target?.dataset?.index) {
+      return;
+    }
+    e.stopPropagation()
+    const index = +target.dataset.index;
+    const node = this.elementTree?.[index];
+    if (!node) {
+      return;
+    }
+    this.element = {
+      name: node.name,
+      column: node.column,
+      line: node.line,
+      path: node.path,
+    }
+    this.trackCode();
+    this.removeLayerPanel();
+  }
+
   protected firstUpdated(): void {
     if (!this.hideConsole) {
       this.printTip();
@@ -471,8 +631,9 @@ export class CodeInspectorComponent extends LitElement {
     document.addEventListener('mouseleave', this.removeCover);
     document.addEventListener('mouseup', this.handleMouseUp);
     document.addEventListener('touchend', this.handleMouseUp);
+    document.addEventListener('contextmenu', this.handleContextMenu);
     this.inspectorSwitchRef.addEventListener(
-      'mousedown',    
+      'mousedown',
       this.recordMousePosition
     );
     this.inspectorSwitchRef.addEventListener(
@@ -480,6 +641,7 @@ export class CodeInspectorComponent extends LitElement {
       this.recordMousePosition
     );
     this.inspectorSwitchRef.addEventListener('click', this.switch);
+    this.inspectorLayersRef.addEventListener('click', this.handleLayerPanelClick);
   }
 
   disconnectedCallback(): void {
@@ -493,6 +655,7 @@ export class CodeInspectorComponent extends LitElement {
     document.removeEventListener('mouseleave', this.removeCover);
     document.removeEventListener('mouseup', this.handleMouseUp);
     document.removeEventListener('touchend', this.handleMouseUp);
+    document.removeEventListener('contextmenu', this.handleContextMenu);
     if (this.inspectorSwitchRef) {
       this.inspectorSwitchRef.removeEventListener(
         'mousedown',
@@ -504,6 +667,9 @@ export class CodeInspectorComponent extends LitElement {
       );
       this.inspectorSwitchRef.removeEventListener('click', this.switch);
     }
+    if (this.inspectorLayersRef) {
+      this.inspectorLayersRef.removeEventListener('click', this.handleLayerPanelClick);
+    }
   }
 
   render() {
@@ -511,18 +677,16 @@ export class CodeInspectorComponent extends LitElement {
       display: this.show ? 'block' : 'none',
       top: `${this.position.top - this.position.margin.top}px`,
       left: `${this.position.left - this.position.margin.left}px`,
-      height: `${
-        this.position.bottom -
+      height: `${this.position.bottom -
         this.position.top +
         this.position.margin.bottom +
         this.position.margin.top
-      }px`,
-      width: `${
-        this.position.right -
+        }px`,
+      width: `${this.position.right -
         this.position.left +
         this.position.margin.right +
         this.position.margin.left
-      }px`,
+        }px`,
     };
     const marginPosition = {
       borderTopWidth: `${this.position.margin.top}px`,
@@ -542,6 +706,11 @@ export class CodeInspectorComponent extends LitElement {
       borderBottomWidth: `${this.position.padding.bottom}px`,
       borderLeftWidth: `${this.position.padding.left}px`,
     };
+
+    const layerPanelPosition = {
+      display: this.showLayerPanel ? 'block' : 'none',
+      ...this.layerPanelPosition,
+    }
     return html`
       <div
         class="code-inspector-container"
@@ -558,7 +727,7 @@ export class CodeInspectorComponent extends LitElement {
         <div
           id="element-info"
           class="element-info ${this.infoClassName.vertical} ${this
-            .infoClassName.horizon}"
+        .infoClassName.horizon}"
           style=${styleMap({ width: this.infoWidth })}
         >
           <div class="element-info-content">
@@ -575,12 +744,12 @@ export class CodeInspectorComponent extends LitElement {
       <div
         id="inspector-switch"
         class="inspector-switch ${this.open
-          ? 'active-inspector-switch'
-          : ''} ${this.moved ? 'move-inspector-switch' : ''}"
+        ? 'active-inspector-switch'
+        : ''} ${this.moved ? 'move-inspector-switch' : ''}"
         style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
       >
         ${this.open
-          ? html`
+        ? html`
               <svg
                 t="1677801709811"
                 class="icon"
@@ -624,7 +793,7 @@ export class CodeInspectorComponent extends LitElement {
                 ></path>
               </svg>
             `
-          : html`<svg
+        : html`<svg
               t="1677801709811"
               class="icon"
               viewBox="0 0 1024 1024"
@@ -667,7 +836,18 @@ export class CodeInspectorComponent extends LitElement {
               ></path>
             </svg>`}
       </div>
-    `;
+      <div id="inspector-layers" style=${styleMap(layerPanelPosition)}>
+        ${this.elementTree.map((node, i) => html`<div class="inspector-layer" data-index=${i}>
+          <div class="name-line">
+            <div class="element-name">
+              <span class="element-title">&lt;${node.name}&gt;</span>
+              <span class="element-tip">click to open IDE</span>
+            </div>
+          </div>
+          <div class="path-line">${node.path}</div>
+        </div>
+      `)}
+      </div>`;
   }
 
   static styles = css`
@@ -703,7 +883,7 @@ export class CodeInspectorComponent extends LitElement {
     .element-info {
       position: absolute;
     }
-    .element-info-content {
+    .element-info-content, #inspector-layers {
       max-width: 100%;
       font-size: 12px;
       color: #000;
@@ -774,6 +954,30 @@ export class CodeInspectorComponent extends LitElement {
     }
     .move-inspector-switch {
       cursor: move;
+    }
+    #inspector-layers {
+      padding: 8px;
+      position: fixed;
+      user-select: none;
+      background-color: #fff;
+      z-index: 9999999999999;
+      border-radius: 8px;
+
+      .inspector-layer {
+        cursor: pointer;
+        pointer-events: auto;
+        border-radius: 4px;
+        padding: 8px;
+      }
+      .inspector-layer * {
+        pointer-events: none;
+      }
+      .inspector-layer:hover {
+        background-color: #f0f0f0;
+      }
+      .inspector-layer:first-child {
+        background-color: #6cf;
+      }
     }
   `;
 }
