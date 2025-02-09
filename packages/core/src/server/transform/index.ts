@@ -31,7 +31,7 @@ const CodeInspectorEscapeTags = [
 ];
 
 export function transformCode(params: TransformCodeParams) {
-  let { content, filePath, fileType, escapeTags = [], pathType = 'absolute' } = params;
+  let { content, filePath, fileType, escapeTags = [], pathType = 'relative' } = params;
   const finalEscapeTags = [
     ...CodeInspectorEscapeTags,
     ...escapeTags,
