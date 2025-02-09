@@ -194,3 +194,9 @@
 - 可选项
 - 类型：`boolean`，默认值为 `false`
 - 说明：是否在控制台中打印 server 的启动信息。
+
+## pathType <Badge type="tip" text="0.20.0+" vertical="middle" />
+
+- 可选项
+- 类型：`'absolute' | 'relative'`，默认值为 `'relative'`
+- 说明：指定 `data-insp-path` 属性的路径类型，默认使用相对路径，可选使用绝对路径(微前端场景下如果多个项目不在同一 git 仓库下，则需要使用绝对路径)。

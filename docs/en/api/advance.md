@@ -190,3 +190,9 @@ Below are configurations for some non-standard scenarios.
 - Optional
 - Type: `boolean`, default value is `false`
 - Description: Whether to print the server startup information in the console.
+
+## pathType <Badge type="tip" text="0.20.0+" vertical="middle" />
+
+- Optional
+- Type: `'absolute' | 'relative'`, default value is `'relative'`
+- Description: Specifies the path type of the `data-insp-path` attribute, defaulting to relative path, optionally using absolute path (in micro-frontend scenarios, if multiple projects are not in the same git repository, absolute path is required).

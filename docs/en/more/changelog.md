@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.0
+
+- 【fix】Fixed the warning issue about `Compilation.assets` in webpack v5+ [#280](https://github.com/zh-lx/code-inspector/pull/280)
+- 【feat】Support specifying the path type of the `data-insp-path` attribute through the `pathType` parameter, defaulting to relative path, optionally using absolute path [#278](https://github.com/zh-lx/code-inspector/pull/278)
+- 【feat】Support recognition for [trae](https://www.trae.ai) editor [#277](https://github.com/zh-lx/code-inspector/pull/277)
+- 【feat】Support filtering parent components of elements by right-clicking [#272](https://github.com/zh-lx/code-inspector/pull/272)
+
 ## 0.19.2
 
 - 【fix】Fixed the compilation error when the project does not use `git` [#269](https://github.com/zh-lx/code-inspector/pull/269)

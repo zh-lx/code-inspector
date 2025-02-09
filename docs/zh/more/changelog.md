@@ -1,5 +1,12 @@
 # 更新日志
 
+## 0.20.0
+
+- 【fix】修复了 webpack v5 版本以上关于 `Compilation.assets` 的告警问题 [#280](https://github.com/zh-lx/code-inspector/pull/280)
+- 【feat】支持通过 `pathType` 参数指定 `data-insp-path` 属性的路径类型，默认使用相对路径，可选使用绝对路径 [#278](https://github.com/zh-lx/code-inspector/pull/278)
+- 【feat】支持 [trae](https://www.trae.ai) 编辑器的识别 [#277](https://github.com/zh-lx/code-inspector/pull/277)
+- 【feat】支持了右键筛选元素父组件的功能 [#272](https://github.com/zh-lx/code-inspector/pull/272)
+
 ## 0.19.2
 
 - 【fix】修复了项目没有使用 `git` 时的编译报错问题 [#269](https://github.com/zh-lx/code-inspector/pull/269)
