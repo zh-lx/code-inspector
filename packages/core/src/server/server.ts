@@ -3,7 +3,7 @@ import http, { Server } from 'http';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
-import { getIP, type CodeOptions, type RecordInfo } from '../shared';
+import { getIP, PathType, type CodeOptions, type RecordInfo } from '../shared';
 import { execSync } from 'child_process';
 import path from 'path';
 import chalk from 'chalk';
@@ -29,6 +29,11 @@ export function getRelativePath(filePath: string): string {
     return filePath.replace(`${ProjectRootPath}/`, '');
   }
   return filePath;
+}
+
+// 根据用户配置返回绝对路径或者相对路径
+export function getRelativeOrAbsolutePath(filePath: string, pathType?: PathType) {
+  return pathType === 'relative' ? getRelativePath(filePath) : filePath;
 }
 
 export function createServer(

@@ -1,7 +1,8 @@
 import { transformJsx } from './transform-jsx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
-import { EscapeTags } from '../../shared';
+import { EscapeTags, PathType } from '../../shared';
+import { getRelativeOrAbsolutePath } from '../server';
 
 type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
 
@@ -10,6 +11,7 @@ type TransformCodeParams = {
   filePath: string;
   fileType: FileType;
   escapeTags: EscapeTags;
+  pathType: PathType;
 };
 
 const CodeInspectorEscapeTags = [
@@ -29,11 +31,14 @@ const CodeInspectorEscapeTags = [
 ];
 
 export function transformCode(params: TransformCodeParams) {
-  const { content, filePath, fileType, escapeTags = [] } = params;
+  let { content, filePath, fileType, escapeTags = [], pathType = 'absolute' } = params;
   const finalEscapeTags = [
     ...CodeInspectorEscapeTags,
     ...escapeTags,
   ];
+  
+  filePath = getRelativeOrAbsolutePath(filePath, pathType);
+
   try {
     if (fileType === 'vue') {
       return transformVue(content, filePath, finalEscapeTags);

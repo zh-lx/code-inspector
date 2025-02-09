@@ -14,6 +14,7 @@ export type RecordInfo = {
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';
+export type PathType = 'relative' | 'absolute';
 type SourceInfo = {
     file: string;
     line: number;
@@ -148,5 +149,10 @@ export type CodeOptions = {
      * @en Whether to print the server startup information in the console
      */
     printServer?: boolean;
+    /**
+     * @zh 注入在 DOM 上的路径类型，默认值为 `absolute`，即绝对路径
+     * @en The type of path injected into the DOM, the default value is `absolute`, which means the path is relative to the project root directory
+     */
+    pathType?: PathType;
 };
 export {};
