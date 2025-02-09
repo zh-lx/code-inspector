@@ -166,7 +166,12 @@ class WebpackCodeInspectorPlugin {
       compiler.hooks.emit.tapAsync(
         'WebpackCodeInspectorPlugin',
         async (compilation, cb) => {
-          const { assets = {} } = compilation;
+          let assets = {};
+          if (compilation.getAssets) {
+            assets = await compilation.getAssets();
+          } else {
+            assets = compilation.assets;
+          }
           await replaceHtml({
             options,
             record,
