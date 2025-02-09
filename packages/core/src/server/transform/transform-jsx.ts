@@ -1,6 +1,5 @@
 import MagicString from 'magic-string';
 import { PathName, EscapeTags, isEscapeTags } from '../../shared';
-import { getRelativePath } from '../server';
 import vueJsxPlugin from '@vue/babel-plugin-jsx';
 // @ts-ignore
 import { parse, traverse } from '@babel/core';
@@ -48,7 +47,7 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
         const insertPosition =
           node.openingElement.end - (node.openingElement.selfClosing ? 2 : 1);
         const { line, column } = node.loc.start;
-        const addition = ` ${PathName}="${getRelativePath(filePath)}:${line}:${
+        const addition = ` ${PathName}="${filePath}:${line}:${
           column + 1
         }:${nodeName}"${node.openingElement.attributes.length ? ' ' : ''}`;
 

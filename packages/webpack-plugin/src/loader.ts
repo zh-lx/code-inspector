@@ -22,7 +22,13 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
   if (isJSX) {
-    return transformCode({ content, filePath, fileType: 'jsx', escapeTags });
+    return transformCode({
+      content,
+      filePath,
+      fileType: 'jsx',
+      escapeTags,
+      pathType: options.pathType,
+    });
   }
 
   // vue jsx
@@ -46,6 +52,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
         filePath,
         fileType: 'jsx',
         escapeTags,
+        pathType: options.pathType,
       });
       content = content.replace(script, newScript);
     }
@@ -59,13 +66,25 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     params.get('type') !== 'script' &&
     params.get('raw') === null;
   if (isVue) {
-    return transformCode({ content, filePath, fileType: 'vue', escapeTags });
+    return transformCode({
+      content,
+      filePath,
+      fileType: 'vue',
+      escapeTags,
+      pathType: options.pathType,
+    });
   }
 
   // svelte
   const isSvelte = filePath.endsWith('.svelte');
   if (isSvelte) {
-    return transformCode({ content, filePath, fileType: 'svelte', escapeTags });
+    return transformCode({
+      content,
+      filePath,
+      fileType: 'svelte',
+      escapeTags,
+      pathType: options.pathType,
+    });
   }
 
   return content;

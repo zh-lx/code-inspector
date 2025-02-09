@@ -85,6 +85,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
           filePath,
           fileType,
           escapeTags,
+          pathType: options.pathType,
         });
       }
 
