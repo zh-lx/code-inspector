@@ -189,23 +189,46 @@ Please check here for more usage information: [code-inspector-plugin configurati
   </details>
 
   <details>
-    <summary>Click to expand configuration about: <b>vue-cli</b></summary>
+    <summary>Click to expand configuration about: <b>vue-cli 2.x</b></summary>
 
   ```js
-  // vue.config.js
+  // build/webpack.dev.conf.js
+  const merge = require('webpack-merge');
+  const baseConfig = require('./webpack.base.conf');
   const { codeInspectorPlugin } = require('code-inspector-plugin');
 
-  module.exports = {
+  module.exports = merge(baseConfig, {
     // ...other code
-    chainWebpack: (config) => {
-      config.plugin('code-inspector-plugin').use(
-        codeInspectorPlugin({
-          bundler: 'webpack',
-        })
-      );
-    },
+    plugins:[
+      // ...other plugin
+      new codeInspectorPlugin({
+        bundler: "webpack",
+        dev: true,
+      })
+    ]
   };
   ```
+
+  </details>
+
+  <details>
+      <summary>Click to expand configuration about: <b>vue-cli 3.x+</b></summary>
+
+    ```js
+    // vue.config.js
+    const { codeInspectorPlugin } = require('code-inspector-plugin');
+
+    module.exports = {
+      // ...other code
+      chainWebpack: (config) => {
+        config.plugin('code-inspector-plugin').use(
+          codeInspectorPlugin({
+            bundler: 'webpack',
+          })
+        );
+      },
+    };
+    ```
 
   </details>
 
