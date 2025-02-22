@@ -119,7 +119,11 @@ export function transformVue(
   }
 
   if (pugMap.has(filePath) && templateNode) {
-    const pugFile = pug.baseParse(content);
+    const tempContent =
+      ' '.repeat(templateNode.loc.start.offset - 0) +
+      content.slice(templateNode.loc.start.offset, templateNode.loc.end.offset) +
+      ' '.repeat(content.length - templateNode.loc.end.offset);
+    const pugFile = pug.baseParse(tempContent);
     transformPugAst({
       node: pugFile.ast as pug.Node,
       filePath,
