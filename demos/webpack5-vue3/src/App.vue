@@ -3,10 +3,12 @@
   <input type="text" />
   <div>{{ count }}</div>
   <HelloWorld msg="Welcome to Your Vue.js App" />
+  <PugComponent />
 </template>
 
 <script setup>
 import HelloWorld from './components/HelloWorld.vue';
+import PugComponent from './components/pug.vue';
 import { ref } from 'vue';
 
 const count = ref({}?.ol?.kkk);
