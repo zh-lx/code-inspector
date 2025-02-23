@@ -51,7 +51,7 @@
     "@vue/compiler-dom": "^3.2.47",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
-    "launch-ide": "1.0.2",
+    "launch-ide": "1.0.3",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
