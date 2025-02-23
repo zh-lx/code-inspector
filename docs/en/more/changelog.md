@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.1
+
+- 【fix】Fixed the issue where the `data-insp-path` attribute was not correctly injected into the `pug` template file [#284](https://github.com/zh-lx/code-inspector/pull/284)
+- 【feat】Support recognition for [trae](https://www.trae.ai) editor on Windows [#287](https://github.com/zh-lx/code-inspector/pull/287)
+
 ## 0.20.0
 
 - 【fix】Fixed the warning issue about `Compilation.assets` in webpack v5+ [#280](https://github.com/zh-lx/code-inspector/pull/280)

@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.20.1
+
+- 【fix】修复了在 webpack 中使用 vue pug 语法时，无法定位到源码的问题 [#284](https://github.com/zh-lx/code-inspector/pull/284)
+- 【feat】支持了 Windows 系统中 Trae 编辑器的识别 [#287](https://github.com/zh-lx/code-inspector/pull/287)
+
 ## 0.20.0
 
 - 【fix】修复了 webpack v5 版本以上关于 `Compilation.assets` 的告警问题 [#280](https://github.com/zh-lx/code-inspector/pull/280)

@@ -66,6 +66,13 @@ codeInspectorPlugin({
         <td></td>
     </tr>
     <tr>
+        <td><a href="https://www.trae.ai" target="_blank">Trae</a></td>
+        <td>trae</td>
+        <td>✅</td>
+        <td>✅</td>
+        <td></td>
+    </tr>
+    <tr>
         <td><a href="https://insiders.vscode.dev/" target="_blank">Visual Studio Code - Insiders</a></td>
         <td>code-insiders</td>
         <td>✅</td>
