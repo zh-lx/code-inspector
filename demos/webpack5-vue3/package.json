@@ -17,12 +17,9 @@
     "@vue/cli-service": "~4.5.8",
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "code-inspector-plugin": "workspace:*",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0",
-    "pug": "^3.0.2",
-    "pug-plain-loader": "^1.1.0",
-    "vue-pug-loader": "^1.1.27"
+    "code-inspector-plugin": "workspace:*"
   },
   "eslintConfig": {
     "root": true,
