@@ -17,8 +17,11 @@ export function getIP(ip: boolean | string) {
       for (let i = 0; i < iface.length; i++) {
         let alias = iface[i];
         if (
-          alias.family === 'IPv4' &&
-          alias.address !== '127.0.0.1' &&
+          (alias.family === 'IPv4' 
+            // @ts-expect-error Node 18.0 - 18.3 returns number
+            || alias.family === 4
+          ) 
+          && alias.address !== '127.0.0.1' &&
           !alias.internal
         ) {
           return alias.address;
