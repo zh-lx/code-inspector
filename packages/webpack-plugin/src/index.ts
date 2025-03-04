@@ -90,6 +90,16 @@ interface Options extends CodeOptions {
   output: string;
 }
 
+function getPureClientCodeString(options: Options, record: RecordInfo): Promise<string> {
+  return getCodeWithWebComponent({
+    options: { ...options, importClient: 'code' },
+    file: 'main.js',
+    code: '',
+    record,
+    inject: true,
+  })
+}
+
 async function replaceHtml({
   options,
   record,
@@ -101,13 +111,7 @@ async function replaceHtml({
 }) {
   const files = Object.keys(assets).filter((name) => /\.html$/.test(name));
   if (files.length) {
-    const code = await getCodeWithWebComponent({
-      options: { ...options, importClient: 'code' },
-      file: 'main.js',
-      code: '',
-      record,
-      inject: true,
-    });
+    const code = await getPureClientCodeString(options, record);
     files.forEach((filename: string) => {
       const source = assets[filename]?.source?.();
       if (typeof source === 'string') {
@@ -145,10 +149,6 @@ class WebpackCodeInspectorPlugin {
       return;
     }
 
-    if (compiler?.options?.cache?.type === 'filesystem') {
-      compiler.options.cache.version = `code-inspector-${Date.now()}`;
-    }
-
     const record: RecordInfo = {
       port: 0,
       entry: '',
@@ -158,6 +158,15 @@ class WebpackCodeInspectorPlugin {
         compiler?.options?.context
       ),
     };
+
+    if (compiler?.options?.cache?.type === 'filesystem') {
+      if (this.options.cache) {
+        // 用来在 cache 情况下启动 node server
+        getPureClientCodeString(this.options, record);
+      } else {
+        compiler.options.cache.version = `code-inspector-${Date.now()}`;
+      }
+    }
 
     applyLoader({ ...this.options, record }, compiler);
 

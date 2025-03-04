@@ -177,12 +177,6 @@
 - 类型：`boolean`，默认值为 `false`
 - 说明：设置为 `true` 时，仅当 `.env.local` 文件存在且其包含 `CODE_INSPECTOR=true` 时插件功能才生效。（主要是解决团队内有部分成员不想使用该插件功能的需求）
 
-## forceInjectCache <Badge type="danger" text="已废弃" vertical="middle" />
-
-- 可选项
-- 类型：`boolean`，默认为 `false`
-- 说明：强制设置 `webpack/rspack` 交互注入逻辑的 loader 的缓存策略；为 true 时全缓存；为 false 时全不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存。(仅对 `webpack/rspack` 生效，`0.5.1` 版本后，优化了该缓存策略，不再需要设置此字段)。
-
 ## port <Badge type="tip" text="0.19.0+" vertical="middle" />
 
 - 可选项
@@ -200,3 +194,9 @@
 - 可选项
 - 类型：`'absolute' | 'relative'`，默认值为 `'relative'`
 - 说明：指定 `data-insp-path` 属性的路径类型，默认使用相对路径，可选使用绝对路径(微前端场景下如果多个项目不在同一 git 仓库下，则需要使用绝对路径)。
+
+## cache <Badge type="danger" text="0.20.2+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean`，默认为 `false`
+- 说明：此选项仅对 `webpack/rspack` 且缓存类型为 `filesystem` 的项目生效，主要是为了防止页面和 IDE 通信时请求的端口号不一致而导致通信失败的问题。默认为 `false`，每次冷启动都不使用缓存；设置为 `true` 则使用缓存(设置为 `true` 时建议同时设置 `port` 为某一个固定的端口号)。

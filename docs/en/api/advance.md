@@ -173,12 +173,6 @@ Below are configurations for some non-standard scenarios.
 - Type: `boolean`, default value is `false`
 - Description: When set to `true`, the plugin only works when `.env.local` file exists and contains `CODE_INSPECTOR=true`. (Mainly solves the need for some team members who don't want to use this plugin feature)
 
-## forceInjectCache <Badge type="danger" text="Deprecated" vertical="middle" />
-
-- Optional
-- Type: `boolean`, default is `false`
-- Description: Forces the cache strategy of the loader for webpack/rspack interaction injection logic; true for full cache; false for no cache; if not set, automatically determines to only not cache entry files while caching other files. (Only works for `webpack/rspack`, after version `0.5.1`, this cache strategy has been optimized and this field is no longer needed).
-
 ## port <Badge type="tip" text="0.19.0+" vertical="middle" />
 
 - Optional
@@ -196,3 +190,9 @@ Below are configurations for some non-standard scenarios.
 - Optional
 - Type: `'absolute' | 'relative'`, default value is `'relative'`
 - Description: Specifies the path type of the `data-insp-path` attribute, defaulting to relative path, optionally using absolute path (in micro-frontend scenarios, if multiple projects are not in the same git repository, absolute path is required).
+
+## cache <Badge type="danger" text="0.20.2+" vertical="middle" />
+
+- Optional
+- Type: `boolean`, default value is `false`
+- Description: This option only works for `webpack/rspack` projects with `filesystem` cache type. It's mainly used to prevent communication failures between the page and IDE due to inconsistent port numbers. Defaults to `false`, meaning no cache is used on each cold start; when set to `true`, caching will be enabled (when setting to `true`, it's recommended to also set `port` to a fixed port number).
