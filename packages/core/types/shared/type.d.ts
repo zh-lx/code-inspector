@@ -72,10 +72,10 @@ export type CodeOptions = {
      */
     dev?: boolean | (() => boolean);
     /**
-     * @cn 强制设置 webpack 交互注入逻辑 loader 的缓存策略；为 true 时全缓存；为 false 时不缓存；不设置则自动判断仅对入口文件不缓存，其余文件缓存
-     * @en Force set the caching strategy for the webpack interactive injection logic loader; when set to true, fully cache; when set to false, do not cache; if not set, automatically determine to cache only the entry file, and not cache other files.
+     * @cn 对于 webpack/rspack 是否应用缓存策略，默认值为 `false`。(使用 cache 可能会导致)
+     * @en Whether to apply the caching strategy for webpack/rspack, the default value is `false`
      */
-    forceInjectCache?: boolean | (() => boolean);
+    cache?: boolean;
     /**
      * @cn 仅对符合 match 正则表达式的文件会进行源码定位编译(精确匹配文件类型以减少无用文件参与编译，提升性能)，默认为 /\.(vue|jsx|tsx|js|ts|mjs|mts)$/
      * @en Only files that match the regular expression specified by `match` will undergo source code location compilation (precise matching of file types to reduce unnecessary files participating in compilation, improving performance); the default is /\.(vue|jsx|tsx|js|ts|mjs|mts)$/
