@@ -621,17 +621,17 @@ export class CodeInspectorComponent extends LitElement {
     if (!this.hideConsole) {
       this.printTip();
     }
-    window.addEventListener('mousemove', this.handleMouseMove);
-    window.addEventListener('touchmove', this.handleMouseMove);
-    window.addEventListener('mousemove', this.moveSwitch);
-    window.addEventListener('touchmove', this.moveSwitch);
+    window.addEventListener('mousemove', this.handleMouseMove, true);
+    window.addEventListener('touchmove', this.handleMouseMove, true);
+    window.addEventListener('mousemove', this.moveSwitch, true);
+    window.addEventListener('touchmove', this.moveSwitch, true);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
-    document.addEventListener('keyup', this.handleKeyUp);
-    document.addEventListener('mouseleave', this.removeCover);
-    document.addEventListener('mouseup', this.handleMouseUp);
-    document.addEventListener('touchend', this.handleMouseUp);
-    document.addEventListener('contextmenu', this.handleContextMenu);
+    window.addEventListener('keyup', this.handleKeyUp, true);
+    window.addEventListener('mouseleave', this.removeCover, true);
+    window.addEventListener('mouseup', this.handleMouseUp, true);
+    window.addEventListener('touchend', this.handleMouseUp, true);
+    window.addEventListener('contextmenu', this.handleContextMenu, true);
     this.inspectorSwitchRef.addEventListener(
       'mousedown',
       this.recordMousePosition
@@ -645,17 +645,17 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   disconnectedCallback(): void {
-    window.removeEventListener('mousemove', this.handleMouseMove);
-    window.removeEventListener('touchmove', this.handleMouseMove);
-    window.removeEventListener('mousemove', this.moveSwitch);
-    window.removeEventListener('touchmove', this.moveSwitch);
+    window.removeEventListener('mousemove', this.handleMouseMove, true);
+    window.removeEventListener('touchmove', this.handleMouseMove, true);
+    window.removeEventListener('mousemove', this.moveSwitch, true);
+    window.removeEventListener('touchmove', this.moveSwitch, true);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
-    document.removeEventListener('keyup', this.handleKeyUp);
-    document.removeEventListener('mouseleave', this.removeCover);
-    document.removeEventListener('mouseup', this.handleMouseUp);
-    document.removeEventListener('touchend', this.handleMouseUp);
-    document.removeEventListener('contextmenu', this.handleContextMenu);
+    window.removeEventListener('keyup', this.handleKeyUp, true);
+    window.removeEventListener('mouseleave', this.removeCover, true);
+    window.removeEventListener('mouseup', this.handleMouseUp, true);
+    window.removeEventListener('touchend', this.handleMouseUp, true);
+    window.removeEventListener('contextmenu', this.handleContextMenu, true);
     if (this.inspectorSwitchRef) {
       this.inspectorSwitchRef.removeEventListener(
         'mousedown',
