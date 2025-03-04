@@ -1,5 +1,10 @@
 # 更新日志
 
+## 0.20.2
+
+- 【feat】新增 `cache` API，允许用户在 `webpack/rspack` 且使用了 `filesystem` 缓存的项目中复用缓存能力 [#292](https://github.com/zh-lx/code-inspector/pull/292)
+- 【fix】修复了当宿主页面元素设置了 `mousemove` 事件且内部有 `stopPropagation` 时，会阻塞插件交互的问题 [#291](https://github.com/zh-lx/code-inspector/pull/291)
+
 ## 0.20.1
 
 - 【fix】修复了在 webpack 中使用 vue pug 语法时，无法定位到源码的问题 [#284](https://github.com/zh-lx/code-inspector/pull/284)

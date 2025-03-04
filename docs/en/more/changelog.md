@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.2
+
+- 【feat】Added `cache` API, allowing users to reuse cache capabilities in `webpack/rspack` projects that use `filesystem` caching [#292](https://github.com/zh-lx/code-inspector/pull/292)
+- 【fix】Fixed an issue where plugin interaction would be blocked when host page elements had `mousemove` events with `stopPropagation` [#291](https://github.com/zh-lx/code-inspector/pull/291)
+
 ## 0.20.1
 
 - 【fix】Fixed the issue where the `data-insp-path` attribute was not correctly injected into the `pug` template file [#284](https://github.com/zh-lx/code-inspector/pull/284)
