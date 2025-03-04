@@ -191,7 +191,7 @@ Below are configurations for some non-standard scenarios.
 - Type: `'absolute' | 'relative'`, default value is `'relative'`
 - Description: Specifies the path type of the `data-insp-path` attribute, defaulting to relative path, optionally using absolute path (in micro-frontend scenarios, if multiple projects are not in the same git repository, absolute path is required).
 
-## cache <Badge type="danger" text="0.20.2+" vertical="middle" />
+## cache <Badge type="tip" text="0.20.2+" vertical="middle" />
 
 - Optional
 - Type: `boolean`, default value is `false`
