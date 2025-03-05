@@ -27,7 +27,7 @@
 然后在项目根目录下创建一个 `.env.local` 文件，添加如下内容(替换为你的 vscode remote 地址)：
 
 ```bash
-CODE_INSPECTOR_IDE_PATH=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
+CODE_EDITOR=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
 ```
 
 ## 其他问题

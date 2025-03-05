@@ -27,7 +27,7 @@ You can find the vscode remote address in WSL by using the `which code` command.
 Then create a `.env.local` file in your project root directory and add the following content (replace with your vscode remote address):
 
 ```bash
-CODE_INSPECTOR_IDE_PATH=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
+CODE_EDITOR=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
 ```
 
 ## Other Issues
