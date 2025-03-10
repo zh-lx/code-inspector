@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.3
+
+- 【fix】Fixed the issue where the client component was repeatedly registered and unloaded, causing the interaction to fail [#295](https://github.com/zh-lx/code-inspector/pull/295)
+
 ## 0.20.2
 
 - 【feat】Added `cache` API, allowing users to reuse cache capabilities in `webpack/rspack` projects that use `filesystem` caching [#292](https://github.com/zh-lx/code-inspector/pull/292)

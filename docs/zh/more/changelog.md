@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.3
+
+- 【fix】修复了客户端组件重复注册卸载导致交互不生效的问题 [#295](https://github.com/zh-lx/code-inspector/pull/295)
+
 ## 0.20.2
 
 - 【feat】新增 `cache` API，允许用户在 `webpack/rspack` 且使用了 `filesystem` 缓存的项目中复用缓存能力 [#292](https://github.com/zh-lx/code-inspector/pull/292)
