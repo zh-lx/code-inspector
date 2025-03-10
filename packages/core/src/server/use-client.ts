@@ -49,20 +49,20 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
-    var inspector = document.documentElement.querySelector('code-inspector-component');
-    if (!inspector) {
+    if (!document.documentElement.querySelector('code-inspector-component')) {
       ${jsClientCode};
-      inspector = document.createElement('code-inspector-component');
+      
+      var inspector = document.createElement('code-inspector-component');
+      inspector.port = ${port};
+      inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
+      inspector.showSwitch = !!${showSwitch};
+      inspector.autoToggle = !!${autoToggle};
+      inspector.hideConsole = !!${hideConsole};
+      inspector.locate = !!${locate};
+      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.ip = '${getIP(ip)}';
+      document.documentElement.append(inspector);
     }
-    inspector.port = ${port};
-    inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
-    inspector.showSwitch = !!${showSwitch};
-    inspector.autoToggle = !!${autoToggle};
-    inspector.hideConsole = !!${hideConsole};
-    inspector.locate = !!${locate};
-    inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
-    inspector.ip = '${getIP(ip)}';
-    document.documentElement.append(inspector);
   }
 })();
 `;
