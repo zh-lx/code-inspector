@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.4
+
+- 【fix】Fixed the issue where pug syntax could not be located after HMR, supports class literal, ID literal, `Case`, `Each`, `While`, `When`, `Code`, `Conditional` and other pug syntax [#297](https://github.com/zh-lx/code-inspector/pull/297)
+
 ## 0.20.3
 
 - 【fix】Fixed the issue where the client component was repeatedly registered and unloaded, causing the interaction to fail [#295](https://github.com/zh-lx/code-inspector/pull/295)
