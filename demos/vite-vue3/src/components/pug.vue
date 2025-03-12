@@ -1,7 +1,8 @@
 <template lang="pug">
+.page-container#ok(class="page") page container
 div(:ddd="222") {{ msg }}
   p() 12312
-   a
+  a
     span 1999
   p(ok="123") ok123
 </template>
