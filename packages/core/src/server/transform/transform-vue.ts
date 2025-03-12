@@ -7,6 +7,9 @@ import type {
 } from '@vue/compiler-dom';
 import { parse, transform } from '@vue/compiler-dom';
 import * as pug from 'volar-service-pug/lib/languageService';
+import { ProjectRootPath } from '../server';
+import path from 'path';
+import fs from 'fs';
 
 interface AstLocation {
   column: number;
@@ -71,7 +74,20 @@ function transformPugAst(params: TransformPugParams) {
       // 向 dom 上添加一个带有 filepath/row/column 的属性
       const { offsets, content } = pugMap.get(filePath) as PugFileInfo;
       const offset = offsets[node.line - 1] + node.column - 1;
-      let insertPosition = offset + node.name.length;
+      let insertPosition = offset;
+      // 以 node.name 开头
+      if (node.name === content.slice(offset, offset + node.name.length)) {
+        insertPosition += node.name.length;
+      } else {
+        for (let i = 0; i < node.attrs.length; i++) {
+          const attr = node.attrs[i];
+          if (['class', 'id'].includes(attr.name) && !attr.mustEscape) {
+            insertPosition =
+              // @ts-ignore
+              offsets[attr.line - 1] + attr.column + (attr.val.length - 2);
+          }
+        }
+      }
       if (content[insertPosition] === '(') {
         // 说明已有 attributes
         const addition = `${PathName}="${filePath}:${node.line}:${node.column}:${node.name}", `;
@@ -82,6 +98,23 @@ function transformPugAst(params: TransformPugParams) {
       }
     }
     transformPugAst({ ...params, node: node.block });
+    // @ts-ignore
+  } else if (['Case', 'Code', 'When', 'Each', 'While'].includes(node.type)) {
+    if ((node as pug.MixinNode).block) {
+      ((node as pug.MixinNode).block?.nodes || []).forEach((childNode) => {
+        transformPugAst({ ...params, node: childNode });
+      });
+    }
+    // @ts-ignore
+  } else if (node.type === 'Conditional') {
+    // @ts-ignore
+    (node.consequent?.nodes || []).forEach((childNode) => {
+      transformPugAst({ ...params, node: childNode });
+    });
+    // @ts-ignore
+    (node.alternate?.nodes || []).forEach((childNode) => {
+      transformPugAst({ ...params, node: childNode });
+    });
   }
 }
 
@@ -90,6 +123,26 @@ export function transformVue(
   filePath: string,
   escapeTags: EscapeTags
 ) {
+  // 兼容 pug 热更新时逻辑
+  let prefixSubstring = '', suffixSubstring = '';
+  if (pugMap.has(filePath)) {
+    try {
+      const absolutePath =
+        ProjectRootPath && !path.isAbsolute(filePath)
+          ? `${ProjectRootPath}/${filePath}`
+          : filePath;
+      const completeContent = fs.readFileSync(absolutePath, 'utf-8');
+      if (!content.includes(PathName)) {
+        const contentIndex = completeContent.indexOf(content);
+        prefixSubstring = completeContent.slice(0, contentIndex);
+        suffixSubstring = completeContent.slice(contentIndex + content.length);
+        content = completeContent;
+      }
+    } catch (_) {
+      //
+    }
+  }
+
   const s = new MagicString(content);
 
   const ast = parse(content, {
@@ -121,7 +174,10 @@ export function transformVue(
   if (pugMap.has(filePath) && templateNode) {
     const tempContent =
       ' '.repeat(templateNode.loc.start.offset - 0) +
-      content.slice(templateNode.loc.start.offset, templateNode.loc.end.offset) +
+      content.slice(
+        templateNode.loc.start.offset,
+        templateNode.loc.end.offset
+      ) +
       ' '.repeat(content.length - templateNode.loc.end.offset);
     const pugFile = pug.baseParse(tempContent);
     transformPugAst({
@@ -154,5 +210,6 @@ export function transformVue(
     });
   }
 
-  return s.toString();
+  let result = s.toString();
+  return s.toString().slice(prefixSubstring.length, result.length - suffixSubstring.length);
 }

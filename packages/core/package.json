@@ -48,7 +48,7 @@
     "pub:beta": "pnpm publish --tag beta"
   },
   "dependencies": {
-    "@vue/compiler-dom": "^3.2.47",
+    "@vue/compiler-dom": "^3.5.13",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
     "launch-ide": "1.0.3",
@@ -69,6 +69,6 @@
     "typescript": "^4.9.3",
     "vite": "^4.3.9",
     "vite-plugin-node-stdlib-browser": "^0.2.1",
-    "volar-service-pug": "^0.0.34"
+    "volar-service-pug": "^0.0.63"
   }
 }

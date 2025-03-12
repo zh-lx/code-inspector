@@ -753,16 +753,16 @@ importers:
         version: 4.33.0(eslint@6.8.0)(typescript@4.1.6)
       '@vue/cli-plugin-babel':
         specifier: ~4.5.8
-        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(core-js@3.29.0)(vue@3.2.47)
+        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(core-js@3.29.0)(vue@3.2.47)
       '@vue/cli-plugin-eslint':
         specifier: ~4.5.8
-        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(eslint@6.8.0)
+        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(eslint@6.8.0)
       '@vue/cli-plugin-typescript':
         specifier: ~4.5.8
-        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(@vue/compiler-sfc@3.3.4)(eslint@6.8.0)(typescript@4.1.6)(vue-template-compiler@2.7.14)(vue@3.2.47)
+        version: 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(@vue/compiler-sfc@3.3.4)(eslint@6.8.0)(typescript@4.1.6)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-service':
         specifier: ~4.5.8
-        version: 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+        version: 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/compiler-sfc':
         specifier: ^3.0.0
         version: 3.3.4
@@ -871,8 +871,8 @@ importers:
   packages/core:
     dependencies:
       '@vue/compiler-dom':
-        specifier: ^3.2.47
-        version: 3.2.47
+        specifier: ^3.5.13
+        version: 3.5.13
       chalk:
         specifier: ^4.1.1
         version: 4.1.2
@@ -929,8 +929,8 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(node-stdlib-browser@1.2.0)(rollup@4.16.4)(vite@4.3.9(@types/node@18.14.1)(less@4.2.0)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1)(terser@5.30.4))
       volar-service-pug:
-        specifier: ^0.0.34
-        version: 0.0.34
+        specifier: ^0.0.63
+        version: 0.0.63
 
   packages/esbuild-plugin:
     dependencies:
@@ -5375,8 +5375,8 @@ packages:
   '@volar/language-core@2.0.4':
     resolution: {integrity: sha512-VhC8i03P0x9LKGLTBi81xNTNWm40yxQ/Iba8IpH+LFr+Yb7c/D7fF90Cvf31MzPDM4G5rjIOlCfs+eQKPBkwQw==}
 
-  '@volar/language-core@2.1.6':
-    resolution: {integrity: sha512-pAlMCGX/HatBSiDFMdMyqUshkbwWbLxpN/RL7HCQDOo2gYBE+uS+nanosLc1qR6pTQ/U8q00xt8bdrrAFPSC0A==}
+  '@volar/language-core@2.4.12':
+    resolution: {integrity: sha512-RLrFdXEaQBWfSnYGVxvR2WrO6Bub0unkdHYIdC31HzIEqATIuuhRRzYu76iGPZ6OtA4Au1SnW0ZwIqPP217YhA==}
 
   '@volar/language-server@2.0.4':
     resolution: {integrity: sha512-VnljhooQjT6RhmvwwJK9+3YYs2ovFmav4IVNHiQgnTMfiOiyABzcghwvJrJrI39rJDI6LNOWF7BYUJq7K07BKQ==}
@@ -5384,8 +5384,8 @@ packages:
   '@volar/language-service@2.0.4':
     resolution: {integrity: sha512-DoanyU9I9Nl85lUytDl8jgyk+nrUDR5CFNVMrxWXGXclP4WTqBayBgSFAeF1L/5AwP3MywmWoK4GLAEVvl8D+Q==}
 
-  '@volar/language-service@2.1.6':
-    resolution: {integrity: sha512-1OpbbPQ6wUIumwMP5r45y8utVEmvq1n6BC8JHqGKsuFr9RGFIldDBlvA/xuO3MDKhjmmPGPHKb54kg1/YN78ow==}
+  '@volar/language-service@2.4.12':
+    resolution: {integrity: sha512-nifOPGYYPnCmxja6/ML/Gl2EgFkUdw4gLbYqbh8FjqX3gSpXSZl/0ebqORjKo1KW56YWHWRZd1jFutEtCiRYhA==}
 
   '@volar/snapshot-document@2.0.4':
     resolution: {integrity: sha512-YzgdmvpdRFxiBFCOVWga67naAtbPtKmPaFtGnmxWx+KXrjGkpUXT/2tzeKn5FLdtoYV+DRTdpMdP/45ArnVwZQ==}
@@ -5399,8 +5399,8 @@ packages:
   '@volar/source-map@2.0.4':
     resolution: {integrity: sha512-BbxUinEMoJZqrHsSj1aBa0boCBnN3BoXnf7j9IBwjxosxGXOhCvqmH2L9raJemadaKjeVR8ZQLhV7AOhyoHt/Q==}
 
-  '@volar/source-map@2.1.6':
-    resolution: {integrity: sha512-TeyH8pHHonRCHYI91J7fWUoxi0zWV8whZTVRlsWHSYfjm58Blalkf9LrZ+pj6OiverPTmrHRkBsG17ScQyWECw==}
+  '@volar/source-map@2.4.12':
+    resolution: {integrity: sha512-bUFIKvn2U0AWojOaqf63ER0N/iHIBYZPpNGogfLPQ68F5Eet6FnLlyho7BS0y2HJ1jFhSif7AcuTx1TqsCzRzw==}
 
   '@volar/typescript-faster@0.39.5':
     resolution: {integrity: sha512-IzLqlxefmKkjNKXC/8aFiqPcTqnj6RG31D2f9cIWxmW9pvUYJxLED+y9phnOxNxq0OmeRtQ3Pfmvu85tUBoZsQ==}
@@ -5606,11 +5606,11 @@ packages:
   '@vue/compiler-core@3.4.24':
     resolution: {integrity: sha512-vbW/tgbwJYj62N/Ww99x0zhFTkZDTcGh3uwJEuadZ/nF9/xuFMC4693P9r+3sxGXISABpDKvffY5ApH9pmdd1A==}
 
-  '@vue/compiler-core@3.4.3':
-    resolution: {integrity: sha512-u8jzgFg0EDtSrb/hG53Wwh1bAOQFtc1ZCegBpA/glyvTlgHl+tq13o1zvRfLbegYUw/E4mSTGOiCnAJ9SJ+lsg==}
-
   '@vue/compiler-core@3.4.30':
     resolution: {integrity: sha512-ZL8y4Xxdh8O6PSwfdZ1IpQ24PjTAieOz3jXb/MDTfDtANcKBMxg1KLm6OX2jofsaQGYfIVzd3BAG22i56/cF1w==}
+
+  '@vue/compiler-core@3.5.13':
+    resolution: {integrity: sha512-oOdAkwqUfW1WqpwSYJce06wvt6HljgY3fGeM9NcVA1HaYOij3mZG9Rkysn0OHuyUAGMbEbARIpsG+LPVlBJ5/Q==}
 
   '@vue/compiler-dom@3.2.45':
     resolution: {integrity: sha512-tyYeUEuKqqZO137WrZkpwfPCdiiIeXYCcJ8L4gWz9vqaxzIQRccTSwSWZ/Axx5YR2z+LvpUbmPNXxuBU45lyRw==}
@@ -5624,11 +5624,11 @@ packages:
   '@vue/compiler-dom@3.4.24':
     resolution: {integrity: sha512-4XgABML/4cNndVsQndG6BbGN7+EoisDwi3oXNovqL/4jdNhwvP8/rfRMTb6FxkxIxUUtg6AI1/qZvwfSjxJiWA==}
 
-  '@vue/compiler-dom@3.4.3':
-    resolution: {integrity: sha512-oGF1E9/htI6JWj/lTJgr6UgxNCtNHbM6xKVreBWeZL9QhRGABRVoWGAzxmtBfSOd+w0Zi5BY0Es/tlJrN6WgEg==}
-
   '@vue/compiler-dom@3.4.30':
     resolution: {integrity: sha512-+16Sd8lYr5j/owCbr9dowcNfrHd+pz+w2/b5Lt26Oz/kB90C9yNbxQ3bYOvt7rI2bxk0nqda39hVcwDFw85c2Q==}
+
+  '@vue/compiler-dom@3.5.13':
+    resolution: {integrity: sha512-ZOJ46sMOKUjO3e94wPdCzQ6P1Lx/vhp2RSvfaab88Ajexs0AHeV0uasYhi99WPaogmBlRHNRuly8xV75cNTMDA==}
 
   '@vue/compiler-sfc@2.7.10':
     resolution: {integrity: sha512-55Shns6WPxlYsz4WX7q9ZJBL77sKE1ZAYNYStLs6GbhIOMrNtjMvzcob6gu3cGlfpCR4bT7NXgyJ3tly2+Hx8Q==}
@@ -5781,11 +5781,11 @@ packages:
   '@vue/shared@3.4.24':
     resolution: {integrity: sha512-BW4tajrJBM9AGAknnyEw5tO2xTmnqgup0VTnDAMcxYmqOX0RG0b9aSUGAbEKolD91tdwpA6oCwbltoJoNzpItw==}
 
-  '@vue/shared@3.4.3':
-    resolution: {integrity: sha512-rIwlkkP1n4uKrRzivAKPZIEkHiuwY5mmhMJ2nZKCBLz8lTUlE73rQh4n1OnnMurXt1vcUNyH4ZPfdh8QweTjpQ==}
-
   '@vue/shared@3.4.30':
     resolution: {integrity: sha512-CLg+f8RQCHQnKvuHY9adMsMaQOcqclh6Z5V9TaoMgy0ut0tz848joZ7/CYFFyF/yZ5i2yaw7Fn498C+CNZVHIg==}
+
+  '@vue/shared@3.5.13':
+    resolution: {integrity: sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==}
 
   '@vue/web-component-wrapper@1.3.0':
     resolution: {integrity: sha512-Iu8Tbg3f+emIIMmI2ycSI8QcEuAUgPTgHwesDU1eKMLE4YC/c/sFbGc70QgMq31ijRftV0R7vCm9co6rldCeOA==}
@@ -17043,10 +17043,10 @@ packages:
       '@volar/language-service':
         optional: true
 
-  volar-service-html@0.0.34:
-    resolution: {integrity: sha512-kMEneea1tQbiRcyKavqdrSVt8zV06t+0/3pGkjO3gV6sikXTNShIDkdtB4Tq9vE2cQdM50TuS7utVV7iysUxHw==}
+  volar-service-html@0.0.63:
+    resolution: {integrity: sha512-M+ezKKLHuNnXJ/LZ5m/SyeyLNNc2uqJPEjjqh5cXUv/Y/iAb32eDbJXRX5TCipx60mjZvT6f5XUwW4O52ZkgsA==}
     peerDependencies:
-      '@volar/language-service': ~2.1.0
+      '@volar/language-service': ~2.4.0
     peerDependenciesMeta:
       '@volar/language-service':
         optional: true
@@ -17062,8 +17062,8 @@ packages:
       prettier:
         optional: true
 
-  volar-service-pug@0.0.34:
-    resolution: {integrity: sha512-h0DSnQXkvweXKaBmCYJaDbmmsatp9KIxsTxZD0SVKFyVixHSUjrVJP6eu9o3pGuDNIy2135XBNryUP/Lv7/3oA==}
+  volar-service-pug@0.0.63:
+    resolution: {integrity: sha512-SnktziXWkda18q3JpFY+oRPTzzwJwOx6FOBv4W7gPQMKdG6M3xJyhb0dXVdaz3i1qsMv0MYNDSP6AZ5G57w3SA==}
 
   volar-service-typescript-twoslash-queries@0.0.30:
     resolution: {integrity: sha512-ahj6woBxhkZu7icQR58x5TnUaS8ZRKn7a+UvY+andmiTWsOaSu85zj36+LPZgZQi1MG+BtjNwUjKoxtZiN51PA==}
@@ -17088,6 +17088,9 @@ packages:
   vscode-html-languageservice@5.1.2:
     resolution: {integrity: sha512-wkWfEx/IIR3s2P5yD4aTGHiOb8IAzFxgkSt1uSC3itJ4oDAm23yG7o0L29JljUdnXDDgLafPAvhv8A2I/8riHw==}
 
+  vscode-html-languageservice@5.3.1:
+    resolution: {integrity: sha512-ysUh4hFeW/WOWz/TO9gm08xigiSsV/FOAZ+DolgJfeLftna54YdmZ4A+lIn46RbdO3/Qv5QHTn1ZGqmrXQhZyA==}
+
   vscode-jsonrpc@6.0.0:
     resolution: {integrity: sha512-wnJA4BnEjOSyFMvjZdpiOwhSq9uDoK8e/kpRJDTaMYzwlkrhG1fwDIZI94CLsLzlCK5cIbMMtFlJlfR57Lavmg==}
     engines: {node: '>=8.0.0 || >=10.0.0'}
@@ -17108,6 +17111,9 @@ packages:
 
   vscode-languageserver-textdocument@1.0.11:
     resolution: {integrity: sha512-X+8T3GoiwTVlJbicx/sIAF+yuJAqz8VvwJyoMVhwEMoEKE/fkDmrqUgDMyBECcM2A2frVZIUj5HI/ErRXCfOeA==}
+
+  vscode-languageserver-textdocument@1.0.12:
+    resolution: {integrity: sha512-cxWNPesCnQCcMPeenjKKsOCKQZ/L6Tv19DTRIGuLWe32lyzWhihGVJ/rcckZXJxfdKCFvRLS3fpBIsV/ZGX4zA==}
 
   vscode-languageserver-types@3.16.0:
     resolution: {integrity: sha512-k8luDIWJWyenLc5ToFQQMaSrqCHiLwyKPHKPQZ5zz21vM+vIVUSvsRpcbiECH4WR88K2XZqc4ScRcZ7nk/jbeA==}
@@ -23417,9 +23423,9 @@ snapshots:
     dependencies:
       '@volar/source-map': 2.0.4
 
-  '@volar/language-core@2.1.6':
+  '@volar/language-core@2.4.12':
     dependencies:
-      '@volar/source-map': 2.1.6
+      '@volar/source-map': 2.4.12
 
   '@volar/language-server@2.0.4':
     dependencies:
@@ -23442,9 +23448,9 @@ snapshots:
       vscode-languageserver-textdocument: 1.0.11
       vscode-uri: 3.0.8
 
-  '@volar/language-service@2.1.6':
+  '@volar/language-service@2.4.12':
     dependencies:
-      '@volar/language-core': 2.1.6
+      '@volar/language-core': 2.4.12
       vscode-languageserver-protocol: 3.17.5
       vscode-languageserver-textdocument: 1.0.11
       vscode-uri: 3.0.8
@@ -23464,9 +23470,7 @@ snapshots:
     dependencies:
       muggle-string: 0.4.1
 
-  '@volar/source-map@2.1.6':
-    dependencies:
-      muggle-string: 0.4.1
+  '@volar/source-map@2.4.12': {}
 
   '@volar/typescript-faster@0.39.5':
     dependencies:
@@ -23485,9 +23489,9 @@ snapshots:
     dependencies:
       '@volar/code-gen': 0.39.5
       '@volar/source-map': 0.39.5
-      '@vue/compiler-core': 3.4.3
-      '@vue/compiler-dom': 3.4.3
-      '@vue/shared': 3.4.3
+      '@vue/compiler-core': 3.4.30
+      '@vue/compiler-dom': 3.5.13
+      '@vue/shared': 3.4.30
 
   '@volar/vue-language-core@0.39.5':
     dependencies:
@@ -23501,10 +23505,10 @@ snapshots:
     dependencies:
       '@volar/language-core': 1.3.0-alpha.0
       '@volar/source-map': 1.3.0-alpha.0
-      '@vue/compiler-dom': 3.3.4
+      '@vue/compiler-dom': 3.5.13
       '@vue/compiler-sfc': 3.3.4
       '@vue/reactivity': 3.3.4
-      '@vue/shared': 3.3.4
+      '@vue/shared': 3.4.30
       minimatch: 6.2.0
       muggle-string: 0.2.2
       vue-template-compiler: 2.7.14
@@ -23737,11 +23741,11 @@ snapshots:
       - webpack-cli
       - webpack-command
 
-  '@vue/cli-plugin-babel@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(core-js@3.29.0)(vue@3.2.47)':
+  '@vue/cli-plugin-babel@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(core-js@3.29.0)(vue@3.2.47)':
     dependencies:
       '@babel/core': 7.21.3
       '@vue/babel-preset-app': 4.5.19(@babel/core@7.21.3)(core-js@3.29.0)(vue@3.2.47)
-      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-shared-utils': 4.5.19
       babel-loader: 8.3.0(@babel/core@7.21.3)(webpack@4.46.0)
       cache-loader: 4.1.0(webpack@4.46.0)
@@ -23769,9 +23773,9 @@ snapshots:
       - webpack-cli
       - webpack-command
 
-  '@vue/cli-plugin-eslint@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(eslint@6.8.0)':
+  '@vue/cli-plugin-eslint@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(eslint@6.8.0)':
     dependencies:
-      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-shared-utils': 4.5.19
       eslint: 6.8.0
       eslint-loader: 2.2.1(eslint@6.8.0)(webpack@4.46.0)
@@ -23789,16 +23793,16 @@ snapshots:
       '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug-plain-loader@1.1.0(pug@3.0.2))(pug@3.0.2)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-shared-utils': 4.5.19
 
-  '@vue/cli-plugin-router@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))':
+  '@vue/cli-plugin-router@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))':
     dependencies:
-      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-shared-utils': 4.5.19
 
-  '@vue/cli-plugin-typescript@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(@vue/compiler-sfc@3.3.4)(eslint@6.8.0)(typescript@4.1.6)(vue-template-compiler@2.7.14)(vue@3.2.47)':
+  '@vue/cli-plugin-typescript@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))(@vue/compiler-sfc@3.3.4)(eslint@6.8.0)(typescript@4.1.6)(vue-template-compiler@2.7.14)(vue@3.2.47)':
     dependencies:
       '@babel/core': 7.21.3
       '@types/webpack-env': 1.18.1
-      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
       '@vue/cli-shared-utils': 4.5.19
       babel-loader: 8.3.0(@babel/core@7.21.3)(webpack@4.46.0)
       cache-loader: 4.1.0(webpack@4.46.0)
@@ -23825,9 +23829,9 @@ snapshots:
     dependencies:
       '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug-plain-loader@1.1.0(pug@3.0.2))(pug@3.0.2)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
 
-  '@vue/cli-plugin-vuex@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))':
+  '@vue/cli-plugin-vuex@4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))':
     dependencies:
-      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
+      '@vue/cli-service': 4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)
 
   '@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug-plain-loader@1.1.0(pug@3.0.2))(pug@3.0.2)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)':
     dependencies:
@@ -23953,7 +23957,7 @@ snapshots:
       - webpack-command
       - whiskers
 
-  '@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)':
+  '@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47)':
     dependencies:
       '@intervolga/optimize-cssnano-plugin': 1.0.6(webpack@4.46.0)
       '@soda/friendly-errors-webpack-plugin': 1.8.1(webpack@4.46.0)
@@ -23962,8 +23966,8 @@ snapshots:
       '@types/webpack': 4.41.33
       '@types/webpack-dev-server': 3.11.6(debug@4.3.4)
       '@vue/cli-overlay': 4.5.19
-      '@vue/cli-plugin-router': 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))
-      '@vue/cli-plugin-vuex': 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))
+      '@vue/cli-plugin-router': 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))
+      '@vue/cli-plugin-vuex': 4.5.19(@vue/cli-service@4.5.19(@vue/compiler-sfc@3.3.4)(bufferutil@4.0.8)(ejs@3.1.10)(lodash@4.17.21)(typescript@4.1.6)(utf-8-validate@5.0.10)(vue-template-compiler@2.7.14)(vue@3.2.47))
       '@vue/cli-shared-utils': 4.5.19
       '@vue/component-compiler-utils': 3.3.0(ejs@3.1.10)(lodash@4.17.21)(pug@3.0.2)
       '@vue/preload-webpack-plugin': 1.1.2(html-webpack-plugin@3.2.0(webpack@4.46.0))(webpack@4.46.0)
@@ -24100,7 +24104,7 @@ snapshots:
 
   '@vue/compiler-core@3.2.47':
     dependencies:
-      '@babel/parser': 7.24.7
+      '@babel/parser': 7.26.2
       '@vue/shared': 3.2.47
       estree-walker: 2.0.2
       source-map: 0.6.1
@@ -24120,18 +24124,18 @@ snapshots:
       estree-walker: 2.0.2
       source-map-js: 1.2.0
 
-  '@vue/compiler-core@3.4.3':
-    dependencies:
-      '@babel/parser': 7.26.2
-      '@vue/shared': 3.4.3
-      entities: 4.5.0
-      estree-walker: 2.0.2
-      source-map-js: 1.2.0
-
   '@vue/compiler-core@3.4.30':
     dependencies:
       '@babel/parser': 7.24.7
       '@vue/shared': 3.4.30
+      entities: 4.5.0
+      estree-walker: 2.0.2
+      source-map-js: 1.2.0
+
+  '@vue/compiler-core@3.5.13':
+    dependencies:
+      '@babel/parser': 7.26.2
+      '@vue/shared': 3.5.13
       entities: 4.5.0
       estree-walker: 2.0.2
       source-map-js: 1.2.0
@@ -24156,15 +24160,15 @@ snapshots:
       '@vue/compiler-core': 3.4.24
       '@vue/shared': 3.4.24
 
-  '@vue/compiler-dom@3.4.3':
-    dependencies:
-      '@vue/compiler-core': 3.4.3
-      '@vue/shared': 3.4.3
-
   '@vue/compiler-dom@3.4.30':
     dependencies:
       '@vue/compiler-core': 3.4.30
       '@vue/shared': 3.4.30
+
+  '@vue/compiler-dom@3.5.13':
+    dependencies:
+      '@vue/compiler-core': 3.5.13
+      '@vue/shared': 3.5.13
 
   '@vue/compiler-sfc@2.7.10':
     dependencies:
@@ -24494,9 +24498,9 @@ snapshots:
 
   '@vue/shared@3.4.24': {}
 
-  '@vue/shared@3.4.3': {}
-
   '@vue/shared@3.4.30': {}
+
+  '@vue/shared@3.5.13': {}
 
   '@vue/web-component-wrapper@1.3.0': {}
 
@@ -26527,7 +26531,7 @@ snapshots:
 
   code-inspector-core@0.10.1:
     dependencies:
-      '@vue/compiler-dom': 3.4.3
+      '@vue/compiler-dom': 3.5.13
       chalk: 4.1.1
       portfinder: 1.0.32(supports-color@6.1.0)
     transitivePeerDependencies:
@@ -38550,7 +38554,7 @@ snapshots:
       '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.23.6)
       '@babel/plugin-transform-typescript': 7.23.6(@babel/core@7.23.6)
       '@vue/babel-plugin-jsx': 1.2.2(@babel/core@7.23.6)
-      '@vue/compiler-dom': 3.4.24
+      '@vue/compiler-dom': 3.5.13
       kolorist: 1.8.0
       magic-string: 0.30.12
       vite: 5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)
@@ -38864,13 +38868,13 @@ snapshots:
     optionalDependencies:
       '@volar/language-service': 2.0.4
 
-  volar-service-html@0.0.34(@volar/language-service@2.1.6):
+  volar-service-html@0.0.63(@volar/language-service@2.4.12):
     dependencies:
-      vscode-html-languageservice: 5.1.2
+      vscode-html-languageservice: 5.3.1
       vscode-languageserver-textdocument: 1.0.11
       vscode-uri: 3.0.8
     optionalDependencies:
-      '@volar/language-service': 2.1.6
+      '@volar/language-service': 2.4.12
 
   volar-service-prettier@0.0.30(@volar/language-service@2.0.4):
     dependencies:
@@ -38878,13 +38882,14 @@ snapshots:
     optionalDependencies:
       '@volar/language-service': 2.0.4
 
-  volar-service-pug@0.0.34:
+  volar-service-pug@0.0.63:
     dependencies:
-      '@volar/language-service': 2.1.6
+      '@volar/language-service': 2.4.12
+      muggle-string: 0.4.1
       pug-lexer: 5.0.1
       pug-parser: 6.0.0
-      volar-service-html: 0.0.34(@volar/language-service@2.1.6)
-      vscode-html-languageservice: 5.1.2
+      volar-service-html: 0.0.63(@volar/language-service@2.4.12)
+      vscode-html-languageservice: 5.3.1
       vscode-languageserver-textdocument: 1.0.11
 
   volar-service-typescript-twoslash-queries@0.0.30(@volar/language-service@2.0.4):
@@ -38917,6 +38922,13 @@ snapshots:
       vscode-languageserver-types: 3.17.5
       vscode-uri: 3.0.8
 
+  vscode-html-languageservice@5.3.1:
+    dependencies:
+      '@vscode/l10n': 0.0.18
+      vscode-languageserver-textdocument: 1.0.12
+      vscode-languageserver-types: 3.17.5
+      vscode-uri: 3.0.8
+
   vscode-jsonrpc@6.0.0: {}
 
   vscode-jsonrpc@8.2.0: {}
@@ -38938,6 +38950,8 @@ snapshots:
       vscode-languageserver-types: 3.17.5
 
   vscode-languageserver-textdocument@1.0.11: {}
+
+  vscode-languageserver-textdocument@1.0.12: {}
 
   vscode-languageserver-types@3.16.0: {}
 
