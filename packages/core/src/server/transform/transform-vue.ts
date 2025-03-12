@@ -83,7 +83,8 @@ function transformPugAst(params: TransformPugParams) {
           const attr = node.attrs[i];
           if (['class', 'id'].includes(attr.name) && !attr.mustEscape) {
             insertPosition =
-              offsets[attr.line - 1] + attr.column + attr.name.length;
+              // @ts-ignore
+              offsets[attr.line - 1] + attr.column + (attr.val.length - 2);
           }
         }
       }
@@ -97,6 +98,23 @@ function transformPugAst(params: TransformPugParams) {
       }
     }
     transformPugAst({ ...params, node: node.block });
+    // @ts-ignore
+  } else if (['Case', 'Code', 'When', 'Each', 'While'].includes(node.type)) {
+    if ((node as pug.MixinNode).block) {
+      ((node as pug.MixinNode).block?.nodes || []).forEach((childNode) => {
+        transformPugAst({ ...params, node: childNode });
+      });
+    }
+    // @ts-ignore
+  } else if (node.type === 'Conditional') {
+    // @ts-ignore
+    (node.consequent?.nodes || []).forEach((childNode) => {
+      transformPugAst({ ...params, node: childNode });
+    });
+    // @ts-ignore
+    (node.alternate?.nodes || []).forEach((childNode) => {
+      transformPugAst({ ...params, node: childNode });
+    });
   }
 }
 
