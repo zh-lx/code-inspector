@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.6
+
+- 【feat】支持了 Windows 系统中 `trae CN.exe` 中文版的识别 [#300](https://github.com/zh-lx/code-inspector/pull/300)
+
 ## 0.20.5
 
 - 【feat】支持了 `trae` 中文版的识别 [#299](https://github.com/zh-lx/code-inspector/pull/299)

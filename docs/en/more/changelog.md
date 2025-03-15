@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.6
+
+- 【feat】Support recognition for `trae CN.exe` Chinese version on Windows [#300](https://github.com/zh-lx/code-inspector/pull/300)
+
 ## 0.20.5
 
 - 【feat】Support recognition for `trae` Chinese version [#299](https://github.com/zh-lx/code-inspector/pull/299)
