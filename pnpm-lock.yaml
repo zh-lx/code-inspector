@@ -21,8 +21,8 @@ importers:
         specifier: ^25.0.1
         version: 25.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
       launch-ide:
-        specifier: 1.0.4
-        version: 1.0.4
+        specifier: 1.0.5
+        version: 1.0.5
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
@@ -880,8 +880,8 @@ importers:
         specifier: ^16.1.4
         version: 16.1.4
       launch-ide:
-        specifier: 1.0.4
-        version: 1.0.4
+        specifier: 1.0.5
+        version: 1.0.5
       portfinder:
         specifier: ^1.0.28
         version: 1.0.32(supports-color@6.1.0)
@@ -11256,8 +11256,8 @@ packages:
   launch-editor@2.8.0:
     resolution: {integrity: sha512-vJranOAJrI/llyWGRQqiDM+adrw+k83fvmmx3+nV47g3+36xM15jE+zyZ6Ffel02+xSvuM0b2GDRosXZkbb6wA==}
 
-  launch-ide@1.0.4:
-    resolution: {integrity: sha512-ToGivweZgMDneO/LdD3JTJ39eb+CAry0geTQpFJLtK0xuLmztPeB5Z0U9iasT5CgGZ3xiEfNE3H34vtIS8OwWA==}
+  launch-ide@1.0.5:
+    resolution: {integrity: sha512-Qo9CTrY2faYIp/hl+z4LFeV14w0dYJOpxs3eq4oByHzE+zP7siWxlJwTy8c30EVMs30kG4u+07qTE58kZL0LMw==}
 
   lazy-cache@1.0.4:
     resolution: {integrity: sha512-RE2g0b5VGZsOCFOCgP7omTRYFqydmZkBwl5oNnQ1lDYC57uyO9KqNnNVxT7COSHTxrRCWVcAVOcbjk+tvh/rgQ==}
@@ -31752,7 +31752,7 @@ snapshots:
       picocolors: 1.0.1
       shell-quote: 1.8.1
 
-  launch-ide@1.0.4:
+  launch-ide@1.0.5:
     dependencies:
       chalk: 4.1.1
       dotenv: 16.4.5
