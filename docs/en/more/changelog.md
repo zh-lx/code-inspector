@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.5
+
+- 【feat】Support recognition for `trae` Chinese version [#299](https://github.com/zh-lx/code-inspector/pull/299)
+
 ## 0.20.4
 
 - 【fix】Fixed the issue where pug syntax could not be located after HMR, supports class literal, ID literal, `Case`, `Each`, `While`, `When`, `Code`, `Conditional` and other pug syntax [#297](https://github.com/zh-lx/code-inspector/pull/297)

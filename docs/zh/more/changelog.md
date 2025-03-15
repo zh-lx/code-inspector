@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.5
+
+- 【feat】支持了 `trae` 中文版的识别 [#299](https://github.com/zh-lx/code-inspector/pull/299)
+
 ## 0.20.4
 
 - 【fix】修复了 pug 语法在 HMR 后无法定位的问题，支持了类字面值、ID字面值、`Case`、`Each`、`While`、`When`、`Code`、`Conditional` 等 pug 语法 [#297](https://github.com/zh-lx/code-inspector/pull/297)
