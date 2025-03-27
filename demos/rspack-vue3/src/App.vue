@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import HelloWorld from "./components/HelloWorld.vue";
 
-const title = ref("Rspack + Vue");
+const title = ref<string>("Rspack + Vue");
 </script>
 
 <template>
