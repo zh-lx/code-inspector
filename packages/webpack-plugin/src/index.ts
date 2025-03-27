@@ -159,7 +159,9 @@ class WebpackCodeInspectorPlugin {
       ),
     };
 
-    if (compiler?.options?.cache?.type === 'filesystem') {
+    const isWebpackSystemCache = compiler?.options?.cache?.type === 'filesystem';
+    const isRspackPersistentCache = compiler?.options?.experiments?.cache?.type === 'persistent';
+    if (isWebpackSystemCache || isRspackPersistentCache) {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         getPureClientCodeString(this.options, record);
