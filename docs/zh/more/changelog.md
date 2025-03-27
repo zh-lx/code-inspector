@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.7
+
+- 【fix】修复了在 `rspack` 中使用 `persistent` 缓存时，二次启动项目后通信失败的问题 [#304](https://github.com/zh-lx/code-inspector/pull/304)
+
 ## 0.20.6
 
 - 【feat】支持了 Windows 系统中 `trae CN.exe` 中文版的识别 [#300](https://github.com/zh-lx/code-inspector/pull/300)

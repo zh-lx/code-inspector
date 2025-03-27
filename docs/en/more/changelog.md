@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.7
+
+- 【fix】Fixed the issue where requests failed after the project was restarted in `rspack` with `persistent` cache [#304](https://github.com/zh-lx/code-inspector/pull/304)
+
 ## 0.20.6
 
 - 【feat】Support recognition for `trae CN.exe` Chinese version on Windows [#300](https://github.com/zh-lx/code-inspector/pull/300)
