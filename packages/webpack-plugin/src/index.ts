@@ -159,14 +159,22 @@ class WebpackCodeInspectorPlugin {
       ),
     };
 
-    const isWebpackSystemCache = compiler?.options?.cache?.type === 'filesystem';
-    const isRspackPersistentCache = compiler?.options?.experiments?.cache?.type === 'persistent';
-    if (isWebpackSystemCache || isRspackPersistentCache) {
+    // webpack file system cache
+    if (compiler?.options?.cache?.type === 'filesystem') {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         getPureClientCodeString(this.options, record);
       } else {
         compiler.options.cache.version = `code-inspector-${Date.now()}`;
+      }
+    }
+    // rspack persistent cache
+    if (compiler?.options?.experiments?.cache?.type === 'persistent') {
+      if (this.options.cache) {
+        // 用来在 cache 情况下启动 node server
+        getPureClientCodeString(this.options, record);
+      } else {
+        compiler.options.experiments.cache.version = `code-inspector-${Date.now()}`;
       }
     }
 
