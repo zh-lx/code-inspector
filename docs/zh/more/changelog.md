@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.9
+
+- 【fix】修复了在 `trae CN` 版本无法识别的问题 [#308](https://github.com/zh-lx/code-inspector/pull/308)
+
 ## 0.20.8
 
 - 【fix】修复了在 `rspack` 中使用 `persistent` 缓存且插件未设置 `cache: true` 时的报错问题 [#305](https://github.com/zh-lx/code-inspector/pull/305)

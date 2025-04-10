@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.9
+
+- 【fix】Fixed the issue that `trae CN` can't be recognized [#308](https://github.com/zh-lx/code-inspector/pull/308)
+
 ## 0.20.8
 
 - 【fix】Fixed the issue where the error occurred in `rspack` with `persistent` cache and the plugin was not set to `cache: true` [#305](https://github.com/zh-lx/code-inspector/pull/305)
