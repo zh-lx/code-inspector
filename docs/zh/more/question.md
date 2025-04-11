@@ -16,7 +16,7 @@
 
 如果本插件引起了 Eslint Plugin 报错问题，请在 `code-inspector-plugin` 配置中添加 `enforcePre: false`。
 
-## 在 WSL 中使用
+## 在 WSL 和 Dev Containers 中使用
 
 可以通过在 wsl 中使用 `which code` 命令找到 vscode remote 的地址，地址差不多长这样：
 

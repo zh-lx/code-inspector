@@ -16,7 +16,7 @@ Most conventional framework SSR projects are supported by default. For custom-re
 
 If this plugin causes Eslint Plugin errors, please add `enforcePre: false` to your `code-inspector-plugin` configuration.
 
-## Using in WSL
+## Using in WSL or Dev Containers
 
 You can find the vscode remote address in WSL by using the `which code` command. The address should look something like this:
 
