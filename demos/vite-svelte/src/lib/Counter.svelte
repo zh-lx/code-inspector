@@ -8,5 +8,3 @@
 <button on:click={increment}>
     count is {count}
 </button>
-
-<h1>test</h1>
