@@ -5,7 +5,18 @@ import { parse as parseSvelte, walk } from 'svelte/compiler';
 export function transformSvelte(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
-  const html = parseSvelte(content).html;
+  // svelte parse dosen't support ts or scss/less
+  // so replace the content of <script></script> and <style></style> with space
+  let replacedContent = content;
+  const scriptRegex = /<script(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/script>/gi;
+  const styleRegex = /<style(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/style>/gi;
+  const scriptMatches = content.match(scriptRegex) || [];
+  const styleMatches = content.match(styleRegex) || [];
+  [...scriptMatches, ...styleMatches].forEach((match) => {
+    replacedContent = replacedContent.replace(match, ' '.repeat(match.length));
+  });
+
+  const html = parseSvelte(replacedContent).html;
 
   walk(html as any, {
     enter(node: any) {
