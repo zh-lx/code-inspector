@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.10
+
+- 【fix】兼容了使用了 typescript 和 less/scss 等语法的 svelte 代码 [#311](https://github.com/zh-lx/code-inspector/pull/311)
+
 ## 0.20.9
 
 - 【fix】修复了在 `trae CN` 版本无法识别的问题 [#308](https://github.com/zh-lx/code-inspector/pull/308)
