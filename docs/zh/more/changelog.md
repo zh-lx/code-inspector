@@ -3,6 +3,7 @@
 ## 0.20.10
 
 - 【fix】兼容了使用了 typescript 和 less/scss 等语法的 svelte 代码 [#311](https://github.com/zh-lx/code-inspector/pull/311)
+- 【fix】适配了 idea 在 linux 系统中无法识别的问题 [#312](https://github.com/zh-lx/code-inspector/pull/312)
 
 ## 0.20.9
 
@@ -26,7 +27,7 @@
 
 ## 0.20.4
 
-- 【fix】修复了 pug 语法在 HMR 后无法定位的问题，支持了类字面值、ID字面值、`Case`、`Each`、`While`、`When`、`Code`、`Conditional` 等 pug 语法 [#297](https://github.com/zh-lx/code-inspector/pull/297)
+- 【fix】修复了 pug 语法在 HMR 后无法定位的问题，支持了类字面值、ID 字面值、`Case`、`Each`、`While`、`When`、`Code`、`Conditional` 等 pug 语法 [#297](https://github.com/zh-lx/code-inspector/pull/297)
 
 ## 0.20.3
 

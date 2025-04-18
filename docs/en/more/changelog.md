@@ -3,6 +3,7 @@
 ## 0.20.10
 
 - 【fix】Fixed compatibility with Svelte code using TypeScript and Less/SCSS [#311](https://github.com/zh-lx/code-inspector/pull/311)
+- 【fix】Fixed the issue that `idea` cannot be recognized in the Linux system [#312](https://github.com/zh-lx/code-inspector/pull/312)
 
 ## 0.20.9
 
