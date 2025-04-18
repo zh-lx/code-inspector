@@ -21,8 +21,8 @@ importers:
         specifier: ^25.0.1
         version: 25.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
       launch-ide:
-        specifier: 1.0.6
-        version: 1.0.6
+        specifier: 1.0.7
+        version: 1.0.7
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
@@ -167,7 +167,7 @@ importers:
     dependencies:
       nuxt:
         specifier: ^3.12.2
-        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@20.14.11)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.18.0(jiti@1.21.6))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
+        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@20.14.11)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.18.0(jiti@1.21.6))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.4)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
       vue:
         specifier: ^3.4.29
         version: 3.4.30(typescript@5.8.2)
@@ -886,8 +886,8 @@ importers:
         specifier: ^16.1.4
         version: 16.1.4
       launch-ide:
-        specifier: 1.0.6
-        version: 1.0.6
+        specifier: 1.0.7
+        version: 1.0.7
       portfinder:
         specifier: ^1.0.28
         version: 1.0.32(supports-color@6.1.0)
@@ -1693,6 +1693,7 @@ packages:
   '@babel/plugin-proposal-class-properties@7.18.6':
     resolution: {integrity: sha512-cumfXOF0+nzZrrN8Rf0t7M+tF6sZc7vhQwYQck9q1/5w2OExlD+b4v4RpMJFaV1Z7WcDRgO6FqvxqxGlwo+RHQ==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -1711,24 +1712,28 @@ packages:
   '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6':
     resolution: {integrity: sha512-wQxQzxYeJqHcfppzBDnm1yAY0jSRkUXR2z8RePZYrKwMKgMlE8+Z6LUno+bd6LvbGh8Gltvy74+9pIYkr+XkKA==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
   '@babel/plugin-proposal-numeric-separator@7.18.6':
     resolution: {integrity: sha512-ozlZFogPqoLm8WBr5Z8UckIoE4YQ5KESVcNudyXOR8uqIkliTEgJ3RoketfG6pmzLdeZF0H/wjE9/cCEitBl7Q==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
   '@babel/plugin-proposal-optional-chaining@7.21.0':
     resolution: {integrity: sha512-p4zeefM72gpmEe2fkUr/OnOXpWEf8nAgk7ZYVqqfFiyIG7oFfVZcCrU64hWn5xp4tQ9LkV4bTIa5rD0KANpKNA==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
   '@babel/plugin-proposal-private-methods@7.18.6':
     resolution: {integrity: sha512-nutsvktDItsNn4rpGItSNV2sz1XwS+nfU0Rg8aCx3W3NOKVzdMjJRu0O5OkgDp3ZGICSTbgRpxZoWsxoKRvbeA==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -1741,12 +1746,14 @@ packages:
   '@babel/plugin-proposal-private-property-in-object@7.21.11':
     resolution: {integrity: sha512-0QZ8qP/3RLDVBwBFoWAwCtgcDZJVwA5LUJRZU8x2YFfKNuFq161wK3cuGrALu5yiPu+vzwTAg/sMWVNeWeNyaw==}
     engines: {node: '>=6.9.0'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-property-in-object instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
   '@babel/plugin-proposal-unicode-property-regex@7.18.6':
     resolution: {integrity: sha512-2BShG/d5yoZyXZfVePH91urL5wTG6ASZU9M4o03lKK8u8UW1y08OMttBSOADTcJrnPMpvDXRG3G8fyLh4ovs8w==}
     engines: {node: '>=4'}
+    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-unicode-property-regex instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -3305,6 +3312,7 @@ packages:
   '@humanwhocodes/config-array@0.11.10':
     resolution: {integrity: sha512-KVVjQmNUepDVGXNuoRRdmmEjruj0KfiGSbS8LVc12LMsWDQzRXJ0qdhN8L8uUigKpfEHRhlaQFY0ib1tnUbNeQ==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -3312,6 +3320,7 @@ packages:
 
   '@humanwhocodes/object-schema@1.2.1':
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
+    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.3.1':
     resolution: {integrity: sha512-JBxkERygn7Bv/GbN5Rv8Ul6LVknS+5Bp6RgDC/O8gEBU/yeH5Ui5C/OlWrTb6qct7LjjfT6Re2NxB0ln0yYybA==}
@@ -5703,6 +5712,7 @@ packages:
 
   '@volar/vue-code-gen@0.39.5':
     resolution: {integrity: sha512-y+QUV9MuuasiIuRoGKQl+gMhDaAX6XNhckAyJCvD1FZ8f2eJuPY2VtoFxmu/Z2bGWBdtUW/g98jaeKJ+j3wwOw==}
+    deprecated: 'WARNING: This project has been renamed to @vue/language-core. Install using @vue/language-core instead.'
 
   '@volar/vue-language-core@0.39.5':
     resolution: {integrity: sha512-m+e1tYuL/WRPhSeC7hZ0NuSwHsfnnGJVxCBHLaP7jR0f6xcC0DAegP3QF+gfu9ZJFPGznpZYFKadngMjuhQS9Q==}
@@ -5712,9 +5722,11 @@ packages:
 
   '@volar/vue-typescript@0.39.5':
     resolution: {integrity: sha512-ckhWD1xOi0OMr702XVkv/Npsb9FKAp5gvhxyLv0QqWekPdSo04t4KrZfwosJLGERIEcyr50SuB7HqBp8ndQmzA==}
+    deprecated: 'WARNING: This project has been renamed to @vue/typescript. Install using @vue/typescript instead.'
 
   '@volar/vue-typescript@1.2.0':
     resolution: {integrity: sha512-zjmRi9y3J1EkG+pfuHp8IbHmibihrKK485cfzsHjiuvJMGrpkWvlO5WVEk8oslMxxeGC5XwBFE9AOlvh378EPA==}
+    deprecated: 'WARNING: This project has been renamed to @vue/typescript. Install using @vue/typescript instead.'
 
   '@vscode/emmet-helper@2.9.2':
     resolution: {integrity: sha512-MaGuyW+fa13q3aYsluKqclmh62Hgp0BpKIqS66fCxfOaBcVQ1OnMQxRRgQUYnCkxFISAQlkJ0qWWPyXjro1Qrg==}
@@ -6273,6 +6285,7 @@ packages:
 
   abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
+    deprecated: Use your platform's native atob() and btoa() methods instead
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
@@ -6294,6 +6307,7 @@ packages:
 
   acorn-import-assertions@1.9.0:
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
+    deprecated: package has been renamed to acorn-import-attributes
     peerDependencies:
       acorn: ^8
 
@@ -7895,6 +7909,7 @@ packages:
 
   copy-concurrently@1.0.5:
     resolution: {integrity: sha512-f2domd9fsVDFtaFcbaRZuYXwtdmnzqbADSwhSWYxYB/Q8zsdUUFMXVRwXGDMWmbEzAn1kdRrtI1T/KTFOL4X2A==}
+    deprecated: This package is no longer supported.
 
   copy-descriptor@0.1.1:
     resolution: {integrity: sha512-XgZ0pFcakEUlbwQEVNg3+QAis1FyTL3Qel9FYy8pSkQqoG3PNoT0bOCQtOXcOkur21r2Eq2kI+IE+gsmAEVlYw==}
@@ -9298,11 +9313,13 @@ packages:
   eslint@6.8.0:
     resolution: {integrity: sha512-K+Iayyo2LtyYhDSYwz5D5QdWw0hCacNzyq1Y821Xna2xSJj7cijoLLYmLxTQgcgZ9mC61nryMy9S7GRbYpI5Ig==}
     engines: {node: ^8.10.0 || ^10.13.0 || >=11.10.1}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@8.28.0:
     resolution: {integrity: sha512-S27Di+EVyMxcHiwDrFzk8dJYAaD+/5SoWKxL1ri/71CRHsnJnRDPNt2Kzj24+MT9FDupf4aqqyqPrvI8MvQ4VQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.18.0:
@@ -9528,6 +9545,7 @@ packages:
 
   figgy-pudding@3.5.2:
     resolution: {integrity: sha512-0btnI/H8f2pavGMN8w40mlSKOfTK2SVJmBfBeVIj3kNw0swwgzyRq0d5TJVOwodFmtvpPeWPN/MCcfuWF0Ezbw==}
+    deprecated: This module is no longer supported.
 
   figures@3.2.0:
     resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
@@ -9786,6 +9804,7 @@ packages:
 
   fs-write-stream-atomic@1.0.10:
     resolution: {integrity: sha512-gehEzmPn2nAwr39eay+x3X34Ra+M2QlVUTLhkXPjWdeO8RF9kszk116avgBJM3ZyNHgHXBNx+VmPaFC36k0PzA==}
+    deprecated: This package is no longer supported.
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -10615,10 +10634,12 @@ packages:
   is-accessor-descriptor@0.1.6:
     resolution: {integrity: sha512-e1BM1qnDbMRG3ll2U9dSK0UMHuWOs3pY3AtcFsmvwPtKL3MML/Q86i+GilLfvqEs4GW+ExB91tQ3Ig9noDIZ+A==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please upgrade to v0.1.7
 
   is-accessor-descriptor@1.0.0:
     resolution: {integrity: sha512-m5hnHTkcVsPfqx3AKlyttIPb7J+XykHvJP2B9bZDjlhLIoEq4XoK64Vg7boZlVWYK6LUY94dYPEE7Lh0ZkZKcQ==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please upgrade to v1.0.1
 
   is-arguments@1.1.1:
     resolution: {integrity: sha512-8Q7EARjzEnKpt/PCD7e1cgUS0a6X8u5tdSiMqXhojOdoV9TsMsiO+9VLC5vAmO8N7/GmXn7yjR8qnA6bVAEzfA==}
@@ -10703,10 +10724,12 @@ packages:
   is-data-descriptor@0.1.4:
     resolution: {integrity: sha512-+w9D5ulSoBNlmw9OHn3U2v51SyoCd0he+bB3xMl62oijhrspxowjU+AIcDY0N3iEJbUEkB15IlMASQsxYigvXg==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please upgrade to v0.1.5
 
   is-data-descriptor@1.0.0:
     resolution: {integrity: sha512-jbRXy1FmtAoCjQkVmIVYwuuqDFUbaOeDjmed1tOGPrsMhtJA4rD9tkgA0F1qJ3gRFRXcHYVkdeaP50Q5rE/jLQ==}
     engines: {node: '>=0.10.0'}
+    deprecated: Please upgrade to v1.0.1
 
   is-data-view@1.0.1:
     resolution: {integrity: sha512-AHkaJrsUVW6wq6JS8y3JnM/GJF/9cf+k20+iDzlSaJrinEo5+7vRiteOSwBhHRiAyQATN1AmY4hwzxJKPmYf+w==}
@@ -11552,8 +11575,8 @@ packages:
   launch-editor@2.8.0:
     resolution: {integrity: sha512-vJranOAJrI/llyWGRQqiDM+adrw+k83fvmmx3+nV47g3+36xM15jE+zyZ6Ffel02+xSvuM0b2GDRosXZkbb6wA==}
 
-  launch-ide@1.0.6:
-    resolution: {integrity: sha512-qIH8dQRWyc/CtSdTvakFnMohAcIb8xxyZVDz7LK718opC36sqmULWcyWBKeiH+Hv+dlc1dNPKN2CekYd6Uqsmg==}
+  launch-ide@1.0.7:
+    resolution: {integrity: sha512-wJMTq6U2sVYqxrlp544KQxtl8cHoXFfQa2ivDtKJ6ock2ARneiEHqUFce/NQsnNP1aZNg4OXB6g00oFRvni1/Q==}
 
   lazy-cache@1.0.4:
     resolution: {integrity: sha512-RE2g0b5VGZsOCFOCgP7omTRYFqydmZkBwl5oNnQ1lDYC57uyO9KqNnNVxT7COSHTxrRCWVcAVOcbjk+tvh/rgQ==}
@@ -11735,6 +11758,7 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.kebabcase@4.1.1:
     resolution: {integrity: sha512-N8XRTIMMqqDgSy4VLKPnJ/+hpGZN+PHQiJnSenYqPaVV/NCqEogTnAdZLQiGKhxX+JCs8waWq2t1XHWKOmlY8g==}
@@ -12267,6 +12291,7 @@ packages:
 
   move-concurrently@1.0.1:
     resolution: {integrity: sha512-hdrFxZOycD/g6A6SoI2bB5NA/5NEqD0569+S47WZhPvm46sD50ZHdYaFmnua5lndde9rCHGjmfK7Z8BuCt/PcQ==}
+    deprecated: This package is no longer supported.
 
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -14124,6 +14149,10 @@ packages:
   q@1.5.1:
     resolution: {integrity: sha512-kV/CThkXo6xyFEZUugw/+pIOywXcDbFYgSct5cT3gqlbkBE1SJdwy6UQoZvodiWF/ckQLZyDE/Bu1M6gVu5lVw==}
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
+    deprecated: |-
+      You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
+      (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qrcode.react@3.1.0:
     resolution: {integrity: sha512-oyF+Urr3oAMUG/OiOuONL3HXM+53wvuH3mtIWQrYmsXoAq0DkvZp2RYUWFSMFtbdOpuS++9v+WAkzNVkMlNW6Q==}
@@ -15413,9 +15442,11 @@ packages:
 
   shikiji-core@0.9.19:
     resolution: {integrity: sha512-AFJu/vcNT21t0e6YrfadZ+9q86gvPum6iywRyt1OtIPjPFe25RQnYJyxHQPMLKCCWA992TPxmEmbNcOZCAJclw==}
+    deprecated: Deprecated, use @shikijs/core instead
 
   shikiji@0.9.19:
     resolution: {integrity: sha512-Kw2NHWktdcdypCj1GkKpXH4o6Vxz8B8TykPlPuLHOGSV8VkhoCLcFOH4k19K4LXAQYRQmxg+0X/eM+m2sLhAkg==}
+    deprecated: Deprecated, use shiki instead
 
   shimmer@1.2.1:
     resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
@@ -17645,6 +17676,7 @@ packages:
 
   vue@2.7.10:
     resolution: {integrity: sha512-HmFC70qarSHPXcKtW8U8fgIkF6JGvjEmDiVInTkKZP0gIlEPhlVlcJJLkdGIDiNkIeA2zJPQTWJUI4iWe+AVfg==}
+    deprecated: Vue 2 has reached EOL and is no longer actively maintained. See https://v2.vuejs.org/eol/ for more details.
 
   vue@3.2.47:
     resolution: {integrity: sha512-60188y/9Dc9WVrAZeUVSDxRQOZ+z+y5nO2ts9jWXSTkMvayiWxCWOWtBQoYjLeccfXkiiPZWAHcV+WTPhkqJHQ==}
@@ -17752,6 +17784,7 @@ packages:
   webpack-chain@6.5.1:
     resolution: {integrity: sha512-7doO/SRtLu8q5WM0s7vPKPWX580qhi0/yBHkOxNkv50f6qB76Zy9o2wRTrrPULqYTvQlVHuvbA8v+G5ayuUDsA==}
     engines: {node: '>=8'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   webpack-code-inspector-plugin@0.10.1:
     resolution: {integrity: sha512-nPHF1iTDGtjN9iBixWdwSEZPhXwbTewKbrpNXGK61N3DqCqeqFHsMMTEWtUXl4JLi4J8ZwspvGauxVEJh5HcDQ==}
@@ -18038,6 +18071,7 @@ packages:
 
   workbox-google-analytics@6.4.1:
     resolution: {integrity: sha512-L1JQISg1CxMAlqw3HXpWB2gRYsmJ9F9OgC2/UNAZLyOJTFk1faZziPS4eXe+UaHevZ+Ma66Z2zfYxPUTr5znjQ==}
+    deprecated: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
 
   workbox-navigation-preload@6.4.1:
     resolution: {integrity: sha512-npgZYoeaE+teQvpWqZLgJDJ6I3qxwqAfnSIa8yrNQ2sLR1A88uWGGsiRzfUsIdKjVCLPQVZ+clwb6XU1vyW9Lw==}
@@ -21746,7 +21780,7 @@ snapshots:
       sirv: 2.0.4
       unimport: 3.7.2(rollup@4.16.4)
       vite: 5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)
-      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
+      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
       vite-plugin-vue-inspector: 5.1.2(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
       which: 3.0.1
       ws: 8.17.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
@@ -21761,33 +21795,6 @@ snapshots:
     dependencies:
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
       c12: 1.11.1(magicast@0.3.4)
-      consola: 3.2.3
-      defu: 6.1.4
-      destr: 2.0.3
-      globby: 14.0.1
-      hash-sum: 2.0.0
-      ignore: 5.3.1
-      jiti: 1.21.6
-      klona: 2.0.6
-      knitwork: 1.1.0
-      mlly: 1.7.1
-      pathe: 1.1.2
-      pkg-types: 1.1.1
-      scule: 1.3.0
-      semver: 7.6.2
-      ufo: 1.5.3
-      unctx: 2.3.1
-      unimport: 3.7.2(rollup@4.16.4)
-      untyped: 1.4.2
-    transitivePeerDependencies:
-      - magicast
-      - rollup
-      - supports-color
-
-  '@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4)':
-    dependencies:
-      '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      c12: 1.11.1(magicast@0.3.5)
       consola: 3.2.3
       defu: 6.1.4
       destr: 2.0.3
@@ -21829,9 +21836,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/telemetry@2.5.4(magicast@0.3.5)(rollup@4.16.4)':
+  '@nuxt/telemetry@2.5.4(magicast@0.3.4)(rollup@4.16.4)':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       ci-info: 4.0.0
       consola: 3.2.3
       create-require: 1.1.1
@@ -21853,9 +21860,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/vite-builder@3.12.2(@types/node@20.14.11)(eslint@9.18.0(jiti@1.21.6))(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(vue@3.4.30(typescript@5.8.2))':
+  '@nuxt/vite-builder@3.12.2(@types/node@20.14.11)(eslint@9.18.0(jiti@1.21.6))(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.4)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(vue@3.4.30(typescript@5.8.2))':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@rollup/plugin-replace': 5.0.7(rollup@4.16.4)
       '@vitejs/plugin-vue': 5.0.5(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))(vue@3.4.30(typescript@5.8.2))
       '@vitejs/plugin-vue-jsx': 4.0.0(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))(vue@3.4.30(typescript@5.8.2))
@@ -26807,23 +26814,6 @@ snapshots:
       rc9: 2.1.2
     optionalDependencies:
       magicast: 0.3.4
-
-  c12@1.11.1(magicast@0.3.5):
-    dependencies:
-      chokidar: 3.6.0
-      confbox: 0.1.7
-      defu: 6.1.4
-      dotenv: 16.4.5
-      giget: 1.2.3
-      jiti: 1.21.6
-      mlly: 1.7.1
-      ohash: 1.1.3
-      pathe: 1.1.2
-      perfect-debounce: 1.0.0
-      pkg-types: 1.1.1
-      rc9: 2.1.2
-    optionalDependencies:
-      magicast: 0.3.5
 
   cac@6.7.14: {}
 
@@ -32424,7 +32414,7 @@ snapshots:
       picocolors: 1.0.1
       shell-quote: 1.8.1
 
-  launch-ide@1.0.6:
+  launch-ide@1.0.7:
     dependencies:
       chalk: 4.1.1
       dotenv: 16.4.5
@@ -33483,7 +33473,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5):
+  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.3
       '@netlify/functions': 2.8.0(@opentelemetry/api@1.9.0)
@@ -33498,7 +33488,7 @@ snapshots:
       '@types/http-proxy': 1.17.14
       '@vercel/nft': 0.26.5(encoding@0.1.13)
       archiver: 7.0.1
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chalk: 5.3.0
       chokidar: 3.6.0
       citty: 0.1.6
@@ -33809,20 +33799,20 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@20.14.11)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.18.0(jiti@1.21.6))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)):
+  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@20.14.11)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.18.0(jiti@1.21.6))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.4)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)):
     dependencies:
       '@nuxt/devalue': 2.0.2
       '@nuxt/devtools': 1.3.6(bufferutil@4.0.8)(rollup@4.16.4)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4))
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      '@nuxt/telemetry': 2.5.4(magicast@0.3.5)(rollup@4.16.4)
-      '@nuxt/vite-builder': 3.12.2(@types/node@20.14.11)(eslint@9.18.0(jiti@1.21.6))(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(vue@3.4.30(typescript@5.8.2))
+      '@nuxt/telemetry': 2.5.4(magicast@0.3.4)(rollup@4.16.4)
+      '@nuxt/vite-builder': 3.12.2(@types/node@20.14.11)(eslint@9.18.0(jiti@1.21.6))(less@4.2.0)(lightningcss@1.25.1)(magicast@0.3.4)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)(typescript@5.8.2)(vue@3.4.30(typescript@5.8.2))
       '@unhead/dom': 1.9.14
       '@unhead/ssr': 1.9.14
       '@unhead/vue': 1.9.14(vue@3.4.30(typescript@5.8.2))
       '@vue/shared': 3.4.30
       acorn: 8.12.0
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chokidar: 3.6.0
       cookie-es: 1.1.0
       defu: 6.1.4
@@ -33841,7 +33831,7 @@ snapshots:
       knitwork: 1.1.0
       magic-string: 0.30.10
       mlly: 1.7.1
-      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5)
+      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4)
       nuxi: 3.12.0
       nypm: 0.3.8
       ofetch: 1.3.4
@@ -39380,7 +39370,7 @@ snapshots:
       optionator: 0.9.4
       typescript: 5.8.2
 
-  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)):
+  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)):
     dependencies:
       '@antfu/utils': 0.7.8
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
@@ -39393,7 +39383,7 @@ snapshots:
       sirv: 2.0.4
       vite: 5.4.1(@types/node@20.14.11)(less@4.2.0)(lightningcss@1.25.1)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.41))(terser@5.30.4)
     optionalDependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
     transitivePeerDependencies:
       - rollup
       - supports-color

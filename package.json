@@ -37,7 +37,7 @@
     "fs-extra": "^10.0.0",
     "husky": "^8.0.3",
     "jsdom": "^25.0.1",
-    "launch-ide": "1.0.6",
+    "launch-ide": "1.0.7",
     "rimraf": "^5.0.5",
     "vitest": "^2.1.4",
     "zip-a-folder": "^3.1.7"
