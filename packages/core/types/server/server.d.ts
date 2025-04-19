@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import http from 'http';
-import { PathType, type CodeOptions, type RecordInfo } from '../shared';
+import type { PathType, CodeOptions, RecordInfo } from '../shared';
 export declare const ProjectRootPath: string;
 export declare function getRelativePath(filePath: string): string;
 export declare function getRelativeOrAbsolutePath(filePath: string, pathType?: PathType): string;
