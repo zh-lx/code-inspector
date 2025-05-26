@@ -3,6 +3,7 @@ import HelloWorld from './components/HelloWorld.vue';
 import Detail from './components/detail.jsx';
 import About from './components/about.[test].vue';
 import Pug from './components/pug.vue';
+import SrcTemp from './components/src-temp.vue';
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import Pug from './components/pug.vue';
     <About />
     <Detail />
     <Pug />
+    <SrcTemp />
     <a href="https://vitejs.dev" target="_blank">
       <img src="/vite.svg" class="logo" alt="Vite logo" />
     </a>

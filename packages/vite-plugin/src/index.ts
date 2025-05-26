@@ -30,8 +30,11 @@ export function ViteCodeInspectorPlugin(options: Options) {
     apply(_, { command }) {
       return !options.close && isDev(options.dev, command === 'serve');
     },
-    async transform(code, id) {
-      if (id.match('node_modules') || matchCondition(options.include || [], id)) {
+    async transform(code: string, id: string) {
+      if (
+        id.match('node_modules') ||
+        matchCondition(options.include || [], id)
+      ) {
         if (!matchCondition(options.include || [], id)) {
           return code;
         }
@@ -56,7 +59,6 @@ export function ViteCodeInspectorPlugin(options: Options) {
         return code;
       }
 
-
       let fileType = '';
       if (
         isJsTypeFile(filePath) ||
@@ -67,6 +69,13 @@ export function ViteCodeInspectorPlugin(options: Options) {
       ) {
         // jsx 代码
         fileType = 'jsx';
+      } else if (
+        filePath.endsWith('.html') &&
+        params.get('type') === 'template' &&
+        params.get('src') === 'true'
+      ) {
+        // <template src="xxx.html"></template>
+        fileType = 'vue';
       } else if (
         filePath.endsWith('.vue') &&
         params.get('type') !== 'style' &&
