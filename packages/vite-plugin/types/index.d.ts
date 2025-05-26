@@ -7,7 +7,7 @@ export declare function ViteCodeInspectorPlugin(options: Options): {
     apply(_: any, { command }: {
         command: any;
     }): boolean;
-    transform(code: any, id: any): Promise<any>;
+    transform(code: string, id: string): Promise<string>;
     transformIndexHtml(html: any): Promise<any>;
     enforce?: "pre";
     name: string;
