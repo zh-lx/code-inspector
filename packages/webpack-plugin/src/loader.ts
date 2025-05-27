@@ -11,7 +11,7 @@ const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 export default async function WebpackCodeInspectorLoader(content: string) {
   this.cacheable && this.cacheable(true);
   let filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
-  let params = new URLSearchParams(this.resource);
+  let params = new URLSearchParams(this.resource.split('?')?.[1] || '');
   const options = this.query;
   const { escapeTags = [], mappings } = options || {};
   filePath = getMappingFilePath(filePath, mappings);
@@ -68,7 +68,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   const isHtmlVue =
     filePath.endsWith('.html') &&
     params.get('type') === 'template' &&
-    this.resource.includes('vue');
+    params.has('vue');
   if (isVue || isHtmlVue) {
     return transformCode({
       content,
