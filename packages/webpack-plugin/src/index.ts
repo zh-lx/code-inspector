@@ -53,7 +53,18 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
     },
-    ...include.map(condition => {
+    {
+      test: options.match ?? /\.html$/,
+      resourceQuery: /vue/,
+      use: [
+        {
+          loader: path.resolve(compatibleDirname, `./loader.js`),
+          options,
+        },
+      ],
+      ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
+    },
+    ...include.map((condition) => {
       return {
         resource: {
           and: [condition, /\.(vue|jsx|tsx|js|ts|mjs|mts)$/],
@@ -65,7 +76,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
           },
         ],
         ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
-      }
+      };
     }),
     {
       ...(options.injectTo
@@ -90,14 +101,17 @@ interface Options extends CodeOptions {
   output: string;
 }
 
-function getPureClientCodeString(options: Options, record: RecordInfo): Promise<string> {
+function getPureClientCodeString(
+  options: Options,
+  record: RecordInfo
+): Promise<string> {
   return getCodeWithWebComponent({
     options: { ...options, importClient: 'code' },
     file: 'main.js',
     code: '',
     record,
     inject: true,
-  })
+  });
 }
 
 async function replaceHtml({

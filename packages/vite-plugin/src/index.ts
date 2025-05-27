@@ -50,10 +50,10 @@ export function ViteCodeInspectorPlugin(options: Options) {
 
       const { escapeTags = [], mappings } = options;
 
-      const [_completePath] = id.split('?', 2); // 当前文件的绝对路径
+      const [_completePath, query] = id.split('?', 2); // 当前文件的绝对路径
       let filePath = normalizePath(_completePath);
       filePath = getMappingFilePath(filePath, mappings);
-      const params = new URLSearchParams(id);
+      const params = new URLSearchParams(query);
       // 仅对符合正则的生效
       if (options.match && !options.match.test(filePath)) {
         return code;
@@ -72,7 +72,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
       } else if (
         filePath.endsWith('.html') &&
         params.get('type') === 'template' &&
-        params.get('src') === 'true'
+        params.has('vue')
       ) {
         // <template src="xxx.html"></template>
         fileType = 'vue';

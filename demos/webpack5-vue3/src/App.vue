@@ -4,11 +4,13 @@
   <div>{{ count }}</div>
   <HelloWorld msg="Welcome to Your Vue.js App" />
   <PugComponent />
+  <SrcTemp />
 </template>
 
 <script setup>
 import HelloWorld from './components/HelloWorld.vue';
 import PugComponent from './components/pug.vue';
+import SrcTemp from './components/src-temp.vue';
 import { ref } from 'vue';
 
 const count = ref({}?.ol?.kkk);
