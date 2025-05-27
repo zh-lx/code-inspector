@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.11
+
+- 【feat】支持了 `vue` 文件中通过 `<template src="xxx.html">` 的方式引入的 `html` 文件的源码定位 [#319](https://github.com/zh-lx/code-inspector/pull/319)、[#320](https://github.com/zh-lx/code-inspector/pull/320)
+
 ## 0.20.10
 
 - 【fix】兼容了使用了 typescript 和 less/scss 等语法的 svelte 代码 [#311](https://github.com/zh-lx/code-inspector/pull/311)

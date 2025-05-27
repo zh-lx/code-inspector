@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.11
+
+- 【feat】Support source code location for `<template src="xxx.html">` in `vue` files [#319](https://github.com/zh-lx/code-inspector/pull/319)、[#320](https://github.com/zh-lx/code-inspector/pull/320)
+
 ## 0.20.10
 
 - 【fix】Fixed compatibility with Svelte code using TypeScript and Less/SCSS [#311](https://github.com/zh-lx/code-inspector/pull/311)
