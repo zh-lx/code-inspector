@@ -65,7 +65,11 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     params.get('type') !== 'style' &&
     params.get('type') !== 'script' &&
     params.get('raw') === null;
-  if (isVue) {
+  const isHtmlVue =
+    filePath.endsWith('.html') &&
+    params.get('type') === 'template' &&
+    this.resource.includes('vue');
+  if (isVue || isHtmlVue) {
     return transformCode({
       content,
       filePath,
