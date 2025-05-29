@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.12
+
+- 【fix】Fixed the issue of building error in `vue` project using `pug` syntax [#321](https://github.com/zh-lx/code-inspector/pull/321)
+
 ## 0.20.11
 
 - 【feat】Support source code location for `<template src="xxx.html">` in `vue` files [#319](https://github.com/zh-lx/code-inspector/pull/319)、[#320](https://github.com/zh-lx/code-inspector/pull/320)

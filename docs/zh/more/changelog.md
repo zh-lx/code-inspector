@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.12
+
+- 【fix】修复了 `vue` 项目中使用 `pug` 语法部分场景构建错误的问题 [#321](https://github.com/zh-lx/code-inspector/pull/321)
+
 ## 0.20.11
 
 - 【feat】支持了 `vue` 文件中通过 `<template src="xxx.html">` 的方式引入的 `html` 文件的源码定位 [#319](https://github.com/zh-lx/code-inspector/pull/319)、[#320](https://github.com/zh-lx/code-inspector/pull/320)
