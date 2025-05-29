@@ -57,8 +57,9 @@ function transformPugAst(params: TransformPugParams) {
       transformPugAst({ ...params, node: childNode });
     });
   } else if (node.type === 'Tag') {
+    const lineOffset = templateNode.loc.start.line - 1;
     const nodeLocation = {
-      line: node.line,
+      line: node.line + lineOffset,
       column: (node as pug.TagNode).column,
     };
     const belongToTemplate = belongTemplate(
@@ -73,7 +74,7 @@ function transformPugAst(params: TransformPugParams) {
     ) {
       // 向 dom 上添加一个带有 filepath/row/column 的属性
       const { offsets, content } = pugMap.get(filePath) as PugFileInfo;
-      const offset = offsets[node.line - 1] + node.column - 1;
+      const offset = offsets[nodeLocation.line - 1] + nodeLocation.column - 1;
       let insertPosition = offset;
       // 以 node.name 开头
       if (node.name === content.slice(offset, offset + node.name.length)) {
@@ -84,16 +85,16 @@ function transformPugAst(params: TransformPugParams) {
           if (['class', 'id'].includes(attr.name) && !attr.mustEscape) {
             insertPosition =
               // @ts-ignore
-              offsets[attr.line - 1] + attr.column + (attr.val.length - 2);
+              offsets[attr.line + lineOffset - 1] + attr.column + (attr.val.length - 2);
           }
         }
       }
       if (content[insertPosition] === '(') {
         // 说明已有 attributes
-        const addition = `${PathName}="${filePath}:${node.line}:${node.column}:${node.name}", `;
+        const addition = `${PathName}="${filePath}:${nodeLocation.line}:${nodeLocation.column}:${node.name}", `;
         s.prependLeft(insertPosition + 1, addition);
       } else {
-        const addition = `(${PathName}="${filePath}:${node.line}:${node.column}:${node.name}")`;
+        const addition = `(${PathName}="${filePath}:${nodeLocation.line}:${nodeLocation.column}:${node.name}")`;
         s.prependLeft(insertPosition, addition);
       }
     }
