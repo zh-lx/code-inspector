@@ -33,7 +33,10 @@ export function getRelativePath(filePath: string): string {
 }
 
 // 根据用户配置返回绝对路径或者相对路径
-export function getRelativeOrAbsolutePath(filePath: string, pathType?: PathType) {
+export function getRelativeOrAbsolutePath(
+  filePath: string,
+  pathType?: PathType
+) {
   return pathType === 'relative' ? getRelativePath(filePath) : filePath;
 }
 
@@ -47,6 +50,16 @@ export function createServer(
     let file = decodeURIComponent(params.get('file') as string);
     if (ProjectRootPath && !path.isAbsolute(file)) {
       file = `${ProjectRootPath}/${file}`;
+    }
+    if (ProjectRootPath && !file.startsWith(ProjectRootPath)) {
+      res.writeHead(403, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Private-Network': 'true',
+      });
+      res.end('not allowed to open this file');
+      return;
     }
     const line = Number(params.get('line'));
     const column = Number(params.get('column'));
@@ -104,12 +117,12 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
           if (options.printServer) {
             console.log(
               chalk.blue(`[code-inspector-plugin] `) +
-              chalk.white(`Server is running on: `) +
-              chalk.green(
-                `http://${getIP(options.ip || 'localhost')}:${
-                  options.port ?? DefaultPort
-                }`
-              )
+                chalk.white(`Server is running on: `) +
+                chalk.green(
+                  `http://${getIP(options.ip || 'localhost')}:${
+                    options.port ?? DefaultPort
+                  }`
+                )
             );
           }
         }, options);
