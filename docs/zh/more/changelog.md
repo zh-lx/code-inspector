@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.13
+
+- 【fix】禁止打开不属于项目的文件 [#327](https://github.com/zh-lx/code-inspector/pull/327)
+
 ## 0.20.12
 
 - 【fix】修复了 `vue` 项目中使用 `pug` 语法部分场景构建错误的问题 [#321](https://github.com/zh-lx/code-inspector/pull/321)

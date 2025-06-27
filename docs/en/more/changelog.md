@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.13
+
+- 【fix】Forbid opening files outside the project [#327](https://github.com/zh-lx/code-inspector/pull/327)
+
 ## 0.20.12
 
 - 【fix】Fixed the issue of building error in `vue` project using `pug` syntax [#321](https://github.com/zh-lx/code-inspector/pull/321)
