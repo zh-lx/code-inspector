@@ -58,7 +58,7 @@ export function createServer(
         'Access-Control-Allow-Headers': '*',
         'Access-Control-Allow-Private-Network': 'true',
       });
-      res.end('Forbidden: file is not in the project root');
+      res.end('not allowed to open this file');
       return;
     }
     const line = Number(params.get('line'));
