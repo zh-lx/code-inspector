@@ -51,7 +51,11 @@ export function createServer(
     if (ProjectRootPath && !path.isAbsolute(file)) {
       file = `${ProjectRootPath}/${file}`;
     }
-    if (ProjectRootPath && !file.startsWith(ProjectRootPath)) {
+    if (
+      options?.pathType === 'relative' &&
+      ProjectRootPath &&
+      !file.startsWith(ProjectRootPath)
+    ) {
       res.writeHead(403, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
