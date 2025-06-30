@@ -28,6 +28,7 @@ export declare class CodeInspectorComponent extends LitElement {
     locate: boolean;
     copy: boolean | string;
     ip: string;
+    openInGit: boolean;
     position: {
         top: number;
         right: number;
@@ -94,6 +95,7 @@ export declare class CodeInspectorComponent extends LitElement {
     removeGlobalCursorStyle: () => void;
     sendXHR: () => void;
     sendImg: () => void;
+    handleOpenInGit(filePath: string, line?: number): void;
     trackCode: () => void;
     copyToClipboard(text: string): void;
     moveSwitch: (e: MouseEvent | TouchEvent) => void;

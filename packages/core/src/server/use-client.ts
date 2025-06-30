@@ -13,6 +13,7 @@ import {
   getDenpendencies,
   normalizePath,
 } from '../shared';
+import { getGitRemoteUrl, getCurrentBranch, getProjectRootPath } from '../shared/git-utils';
 
 let compatibleDirname = '';
 
@@ -33,6 +34,7 @@ export function getInjectedCode(options: CodeOptions, port: number) {
     code += getHidePathAttrCode();
   }
   code += getWebComponentCode(options, port);
+  code += injectGitCode(options);
   return `/* eslint-disable */\n` + code.replace(/\n/g, '');
 }
 
@@ -61,11 +63,34 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.ip = '${getIP(ip)}';
+      inspector.openInGit = !!${options.openInGit};
       document.documentElement.append(inspector);
     }
   }
 })();
 `;
+}
+
+// Add Git info to window if openInGit is enabled
+export function injectGitCode(options: CodeOptions) {
+  if (!options.openInGit) {
+    return '';
+  }
+
+  // Pre-compute Git values at build time
+  const gitRemoteUrl = getGitRemoteUrl();
+  const gitBranch = getCurrentBranch();
+  const projectRootPath = getProjectRootPath().replace(/\\/g, '\\\\');
+
+  return `
+  ;(function(){
+    if (typeof window !== 'undefined') {
+      window.CODE_INSPECTOR_GIT_URL = "${gitRemoteUrl}";
+      window.CODE_INSPECTOR_GIT_BRANCH = "${gitBranch}";
+      window.CODE_INSPECTOR_PROJECT_ROOT_PATH = "${projectRootPath}";
+    }
+  })();
+  `;
 }
 
 export function getEliminateWarningCode() {
@@ -194,7 +219,9 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
 }) {
   // start server
-  await startServer(options, record);
+  if (!options.openInGit) {
+    await startServer(options, record);
+  }
 
   recordInjectTo(record, options);
   recordEntry(record, file);
