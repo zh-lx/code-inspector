@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.14
+
+- 【fix】修复了微前端主子应用不在同一仓库下， `pathType` 为 `absoulte` 时也无法打开子应用源码的问题 [#329](https://github.com/zh-lx/code-inspector/pull/329)
+
 ## 0.20.13
 
 - 【fix】禁止打开不属于项目的文件 [#327](https://github.com/zh-lx/code-inspector/pull/327)

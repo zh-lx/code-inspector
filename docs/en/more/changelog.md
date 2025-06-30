@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.14
+
+- 【fix】Fixed the issue where the source code of the sub-application could not be opened when the main and sub-applications were not in the same repository and the `pathType` was `absolute` [#329](https://github.com/zh-lx/code-inspector/pull/329)
+
 ## 0.20.13
 
 - 【fix】Forbid opening files outside the project [#327](https://github.com/zh-lx/code-inspector/pull/327)
