@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.15
+
+- 【fix】修复了 `exclude` 参数在 vite 和 esbuild 中不生效的问题 [#331](https://github.com/zh-lx/code-inspector/pull/331)
+
 ## 0.20.14
 
 - 【fix】修复了微前端主子应用不在同一仓库下， `pathType` 为 `absoulte` 时也无法打开子应用源码的问题 [#329](https://github.com/zh-lx/code-inspector/pull/329)
