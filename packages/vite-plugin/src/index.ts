@@ -31,22 +31,23 @@ export function ViteCodeInspectorPlugin(options: Options) {
       return !options.close && isDev(options.dev, command === 'serve');
     },
     async transform(code: string, id: string) {
-      if (
-        id.match('node_modules') ||
-        matchCondition(options.include || [], id)
-      ) {
-        if (!matchCondition(options.include || [], id)) {
-          return code;
-        }
-      } else {
-        // start server and inject client code to entry file
-        code = await getCodeWithWebComponent({
-          options,
-          file: id,
-          code,
-          record,
-        });
+      let exclude = options.exclude || [];
+      if (!Array.isArray(exclude)) {
+        exclude = [exclude];
       }
+      const isExcluded = matchCondition([...exclude, /\/node_modules\//], id);
+      const isIncluded = matchCondition(options.include || [], id);
+
+      if (isExcluded && !isIncluded) {
+        return code;
+      }
+
+      code = await getCodeWithWebComponent({
+        options,
+        file: id,
+        code,
+        record,
+      });
 
       const { escapeTags = [], mappings } = options;
 

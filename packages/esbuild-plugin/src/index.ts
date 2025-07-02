@@ -50,21 +50,27 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
 
           // 文件首次编译或者发生修改
           if (!result || result.originCode !== originCode) {
-
             let code = originCode;
-            if (filePath.match('node_modules') || matchCondition(options.include || [], filePath)) {
-              if (!matchCondition(options.include || [], filePath)) {
-                return code;
-              }
-            } else {
-              // start server and inject client code to entry file
-              code = await getCodeWithWebComponent({
-                options,
-                file: filePath,
-                code,
-                record,
-              });
+            let exclude = options.exclude || [];
+            if (!Array.isArray(exclude)) {
+              exclude = [exclude];
             }
+            const isExcluded = matchCondition(
+              [...exclude, /\/node_modules\//],
+              filePath
+            );
+            const isIncluded = matchCondition(options.include || [], filePath);
+
+            if (isExcluded && !isIncluded) {
+              return code;
+            }
+
+            code = await getCodeWithWebComponent({
+              options,
+              file: filePath,
+              code,
+              record,
+            });
 
             let fileType = '';
             if (isJsTypeFile(filePath)) {
@@ -95,7 +101,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
                 pathType: options.pathType,
               });
               code = code.replace(descriptor.template.content, templateContent);
-            } 
+            }
 
             const ext = path.extname(filePath).replace('.', '');
             result = { originCode, output: { contents: code, loader: ext } };
