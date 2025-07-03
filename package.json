@@ -28,7 +28,8 @@
     "version:minor": "node ./scripts/version minor",
     "version:patch": "node ./scripts/version patch",
     "version:prod": "node ./scripts/version prod",
-    "version:beta": "node ./scripts/version beta"
+    "version:beta": "node ./scripts/version beta",
+    "postinstall": "pnpm build"
   },
   "private": true,
   "main": "index.js",
