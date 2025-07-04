@@ -331,3 +331,7 @@ For Chinese users, you can join the QQ group `769748484` or add the author's Wei
 ## 💖 Sponsor
 
 Sponsoring this project can help the author create better. If you are willing, thanks for sponsoring me through [here](https://inspector.fe-dev.cn/en/more/sponsor.html).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zh-lx/code-inspector&type=Date)](https://www.star-history.com/#zh-lx/code-inspector&Date)
