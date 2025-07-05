@@ -63,6 +63,8 @@ export class CodeInspectorComponent extends LitElement {
   copy: boolean | string = false;
   @property()
   ip: string = 'localhost';
+  @property()
+  openInGit: boolean = false;
 
   @state()
   position = {
@@ -297,9 +299,45 @@ export class CodeInspectorComponent extends LitElement {
     img.src = url;
   };
 
+  handleOpenInGit(filePath: string, line?: number) {
+    // Get Git info from window
+    const gitUrl = (window as any).CODE_INSPECTOR_GIT_URL;
+    const gitBranch = (window as any).CODE_INSPECTOR_GIT_BRANCH;
+    const projectRootPath = (window as any).CODE_INSPECTOR_PROJECT_ROOT_PATH;
+    
+    if (!gitUrl || !projectRootPath) {
+      console.error('Git information not available');
+      return;
+    }
+    
+    // Convert absolute path to relative path
+    let relativePath = filePath;
+    if (filePath.startsWith(projectRootPath)) {
+      relativePath = filePath.substring(projectRootPath.length + 1); // +1 for the trailing slash
+    }
+    const encodedRelativePath = relativePath.split('/').map(segment => encodeURIComponent(segment)).join('/');
+
+    // Build Git URL
+    let url = `${gitUrl}/blob/${gitBranch}/${encodedRelativePath}`;
+    
+    // Add line if available
+    if (line) {
+      url += `#L${line}`;
+    }
+    
+    // Open in new tab
+    window.open(url, '_blank');
+  }
+
   // 请求本地服务端，打开vscode
   trackCode = () => {
-    if (this.locate) {
+    if ((window as any).CODE_INSPECTOR_GIT_URL && this.openInGit) {
+      // Open in Git
+      this.handleOpenInGit(
+        this.element.path,
+        this.element.line
+      );
+    } else if (this.locate) {
       if (this.sendType === 'xhr') {
         this.sendXHR();
       } else {

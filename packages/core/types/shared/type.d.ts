@@ -154,5 +154,10 @@ export type CodeOptions = {
      * @en The type of path injected into the DOM, the default value is `absolute`, which means the path is relative to the project root directory
      */
     pathType?: PathType;
+    /**
+     * @zh 是否在 Git 远端中打开文件而不是本地 IDE
+     * @en Whether to open files in Git remote instead of local IDE
+     */
+    openInGit?: boolean;
 };
 export {};
