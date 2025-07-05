@@ -1,4 +1,19 @@
 packages:
-  - 'packages/*'
-  - 'demos/*'
-  - 'docs/*'
+  - packages/*
+  - demos/*
+  - docs/*
+onlyBuiltDependencies:
+  - '@swc/core'
+  - bufferutil
+  - core-js
+  - core-js-pure
+  - ejs
+  - esbuild
+  - fsevents
+  - protobufjs
+  - sharp
+  - styled-components
+  - svelte-preprocess
+  - utf-8-validate
+  - vue-demi
+  - yorkie
