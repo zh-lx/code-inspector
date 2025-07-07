@@ -115,5 +115,22 @@ export function ViteCodeInspectorPlugin(options: Options) {
         `<head><script type="module">\n${code}\n</script>`
       );
     },
+    config(config) {
+      // The "name" field for @vitejs/plugin-react and @vitejs/plugin-react-swc respectively
+      const reactPluginNames = ['vite:react', 'vite:react-swc'];
+
+      const plugins = config.plugins ?? [];
+      const selfIndex = plugins.findIndex(p => p?.name === PluginName);
+
+      const reactIndex = plugins.findIndex(p => reactPluginNames.includes(p?.name));
+
+      if (selfIndex > -1 && reactIndex > -1 && selfIndex > reactIndex) {
+        // Move self before react
+        const [selfPlugin] = plugins.splice(selfIndex, 1);
+        plugins.splice(reactIndex, 0, selfPlugin);
+      }
+
+      config.plugins = plugins;
+    },
   };
 }
