@@ -31,28 +31,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
   const rules = module?.rules || module?.loaders || [];
-  // 处理 include 配置
-  let include = options.include || [];
-  if (!Array.isArray(include)) {
-    include = [include];
-  }
-  // 处理 exclude 配置
-  let exclude = options.exclude || [];
-  if (!Array.isArray(exclude)) {
-    exclude = [exclude];
-  }
   rules.push(
-    {
-      test: options.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts)$/,
-      exclude: [...exclude, /node_modules/],
-      use: [
-        {
-          loader: path.resolve(compatibleDirname, `./loader.js`),
-          options,
-        },
-      ],
-      ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
-    },
     {
       test: options.match ?? /\.html$/,
       resourceQuery: /vue/,
@@ -64,20 +43,16 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
     },
-    ...include.map((condition) => {
-      return {
-        resource: {
-          and: [condition, /\.(vue|jsx|tsx|js|ts|mjs|mts)$/],
+    {
+      test: /\.(vue|jsx|tsx|js|ts|mjs|mts|svelte)$/,
+      use: [
+        {
+          loader: path.resolve(compatibleDirname, `./loader.js`),
+          options,
         },
-        use: [
-          {
-            loader: path.resolve(compatibleDirname, `./loader.js`),
-            options,
-          },
-        ],
-        ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
-      };
-    }),
+      ],
+      ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
+    },
     {
       ...(options.injectTo
         ? { resource: options.injectTo }
