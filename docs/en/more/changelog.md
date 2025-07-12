@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.16
+
+- 【perf】Support identifying the user's currently active IDE via PID [#340](https://github.com/zh-lx/code-inspector/pull/340)
+- 【feat】Add recognition support for the `Comate` code editor [#340](https://github.com/zh-lx/code-inspector/pull/340)
+- 【fix】Resolve inconsistent behavior of the `exclude` parameter between `webpack/rspack` and `vite/esbuild` configurations [#339](https://github.com/zh-lx/code-inspector/pull/339)
+
 ## 0.20.15
 
 - 【fix】Fixed the issue where the `exclude` parameter did not work in `vite` and `esbuild` [#331](https://github.com/zh-lx/code-inspector/pull/331)

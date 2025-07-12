@@ -1,5 +1,11 @@
 # 更新日志
 
+## 0.20.16
+
+- 【perf】支持通过 PID 识别用户当前使用的 IDE [#340](https://github.com/zh-lx/code-inspector/pull/340)
+- 【feat】支持 `Comate` 编辑器的识别 [#340](https://github.com/zh-lx/code-inspector/pull/340)
+- 【fix】修复了 `exclude` 参数在 `webpack/rspack` 中的表现与 `vite/esbuild` 中表现不一致的问题 [#339](https://github.com/zh-lx/code-inspector/pull/339)
+
 ## 0.20.15
 
 - 【fix】修复了 `exclude` 参数在 vite 和 esbuild 中不生效的问题 [#331](https://github.com/zh-lx/code-inspector/pull/331)
