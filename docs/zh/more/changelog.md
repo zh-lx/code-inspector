@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.20.17
+
+- 【feat】增加 `behavior.target` 参数支持自定义跳转路径 [#342](https://github.com/zh-lx/code-inspector/pull/342)
+
 ## 0.20.16
 
 - 【perf】支持通过 PID 识别用户当前使用的 IDE [#340](https://github.com/zh-lx/code-inspector/pull/340)

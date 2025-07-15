@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.17
+
+- 【feat】Add the `behavior.target` parameter to support custom jump paths [#342](https://github.com/zh-lx/code-inspector/pull/342)
+
 ## 0.20.16
 
 - 【perf】Support identifying the user's currently active IDE via PID [#340](https://github.com/zh-lx/code-inspector/pull/340)
