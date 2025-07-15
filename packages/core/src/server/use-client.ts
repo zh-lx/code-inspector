@@ -130,7 +130,11 @@ export function getHidePathAttrCode() {
 
 // normal entry file
 function recordEntry(record: RecordInfo, file: string) {
-  if (!record.entry && isJsTypeFile(file) && !isNextjsInstrumentationFile(file)) {
+  if (
+    !record.entry &&
+    isJsTypeFile(file) &&
+    !isNextjsInstrumentationFile(file)
+  ) {
     // exclude svelte kit server entry file
     if (file.includes('/.svelte-kit/')) {
       return;
@@ -177,7 +181,7 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
         );
       }
     });
-    record.injectTo = (injectTo || []).map(file => normalizePath(file));
+    record.injectTo = (injectTo || []).map((file) => normalizePath(file));
   }
 }
 
@@ -195,7 +199,7 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
 }) {
   // start server
-  if (!options.disableServer) {
+  if (options.behavior?.locate !== false) {
     await startServer(options, record);
   }
 
@@ -256,5 +260,8 @@ function isNextjsProject() {
 }
 
 function isNextjsInstrumentationFile(file: string) {
-  return isNextjsProject() && getFilePathWithoutExt(file).endsWith('/instrumentation');
+  return (
+    isNextjsProject() &&
+    getFilePathWithoutExt(file).endsWith('/instrumentation')
+  );
 }

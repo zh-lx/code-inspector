@@ -205,9 +205,3 @@
 - 可选项
 - 类型：`boolean`，默认为 `false`
 - 说明：此选项仅对 `webpack/rspack` 且缓存类型为 `filesystem` 的项目生效，主要是为了防止页面和 IDE 通信时请求的端口号不一致而导致通信失败的问题。默认为 `false`，每次冷启动都不使用缓存；设置为 `true` 则使用缓存(设置为 `true` 时建议同时设置 `port` 为某一个固定的端口号)。
-
-## disableServer
-
-- 可选项
-- 类型：`boolean`，默认为 `false`
-- 说明：禁用本地服务。设置为 `true` 后，将不启动用于“点击跳转到 IDE”的本地服务。因此，`behavior` 配置项中的 `locate` 选项将失效，仅 `copy` 和 `target` 选项可用。

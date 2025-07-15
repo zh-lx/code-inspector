@@ -29,7 +29,6 @@ export declare class CodeInspectorComponent extends LitElement {
     copy: boolean | string;
     target: string;
     ip: string;
-    disableServer: boolean;
     position: {
         top: number;
         right: number;
