@@ -155,10 +155,5 @@ export type CodeOptions = {
      * @en The type of path injected into the DOM, the default value is `absolute`, which means the path is relative to the project root directory
      */
     pathType?: PathType;
-    /**
-     * @zh 不启动 server，可以在 behavior 中配置页面上触发功能时的操作 （copy 或 target；locate 用于跳转 IDE，不启动服务时将不生效）
-     * @en Do not start the server, and can configure the behavior of the page when the feature is triggered in `behavior` (`copy` or `target`; locate is used to jump to IDE, and it will not work when the disable server)
-     */
-    disableServer?: boolean;
 };
 export {};

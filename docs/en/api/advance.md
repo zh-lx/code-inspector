@@ -202,8 +202,3 @@ Below are configurations for some non-standard scenarios.
 - Type: `boolean`, default value is `false`
 - Description: This option only works for `webpack/rspack` projects with `filesystem` cache type. It's mainly used to prevent communication failures between the page and IDE due to inconsistent port numbers. Defaults to `false`, meaning no cache is used on each cold start; when set to `true`, caching will be enabled (when setting to `true`, it's recommended to also set `port` to a fixed port number).
 
-## disableServer
-
-- Optional
-- Type: `boolean`, default value is `false`
-- Description: Whether to disable the local server. Defaults to `false`. Set to `true` to prevent the local server from starting. This is useful when you only need the `copy` or `target` behaviors and not the `locate` (open in IDE) functionality.
