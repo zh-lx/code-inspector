@@ -18,6 +18,11 @@ Below are configurations for some non-standard scenarios.
      * Default value true is equivalent to the string format "{file}:{line}:{column}"
      */
     copy?: boolean | string;
+    /**
+     * Clicking elements will jump to the specified url.
+     * String type, can use {file}, {line}, {column} templates to replace code location information.
+     */
+    target?: string;
   };
   ```
 - Description: In some scenarios, if you don't need to locate code when clicking elements and only need to copy the source code location information, you can set `locate: false` and `copy: true`. In this case, clicking elements will only copy the source code location information.
@@ -196,3 +201,9 @@ Below are configurations for some non-standard scenarios.
 - Optional
 - Type: `boolean`, default value is `false`
 - Description: This option only works for `webpack/rspack` projects with `filesystem` cache type. It's mainly used to prevent communication failures between the page and IDE due to inconsistent port numbers. Defaults to `false`, meaning no cache is used on each cold start; when set to `true`, caching will be enabled (when setting to `true`, it's recommended to also set `port` to a fixed port number).
+
+## disableServer
+
+- Optional
+- Type: `boolean`, default value is `false`
+- Description: Whether to disable the local server. Defaults to `false`. Set to `true` to prevent the local server from starting. This is useful when you only need the `copy` or `target` behaviors and not the `locate` (open in IDE) functionality.

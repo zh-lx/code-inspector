@@ -62,11 +62,11 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   copy: boolean | string = false;
   @property()
+  target: string = '';
+  @property()
   ip: string = 'localhost';
   @property()
   disableServer: boolean = false;
-  @property()
-  clientHandler?: (codeInfo: { file: string; line: number; column: number }) => void;
 
   @state()
   position = {
@@ -301,17 +301,30 @@ export class CodeInspectorComponent extends LitElement {
     img.src = url;
   };
 
-  // 请求本地服务端，打开vscode
+  
+  buildTargetUrl = () => {
+    const { path, line, column } = this.element;
+    const replacements: Record<string, string | number> = {
+      "{file}": path,
+      "{line}": line,
+      "{column}": column,
+    };
+
+    const targetUrl = this.target.replace(
+      /\{file\}|\{line\}|\{column\}/g,
+      (matched) => String(replacements[matched])
+    );
+    return targetUrl;
+  };
+
+  // 触发功能的处理
   trackCode = () => {
-    if (this.clientHandler) {
-      this.clientHandler({
-        file: this.element.path,
-        line: this.element.line,
-        column: this.element.column,
-      });
+    if (this.target) {
+      window.open(this.buildTargetUrl(), "_blank");
     }
     if (this.locate && !this.disableServer) {
-      if (this.sendType === 'xhr') {
+      // 请求本地服务端，打开vscode
+      if (this.sendType === "xhr") {
         this.sendXHR();
       } else {
         this.sendImg();

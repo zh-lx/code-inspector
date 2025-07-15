@@ -44,9 +44,8 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     autoToggle = true,
     behavior = {},
     ip = false,
-    clientHandler,
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false } = behavior;
+  const { locate = true, copy = false, target = '' } = behavior;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -61,8 +60,8 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.target = '${target}';
       inspector.ip = '${getIP(ip)}';
-      inspector.clientHandler = ${clientHandler};
       document.documentElement.append(inspector);
     }
   }
