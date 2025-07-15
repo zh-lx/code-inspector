@@ -28,6 +28,12 @@ export declare class CodeInspectorComponent extends LitElement {
     locate: boolean;
     copy: boolean | string;
     ip: string;
+    disableServer: boolean;
+    clientHandler?: (codeInfo: {
+        file: string;
+        line: number;
+        column: number;
+    }) => void;
     position: {
         top: number;
         right: number;

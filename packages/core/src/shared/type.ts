@@ -21,7 +21,7 @@ type SourceInfo = {
   file: string;
   line: number;
   column: number;
-}
+};
 
 export type EscapeTags = (string | RegExp)[];
 
@@ -31,7 +31,7 @@ export type Hooks = {
    * @en The hook triggered when the server receives a request to locate the DOM source code.
    */
   afterInspectRequest?: (options: CodeOptions, source: SourceInfo) => void;
-}
+};
 
 export type Condition = string | RegExp | (string | RegExp)[];
 
@@ -157,4 +157,18 @@ export type CodeOptions = {
    * @en The type of path injected into the DOM, the default value is `absolute`, which means the path is relative to the project root directory
    */
   pathType?: PathType;
+    /**
+     * @zh 不启动 server，需要通过自定义 clientHandler 处理页面上触发功能时的后续操作
+     * @en Do not start the server, and need to customize clientHandler to handle the subsequent operations when the feature is triggered
+     */
+    disableServer?: boolean;
+    /**
+     * @zh 自定义 clientHandler 处理页面上触发功能时的回调
+     * @en Customize clientHandler when the feature is triggered on the page
+     */
+    clientHandler?: (codeInfo: {
+        file: string;
+        line: number;
+        column: number;
+    }) => void;
 };

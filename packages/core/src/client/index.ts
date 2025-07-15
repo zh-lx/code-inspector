@@ -63,6 +63,10 @@ export class CodeInspectorComponent extends LitElement {
   copy: boolean | string = false;
   @property()
   ip: string = 'localhost';
+  @property()
+  disableServer: boolean = false;
+  @property()
+  clientHandler?: (codeInfo: { file: string; line: number; column: number }) => void;
 
   @state()
   position = {
@@ -299,7 +303,14 @@ export class CodeInspectorComponent extends LitElement {
 
   // 请求本地服务端，打开vscode
   trackCode = () => {
-    if (this.locate) {
+    if (this.clientHandler) {
+      this.clientHandler({
+        file: this.element.path,
+        line: this.element.line,
+        column: this.element.column,
+      });
+    }
+    if (this.locate && !this.disableServer) {
       if (this.sendType === 'xhr') {
         this.sendXHR();
       } else {

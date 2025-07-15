@@ -44,6 +44,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     autoToggle = true,
     behavior = {},
     ip = false,
+    clientHandler,
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false } = behavior;
   return `
@@ -61,6 +62,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.ip = '${getIP(ip)}';
+      inspector.clientHandler = ${clientHandler};
       document.documentElement.append(inspector);
     }
   }
@@ -194,7 +196,9 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
 }) {
   // start server
-  await startServer(options, record);
+  if (!options.disableServer) {
+    await startServer(options, record);
+  }
 
   recordInjectTo(record, options);
   recordEntry(record, file);
