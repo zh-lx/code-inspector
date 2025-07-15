@@ -45,7 +45,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     behavior = {},
     ip = false,
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false } = behavior;
+  const { locate = true, copy = false, target = '' } = behavior;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -60,6 +60,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.target = '${target}';
       inspector.ip = '${getIP(ip)}';
       document.documentElement.append(inspector);
     }
@@ -129,7 +130,11 @@ export function getHidePathAttrCode() {
 
 // normal entry file
 function recordEntry(record: RecordInfo, file: string) {
-  if (!record.entry && isJsTypeFile(file) && !isNextjsInstrumentationFile(file)) {
+  if (
+    !record.entry &&
+    isJsTypeFile(file) &&
+    !isNextjsInstrumentationFile(file)
+  ) {
     // exclude svelte kit server entry file
     if (file.includes('/.svelte-kit/')) {
       return;
@@ -176,7 +181,7 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
         );
       }
     });
-    record.injectTo = (injectTo || []).map(file => normalizePath(file));
+    record.injectTo = (injectTo || []).map((file) => normalizePath(file));
   }
 }
 
@@ -194,7 +199,9 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
 }) {
   // start server
-  await startServer(options, record);
+  if (options.behavior?.locate !== false) {
+    await startServer(options, record);
+  }
 
   recordInjectTo(record, options);
   recordEntry(record, file);
@@ -253,5 +260,8 @@ function isNextjsProject() {
 }
 
 function isNextjsInstrumentationFile(file: string) {
-  return isNextjsProject() && getFilePathWithoutExt(file).endsWith('/instrumentation');
+  return (
+    isNextjsProject() &&
+    getFilePathWithoutExt(file).endsWith('/instrumentation')
+  );
 }

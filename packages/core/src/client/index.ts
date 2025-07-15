@@ -62,6 +62,8 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   copy: boolean | string = false;
   @property()
+  target: string = '';
+  @property()
   ip: string = 'localhost';
 
   @state()
@@ -302,9 +304,29 @@ export class CodeInspectorComponent extends LitElement {
     img.src = url;
   };
 
-  // 请求本地服务端，打开vscode
+  buildTargetUrl = () => {
+    let targetUrl = this.target;
+
+    const { path, line, column } = this.element;
+    const replacementMap: Record<string, string | number> = {
+      '{file}': path,
+      '{line}': line,
+      '{column}': column,
+    };
+    for (let replacement in replacementMap) {
+      targetUrl = targetUrl.replace(
+        new RegExp(replacement, 'g'),
+        String(replacementMap[replacement])
+      );
+    }
+
+    return targetUrl;
+  };
+
+  // 触发功能的处理
   trackCode = () => {
     if (this.locate) {
+      // 请求本地服务端，打开vscode
       if (this.sendType === 'xhr') {
         this.sendXHR();
       } else {
@@ -319,6 +341,9 @@ export class CodeInspectorComponent extends LitElement {
         this.copy
       );
       this.copyToClipboard(path[0]);
+    }
+    if (this.target) {
+      window.open(this.buildTargetUrl(), '_blank');
     }
   };
 

@@ -3,6 +3,7 @@ export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
+    target?: string;
 };
 export type RecordInfo = {
     port: number;

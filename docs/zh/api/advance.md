@@ -18,6 +18,11 @@
      * 默认值 true 相当于 "{file}:{line}:{column}" 的字符串格式
      */
     copy?: boolean | string;
+    /**
+     * 点击元素时触发跳转指定 url。
+     * 字符串类型，可通过 {file}、{line}、{column} 模版代替源码位置信息，跳转前会将模板替换为对应的值
+     */
+    target?: string;
   };
   ```
 - 说明：在某些场景下，如果你在点击元素时不需要定位代码，仅需要复制元素的源码位置信息，则可以设置 `locate: false` 和 `copy: true`，此时点击元素仅会复制源码位置信息。

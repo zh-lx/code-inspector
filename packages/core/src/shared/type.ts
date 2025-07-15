@@ -4,7 +4,8 @@ export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 export type Behavior = {
   locate?: boolean;
   copy?: boolean | string;
-}
+  target?: string;
+};
 export type RecordInfo = {
   port: number;
   entry: string;
@@ -21,7 +22,7 @@ type SourceInfo = {
   file: string;
   line: number;
   column: number;
-}
+};
 
 export type EscapeTags = (string | RegExp)[];
 
@@ -31,7 +32,7 @@ export type Hooks = {
    * @en The hook triggered when the server receives a request to locate the DOM source code.
    */
   afterInspectRequest?: (options: CodeOptions, source: SourceInfo) => void;
-}
+};
 
 export type Condition = string | RegExp | (string | RegExp)[];
 
@@ -89,7 +90,7 @@ export type CodeOptions = {
   match?: RegExp;
   /**
    * @cn 功能触发时的行为
-   * @en The behavior 
+   * @en The behavior
    */
   behavior?: Behavior;
   /**
@@ -141,7 +142,9 @@ export type CodeOptions = {
    * @zh 用于映射文件路径，多用于将 node_modules 中的文件路径映射为项目中的文件路径
    * @en Used to map file paths, often used to map the file path in `node_modules` to the file path in the project
    */
-  mappings?: Record<string, string> | Array<{ find: string | RegExp, replacement: string }>;
+  mappings?:
+    | Record<string, string>
+    | Array<{ find: string | RegExp; replacement: string }>;
   /**
    * @zh 支持从指定端口开始寻找可用端口（默认从 5678 开始）
    * @en Supports finding available ports starting from a specified port (default starts from 5678).
