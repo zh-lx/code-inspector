@@ -463,7 +463,7 @@ export class CodeInspectorComponent extends LitElement {
       const nodePath = e.composedPath() as HTMLElement[];
       const nodeTree = this.generateNodeTree(nodePath);
 
-      this.renderLayerPanel(nodeTree, { x: e.pageX, y: e.pageY });
+      this.renderLayerPanel(nodeTree, { x: e.clientX, y: e.clientY });
     }
   };
 
