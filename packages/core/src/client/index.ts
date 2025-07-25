@@ -296,7 +296,7 @@ export class CodeInspectorComponent extends LitElement {
     ];
 
     // 检查位置是否超出屏幕
-    const isOutOfScreen = (pos: any) => {
+    const isOutOfScreen = (pos: { left: number; top: number }) => {
       return (
         pos.left < 0 ||
         pos.left + width > browserWidth ||
@@ -685,7 +685,7 @@ export class CodeInspectorComponent extends LitElement {
     let root: TreeNode;
 
     let depth = 1;
-    let preNode = null;
+    let preNode;
 
     for (const element of nodePath.reverse()) {
       const sourceInfo = this.getSourceInfo(element);
@@ -832,9 +832,8 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   handleMouseEnterNode = async (e: MouseEvent, node: TreeNode) => {
-    const { x, y, width, height } = (
-      e.target as HTMLDivElement
-    )?.getBoundingClientRect();
+    const { x, y, width, height } =
+      (e.target as HTMLDivElement)!.getBoundingClientRect();
     this.activeNode = {
       width: width - 16 + 'px',
       left: x + 8 + 'px',
@@ -848,7 +847,7 @@ export class CodeInspectorComponent extends LitElement {
     this.renderCover(node.element);
 
     await nextTick();
-    const { y: tooltipY } = this.nodeTreeTooltipRef?.getBoundingClientRect();
+    const { y: tooltipY } = this.nodeTreeTooltipRef!.getBoundingClientRect();
     if (tooltipY < 0) {
       this.activeNode = {
         ...this.activeNode,
