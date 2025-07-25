@@ -1,10 +1,12 @@
-import { LitElement, css, html } from 'lit';
+import { LitElement, TemplateResult, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
 import { formatOpenPath } from 'launch-ide';
 
 const styleId = '__code-inspector-unique-id';
+const AstroFile = 'data-astro-source-file';
+const AstroLocation = 'data-astro-source-loc';
 
 const MacHotKeyMap = {
   ctrlKey: '^control',
@@ -24,26 +26,53 @@ interface CodeInspectorHtmlElement extends HTMLElement {
   'data-insp-path': string;
 }
 
-interface NodeParseResultTracked {
-  isTrackNode: true;
-  isAstroNode: boolean;
-  originNode: HTMLElement;
-  name: string;
-  path: string;
-  line: number;
-  rect: string;
-  column: number;
-}
-interface NodeParseResultUntracked {
-  isTrackNode: false;
-}
-type NodeParseResult = NodeParseResultTracked | NodeParseResultUntracked;
-
-interface LayerPosition {
+interface Position {
   left?: string;
   right?: string;
   top?: string;
   bottom?: string;
+  transform?: string;
+  maxHeight?: string;
+}
+
+interface SourceInfo {
+  name: string; // tagName
+  path: string;
+  line: number;
+  column: number;
+}
+
+interface ElementTipStyle {
+  vertical: string;
+  horizon: string;
+  visibility: string;
+  additionStyle?: {
+    transform: string;
+  };
+}
+
+interface TreeNode extends SourceInfo {
+  children: TreeNode[];
+  element: HTMLElement;
+  depth: number;
+}
+
+interface ActiveNode {
+  top?: string;
+  bottom?: string;
+  left?: string;
+  width?: string;
+  content?: string;
+  visibility?: 'visible' | 'hidden';
+  class?: 'tooltip-top' | 'tooltip-bottom';
+}
+
+const PopperWidth = 300;
+
+function nextTick() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(resolve);
+  });
 }
 
 export class CodeInspectorComponent extends LitElement {
@@ -94,21 +123,25 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   element = { name: '', line: 0, column: 0, path: '' }; // 选中节点信息
   @state()
-  infoClassName = { vertical: '', horizon: '' }; // 信息浮块位置类名
-  @state()
-  infoWidth = '300px';
+  elementTipStyle: ElementTipStyle = {
+    vertical: '',
+    horizon: '',
+    visibility: '',
+  }; // 信息浮块位置类名
   @state()
   show = false; // 是否展示
   @state()
-  showLayerPanel = false; // 是否展示图层面板
+  showNodeTree = false; // 是否展示图层面板
   @state()
-  layerPanelPosition: LayerPosition = {}; // 图层面板位置
+  nodeTreePosition: Position = {}; // 图层面板位置
   @state()
-  elementTree: any[] = []; // 节点树
+  nodeTree: TreeNode | null = null; // 节点树
   @state()
   dragging = false; // 是否正在拖拽中
   @state()
   mousePosition = { baseX: 0, baseY: 0, moveX: 0, moveY: 0 };
+  @state()
+  draggingTarget: 'switch' | 'nodeTree' = 'switch'; // 是否正在拖拽节点树
   @state()
   open = false; // 点击开关打开
   @state()
@@ -119,12 +152,23 @@ export class CodeInspectorComponent extends LitElement {
   preUserSelect = '';
   @state()
   sendType: 'xhr' | 'img' = 'xhr';
+  @state()
+  activeNode: ActiveNode = {};
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
 
-  @query('#inspector-layers')
-  inspectorLayersRef!: HTMLDivElement;
+  @query('#code-inspector-container')
+  codeInspectorContainerRef!: HTMLDivElement;
+  @query('#element-info')
+  elementInfoRef!: HTMLDivElement;
+  @query('#inspector-node-tree')
+  nodeTreeRef!: HTMLDivElement;
+
+  @query('.inspector-layer-title')
+  nodeTreeTitleRef!: HTMLDivElement;
+  @query('#node-tree-tooltip')
+  nodeTreeTooltipRef!: HTMLDivElement;
 
   isTracking = (e: any) => {
     return (
@@ -138,8 +182,160 @@ export class CodeInspectorComponent extends LitElement {
     return Number(computedStyle.getPropertyValue(property).replace('px', ''));
   };
 
+  // 计算 element-info 的最佳位置
+  calculateElementInfoPosition = async (target: HTMLElement) => {
+    const { top, right, bottom, left } = target.getBoundingClientRect();
+    const browserHeight = document.documentElement.clientHeight;
+    const browserWidth = document.documentElement.clientWidth;
+    const marginTop = this.getDomPropertyValue(target, 'margin-top');
+    const marginRight = this.getDomPropertyValue(target, 'margin-right');
+    const marginBottom = this.getDomPropertyValue(target, 'margin-bottom');
+    const marginLeft = this.getDomPropertyValue(target, 'margin-left');
+
+    await nextTick();
+
+    const { width, height } = this.elementInfoRef.getBoundingClientRect();
+
+    // 容器的实际边界（包含 margin）
+    const containerTop = top - marginTop;
+    const containerRight = right + marginRight;
+    const containerBottom = bottom + marginBottom;
+    const containerLeft = left - marginLeft;
+
+    // 定义八个位置的计算方法
+    const positions = [
+      // 外部位置
+      {
+        // 右下方(外部)
+        vertical: 'element-info-bottom',
+        horizon: 'element-info-right',
+        top: containerBottom,
+        left: containerLeft,
+        isExternal: true,
+      },
+      {
+        // 左下方(外部)
+        vertical: 'element-info-bottom',
+        horizon: 'element-info-left',
+        top: containerBottom,
+        left: containerRight - width,
+        isExternal: true,
+      },
+      {
+        // 右上方(外部)
+        vertical: 'element-info-top',
+        horizon: 'element-info-right',
+        top: containerTop - height,
+        left: containerLeft,
+        isExternal: true,
+      },
+      {
+        // 左上方(外部)
+        vertical: 'element-info-top',
+        horizon: 'element-info-left',
+        top: containerTop - height,
+        left: containerRight - width,
+        isExternal: true,
+      },
+      // 内部位置
+      {
+        // 右下方(内部)
+        vertical: 'element-info-bottom-inner',
+        horizon: 'element-info-right',
+        top: containerBottom - height,
+        left: containerLeft,
+        isExternal: false,
+      },
+      {
+        // 左下方(内部)
+        vertical: 'element-info-bottom-inner',
+        horizon: 'element-info-left',
+        top: containerBottom - height,
+        left: containerRight - width,
+        isExternal: false,
+      },
+      {
+        // 右上方(内部)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-right',
+        top: containerTop,
+        left: containerLeft,
+        isExternal: false,
+      },
+      {
+        // 左上方(内部)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-left',
+        top: containerTop,
+        left: containerRight - width,
+        isExternal: false,
+      },
+      // 超出屏幕
+      {
+        // 左上方(屏幕内)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-left',
+        top: Math.max(0, containerTop),
+        left: containerRight - width,
+        isExternal: false,
+        additionStyle: {
+          transform: `translateY(${Math.max(0, -containerTop)}px)`,
+        },
+      },
+      {
+        // 右上方(屏幕内)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-right',
+        top: Math.max(0, containerTop),
+        left: containerRight - width,
+        isExternal: false,
+        additionStyle: {
+          transform: `translateY(${Math.max(0, -containerTop)}px)`,
+        },
+      },
+    ];
+
+    // 检查位置是否超出屏幕
+    const isOutOfScreen = (pos: { left: number; top: number }) => {
+      return (
+        pos.left < 0 ||
+        pos.left + width > browserWidth ||
+        pos.top < 0 ||
+        pos.top + height > browserHeight
+      );
+    };
+
+    for (const pos of positions) {
+      const browserWidth = document.documentElement.clientWidth;
+      if (pos.horizon.endsWith('left')) {
+        const overflowWidth = containerLeft + width - browserWidth;
+        if (overflowWidth > 0) {
+          pos.additionStyle = {
+            transform: `translateX(-${overflowWidth}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
+          };
+        }
+      } else {
+        const overflowWidth = width - containerRight;
+        if (overflowWidth > 0) {
+          pos.additionStyle = {
+            transform: `translateX(${overflowWidth}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
+          };
+        }
+      }
+      if (!isOutOfScreen(pos)) {
+        return pos;
+      }
+    }
+    // 如果所有位置都超出屏幕，返回一个屏幕内侧的位置
+    return positions[0];
+  };
+
   // 渲染遮罩层
-  renderCover = (target: HTMLElement) => {
+  renderCover = async (target: HTMLElement) => {
     // 设置 target 的位置
     const { top, right, bottom, left } = target.getBoundingClientRect();
     this.position = {
@@ -166,40 +362,14 @@ export class CodeInspectorComponent extends LitElement {
         left: this.getDomPropertyValue(target, 'margin-left'),
       },
     };
-    const browserHeight = document.documentElement.clientHeight; // 浏览器高度
-    const browserWidth = document.documentElement.clientWidth; // 浏览器宽度
-    // 自动调整信息弹出位置
-    const bottomToViewPort =
-      browserHeight -
-      bottom -
-      this.getDomPropertyValue(target, 'margin-bottom'); // 距浏览器视口底部距离
-    const rightToViewPort =
-      browserWidth - right - this.getDomPropertyValue(target, 'margin-right'); // 距浏览器右边距离
-    const topToViewPort = top - this.getDomPropertyValue(target, 'margin-top');
-    const leftToViewPort =
-      left - this.getDomPropertyValue(target, 'margin-left');
-    this.infoClassName = {
-      vertical:
-        topToViewPort > bottomToViewPort
-          ? topToViewPort < 100
-            ? 'element-info-top-inner'
-            : 'element-info-top'
-          : bottomToViewPort < 100
-          ? 'element-info-bottom-inner'
-          : 'element-info-bottom',
-      horizon:
-        leftToViewPort >= rightToViewPort
-          ? 'element-info-right'
-          : 'element-info-left',
+
+    // 设置位置类名
+    this.elementTipStyle = {
+      vertical: '',
+      horizon: '',
+      visibility: 'hidden',
     };
-    this.infoWidth =
-      Math.max(
-        right -
-          left +
-          this.getDomPropertyValue(target, 'margin-right') +
-          this.getDomPropertyValue(target, 'margin-left'),
-        Math.min(300, Math.max(leftToViewPort, rightToViewPort))
-      ) + 'px';
+
     // 增加鼠标光标样式
     this.addGlobalCursorStyle();
     // 防止 select
@@ -207,37 +377,59 @@ export class CodeInspectorComponent extends LitElement {
       this.preUserSelect = getComputedStyle(document.body).userSelect;
     }
     document.body.style.userSelect = 'none';
-    // 获取元素信息
-    let paths =
-      target.getAttribute(PathName) ||
-      (target as CodeInspectorHtmlElement)[PathName] ||
-      '';
-    // Todo: transform astro inside
-    if (!paths && target.getAttribute('data-astro-source-file')) {
-      paths = `${target.getAttribute(
-        'data-astro-source-file'
-      )}:${target.getAttribute(
-        'data-astro-source-loc'
+    this.element = this.getSourceInfo(target)!;
+    this.show = true;
+    if (!this.showNodeTree) {
+      const { vertical, horizon, additionStyle } =
+        await this.calculateElementInfoPosition(target);
+      this.elementTipStyle = {
+        vertical,
+        horizon,
+        visibility: 'visible',
+        additionStyle,
+      };
+    }
+  };
+
+  getAstroFilePath = (target: HTMLElement): string => {
+    if (target.getAttribute?.(AstroFile)) {
+      return `${target.getAttribute(AstroFile)}:${target.getAttribute(
+        AstroLocation
       )}:${target.tagName.toLowerCase()}`;
     }
+    return '';
+  };
+
+  getSourceInfo = (target: HTMLElement): SourceInfo | null => {
+    let paths =
+      target.getAttribute?.(PathName) ||
+      (target as CodeInspectorHtmlElement)[PathName] ||
+      this.getAstroFilePath(target); // Todo: transform astro inside
+
+    if (!paths) {
+      return null;
+    }
+
     const segments = paths.split(':');
     const name = segments[segments.length - 1];
     const column = Number(segments[segments.length - 2]);
     const line = Number(segments[segments.length - 3]);
     const path = segments.slice(0, segments.length - 3).join(':');
-    this.element = { name, path, line, column };
-    this.show = true;
+    return { name, path, line, column };
   };
 
-  removeCover = () => {
+  removeCover = (force?: boolean | MouseEvent) => {
+    if (force !== true && this.nodeTree) {
+      return;
+    }
     this.show = false;
     this.removeGlobalCursorStyle();
     document.body.style.userSelect = this.preUserSelect;
     this.preUserSelect = '';
   };
-  // MARK: 渲染图层面板
+
   renderLayerPanel = (
-    nodeTree: NodeParseResult[],
+    nodeTree: TreeNode,
     { x, y }: { x: number; y: number }
   ) => {
     const browserWidth = document.documentElement.clientWidth;
@@ -245,25 +437,40 @@ export class CodeInspectorComponent extends LitElement {
 
     const rightToViewPort = browserWidth - x;
     const bottomToViewPort = browserHeight - y;
-    let position: LayerPosition = {};
-    if (rightToViewPort < 300) {
+    let position: Position = {};
+
+    if (rightToViewPort < x) {
       position['right'] = rightToViewPort + 'px';
+      // 检测是否横向一定超出屏幕
+      if (x < PopperWidth) {
+        position['transform'] = `translateX(${PopperWidth - x}px)`;
+      }
     } else {
       position['left'] = x + 'px';
+      // 检测是否横向一定超出屏幕
+      if (rightToViewPort < PopperWidth) {
+        position['transform'] = `translateX(-${
+          PopperWidth - rightToViewPort
+        }px)`;
+      }
     }
 
-    if (bottomToViewPort < 400) {
+    if (bottomToViewPort < y) {
       position['bottom'] = bottomToViewPort + 'px';
+      position['maxHeight'] = `${y - 10}px`;
     } else {
       position['top'] = y + 'px';
+      position['maxHeight'] = `${browserHeight - y - 10}px`;
     }
-    this.layerPanelPosition = position;
-    this.elementTree = nodeTree;
-    this.showLayerPanel = true;
+    this.nodeTreePosition = position;
+    this.nodeTree = nodeTree;
+    this.showNodeTree = true;
   };
+
   removeLayerPanel = () => {
-    this.showLayerPanel = false;
-    this.elementTree = [];
+    this.showNodeTree = false;
+    this.nodeTree = null;
+    this.activeNode = {};
   };
 
   addGlobalCursorStyle = () => {
@@ -361,7 +568,7 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   // 移动按钮
-  moveSwitch = (e: MouseEvent | TouchEvent) => {
+  handleDrag = (e: MouseEvent | TouchEvent) => {
     if (e.composedPath().includes(this)) {
       this.hoverSwitch = true;
     } else {
@@ -370,14 +577,22 @@ export class CodeInspectorComponent extends LitElement {
     // 判断是否在拖拽按钮
     if (this.dragging) {
       this.moved = true;
-      this.inspectorSwitchRef.style.left =
+      const ref =
+        this.draggingTarget === 'switch'
+          ? this.inspectorSwitchRef
+          : this.nodeTreeRef;
+      ref.style.left =
         this.mousePosition.baseX +
         (this.getMousePosition(e).x - this.mousePosition.moveX) +
         'px';
-      this.inspectorSwitchRef.style.top =
+      ref.style.top =
         this.mousePosition.baseY +
         (this.getMousePosition(e).y - this.mousePosition.moveY) +
         'px';
+      if (this.draggingTarget) {
+        this.nodeTreePosition.left = ref.style.left;
+        this.nodeTreePosition.top = ref.style.top;
+      }
       return;
     }
   };
@@ -394,7 +609,7 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 鼠标移动渲染遮罩层位置
-  handleMouseMove = (e: MouseEvent | TouchEvent) => {
+  handleMouseMove = async (e: MouseEvent | TouchEvent) => {
     if (
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
@@ -448,10 +663,9 @@ export class CodeInspectorComponent extends LitElement {
         }
       }
     }
-    // 点击任意地方关闭图层面板。因为事件用了capture，所以需要延迟执行
-    setTimeout(() => {
+    if (!e.composedPath().includes(this.nodeTreeRef)) {
       this.removeLayerPanel();
-    });
+    }
   };
 
   handleContextMenu = (e: MouseEvent) => {
@@ -463,72 +677,36 @@ export class CodeInspectorComponent extends LitElement {
       const nodePath = e.composedPath() as HTMLElement[];
       const nodeTree = this.generateNodeTree(nodePath);
 
-      this.renderLayerPanel(nodeTree, { x: e.pageX, y: e.pageY });
+      this.renderLayerPanel(nodeTree, { x: e.clientX, y: e.clientY });
     }
   };
 
-  generateNodeTree = (nodePath: HTMLElement[]) => {
-    let pointer = null;
-    let results = [];
-    for (let i = 0; i < nodePath.length; i++) {
-      const node = this.parseNode(nodePath[i]);
-      if (!node.isTrackNode) continue;
-      if (!pointer) {
-        pointer = node;
-        continue;
-      }
-      if (pointer.rect === node.rect) {
-        pointer = node;
-        continue;
-      }
-      if (pointer.path !== node.path) {
-        results.push(pointer);
-        pointer = node;
-      }
-    }
-    pointer && results.push(pointer);
-    return results;
-  };
+  generateNodeTree = (nodePath: HTMLElement[]): TreeNode => {
+    let root: TreeNode;
 
-  /**
-   * MARK: 解析节点信息
-   */
-  parseNode = (node: HTMLElement): NodeParseResult => {
-    let paths =
-      node.getAttribute?.(PathName) ||
-      (node as CodeInspectorHtmlElement)[PathName] ||
-      '';
-    // Todo: transform astro inside
-    if (!paths && node.getAttribute?.('data-astro-source-file')) {
-      paths = `${node.getAttribute?.(
-        'data-astro-source-file'
-      )}:${node.getAttribute?.(
-        'data-astro-source-loc'
-      )}:${node.tagName.toLowerCase()}`;
-    }
-    if (!paths) {
-      return {
-        isTrackNode: false,
+    let depth = 1;
+    let preNode = null;
+
+    for (const element of nodePath.reverse()) {
+      const sourceInfo = this.getSourceInfo(element);
+      if (!sourceInfo) continue;
+
+      const node: TreeNode = {
+        ...sourceInfo,
+        children: [],
+        depth: depth++,
+        element,
       };
+
+      if (preNode) {
+        preNode.children.push(node);
+      } else {
+        root = node;
+      }
+      preNode = node;
     }
 
-    const segments = paths.split(':');
-    const name = segments[segments.length - 1];
-    const column = Number(segments[segments.length - 2]);
-    const line = Number(segments[segments.length - 3]);
-    const path = segments.slice(0, segments.length - 3).join(':');
-    const { top, right, bottom, left } = node.getBoundingClientRect();
-
-    return {
-      isTrackNode: true,
-      isAstroNode: !!node.getAttribute('data-astro-source-file'),
-      originNode: node,
-      rect: `${top},${right},${bottom},${left}`,
-      name,
-      path,
-      line,
-      column,
-    };
+    return root!;
   };
 
   // disabled 的元素及其子元素无法触发 click 事件
@@ -608,14 +786,20 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 记录鼠标按下时初始位置
-  recordMousePosition = (e: MouseEvent | TouchEvent) => {
+  recordMousePosition = (
+    e: MouseEvent | TouchEvent,
+    target: 'switch' | 'nodeTree'
+  ) => {
+    const ref =
+      target === 'switch' ? this.inspectorSwitchRef : this.nodeTreeRef;
     this.mousePosition = {
-      baseX: this.inspectorSwitchRef.offsetLeft,
-      baseY: this.inspectorSwitchRef.offsetTop,
+      baseX: ref.offsetLeft,
+      baseY: ref.offsetTop,
       moveX: this.getMousePosition(e).x,
       moveY: this.getMousePosition(e).y,
     };
     this.dragging = true;
+    this.draggingTarget = target;
     e.preventDefault();
   };
 
@@ -624,7 +808,7 @@ export class CodeInspectorComponent extends LitElement {
     this.hoverSwitch = false;
     if (this.dragging) {
       this.dragging = false;
-      if (e instanceof TouchEvent) {
+      if (e instanceof TouchEvent && this.draggingTarget === 'switch') {
         this.switch(e);
       }
     }
@@ -640,29 +824,49 @@ export class CodeInspectorComponent extends LitElement {
     this.moved = false;
   };
 
-  // MARK: 点击图层面板
-  handleLayerPanelClick = (e: MouseEvent) => {
-    const target = e.target as HTMLDivElement;
-    if (
-      !target?.classList?.contains('inspector-layer') ||
-      !target?.dataset?.index
-    ) {
-      return;
-    }
-    e.stopPropagation();
-    const index = +target.dataset.index;
-    const node = this.elementTree?.[index];
-    if (!node) {
-      return;
-    }
-    this.element = {
-      name: node.name,
-      column: node.column,
-      line: node.line,
-      path: node.path,
-    };
+  handleClickTreeNode = (node: TreeNode) => {
+    this.element = node;
     this.trackCode();
     this.removeLayerPanel();
+  };
+
+  handleMouseEnterNode = async (e: MouseEvent, node: TreeNode) => {
+    const { x, y, width, height } =
+      (e.target as HTMLDivElement)!.getBoundingClientRect();
+    this.activeNode = {
+      width: width - 16 + 'px',
+      left: x + 8 + 'px',
+      visibility: 'hidden',
+      top: `${y - 4}px`,
+      bottom: '',
+      content: `${node.path}:${node.line}:${node.column}`,
+      class: 'tooltip-top',
+    };
+
+    this.renderCover(node.element);
+
+    await nextTick();
+    const { y: tooltipY } = this.nodeTreeTooltipRef!.getBoundingClientRect();
+    if (tooltipY < 0) {
+      this.activeNode = {
+        ...this.activeNode,
+        bottom: '',
+        top: `${y + height + 4}px`,
+        class: 'tooltip-bottom',
+      };
+    }
+    this.activeNode = {
+      ...this.activeNode,
+      visibility: 'visible',
+    };
+  };
+
+  handleMouseLeaveNode = () => {
+    this.activeNode = {
+      ...this.activeNode,
+      visibility: 'hidden',
+    };
+    this.removeCover(true);
   };
 
   protected firstUpdated(): void {
@@ -671,8 +875,8 @@ export class CodeInspectorComponent extends LitElement {
     }
     window.addEventListener('mousemove', this.handleMouseMove, true);
     window.addEventListener('touchmove', this.handleMouseMove, true);
-    window.addEventListener('mousemove', this.moveSwitch, true);
-    window.addEventListener('touchmove', this.moveSwitch, true);
+    window.addEventListener('mousemove', this.handleDrag, true);
+    window.addEventListener('touchmove', this.handleDrag, true);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
     window.addEventListener('keyup', this.handleKeyUp, true);
@@ -680,26 +884,13 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('mouseup', this.handleMouseUp, true);
     window.addEventListener('touchend', this.handleMouseUp, true);
     window.addEventListener('contextmenu', this.handleContextMenu, true);
-    this.inspectorSwitchRef.addEventListener(
-      'mousedown',
-      this.recordMousePosition
-    );
-    this.inspectorSwitchRef.addEventListener(
-      'touchstart',
-      this.recordMousePosition
-    );
-    this.inspectorSwitchRef.addEventListener('click', this.switch);
-    this.inspectorLayersRef.addEventListener(
-      'click',
-      this.handleLayerPanelClick
-    );
   }
 
   disconnectedCallback(): void {
     window.removeEventListener('mousemove', this.handleMouseMove, true);
     window.removeEventListener('touchmove', this.handleMouseMove, true);
-    window.removeEventListener('mousemove', this.moveSwitch, true);
-    window.removeEventListener('touchmove', this.moveSwitch, true);
+    window.removeEventListener('mousemove', this.handleDrag, true);
+    window.removeEventListener('touchmove', this.handleDrag, true);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
     window.removeEventListener('keyup', this.handleKeyUp, true);
@@ -707,24 +898,21 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('mouseup', this.handleMouseUp, true);
     window.removeEventListener('touchend', this.handleMouseUp, true);
     window.removeEventListener('contextmenu', this.handleContextMenu, true);
-    if (this.inspectorSwitchRef) {
-      this.inspectorSwitchRef.removeEventListener(
-        'mousedown',
-        this.recordMousePosition
-      );
-      this.inspectorSwitchRef.removeEventListener(
-        'touchstart',
-        this.recordMousePosition
-      );
-      this.inspectorSwitchRef.removeEventListener('click', this.switch);
-    }
-    if (this.inspectorLayersRef) {
-      this.inspectorLayersRef.removeEventListener(
-        'click',
-        this.handleLayerPanelClick
-      );
-    }
   }
+
+  renderNodeTree = (node: TreeNode): TemplateResult => html`
+    <div
+      class="inspector-layer"
+      style="padding-left: ${node.depth * 8}px;"
+      @mouseenter="${async (e: MouseEvent) =>
+        await this.handleMouseEnterNode(e, node)}"
+      @mouseleave="${this.handleMouseLeaveNode}"
+      @click="${() => this.handleClickTreeNode(node)}"
+    >
+      &lt;${node.name}&gt;
+    </div>
+    ${node.children.map((child) => this.renderNodeTree(child))}
+  `;
 
   render() {
     const containerPosition = {
@@ -763,11 +951,22 @@ export class CodeInspectorComponent extends LitElement {
       borderLeftWidth: `${this.position.padding.left}px`,
     };
 
-    const layerPanelPosition = {
-      display: this.showLayerPanel ? 'block' : 'none',
-      ...this.layerPanelPosition,
+    const nodeTreeStyles = {
+      display: this.showNodeTree ? 'flex' : 'none',
+      ...this.nodeTreePosition,
     };
-    return html` <div
+
+    const nodeTooltipStyles = {
+      visibility: this.activeNode.visibility,
+      maxWidth: this.activeNode.width,
+      top: this.activeNode.top,
+      left: this.activeNode.left,
+      bottom: this.activeNode.bottom,
+      display: this.showNodeTree ? '' : 'none',
+    };
+
+    return html`
+      <div
         class="code-inspector-container"
         id="code-inspector-container"
         style=${styleMap(containerPosition)}
@@ -781,18 +980,24 @@ export class CodeInspectorComponent extends LitElement {
         </div>
         <div
           id="element-info"
-          class="element-info ${this.infoClassName.vertical} ${this
-            .infoClassName.horizon}"
-          style=${styleMap({ width: this.infoWidth })}
+          class="element-info ${this.elementTipStyle.vertical} ${this
+            .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
+          style=${styleMap({
+            width: PopperWidth + 'px',
+            maxWidth: '100vw',
+            ...this.elementTipStyle.additionStyle,
+          })}
         >
           <div class="element-info-content">
             <div class="name-line">
               <div class="element-name">
                 <span class="element-title">&lt;${this.element.name}&gt;</span>
-                <span class="element-tip">click to open IDE</span>
+                <span class="element-tip">click to open editor</span>
               </div>
             </div>
-            <div class="path-line">${this.element.path}</div>
+            <div class="path-line">
+              ${this.element.path}:${this.element.line}:${this.element.column}
+            </div>
           </div>
         </div>
       </div>
@@ -802,6 +1007,10 @@ export class CodeInspectorComponent extends LitElement {
           ? 'active-inspector-switch'
           : ''} ${this.moved ? 'move-inspector-switch' : ''}"
         style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
+        @mousedown="${(e: MouseEvent) => this.recordMousePosition(e, 'switch')}"
+        @touchstart="${(e: TouchEvent) =>
+          this.recordMousePosition(e, 'switch')}"
+        @click="${this.switch}"
       >
         ${this.open
           ? html`
@@ -891,19 +1100,52 @@ export class CodeInspectorComponent extends LitElement {
               ></path>
             </svg>`}
       </div>
-      <div id="inspector-layers" style=${styleMap(layerPanelPosition)}>
-        ${this.elementTree.map(
-          (node, i) => html`<div class="inspector-layer" data-index=${i}>
-            <div class="name-line">
-              <div class="element-name">
-                <span class="element-title">&lt;${node.name}&gt;</span>
-                <span class="element-tip">click to open IDE</span>
-              </div>
-            </div>
-            <div class="path-line">${node.path}</div>
-          </div> `
-        )}
-      </div>`;
+      <div
+        id="inspector-node-tree"
+        class="element-info-content"
+        style=${styleMap(nodeTreeStyles)}
+      >
+        <div
+          class="inspector-layer-title"
+          @mousedown="${(e: MouseEvent) =>
+            this.recordMousePosition(e, 'nodeTree')}"
+          @touchstart="${(e: TouchEvent) =>
+            this.recordMousePosition(e, 'nodeTree')}"
+        >
+          <div>🔍️ click node to open editor</div>
+          ${html`<svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="close-icon"
+            @click="${this.removeLayerPanel}"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>`}
+        </div>
+
+        <div
+          class="node-tree-list"
+          style="${styleMap({ pointerEvents: this.dragging ? 'none' : '' })}"
+        >
+          ${this.nodeTree ? this.renderNodeTree(this.nodeTree) : ''}
+        </div>
+      </div>
+      <div
+        id="node-tree-tooltip"
+        class="${this.activeNode.class}"
+        style=${styleMap(nodeTooltipStyles)}
+      >
+        ${this.activeNode.content}
+      </div>
+    `;
   }
 
   static styles = css`
@@ -939,8 +1181,10 @@ export class CodeInspectorComponent extends LitElement {
     .element-info {
       position: absolute;
     }
-    .element-info-content,
-    #inspector-layers {
+    .element-info.hidden {
+      visibility: hidden;
+    }
+    .element-info-content {
       max-width: 100%;
       font-size: 12px;
       color: #000;
@@ -1012,29 +1256,81 @@ export class CodeInspectorComponent extends LitElement {
     .move-inspector-switch {
       cursor: move;
     }
-    #inspector-layers {
-      padding: 8px;
+    #inspector-node-tree {
       position: fixed;
       user-select: none;
-      background-color: #fff;
-      z-index: 9999999999999;
-      border-radius: 8px;
+      z-index: 9999999999999999;
+      min-width: 300px;
+      max-width: min(max(30vw, 300px), 400px);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+
+      .inspector-layer-title {
+        border-bottom: 1px solid #eee;
+        padding: 8px 8px 4px;
+        margin-bottom: 4px;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        user-select: none;
+        &:hover {
+          background: rgba(0, 106, 255, 0.1);
+        }
+      }
+
+      .node-tree-list {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
 
       .inspector-layer {
         cursor: pointer;
-        pointer-events: auto;
-        border-radius: 4px;
-        padding: 8px;
+        position: relative;
+        padding-right: 8px;
+        &:hover {
+          background: #fdf4bf;
+        }
       }
-      .inspector-layer * {
-        pointer-events: none;
+
+      .element-tip {
+        font-size: 9px;
+        opacity: 0.5;
+        color: #999;
+        margin-left: 6px;
       }
-      .inspector-layer:hover {
-        background-color: #f0f0f0;
+
+      .path-line {
+        font-size: 9px;
+        color: #777;
+        margin-top: 1px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       }
-      .inspector-layer:first-child {
-        background-color: #6cf;
-      }
+    }
+
+    #node-tree-tooltip {
+      position: fixed;
+      box-sizing: border-box;
+      z-index: 999999999999999999;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: wrap;
+      pointer-events: none;
+      word-break: break-all;
+    }
+    .tooltip-top {
+      transform: translateY(-100%);
+    }
+    .close-icon {
+      cursor: pointer;
     }
   `;
 }
