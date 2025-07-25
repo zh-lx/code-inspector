@@ -26,11 +26,13 @@ interface CodeInspectorHtmlElement extends HTMLElement {
   'data-insp-path': string;
 }
 
-interface LayerPosition {
+interface Position {
   left?: string;
   right?: string;
   top?: string;
   bottom?: string;
+  transform?: string;
+  maxHeight?: string;
 }
 
 interface SourceInfo {
@@ -40,13 +42,38 @@ interface SourceInfo {
   column: number;
 }
 
+interface ElementTipStyle {
+  vertical: string;
+  horizon: string;
+  visibility: string;
+  additionStyle?: {
+    transform: string;
+  };
+}
+
 interface TreeNode extends SourceInfo {
   children: TreeNode[];
   element: HTMLElement;
   depth: number;
 }
 
-const InfoWidth = 300;
+interface ActiveNode {
+  top?: string;
+  bottom?: string;
+  left?: string;
+  width?: string;
+  content?: string;
+  visibility?: 'visible' | 'hidden';
+  class?: 'tooltip-top' | 'tooltip-bottom';
+}
+
+const PopperWidth = 300;
+
+function nextTick() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(resolve);
+  });
+}
 
 export class CodeInspectorComponent extends LitElement {
   @property()
@@ -96,19 +123,25 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   element = { name: '', line: 0, column: 0, path: '' }; // 选中节点信息
   @state()
-  infoClassName = { vertical: '', horizon: '', visibility: '' }; // 信息浮块位置类名
+  elementTipStyle: ElementTipStyle = {
+    vertical: '',
+    horizon: '',
+    visibility: '',
+  }; // 信息浮块位置类名
   @state()
   show = false; // 是否展示
   @state()
-  showLayerPanel = false; // 是否展示图层面板
+  showNodeTree = false; // 是否展示图层面板
   @state()
-  layerPanelPosition: LayerPosition = {}; // 图层面板位置
+  nodeTreePosition: Position = {}; // 图层面板位置
   @state()
   nodeTree: TreeNode | null = null; // 节点树
   @state()
   dragging = false; // 是否正在拖拽中
   @state()
   mousePosition = { baseX: 0, baseY: 0, moveX: 0, moveY: 0 };
+  @state()
+  draggingTarget: 'switch' | 'nodeTree' = 'switch'; // 是否正在拖拽节点树
   @state()
   open = false; // 点击开关打开
   @state()
@@ -119,6 +152,8 @@ export class CodeInspectorComponent extends LitElement {
   preUserSelect = '';
   @state()
   sendType: 'xhr' | 'img' = 'xhr';
+  @state()
+  activeNode: ActiveNode = {};
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -127,9 +162,13 @@ export class CodeInspectorComponent extends LitElement {
   codeInspectorContainerRef!: HTMLDivElement;
   @query('#element-info')
   elementInfoRef!: HTMLDivElement;
+  @query('#inspector-node-tree')
+  nodeTreeRef!: HTMLDivElement;
 
-  @query('#inspector-layers')
-  inspectorLayersRef!: HTMLDivElement;
+  @query('.inspector-layer-title')
+  nodeTreeTitleRef!: HTMLDivElement;
+  @query('#node-tree-tooltip')
+  nodeTreeTooltipRef!: HTMLDivElement;
 
   isTracking = (e: any) => {
     return (
@@ -153,9 +192,7 @@ export class CodeInspectorComponent extends LitElement {
     const marginBottom = this.getDomPropertyValue(target, 'margin-bottom');
     const marginLeft = this.getDomPropertyValue(target, 'margin-left');
 
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => resolve(true));
-    });
+    await nextTick();
 
     const { width, height } = this.elementInfoRef.getBoundingClientRect();
 
@@ -169,7 +206,7 @@ export class CodeInspectorComponent extends LitElement {
     const positions = [
       // 外部位置
       {
-        // 左下方(外部)
+        // 右下方(外部)
         vertical: 'element-info-bottom',
         horizon: 'element-info-right',
         top: containerBottom,
@@ -177,7 +214,7 @@ export class CodeInspectorComponent extends LitElement {
         isExternal: true,
       },
       {
-        // 右下方(外部)
+        // 左下方(外部)
         vertical: 'element-info-bottom',
         horizon: 'element-info-left',
         top: containerBottom,
@@ -185,7 +222,7 @@ export class CodeInspectorComponent extends LitElement {
         isExternal: true,
       },
       {
-        // 左上方(外部)
+        // 右上方(外部)
         vertical: 'element-info-top',
         horizon: 'element-info-right',
         top: containerTop - height,
@@ -193,7 +230,7 @@ export class CodeInspectorComponent extends LitElement {
         isExternal: true,
       },
       {
-        // 右上方(外部)
+        // 左上方(外部)
         vertical: 'element-info-top',
         horizon: 'element-info-left',
         top: containerTop - height,
@@ -202,7 +239,7 @@ export class CodeInspectorComponent extends LitElement {
       },
       // 内部位置
       {
-        // 左下方(内部)
+        // 右下方(内部)
         vertical: 'element-info-bottom-inner',
         horizon: 'element-info-right',
         top: containerBottom - height,
@@ -210,28 +247,51 @@ export class CodeInspectorComponent extends LitElement {
         isExternal: false,
       },
       {
-        // 右下方(内部)
+        // 左下方(内部)
         vertical: 'element-info-bottom-inner',
         horizon: 'element-info-left',
         top: containerBottom - height,
         left: containerRight - width,
-        isExternal: false,
-      },
-      {
-        // 左上方(内部)
-        vertical: 'element-info-top-inner',
-        horizon: 'element-info-right',
-        top: containerTop,
-        left: containerLeft,
         isExternal: false,
       },
       {
         // 右上方(内部)
         vertical: 'element-info-top-inner',
+        horizon: 'element-info-right',
+        top: containerTop,
+        left: containerLeft,
+        isExternal: false,
+      },
+      {
+        // 左上方(内部)
+        vertical: 'element-info-top-inner',
         horizon: 'element-info-left',
         top: containerTop,
         left: containerRight - width,
         isExternal: false,
+      },
+      // 超出屏幕
+      {
+        // 左上方(屏幕内)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-left',
+        top: Math.max(0, containerTop),
+        left: containerRight - width,
+        isExternal: false,
+        additionStyle: {
+          transform: `translateY(${Math.max(0, -containerTop)}px)`,
+        },
+      },
+      {
+        // 右上方(屏幕内)
+        vertical: 'element-info-top-inner',
+        horizon: 'element-info-right',
+        top: Math.max(0, containerTop),
+        left: containerRight - width,
+        isExternal: false,
+        additionStyle: {
+          transform: `translateY(${Math.max(0, -containerTop)}px)`,
+        },
       },
     ];
 
@@ -245,34 +305,32 @@ export class CodeInspectorComponent extends LitElement {
       );
     };
 
-    // 检查是否与 inspector-layers 重叠
-    const isOverlapWithLayers = (pos: any) => {
-      if (!this.inspectorLayersRef) {
-        return false;
-      }
-
-      const layersRect = this.inspectorLayersRef.getBoundingClientRect();
-      const infoRect = {
-        left: pos.left,
-        right: pos.left + width,
-        top: pos.top,
-        bottom: pos.top + height,
-      };
-
-      return (
-        infoRect.left < layersRect.right &&
-        infoRect.right > layersRect.left &&
-        infoRect.top < layersRect.bottom &&
-        infoRect.bottom > layersRect.top
-      );
-    };
-
     for (const pos of positions) {
-      if (!isOutOfScreen(pos) || !isOverlapWithLayers(pos)) {
+      const browserWidth = document.documentElement.clientWidth;
+      if (pos.horizon.endsWith('left')) {
+        const overflowWidth = containerLeft + width - browserWidth;
+        if (overflowWidth > 0) {
+          pos.additionStyle = {
+            transform: `translateX(-${overflowWidth}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
+          };
+        }
+      } else {
+        const overflowWidth = width - containerRight;
+        if (overflowWidth > 0) {
+          pos.additionStyle = {
+            transform: `translateX(${overflowWidth}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
+          };
+        }
+      }
+      if (!isOutOfScreen(pos)) {
         return pos;
       }
     }
-    // 如果所有位置都超出屏幕，返回第一个位置
+    // 如果所有位置都超出屏幕，返回一个屏幕内侧的位置
     return positions[0];
   };
 
@@ -306,7 +364,7 @@ export class CodeInspectorComponent extends LitElement {
     };
 
     // 设置位置类名
-    this.infoClassName = {
+    this.elementTipStyle = {
       vertical: '',
       horizon: '',
       visibility: 'hidden',
@@ -321,14 +379,16 @@ export class CodeInspectorComponent extends LitElement {
     document.body.style.userSelect = 'none';
     this.element = this.getSourceInfo(target)!;
     this.show = true;
-    const { vertical, horizon } = await this.calculateElementInfoPosition(
-      target
-    );
-    this.infoClassName = {
-      vertical,
-      horizon,
-      visibility: 'visible',
-    };
+    if (!this.showNodeTree) {
+      const { vertical, horizon, additionStyle } =
+        await this.calculateElementInfoPosition(target);
+      this.elementTipStyle = {
+        vertical,
+        horizon,
+        visibility: 'visible',
+        additionStyle,
+      };
+    }
   };
 
   getAstroFilePath = (target: HTMLElement): string => {
@@ -367,7 +427,7 @@ export class CodeInspectorComponent extends LitElement {
     document.body.style.userSelect = this.preUserSelect;
     this.preUserSelect = '';
   };
-  // MARK: 渲染图层面板
+
   renderLayerPanel = (
     nodeTree: TreeNode,
     { x, y }: { x: number; y: number }
@@ -377,26 +437,40 @@ export class CodeInspectorComponent extends LitElement {
 
     const rightToViewPort = browserWidth - x;
     const bottomToViewPort = browserHeight - y;
-    let position: LayerPosition = {};
-    if (rightToViewPort < 300) {
+    let position: Position = {};
+
+    if (rightToViewPort < x) {
       position['right'] = rightToViewPort + 'px';
+      // 检测是否横向一定超出屏幕
+      if (x < PopperWidth) {
+        position['transform'] = `translateX(${PopperWidth - x}px)`;
+      }
     } else {
       position['left'] = x + 'px';
+      // 检测是否横向一定超出屏幕
+      if (rightToViewPort < PopperWidth) {
+        position['transform'] = `translateX(-${
+          PopperWidth - rightToViewPort
+        }px)`;
+      }
     }
 
-    if (bottomToViewPort < 400) {
+    if (bottomToViewPort < y) {
       position['bottom'] = bottomToViewPort + 'px';
+      position['maxHeight'] = `${y - 10}px`;
     } else {
       position['top'] = y + 'px';
+      position['maxHeight'] = `${browserHeight - y - 10}px`;
     }
-    this.layerPanelPosition = position;
+    this.nodeTreePosition = position;
     this.nodeTree = nodeTree;
-    this.showLayerPanel = true;
+    this.showNodeTree = true;
   };
 
   removeLayerPanel = () => {
-    this.showLayerPanel = false;
+    this.showNodeTree = false;
     this.nodeTree = null;
+    this.activeNode = {};
   };
 
   addGlobalCursorStyle = () => {
@@ -494,7 +568,7 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   // 移动按钮
-  moveSwitch = (e: MouseEvent | TouchEvent) => {
+  handleDrag = (e: MouseEvent | TouchEvent) => {
     if (e.composedPath().includes(this)) {
       this.hoverSwitch = true;
     } else {
@@ -503,14 +577,22 @@ export class CodeInspectorComponent extends LitElement {
     // 判断是否在拖拽按钮
     if (this.dragging) {
       this.moved = true;
-      this.inspectorSwitchRef.style.left =
+      const ref =
+        this.draggingTarget === 'switch'
+          ? this.inspectorSwitchRef
+          : this.nodeTreeRef;
+      ref.style.left =
         this.mousePosition.baseX +
         (this.getMousePosition(e).x - this.mousePosition.moveX) +
         'px';
-      this.inspectorSwitchRef.style.top =
+      ref.style.top =
         this.mousePosition.baseY +
         (this.getMousePosition(e).y - this.mousePosition.moveY) +
         'px';
+      if (this.draggingTarget) {
+        this.nodeTreePosition.left = ref.style.left;
+        this.nodeTreePosition.top = ref.style.top;
+      }
       return;
     }
   };
@@ -581,10 +663,9 @@ export class CodeInspectorComponent extends LitElement {
         }
       }
     }
-    // 点击任意地方关闭图层面板。因为事件用了capture，所以需要延迟执行
-    setTimeout(() => {
+    if (!e.composedPath().includes(this.nodeTreeRef)) {
       this.removeLayerPanel();
-    });
+    }
   };
 
   handleContextMenu = (e: MouseEvent) => {
@@ -603,10 +684,10 @@ export class CodeInspectorComponent extends LitElement {
   generateNodeTree = (nodePath: HTMLElement[]): TreeNode => {
     let root: TreeNode;
 
-    let depth = 0;
+    let depth = 1;
     let preNode = null;
 
-    for (const element of nodePath) {
+    for (const element of nodePath.reverse()) {
       const sourceInfo = this.getSourceInfo(element);
       if (!sourceInfo) continue;
 
@@ -706,14 +787,20 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 记录鼠标按下时初始位置
-  recordMousePosition = (e: MouseEvent | TouchEvent) => {
+  recordMousePosition = (
+    e: MouseEvent | TouchEvent,
+    target: 'switch' | 'nodeTree'
+  ) => {
+    const ref =
+      target === 'switch' ? this.inspectorSwitchRef : this.nodeTreeRef;
     this.mousePosition = {
-      baseX: this.inspectorSwitchRef.offsetLeft,
-      baseY: this.inspectorSwitchRef.offsetTop,
+      baseX: ref.offsetLeft,
+      baseY: ref.offsetTop,
       moveX: this.getMousePosition(e).x,
       moveY: this.getMousePosition(e).y,
     };
     this.dragging = true;
+    this.draggingTarget = target;
     e.preventDefault();
   };
 
@@ -722,7 +809,7 @@ export class CodeInspectorComponent extends LitElement {
     this.hoverSwitch = false;
     if (this.dragging) {
       this.dragging = false;
-      if (e instanceof TouchEvent) {
+      if (e instanceof TouchEvent && this.draggingTarget === 'switch') {
         this.switch(e);
       }
     }
@@ -738,56 +825,50 @@ export class CodeInspectorComponent extends LitElement {
     this.moved = false;
   };
 
-  // MARK: 点击图层面板
-  handleLayerPanelClick = (e: MouseEvent) => {
-    const target = e.target as HTMLDivElement;
-    if (
-      !target?.classList?.contains('inspector-layer') ||
-      !target?.dataset?.groupIndex ||
-      !target?.dataset?.nodeIndex
-    ) {
-      return;
-    }
-    e.stopPropagation();
-    // const groupIndex = +target.dataset.groupIndex;
-    // const nodeIndex = +target.dataset.nodeIndex;
-    // this.element = {
-    //   name: node.name,
-    //   column: node.column,
-    //   line: node.line,
-    //   path: node.path,
-    // };
+  handleClickTreeNode = (node: TreeNode) => {
+    this.element = node;
     this.trackCode();
     this.removeLayerPanel();
   };
 
-  // 检测 cover、elementInfo 和 nodeTree 是否有交叉，有交叉时 nodeTree 半透明
-  checkCross = () => {
-    if (!this.nodeTree) {
-      return;
-    }
-    const containerRect =
-      this.codeInspectorContainerRef.getBoundingClientRect();
-    const layersRect = this.inspectorLayersRef.getBoundingClientRect();
-    if (
-      containerRect.left < layersRect.right &&
-      containerRect.right > layersRect.left &&
-      containerRect.top < layersRect.bottom &&
-      containerRect.bottom > layersRect.top
-    ) {
-      return false;
-    }
+  handleMouseEnterNode = async (e: MouseEvent, node: TreeNode) => {
+    const { x, y, width, height } = (
+      e.target as HTMLDivElement
+    )?.getBoundingClientRect();
+    this.activeNode = {
+      width: width - 16 + 'px',
+      left: x + 8 + 'px',
+      visibility: 'hidden',
+      top: `${y - 4}px`,
+      bottom: '',
+      content: `${node.path}:${node.line}:${node.column}`,
+      class: 'tooltip-top',
+    };
 
-    const elementInfoRect = this.elementInfoRef.getBoundingClientRect();
-    if (
-      elementInfoRect.left < layersRect.right &&
-      elementInfoRect.right > layersRect.left &&
-      elementInfoRect.top < layersRect.bottom &&
-      elementInfoRect.bottom > layersRect.top
-    ) {
-      return false;
+    this.renderCover(node.element);
+
+    await nextTick();
+    const { y: tooltipY } = this.nodeTreeTooltipRef?.getBoundingClientRect();
+    if (tooltipY < 0) {
+      this.activeNode = {
+        ...this.activeNode,
+        bottom: '',
+        top: `${y + height + 4}px`,
+        class: 'tooltip-bottom',
+      };
     }
-    return true;
+    this.activeNode = {
+      ...this.activeNode,
+      visibility: 'visible',
+    };
+  };
+
+  handleMouseLeaveNode = () => {
+    this.activeNode = {
+      ...this.activeNode,
+      visibility: 'hidden',
+    };
+    this.removeCover(true);
   };
 
   protected firstUpdated(): void {
@@ -796,8 +877,8 @@ export class CodeInspectorComponent extends LitElement {
     }
     window.addEventListener('mousemove', this.handleMouseMove, true);
     window.addEventListener('touchmove', this.handleMouseMove, true);
-    window.addEventListener('mousemove', this.moveSwitch, true);
-    window.addEventListener('touchmove', this.moveSwitch, true);
+    window.addEventListener('mousemove', this.handleDrag, true);
+    window.addEventListener('touchmove', this.handleDrag, true);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
     window.addEventListener('keyup', this.handleKeyUp, true);
@@ -805,26 +886,13 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('mouseup', this.handleMouseUp, true);
     window.addEventListener('touchend', this.handleMouseUp, true);
     window.addEventListener('contextmenu', this.handleContextMenu, true);
-    this.inspectorSwitchRef.addEventListener(
-      'mousedown',
-      this.recordMousePosition
-    );
-    this.inspectorSwitchRef.addEventListener(
-      'touchstart',
-      this.recordMousePosition
-    );
-    this.inspectorSwitchRef.addEventListener('click', this.switch);
-    this.inspectorLayersRef.addEventListener(
-      'click',
-      this.handleLayerPanelClick
-    );
   }
 
   disconnectedCallback(): void {
     window.removeEventListener('mousemove', this.handleMouseMove, true);
     window.removeEventListener('touchmove', this.handleMouseMove, true);
-    window.removeEventListener('mousemove', this.moveSwitch, true);
-    window.removeEventListener('touchmove', this.moveSwitch, true);
+    window.removeEventListener('mousemove', this.handleDrag, true);
+    window.removeEventListener('touchmove', this.handleDrag, true);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
     window.removeEventListener('keyup', this.handleKeyUp, true);
@@ -832,34 +900,18 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('mouseup', this.handleMouseUp, true);
     window.removeEventListener('touchend', this.handleMouseUp, true);
     window.removeEventListener('contextmenu', this.handleContextMenu, true);
-    if (this.inspectorSwitchRef) {
-      this.inspectorSwitchRef.removeEventListener(
-        'mousedown',
-        this.recordMousePosition
-      );
-      this.inspectorSwitchRef.removeEventListener(
-        'touchstart',
-        this.recordMousePosition
-      );
-      this.inspectorSwitchRef.removeEventListener('click', this.switch);
-    }
-    if (this.inspectorLayersRef) {
-      this.inspectorLayersRef.removeEventListener(
-        'click',
-        this.handleLayerPanelClick
-      );
-    }
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`
     <div
       class="inspector-layer"
-      style="padding-left: ${node.depth * 8}px"
-      @mouseenter="${async () => this.renderCover(node.element)}"
-      @mouseleave="${() => this.removeCover(true)}"
+      style="padding-left: ${node.depth * 8}px;"
+      @mouseenter="${async (e: MouseEvent) =>
+        await this.handleMouseEnterNode(e, node)}"
+      @mouseleave="${this.handleMouseLeaveNode}"
+      @click="${() => this.handleClickTreeNode(node)}"
     >
-      <span class="element-title">&lt;${node.name}&gt;</span>
-      <span class="element-tip">click to open IDE</span>
+      &lt;${node.name}&gt;
     </div>
     ${node.children.map((child) => this.renderNodeTree(child))}
   `;
@@ -901,12 +953,22 @@ export class CodeInspectorComponent extends LitElement {
       borderLeftWidth: `${this.position.padding.left}px`,
     };
 
-    const layerPanelStyles = {
-      display: this.showLayerPanel ? 'block' : 'none',
-      ...this.layerPanelPosition,
+    const nodeTreeStyles = {
+      display: this.showNodeTree ? 'flex' : 'none',
+      ...this.nodeTreePosition,
     };
 
-    return html` <div
+    const nodeTooltipStyles = {
+      visibility: this.activeNode.visibility,
+      maxWidth: this.activeNode.width,
+      top: this.activeNode.top,
+      left: this.activeNode.left,
+      bottom: this.activeNode.bottom,
+      display: this.showNodeTree ? '' : 'none',
+    };
+
+    return html`
+      <div
         class="code-inspector-container"
         id="code-inspector-container"
         style=${styleMap(containerPosition)}
@@ -920,18 +982,24 @@ export class CodeInspectorComponent extends LitElement {
         </div>
         <div
           id="element-info"
-          class="element-info ${this.infoClassName.vertical} ${this
-            .infoClassName.horizon} ${this.infoClassName.visibility}"
-          style=${styleMap({ width: InfoWidth + 'px' })}
+          class="element-info ${this.elementTipStyle.vertical} ${this
+            .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
+          style=${styleMap({
+            width: PopperWidth + 'px',
+            maxWidth: '100vw',
+            ...this.elementTipStyle.additionStyle,
+          })}
         >
           <div class="element-info-content">
             <div class="name-line">
               <div class="element-name">
                 <span class="element-title">&lt;${this.element.name}&gt;</span>
-                <span class="element-tip">click to open IDE</span>
+                <span class="element-tip">click to open editor</span>
               </div>
             </div>
-            <div class="path-line">${this.element.path}</div>
+            <div class="path-line">
+              ${this.element.path}:${this.element.line}:${this.element.column}
+            </div>
           </div>
         </div>
       </div>
@@ -941,6 +1009,10 @@ export class CodeInspectorComponent extends LitElement {
           ? 'active-inspector-switch'
           : ''} ${this.moved ? 'move-inspector-switch' : ''}"
         style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
+        @mousedown="${(e: MouseEvent) => this.recordMousePosition(e, 'switch')}"
+        @touchstart="${(e: TouchEvent) =>
+          this.recordMousePosition(e, 'switch')}"
+        @click="${this.switch}"
       >
         ${this.open
           ? html`
@@ -1031,12 +1103,51 @@ export class CodeInspectorComponent extends LitElement {
             </svg>`}
       </div>
       <div
-        id="inspector-layers"
+        id="inspector-node-tree"
         class="element-info-content"
-        style=${styleMap(layerPanelStyles)}
+        style=${styleMap(nodeTreeStyles)}
       >
-        ${this.nodeTree ? this.renderNodeTree(this.nodeTree) : ''}
-      </div>`;
+        <div
+          class="inspector-layer-title"
+          @mousedown="${(e: MouseEvent) =>
+            this.recordMousePosition(e, 'nodeTree')}"
+          @touchstart="${(e: TouchEvent) =>
+            this.recordMousePosition(e, 'nodeTree')}"
+        >
+          <div>🔍️ click node to open editor</div>
+          ${html`<svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="close-icon"
+            @click="${this.removeLayerPanel}"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>`}
+        </div>
+
+        <div
+          class="node-tree-list"
+          style="${styleMap({ pointerEvents: this.dragging ? 'none' : '' })}"
+        >
+          ${this.nodeTree ? this.renderNodeTree(this.nodeTree) : ''}
+        </div>
+      </div>
+      <div
+        id="node-tree-tooltip"
+        class="${this.activeNode.class}"
+        style=${styleMap(nodeTooltipStyles)}
+      >
+        ${this.activeNode.content}
+      </div>
+    `;
   }
 
   static styles = css`
@@ -1147,17 +1258,43 @@ export class CodeInspectorComponent extends LitElement {
     .move-inspector-switch {
       cursor: move;
     }
-    #inspector-layers {
+    #inspector-node-tree {
       position: fixed;
       user-select: none;
       z-index: 9999999999999999;
-      max-width: 450px;
+      min-width: 300px;
+      max-width: min(max(30vw, 300px), 400px);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         'Liberation Mono', 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+
+      .inspector-layer-title {
+        border-bottom: 1px solid #eee;
+        padding: 8px 8px 4px;
+        margin-bottom: 4px;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        user-select: none;
+        &:hover {
+          background: rgba(0, 106, 255, 0.1);
+        }
+      }
+
+      .node-tree-list {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
 
       .inspector-layer {
         cursor: pointer;
         position: relative;
+        padding-right: 8px;
         &:hover {
           background: #fdf4bf;
         }
@@ -1176,6 +1313,26 @@ export class CodeInspectorComponent extends LitElement {
         margin-top: 1px;
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       }
+    }
+
+    #node-tree-tooltip {
+      position: fixed;
+      box-sizing: border-box;
+      z-index: 999999999999999999;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: wrap;
+      pointer-events: none;
+      word-break: break-all;
+    }
+    .tooltip-top {
+      transform: translateY(-100%);
+    }
+    .close-icon {
+      cursor: pointer;
     }
   `;
 }
