@@ -57,7 +57,8 @@
     "code-inspector-core": "workspace:*",
     "vite-code-inspector-plugin": "workspace:*",
     "webpack-code-inspector-plugin": "workspace:*",
-    "esbuild-code-inspector-plugin": "workspace:*"
+    "esbuild-code-inspector-plugin": "workspace:*",
+    "turbopack-code-inspector-plugin": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^16.0.1",
