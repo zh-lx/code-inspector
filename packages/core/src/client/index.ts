@@ -685,7 +685,7 @@ export class CodeInspectorComponent extends LitElement {
     let root: TreeNode;
 
     let depth = 1;
-    let preNode;
+    let preNode = null;
 
     for (const element of nodePath.reverse()) {
       const sourceInfo = this.getSourceInfo(element);
@@ -702,7 +702,6 @@ export class CodeInspectorComponent extends LitElement {
         preNode.children.push(node);
       } else {
         root = node;
-        preNode = node;
       }
       preNode = node;
     }
