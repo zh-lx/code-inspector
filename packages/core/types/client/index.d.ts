@@ -1,9 +1,11 @@
 import { LitElement, TemplateResult } from 'lit';
-interface LayerPosition {
+interface Position {
     left?: string;
     right?: string;
     top?: string;
     bottom?: string;
+    transform?: string;
+    maxHeight?: string;
 }
 interface SourceInfo {
     name: string;
@@ -11,10 +13,27 @@ interface SourceInfo {
     line: number;
     column: number;
 }
+interface ElementTipStyle {
+    vertical: string;
+    horizon: string;
+    visibility: string;
+    additionStyle?: {
+        transform: string;
+    };
+}
 interface TreeNode extends SourceInfo {
     children: TreeNode[];
     element: HTMLElement;
     depth: number;
+}
+interface ActiveNode {
+    top?: string;
+    bottom?: string;
+    left?: string;
+    width?: string;
+    content?: string;
+    visibility?: 'visible' | 'hidden';
+    class?: 'tooltip-top' | 'tooltip-bottom';
 }
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
@@ -56,14 +75,10 @@ export declare class CodeInspectorComponent extends LitElement {
         column: number;
         path: string;
     };
-    infoClassName: {
-        vertical: string;
-        horizon: string;
-    };
-    infoWidth: string;
+    elementTipStyle: ElementTipStyle;
     show: boolean;
-    showLayerPanel: boolean;
-    layerPanelPosition: LayerPosition;
+    showNodeTree: boolean;
+    nodeTreePosition: Position;
     nodeTree: TreeNode | null;
     dragging: boolean;
     mousePosition: {
@@ -72,33 +87,38 @@ export declare class CodeInspectorComponent extends LitElement {
         moveX: number;
         moveY: number;
     };
+    draggingTarget: 'switch' | 'nodeTree';
     open: boolean;
     moved: boolean;
     hoverSwitch: boolean;
     preUserSelect: string;
     sendType: 'xhr' | 'img';
+    activeNode: ActiveNode;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
-    inspectorLayersRef: HTMLDivElement;
+    nodeTreeRef: HTMLDivElement;
+    nodeTreeTitleRef: HTMLDivElement;
+    nodeTreeTooltipRef: HTMLDivElement;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
-    calculateElementInfoPosition: (target: HTMLElement) => {
-        findBestPositionSync: () => {
-            vertical: string;
-            horizon: string;
-            top: number;
-            left: number;
-            isExternal: boolean;
+    calculateElementInfoPosition: (target: HTMLElement) => Promise<{
+        vertical: string;
+        horizon: string;
+        top: number;
+        left: number;
+        isExternal: boolean;
+        additionStyle?: undefined;
+    } | {
+        vertical: string;
+        horizon: string;
+        top: number;
+        left: number;
+        isExternal: boolean;
+        additionStyle: {
+            transform: string;
         };
-        findBestPositionAsync: () => Promise<{
-            vertical: string;
-            horizon: string;
-            top: number;
-            left: number;
-            isExternal: boolean;
-        }>;
-    };
+    }>;
     renderCover: (target: HTMLElement) => Promise<void>;
     getAstroFilePath: (target: HTMLElement) => string;
     getSourceInfo: (target: HTMLElement) => SourceInfo | null;
@@ -115,7 +135,7 @@ export declare class CodeInspectorComponent extends LitElement {
     buildTargetUrl: () => string;
     trackCode: () => void;
     copyToClipboard(text: string): void;
-    moveSwitch: (e: MouseEvent | TouchEvent) => void;
+    handleDrag: (e: MouseEvent | TouchEvent) => void;
     isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
     handleMouseMove: (e: MouseEvent | TouchEvent) => Promise<void>;
     handleMouseClick: (e: MouseEvent | TouchEvent) => void;
@@ -128,11 +148,12 @@ export declare class CodeInspectorComponent extends LitElement {
         x: number;
         y: number;
     };
-    recordMousePosition: (e: MouseEvent | TouchEvent) => void;
+    recordMousePosition: (e: MouseEvent | TouchEvent, target: 'switch' | 'nodeTree') => void;
     handleMouseUp: (e: MouseEvent | TouchEvent) => void;
     switch: (e: Event) => void;
-    handleLayerPanelClick: (e: MouseEvent) => void;
-    checkCross: () => boolean | undefined;
+    handleClickTreeNode: (node: TreeNode) => void;
+    handleMouseEnterNode: (e: MouseEvent, node: TreeNode) => Promise<void>;
+    handleMouseLeaveNode: () => void;
     protected firstUpdated(): void;
     disconnectedCallback(): void;
     renderNodeTree: (node: TreeNode) => TemplateResult;
