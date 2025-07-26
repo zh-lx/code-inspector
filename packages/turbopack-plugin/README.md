@@ -42,7 +42,6 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ rspack / rsbuild<br />
   ✅ farm<br />
   ✅ esbuild<br />
-  ✅ turbopack (next.js v15.3+)<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -265,22 +264,6 @@ Please check here for more usage information: [code-inspector-plugin configurati
   </details>
 
   <details>
-    <summary>Click to expand configuration about: <b>next.js + turbopack</b> (next.js v15.3+)</summary>
-
-  ```js
-  // next.config.js
-  const { codeInspectorPlugin } = require('code-inspector-plugin');
-
-  const nextConfig = codeInspectorPlugin({
-    bundler: 'turbopack',
-  });
-
-  module.exports = nextConfig;
-  ```
-
-  </details>
-
-  <details>
     <summary>Click to expand configuration about: <b>umi.js</b></summary>
 
   ```js
@@ -348,7 +331,3 @@ For Chinese users, you can join the QQ group `769748484` or add the author's Wei
 ## 💖 Sponsor
 
 Sponsoring this project can help the author create better. If you are willing, thanks for sponsoring me through [here](https://inspector.fe-dev.cn/en/more/sponsor.html).
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=zh-lx/code-inspector&type=Date)](https://www.star-history.com/#zh-lx/code-inspector&Date)
