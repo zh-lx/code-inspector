@@ -1,6 +1,6 @@
 {
   "name": "esbuild-code-inspector-plugin",
-  "version": "0.20.17",
+  "version": "1.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

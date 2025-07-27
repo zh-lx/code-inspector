@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 🎉
+
+After a long period of iteration, the current `code-inspector` has already reached a sufficient level of completeness and stability, so I am happy to release the `1.0.0` version today. The main content of this update is as follows:
+
+- 【feat】Add support for `nextjs 15.x(turbopack)` [#349](https://github.com/zh-lx/code-inspector/pull/349)
+- 【feat】Add more comprehensive right-click node tree selection capabilities [#347](https://github.com/zh-lx/code-inspector/pull/347)
+
 ## 0.20.17
 
 - 【feat】Add the `behavior.target` parameter to support custom jump paths [#342](https://github.com/zh-lx/code-inspector/pull/342)
