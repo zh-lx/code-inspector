@@ -1136,6 +1136,7 @@ export class CodeInspectorComponent extends LitElement {
           style="${styleMap({ pointerEvents: this.dragging ? 'none' : '' })}"
         >
           ${this.nodeTree ? this.renderNodeTree(this.nodeTree) : ''}
+          <div style="height: 8px"></div>
         </div>
       </div>
       <div
@@ -1271,7 +1272,7 @@ export class CodeInspectorComponent extends LitElement {
       .inspector-layer-title {
         border-bottom: 1px solid #eee;
         padding: 8px 8px 4px;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
         flex-shrink: 0;
         display: flex;
         justify-content: space-between;
