@@ -39,7 +39,7 @@ const NextEmptyElementName = 'CodeInspectorEmptyElement';
 export function getInjectedCode(
   options: CodeOptions,
   port: number,
-  isNextjsWithTurbopack: boolean
+  isNextjs: boolean
 ) {
   let code = `'use client';`;
   code += getEliminateWarningCode();
@@ -48,7 +48,7 @@ export function getInjectedCode(
   }
   code += getWebComponentCode(options, port);
   code = `/* eslint-disable */\n` + code.replace(/\n/g, '');
-  if (isNextjsWithTurbopack) {
+  if (isNextjs) {
     code += `
     export default function ${NextEmptyElementName}() {
       return null;
@@ -182,8 +182,8 @@ export function getHidePathAttrCode() {
 }
 
 // normal entry file
-function recordEntry(record: RecordInfo, file: string, isTurbopack: boolean) {
-  if (isTurbopack) {
+function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
+  if (isNextjs) {
     const content = fs.readFileSync(file, 'utf-8');
     if (content === addNextEmptyElementToEntry(content)) {
       return;
@@ -262,16 +262,15 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
-  const isTurbopack = options.bundler === 'turbopack';
+  const isNextjs = isNextjsProject();
 
   recordInjectTo(record, options);
-  recordEntry(record, file, isTurbopack);
+  recordEntry(record, file, isNextjs);
 
   // 注入消除 warning 代码
   const isTargetFile = await isTargetFileToInject(file, record);
   if (isTargetFile || inject) {
-    const isNextjs = isNextjsProject();
-    const injectCode = getInjectedCode(options, record.port, isTurbopack);
+    const injectCode = getInjectedCode(options, record.port, isNextjs);
     if (isNextjs || options.importClient === 'file') {
       writeEslintRcFile(record.output);
       const webComponentNpmPath = writeWebComponentFile(
@@ -280,7 +279,7 @@ export async function getCodeWithWebComponent({
         record.port
       );
       if (!file.match(webComponentNpmPath)) {
-        if (isTurbopack) {
+        if (isNextjs) {
           code = `import ${NextEmptyElementName} from '${webComponentNpmPath}';\n${code}`;
           code = addNextEmptyElementToEntry(code);
         } else {
