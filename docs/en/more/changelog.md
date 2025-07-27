@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- 【fix】Fixed the error issue when entry file declares `use client` in `nextjs 15.x(turbopack)` [#352](https://github.com/zh-lx/code-inspector/pull/352)
+
 ## 1.0.0 🎉
 
 After a long period of iteration, the current `code-inspector` has already reached a sufficient level of completeness and stability, so I am happy to release the `1.0.0` version today. The main content of this update is as follows:
