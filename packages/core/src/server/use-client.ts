@@ -79,7 +79,7 @@ function addNextEmptyElementToEntry(content: string) {
       if (hasAddedEmptyElement) {
         return;
       }
-      if (node.type === 'JSXElement' && node?.closingElement?.start) {
+      if (node.type === 'JSXElement' && node.closingElement?.start) {
         s.prependLeft(node.closingElement.start, `<${NextEmptyElementName} />`);
         hasAddedEmptyElement = true;
       }
