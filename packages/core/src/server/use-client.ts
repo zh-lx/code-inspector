@@ -89,6 +89,47 @@ function addNextEmptyElementToEntry(content: string) {
   return s.toString();
 }
 
+function addImportToEntry(content: string, webComponentNpmPath: string) {
+  let hasAddedImport = false;
+  const s = new MagicString(content);
+
+  const ast = parse(content, {
+    babelrc: false,
+    comments: true,
+    configFile: false,
+    plugins: [
+      importMetaPlugin,
+      [tsPlugin, { isTSX: true, allowExtensions: true }],
+      [proposalDecorators, { legacy: true }],
+    ],
+  });
+
+  traverse(ast!, {
+    enter({ node }: any) {
+      if (hasAddedImport) {
+        return;
+      }
+      if (
+        node.type === 'Directive' &&
+        node.value.type === 'DirectiveLiteral' &&
+        node.value.value === 'use client'
+      ) {
+        s.prependRight(
+          node.end,
+          `import ${NextEmptyElementName} from '${webComponentNpmPath}';`
+        );
+        hasAddedImport = true;
+      }
+    },
+  });
+
+  if (hasAddedImport) {
+    return s.toString();
+  } else {
+    return `import ${NextEmptyElementName} from '${webComponentNpmPath}';${s.toString()}`;
+  }
+}
+
 export function getWebComponentCode(options: CodeOptions, port: number) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
@@ -280,7 +321,7 @@ export async function getCodeWithWebComponent({
       );
       if (!file.match(webComponentNpmPath)) {
         if (isNextjs) {
-          code = `import ${NextEmptyElementName} from '${webComponentNpmPath}';\n${code}`;
+          code = addImportToEntry(code, webComponentNpmPath);
           code = addNextEmptyElementToEntry(code);
         } else {
           code = `import '${webComponentNpmPath}';${code}`;
