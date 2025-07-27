@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.1
+
+- 【fix】修复了 `nextjs 15.x(turbopack)` 中，入口文件声明了 `use client` 的报错问题 [#352](https://github.com/zh-lx/code-inspector/pull/352)
+
 ## 1.0.0 🎉
 
 经过长时间的迭代，目前 `code-inspector` 的功能已经足够完善且趋于稳定，因此我很高兴在今天发布 `1.0.0` 版本。此次更新主要内容如下：
