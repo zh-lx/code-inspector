@@ -42,7 +42,7 @@ The following are which compilers, web frameworks and editors we supported now:
   ✅ rspack / rsbuild<br />
   ✅ farm<br />
   ✅ esbuild<br />
-  ✅ turbopack (next.js v15.3+)<br />
+  ✅ turbopack (next.js v15+)<br />
   ✅ nextjs / nuxt / umijs eg.<br />
 - The following Web frameworks are currently supported:<br />
   ✅ vue2<br />
@@ -248,6 +248,7 @@ Please check here for more usage information: [code-inspector-plugin configurati
   <details>
     <summary>Click to expand configuration about: <b>next.js</b></summary>
 
+  For next.js(<= 14.x):
   ```js
   // next.config.js
   const { codeInspectorPlugin } = require('code-inspector-plugin');
@@ -262,20 +263,39 @@ Please check here for more usage information: [code-inspector-plugin configurati
   module.exports = nextConfig;
   ```
 
-  </details>
+  For next.js(15.0.x ~ 15.2.x):
+  ```js
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-  <details>
-    <summary>Click to expand configuration about: <b>next.js + turbopack</b> (next.js v15.3+)</summary>
+  const nextConfig: NextConfig = {
+    experimental: {
+      turbo: {
+        rules: codeInspectorPlugin({
+          bundler: 'turbopack',
+        }),
+      },
+    },
+  };
 
+  export default nextConfig;
+  ```
+
+  For next.js(>= 15.3.x):
   ```js
   // next.config.js
-  const { codeInspectorPlugin } = require('code-inspector-plugin');
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-  const nextConfig = codeInspectorPlugin({
-    bundler: 'turbopack',
-  });
+  const nextConfig: NextConfig = {
+    turbopack: {
+      rules: codeInspectorPlugin({
+        bundler: 'turbopack',
+      }),
+    },
+  };
 
-  module.exports = nextConfig;
+  export default nextConfig;
   ```
 
   </details>

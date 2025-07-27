@@ -1,9 +1,12 @@
 import { codeInspectorPlugin } from 'code-inspector-plugin';
+import type { NextConfig } from 'next';
 
-export default {
+const nextConfig: NextConfig = {
   turbopack: {
     rules: codeInspectorPlugin({
       bundler: 'turbopack',
     }),
   },
 };
+
+export default nextConfig;
