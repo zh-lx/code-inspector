@@ -196,6 +196,8 @@ export default {
 
 ::: details Click to view next.js project configuration
 
+next <= 14.x :
+
 ```js
 // next.config.js
 const { codeInspectorPlugin } = require('code-inspector-plugin');
@@ -208,6 +210,44 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+```
+
+next 15.0.x ~ 15.2.x :
+
+```js
+// next.config.js
+import type { NextConfig } from 'next';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+const nextConfig: NextConfig = {
+  experimental: {
+    turbo: {
+      rules: codeInspectorPlugin({
+        bundler: 'turbopack',
+      }),
+    },
+  },
+};
+
+export default nextConfig;
+```
+
+next >= 15.3.x :
+
+```js
+// next.config.js
+import type { NextConfig } from 'next';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+const nextConfig: NextConfig = {
+  turbopack: {
+    rules: codeInspectorPlugin({
+      bundler: 'turbopack',
+    }),
+  },
+};
+
+export default nextConfig;
 ```
 
 :::

@@ -1,6 +1,15 @@
 import path, { isAbsolute, dirname } from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
+import MagicString from 'magic-string';
+// @ts-ignore
+import { parse, traverse } from '@babel/core';
+// @ts-ignore
+import tsPlugin from '@babel/plugin-transform-typescript';
+// @ts-ignore
+import importMetaPlugin from '@babel/plugin-syntax-import-meta';
+// @ts-ignore
+import proposalDecorators from '@babel/plugin-proposal-decorators';
 import { startServer } from './server';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
@@ -26,14 +35,58 @@ if (typeof __dirname !== 'undefined') {
 export const clientJsPath = path.resolve(compatibleDirname, './client.umd.js');
 const jsClientCode = fs.readFileSync(clientJsPath, 'utf-8');
 
-export function getInjectedCode(options: CodeOptions, port: number) {
+const NextEmptyElementName = 'CodeInspectorEmptyElement';
+export function getInjectedCode(
+  options: CodeOptions,
+  port: number,
+  isNextjsWithTurbopack: boolean
+) {
   let code = `'use client';`;
   code += getEliminateWarningCode();
   if (options?.hideDomPathAttr) {
     code += getHidePathAttrCode();
   }
   code += getWebComponentCode(options, port);
-  return `/* eslint-disable */\n` + code.replace(/\n/g, '');
+  code = `/* eslint-disable */\n` + code.replace(/\n/g, '');
+  if (isNextjsWithTurbopack) {
+    code += `
+    export default function ${NextEmptyElementName}() {
+      return null;
+    }
+    `;
+  }
+  return code;
+}
+
+// For Next.js, add a CodeInspectorEmptyComp component to inject file
+function addNextEmptyElementToEntry(content: string) {
+  let hasAddedEmptyElement = false;
+  const s = new MagicString(content);
+
+  const ast = parse(content, {
+    babelrc: false,
+    comments: true,
+    configFile: false,
+    plugins: [
+      importMetaPlugin,
+      [tsPlugin, { isTSX: true, allowExtensions: true }],
+      [proposalDecorators, { legacy: true }],
+    ],
+  });
+
+  traverse(ast!, {
+    enter({ node }: any) {
+      if (hasAddedEmptyElement) {
+        return;
+      }
+      if (node.type === 'JSXElement' && node.closingElement?.start) {
+        s.prependLeft(node.closingElement.start, `<${NextEmptyElementName} />`);
+        hasAddedEmptyElement = true;
+      }
+    },
+  });
+
+  return s.toString();
 }
 
 export function getWebComponentCode(options: CodeOptions, port: number) {
@@ -129,7 +182,13 @@ export function getHidePathAttrCode() {
 }
 
 // normal entry file
-function recordEntry(record: RecordInfo, file: string) {
+function recordEntry(record: RecordInfo, file: string, isTurbopack: boolean) {
+  if (isTurbopack) {
+    const content = fs.readFileSync(file, 'utf-8');
+    if (content === addNextEmptyElementToEntry(content)) {
+      return;
+    }
+  }
   if (
     !record.entry &&
     isJsTypeFile(file) &&
@@ -203,14 +262,17 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
+  const isTurbopack = options.bundler === 'turbopack';
+
   recordInjectTo(record, options);
-  recordEntry(record, file);
+  recordEntry(record, file, isTurbopack);
 
   // 注入消除 warning 代码
   const isTargetFile = await isTargetFileToInject(file, record);
   if (isTargetFile || inject) {
-    const injectCode = getInjectedCode(options, record.port);
-    if (isNextjsProject() || options.importClient === 'file') {
+    const isNextjs = isNextjsProject();
+    const injectCode = getInjectedCode(options, record.port, isTurbopack);
+    if (isNextjs || options.importClient === 'file') {
       writeEslintRcFile(record.output);
       const webComponentNpmPath = writeWebComponentFile(
         record.output,
@@ -218,7 +280,12 @@ export async function getCodeWithWebComponent({
         record.port
       );
       if (!file.match(webComponentNpmPath)) {
-        code = `import '${webComponentNpmPath}';${code}`;
+        if (isTurbopack) {
+          code = `import ${NextEmptyElementName} from '${webComponentNpmPath}';\n${code}`;
+          code = addNextEmptyElementToEntry(code);
+        } else {
+          code = `import '${webComponentNpmPath}';${code}`;
+        }
       }
     } else {
       code = `${injectCode};${code}`;

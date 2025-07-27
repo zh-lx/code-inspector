@@ -27,7 +27,9 @@
         "types": "./types/index.d.ts",
         "default": "./dist/index.umd.js"
       }
-    }
+    },
+    "./dist/loader.js": "./dist/loader.js",
+    "./dist/inject-loader.js": "./dist/inject-loader.js"
   },
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
