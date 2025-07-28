@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.2
+
+- 【feat】支持了 codebuddy 编辑器的识别 [#354](https://github.com/zh-lx/code-inspector/pull/354)
+
 ## 1.0.1
 
 - 【fix】修复了 `nextjs 15.x(turbopack)` 中，入口文件声明了 `use client` 的报错问题 [#352](https://github.com/zh-lx/code-inspector/pull/352)
