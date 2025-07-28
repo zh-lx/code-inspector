@@ -22,6 +22,7 @@
     "test": "vitest run --coverage",
     "build": "pnpm --filter \"./packages/*\" run build",
     "build:docs": "pnpm --filter \"./docs/*\" run docs:build && node ./scripts/zip",
+    "deploy:docs": "pnpm build:docs && bash ./deploy.sh",
     "pub": "pnpm --filter \"./packages/*\" run pub",
     "pub:beta": "pnpm --filter \"./packages/*\" run pub:beta --no-git-checks",
     "version:major": "node ./scripts/version major",
