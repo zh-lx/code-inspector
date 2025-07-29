@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- 【fix】Fixed the issue where the error occurred in `nextjs 15.x(turbopack)` when the entry file declares `use client` [#355](https://github.com/zh-lx/code-inspector/pull/355) again
+
 ## 1.0.2
 
 - 【feat】Add support for `codebuddy` editor recognition [#354](https://github.com/zh-lx/code-inspector/pull/354)
