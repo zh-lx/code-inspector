@@ -116,7 +116,7 @@ function addImportToEntry(content: string, webComponentNpmPath: string) {
       ) {
         s.prependRight(
           node.end,
-          `import ${NextEmptyElementName} from '${webComponentNpmPath}';`
+          `;import ${NextEmptyElementName} from '${webComponentNpmPath}';`
         );
         hasAddedImport = true;
       }
