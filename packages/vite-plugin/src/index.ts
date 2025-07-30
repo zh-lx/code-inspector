@@ -23,12 +23,16 @@ export function ViteCodeInspectorPlugin(options: Options) {
     port: 0,
     entry: '',
     output: options.output,
+    envDir: '',
   };
   return {
     name: PluginName,
     ...(options.enforcePre === false ? {} : { enforce: 'pre' as 'pre' }),
     apply(_, { command }) {
       return !options.close && isDev(options.dev, command === 'serve');
+    },
+    configResolved(config) {
+      record.envDir = config.envDir || config.root;
     },
     async transform(code: string, id: string) {
       let exclude = options.exclude || [];

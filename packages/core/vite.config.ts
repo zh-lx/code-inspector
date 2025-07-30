@@ -21,7 +21,6 @@ export default defineConfig({
         'http',
         'https',
         'chalk',
-        'dotenv',
         'launch-ide',
         'portfinder',
         'child_process',

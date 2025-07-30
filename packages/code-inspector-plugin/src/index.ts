@@ -2,11 +2,13 @@ import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
 import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
 import { EsbuildCodeInspectorPlugin } from 'esbuild-code-inspector-plugin';
 import { TurbopackCodeInspectorPlugin } from 'turbopack-code-inspector-plugin';
-import { CodeOptions, fileURLToPath } from 'code-inspector-core';
+import {
+  CodeOptions,
+  fileURLToPath,
+  getEnvVariable,
+} from 'code-inspector-core';
 import chalk from 'chalk';
-import dotenv from 'dotenv';
 import path, { dirname } from 'path';
-import fs from 'fs';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
   /**
@@ -35,19 +37,8 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
   let close = false;
   if (options.needEnvInspector) {
     close = true;
-    let useCodeInspector = process.env.CODE_INSPECTOR;
-    if (useCodeInspector === 'true') {
+    if (getEnvVariable('CODE_INSPECTOR', process.cwd()) === 'true') {
       close = false;
-    } else {
-      const envPath = path.resolve(process.cwd(), '.env.local');
-      if (fs.existsSync(envPath)) {
-        const envFile = fs.readFileSync(envPath, 'utf-8');
-        const envConfig = dotenv.parse(envFile || '');
-        const useCodeInspector = envConfig?.CODE_INSPECTOR;
-        if (useCodeInspector === 'true') {
-          close = false;
-        }
-      }
     }
   }
 
@@ -61,7 +52,7 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     ...options,
     close,
     output: path.resolve(compatibleDirname, './'),
-  }
+  };
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
     return new WebpackCodeInspectorPlugin(params);
