@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- 【feat】Support reading `.env.local` file in some cases [#356](https://github.com/zh-lx/code-inspector/pull/356)
+
 ## 1.0.3
 
 - 【fix】Fixed the issue where the error occurred in `nextjs 15.x(turbopack)` when the entry file declares `use client` [#355](https://github.com/zh-lx/code-inspector/pull/355) again

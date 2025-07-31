@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.4
+
+- 【feat】支持了 `.env.local` 文件部分情况下读取失败的问题 [#356](https://github.com/zh-lx/code-inspector/pull/356)
+
 ## 1.0.3
 
 - 【fix】再次修复了 `nextjs 15.x(turbopack)` 中，入口文件声明了 `use client` 的报错问题 [#355](https://github.com/zh-lx/code-inspector/pull/355)
