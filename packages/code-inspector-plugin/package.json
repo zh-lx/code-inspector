@@ -53,7 +53,6 @@
   },
   "dependencies": {
     "chalk": "4.1.1",
-    "dotenv": "^16.3.1",
     "code-inspector-core": "workspace:*",
     "vite-code-inspector-plugin": "workspace:*",
     "webpack-code-inspector-plugin": "workspace:*",

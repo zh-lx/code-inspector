@@ -12,6 +12,7 @@ export type RecordInfo = {
     findPort?: Promise<number>;
     inputs?: Promise<string[]>;
     injectTo?: string[];
+    envDir?: string;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

@@ -42,7 +42,8 @@ export function getRelativeOrAbsolutePath(
 
 export function createServer(
   callback: (port: number) => any,
-  options?: CodeOptions
+  options?: CodeOptions,
+  record?: RecordInfo
 ) {
   const server = http.createServer((req: any, res: any) => {
     // 收到请求唤醒vscode
@@ -84,6 +85,7 @@ export function createServer(
       editor: options?.editor,
       method: options?.openIn,
       format: options?.pathFormat,
+      rootDir: record?.envDir,
     });
   });
 
@@ -116,20 +118,24 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
           (projectServerMap.get(projectName) as Server)?.close();
         }
         // create server
-        const server = createServer((port: number) => {
-          resolve(port);
-          if (options.printServer) {
-            console.log(
-              chalk.blue(`[code-inspector-plugin] `) +
-                chalk.white(`Server is running on: `) +
-                chalk.green(
-                  `http://${getIP(options.ip || 'localhost')}:${
-                    options.port ?? DefaultPort
-                  }`
-                )
-            );
-          }
-        }, options);
+        const server = createServer(
+          (port: number) => {
+            resolve(port);
+            if (options.printServer) {
+              console.log(
+                chalk.blue(`[code-inspector-plugin] `) +
+                  chalk.white(`Server is running on: `) +
+                  chalk.green(
+                    `http://${getIP(options.ip || 'localhost')}:${
+                      options.port ?? DefaultPort
+                    }`
+                  )
+              );
+            }
+          },
+          options,
+          record
+        );
         // record the server of current project
         projectServerMap.set(projectName, server);
       });
