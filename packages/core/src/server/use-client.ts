@@ -361,7 +361,7 @@ function writeWebComponentFile(
   return webComponentNpmPath;
 }
 
-function isNextjsProject() {
+export function isNextjsProject() {
   const dependencies = getDenpendencies();
   return dependencies.includes('next');
 }

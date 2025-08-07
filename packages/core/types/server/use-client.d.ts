@@ -11,3 +11,4 @@ export declare function getCodeWithWebComponent({ options, record, file, code, i
     code: string;
     inject?: boolean;
 }): Promise<string>;
+export declare function isNextjsProject(): boolean;
