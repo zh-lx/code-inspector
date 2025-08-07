@@ -4,6 +4,7 @@ import {
   fileURLToPath,
   getCodeWithWebComponent,
   isDev,
+  isNextjsProject,
 } from 'code-inspector-core';
 import path, { dirname } from 'path';
 import { getWebpackEntrys } from './entry';
@@ -66,7 +67,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
           options,
         },
       ],
-      enforce: 'post',
+      enforce: isNextjsProject(),
     }
   );
 };
