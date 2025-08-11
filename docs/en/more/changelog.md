@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- 【fix】Fixed the issue where the plugin did not work when using `webpack` as the bundler in `nextjs` [#359](https://github.com/zh-lx/code-inspector/pull/359)
+
 ## 1.0.4
 
 - 【feat】Support reading `.env.local` file in some cases [#356](https://github.com/zh-lx/code-inspector/pull/356)

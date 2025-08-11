@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.5
+
+- 【fix】修复了 `nextjs` 中使用 `webpack` 作为 bundler 时，插件不生效的问题 [#359](https://github.com/zh-lx/code-inspector/pull/359)
+
 ## 1.0.4
 
 - 【feat】支持了 `.env.local` 文件部分情况下读取失败的问题 [#356](https://github.com/zh-lx/code-inspector/pull/356)
