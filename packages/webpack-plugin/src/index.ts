@@ -67,7 +67,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
           options,
         },
       ],
-      enforce: isNextjsProject(),
+      enforce: isNextjsProject() ? 'pre' : 'post',
     }
   );
 };
