@@ -1,6 +1,6 @@
 # Quick Start
 
-`code-inspector-plugin` supports projects using `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs` as bundlers, and works with frameworks like `vue/react/preact/solid/qwik/svelte/astro`. Please refer to the following integration guide.
+`code-inspector-plugin` supports projects using `webpack/vite/rspack/rsbuild/esbuild/farm/mako` as bundlers, and works with frameworks like `vue/react/preact/solid/qwik/svelte/astro/nextjs/nuxt/umijs`. Please refer to the following integration guide.
 
 ## Installation
 
@@ -162,130 +162,135 @@ module.exports = {
 
 ::: details Click to view nuxt project configuration
 
-nuxt3.x:
+- nuxt3.x:
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  vite: {
-    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
-  },
-});
-```
-
-nuxt2.x:
-
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
-
-export default {
-  build: {
-    extend(config) {
-      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-      return config;
+  // https://nuxt.com/docs/api/configuration/nuxt-config
+  export default defineNuxtConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
     },
-  },
-};
-```
+  });
+  ```
+
+- nuxt2.x:
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default {
+    build: {
+      extend(config) {
+        config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+        return config;
+      },
+    },
+  };
+  ```
 
 :::
 
 ::: details Click to view next.js project configuration
 
-next <= 14.x :
+- next <= 14.x :
 
-```js
-// next.config.js
-const { codeInspectorPlugin } = require('code-inspector-plugin');
+  ```js
+  // next.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
 
-const nextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-    return config;
-  },
-};
+  const nextConfig = {
+    webpack: (config, { dev, isServer }) => {
+      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+      return config;
+    },
+  };
 
-module.exports = nextConfig;
-```
+  module.exports = nextConfig;
+  ```
 
-next 15.0.x ~ 15.2.x :
+- next 15.0.x ~ 15.2.x :
 
-```js
-// next.config.js
-import type { NextConfig } from 'next';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // next.config.js
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
+  const nextConfig: NextConfig = {
+    experimental: {
+      turbo: {
+        rules: codeInspectorPlugin({
+          bundler: 'turbopack',
+        }),
+      },
+    },
+  };
+
+  export default nextConfig;
+  ```
+
+- next >= 15.3.x :
+
+  ```js
+  // next.config.js
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  const nextConfig: NextConfig = {
+    turbopack: {
       rules: codeInspectorPlugin({
         bundler: 'turbopack',
       }),
     },
-  },
-};
+  };
 
-export default nextConfig;
-```
-
-next >= 15.3.x :
-
-```js
-// next.config.js
-import type { NextConfig } from 'next';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
-
-const nextConfig: NextConfig = {
-  turbopack: {
-    rules: codeInspectorPlugin({
-      bundler: 'turbopack',
-    }),
-  },
-};
-
-export default nextConfig;
-```
+  export default nextConfig;
+  ```
 
 :::
 
 ::: details Click to view umi.js project configuration
 
-```js
-// umi.config.js or umirc.js
-import { defineConfig } from '@umijs/max';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+- With webpack:
 
-export default defineConfig({
-  chainWebpack(memo) {
-    memo.plugin('code-inspector-plugin').use(
-      codeInspectorPlugin({
-        bundler: 'webpack',
-      })
-    );
-  },
-  // other config
-});
-```
+  ```js
+  // umi.config.js or umirc.js
+  import { defineConfig } from '@umijs/max';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-:::
+  export default defineConfig({
+    chainWebpack(memo) {
+      memo.plugin('code-inspector-plugin').use(
+        codeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+    // other config
+  });
+  ```
 
-::: details Click to view astro project configuration
+- With mako:
 
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```ts
+  // .umirc.ts
+  import { defineConfig } from 'umi';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-export default defineConfig({
-  vite: {
-    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
-  },
-});
-```
+  export default defineConfig({
+    // other config...
+    mako: {
+      plugins: [
+        codeInspectorPlugin({
+          bundler: 'mako',
+        }),
+      ],
+    },
+  });
+  ```
 
 :::
 

@@ -1,6 +1,6 @@
 # 快速开始
 
-`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro` 等框架，请参考如下的接入教程。
+`code-inspector-plugin` 支持在以 `webpack/vite/rspack/rsbuild/esbuild/farm/mako` 作为打包器的项目中使用，支持 `vue/react/preact/solid/qwik/svelte/astro/nextjs/nuxt/umijs` 等框架，请参考如下的接入教程。
 
 ## 安装
 
@@ -161,114 +161,135 @@ module.exports = {
 
 ::: details 点击展开查看 nuxt 项目配置
 
-nuxt3.x :
+- nuxt3.x :
 
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
-  vite: {
-    plugins: [codeInspectorPlugin({ bundler: 'vite' })],
-  },
-});
-```
-
-nuxt2.x :
-
-```js
-// nuxt.config.js
-import { codeInspectorPlugin } from 'code-inspector-plugin';
-
-export default {
-  build: {
-    extend(config) {
-      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-      return config;
+  // https://nuxt.com/docs/api/configuration/nuxt-config
+  export default defineNuxtConfig({
+    vite: {
+      plugins: [codeInspectorPlugin({ bundler: 'vite' })],
     },
-  },
-};
-```
+  });
+  ```
+
+- nuxt2.x :
+
+  ```js
+  // nuxt.config.js
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default {
+    build: {
+      extend(config) {
+        config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+        return config;
+      },
+    },
+  };
+  ```
 
 :::
 
 ::: details 点击展开查看 next.js 项目配置
 
-next <= 14.x :
+- next <= 14.x :
 
-```js
-// next.config.js
-const { codeInspectorPlugin } = require('code-inspector-plugin');
+  ```js
+  // next.config.js
+  const { codeInspectorPlugin } = require('code-inspector-plugin');
 
-const nextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
-    return config;
-  },
-};
+  const nextConfig = {
+    webpack: (config, { dev, isServer }) => {
+      config.plugins.push(codeInspectorPlugin({ bundler: 'webpack' }));
+      return config;
+    },
+  };
 
-module.exports = nextConfig;
-```
+  module.exports = nextConfig;
+  ```
 
-next 15.0.x ~ 15.2.x :
+- next 15.0.x ~ 15.2.x :
 
-```js
-// next.config.js
-import type { NextConfig } from 'next';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+  ```js
+  // next.config.js
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
 
-const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
+  const nextConfig: NextConfig = {
+    experimental: {
+      turbo: {
+        rules: codeInspectorPlugin({
+          bundler: 'turbopack',
+        }),
+      },
+    },
+  };
+
+  export default nextConfig;
+  ```
+
+- next >= 15.3.x :
+
+  ```js
+  // next.config.js
+  import type { NextConfig } from 'next';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  const nextConfig: NextConfig = {
+    turbopack: {
       rules: codeInspectorPlugin({
         bundler: 'turbopack',
       }),
     },
-  },
-};
+  };
 
-export default nextConfig;
-```
-
-next >= 15.3.x :
-
-```js
-// next.config.js
-import type { NextConfig } from 'next';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
-
-const nextConfig: NextConfig = {
-  turbopack: {
-    rules: codeInspectorPlugin({
-      bundler: 'turbopack',
-    }),
-  },
-};
-
-export default nextConfig;
-```
+  export default nextConfig;
+  ```
 
 :::
 
 ::: details 点击展开查看 umi.js 项目配置
 
-```js
-// umi.config.js or umirc.js
-import { defineConfig } from '@umijs/max';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
+- With webpack:
 
-export default defineConfig({
-  chainWebpack(memo) {
-    memo.plugin('code-inspector-plugin').use(
-      codeInspectorPlugin({
-        bundler: 'webpack',
-      })
-    );
-  },
-  // other config
-});
-```
+  ```js
+  // umi.config.js or umirc.js
+  import { defineConfig } from '@umijs/max';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default defineConfig({
+    chainWebpack(memo) {
+      memo.plugin('code-inspector-plugin').use(
+        codeInspectorPlugin({
+          bundler: 'webpack',
+        })
+      );
+    },
+    // other config
+  });
+  ```
+
+- With mako:
+
+  ```ts
+  // .umirc.ts
+  import { defineConfig } from 'umi';
+  import { codeInspectorPlugin } from 'code-inspector-plugin';
+
+  export default defineConfig({
+    // other config...
+    mako: {
+      plugins: [
+        codeInspectorPlugin({
+          bundler: 'mako',
+        }),
+      ],
+    },
+  });
+  ```
 
 :::
 
