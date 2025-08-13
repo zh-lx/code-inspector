@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- 【fix】Fixed the issue where the installation failed [9694900bb](https://github.com/zh-lx/code-inspector/commit/9694900bbde7b254184532b8eda10a3cad105a91)
+
 ## 1.1.0
 
 - 【feat】Supported project using `mako` as the bundler [#361](https://github.com/zh-lx/code-inspector/pull/361)

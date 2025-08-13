@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.1.1
+
+- 【fix】修复了安装报错的问题 [9694900bb](https://github.com/zh-lx/code-inspector/commit/9694900bbde7b254184532b8eda10a3cad105a91)
+
 ## 1.1.0
 
 - 【feat】支持了 `mako` 作为 bundler 的项目 [#361](https://github.com/zh-lx/code-inspector/pull/361)
