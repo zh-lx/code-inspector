@@ -47,7 +47,7 @@ export function getInjectedCode(
     code += getHidePathAttrCode();
   }
   code += getWebComponentCode(options, port);
-  code = `/* eslint-disable */\n` + code.replace(/\n/g, '');
+  code = `/* eslint-disable */ ` + code.replace(/\n/g, '');
   if (isNextjs) {
     code += `
     export default function ${NextEmptyElementName}() {
