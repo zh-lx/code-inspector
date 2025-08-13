@@ -1,5 +1,5 @@
 {
-  "name": "code-inspector-plugin",
+  "name": "@code-inspector/turbopack",
   "version": "1.0.5",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -7,12 +7,8 @@
   "repository": "git@github.com:zh-lx/code-inspector.git",
   "author": "zh-lx <18366276315@163.com>",
   "license": "MIT",
-  "scripts": {
-    "clear": "rimraf ./dist && rimraf ./types",
-    "build": "pnpm clear && tsc && vite build",
-    "pub": "pnpm publish",
-    "pub:beta": "pnpm publish --tag beta"
-  },
+  "homepage": "https://inspector.fe-dev.cn/en",
+  "description": "Click the dom on the page, it will open your IDE and position the cursor to the source code location of the dom.",
   "files": [
     "dist",
     "types"
@@ -27,23 +23,12 @@
         "types": "./types/index.d.ts",
         "default": "./dist/index.js"
       }
-    },
-    "./dist/*": {
-      "import": {
-        "default": "./dist/*"
-      },
-      "require": {
-        "default": "./dist/*"
-      }
     }
   },
-  "homepage": "https://inspector.fe-dev.cn/en",
-  "description": "Click the dom on the page, it will open your IDE and position the cursor to the source code location of the dom.",
   "keywords": [
-    "webpack",
-    "vite",
+    "turbopack",
+    "nextjs",
     "plugin",
-    "vue",
     "vscode",
     "inspector",
     "inspect"
@@ -52,16 +37,18 @@
     "url": "https://github.com/zh-lx/code-inspector/issues"
   },
   "dependencies": {
-    "chalk": "4.1.1",
     "@code-inspector/core": "workspace:*",
-    "@code-inspector/vite": "workspace:*",
-    "@code-inspector/webpack": "workspace:*",
-    "@code-inspector/esbuild": "workspace:*",
-    "@code-inspector/turbopack": "workspace:*"
+    "@code-inspector/webpack": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^16.0.1",
     "typescript": "^4.9.3",
-    "vite": "^4.1.0"
+    "vite": "^4.3.9"
+  },
+  "scripts": {
+    "clear": "rimraf ./dist && rimraf ./types",
+    "build": "pnpm clear && tsc && vite build",
+    "pub": "pnpm publish",
+    "pub:beta": "pnpm publish --tag beta"
   }
 }

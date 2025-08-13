@@ -4,21 +4,17 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: ['src/index.ts'],
-      formats: ['cjs', 'es'],
+      entry: ['src/loader.ts'],
+      formats: ['cjs'],
       fileName: '[name]',
-      name: 'CodeInspectorPlugin',
     },
     minify: true,
     emptyOutDir: false,
     rollupOptions: {
-      external: [
-        '@code-inspector/core',
-        '@code-inspector/vite',
-        '@code-inspector/webpack',
-        'chalk',
-        'path',
-      ],
+      external: ['@code-inspector/core', '@vue/compiler-sfc', 'path'],
+      output: {
+        exports: 'default', // 设置默认导出
+      },
     },
     target: ['node8', 'es2015'],
   },

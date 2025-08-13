@@ -1,4 +1,4 @@
-import { CodeOptions } from 'code-inspector-core';
+import { CodeOptions } from '@code-inspector/core';
 export interface CodeInspectorPluginOptions extends CodeOptions {
     /**
      * @zh 指定项目的打包器

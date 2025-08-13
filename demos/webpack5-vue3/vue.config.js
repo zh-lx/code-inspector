@@ -4,7 +4,7 @@ module.exports = {
   // ...other code
   chainWebpack: (config) => {
     // add this configuration in the development environment
-    config.plugin('webpack-code-inspector-plugin').use(
+    config.plugin('@code-inspector/webpack').use(
       CodeInspectorPlugin({
         bundler: 'webpack',
       })
@@ -14,6 +14,6 @@ module.exports = {
       .rule('pug')
       .test(/\.pug$/) // 替换为你的文件扩展名
       .use('pug-plain-loader')
-      .loader('pug-plain-loader') // 替换为你的 loader 名称
+      .loader('pug-plain-loader'); // 替换为你的 loader 名称
   },
 };
