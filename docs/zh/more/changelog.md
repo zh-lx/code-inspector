@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.1.0
+
+- 【feat】支持了 `mako` 作为 bundler 的项目 [#361](https://github.com/zh-lx/code-inspector/pull/361)
+
 ## 1.0.5
 
 - 【fix】修复了 `nextjs` 中使用 `webpack` 作为 bundler 时，插件不生效的问题 [#359](https://github.com/zh-lx/code-inspector/pull/359)

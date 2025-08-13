@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- 【feat】Supported project using `mako` as the bundler [#361](https://github.com/zh-lx/code-inspector/pull/361)
+
 ## 1.0.5
 
 - 【fix】Fixed the issue where the plugin did not work when using `webpack` as the bundler in `nextjs` [#359](https://github.com/zh-lx/code-inspector/pull/359)
