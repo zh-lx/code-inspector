@@ -1,12 +1,12 @@
-import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
-import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
-import { EsbuildCodeInspectorPlugin } from 'esbuild-code-inspector-plugin';
-import { TurbopackCodeInspectorPlugin } from 'turbopack-code-inspector-plugin';
+import { ViteCodeInspectorPlugin } from '@code-inspector/vite';
+import WebpackCodeInspectorPlugin from '@code-inspector/webpack';
+import { EsbuildCodeInspectorPlugin } from '@code-inspector/esbuild';
+import { TurbopackCodeInspectorPlugin } from '@code-inspector/turbopack';
 import {
   CodeOptions,
   fileURLToPath,
   getEnvVariable,
-} from 'code-inspector-core';
+} from '@code-inspector/core';
 import chalk from 'chalk';
 import path, { dirname } from 'path';
 
