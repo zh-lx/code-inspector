@@ -4,7 +4,7 @@ module.exports = {
   // ...other code
   chainWebpack: (config) => {
     // add this configuration in the development environment
-    config.plugin('@code-inspector/webpack').use(
+    config.plugin('code-inspector-plugin').use(
       CodeInspectorPlugin({
         bundler: 'webpack',
       })
