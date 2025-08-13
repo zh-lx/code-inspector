@@ -57,7 +57,8 @@
     "@code-inspector/vite": "workspace:*",
     "@code-inspector/webpack": "workspace:*",
     "@code-inspector/esbuild": "workspace:*",
-    "@code-inspector/turbopack": "workspace:*"
+    "@code-inspector/turbopack": "workspace:*",
+    "@code-inspector/mako": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^16.0.1",

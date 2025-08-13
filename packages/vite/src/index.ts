@@ -6,8 +6,8 @@ import {
   RecordInfo,
   isJsTypeFile,
   isDev,
-  matchCondition,
   getMappingFilePath,
+  isExcludedFile,
 } from '@code-inspector/core';
 const PluginName = '@code-inspector/vite';
 
@@ -35,14 +35,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
       record.envDir = config.envDir || config.root;
     },
     async transform(code: string, id: string) {
-      let exclude = options.exclude || [];
-      if (!Array.isArray(exclude)) {
-        exclude = [exclude];
-      }
-      const isExcluded = matchCondition([...exclude, /\/node_modules\//], id);
-      const isIncluded = matchCondition(options.include || [], id);
-
-      if (isExcluded && !isIncluded) {
+      if (isExcludedFile(id, options)) {
         return code;
       }
 

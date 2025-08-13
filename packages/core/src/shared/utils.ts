@@ -1,10 +1,8 @@
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import {
-  JsFileExtList,
-} from './constant';
-import { Condition, EscapeTags } from './type';
+import { JsFileExtList } from './constant';
+import { CodeOptions, Condition, EscapeTags } from './type';
 
 //获取本机ip地址
 export function getIP(ip: boolean | string) {
@@ -17,11 +15,10 @@ export function getIP(ip: boolean | string) {
       for (let i = 0; i < iface.length; i++) {
         let alias = iface[i];
         if (
-          (alias.family === 'IPv4' 
+          (alias.family === 'IPv4' ||
             // @ts-expect-error Node 18.0 - 18.3 returns number
-            || alias.family === 4
-          ) 
-          && alias.address !== '127.0.0.1' &&
+            alias.family === 4) &&
+          alias.address !== '127.0.0.1' &&
           !alias.internal
         ) {
           return alias.address;
@@ -95,7 +92,10 @@ export function getDenpendencies() {
 
 type BooleanFunction = () => boolean;
 // 判断当前是否为 development 环境; 优先判定用户指定的环境；其次判断系统默认的环境
-export function isDev(userDev: boolean | BooleanFunction | undefined, systemDev: boolean) {
+export function isDev(
+  userDev: boolean | BooleanFunction | undefined,
+  systemDev: boolean
+) {
   let dev: boolean | undefined;
   if (typeof userDev === 'function') {
     dev = userDev();
@@ -119,7 +119,12 @@ export function matchCondition(condition: Condition, file: string) {
   return false;
 }
 
-export function getMappingFilePath(file: string, mappings?: Record<string, string> | Array<{ find: string | RegExp, replacement: string }>): string {
+export function getMappingFilePath(
+  file: string,
+  mappings?:
+    | Record<string, string>
+    | Array<{ find: string | RegExp; replacement: string }>
+): string {
   if (!mappings) {
     return file;
   }
@@ -151,7 +156,11 @@ export function getMappingFilePath(file: string, mappings?: Record<string, strin
   return file;
 }
 
-function replaceFileWithString(file: string, find: string, replacement: string): string | null {
+function replaceFileWithString(
+  file: string,
+  find: string,
+  replacement: string
+): string | null {
   find = handlePathWithSlash(find);
   replacement = handlePathWithSlash(replacement);
   if (file.startsWith(find)) {
@@ -172,7 +181,11 @@ function replaceFileWithString(file: string, find: string, replacement: string):
   return null;
 }
 
-function replaceFileWithRegExp(file: string, find: RegExp, replacement: string): string | null {
+function replaceFileWithRegExp(
+  file: string,
+  find: RegExp,
+  replacement: string
+): string | null {
   const match = find.exec(file);
   if (match) {
     replacement = handlePathWithSlash(replacement);
@@ -192,4 +205,19 @@ function replaceFileWithRegExp(file: string, find: RegExp, replacement: string):
 
 function handlePathWithSlash(path: string) {
   return path.endsWith('/') ? path : `${path}/`;
+}
+
+export function isExcludedFile(file: string, options: CodeOptions) {
+  let exclude = options.exclude || [];
+  if (!Array.isArray(exclude)) {
+    exclude = [exclude];
+  }
+  const isExcluded = matchCondition([...exclude, /\/node_modules\//], file);
+  const isIncluded = matchCondition(options.include || [], file);
+
+  if (isExcluded && !isIncluded) {
+    return true;
+  }
+
+  return false;
 }

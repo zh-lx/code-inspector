@@ -7,7 +7,7 @@ import {
   parseSFC,
   isDev,
   getMappingFilePath,
-  matchCondition,
+  isExcludedFile,
 } from '@code-inspector/core';
 import fs from 'fs';
 import path from 'path';
@@ -51,17 +51,8 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
           // 文件首次编译或者发生修改
           if (!result || result.originCode !== originCode) {
             let code = originCode;
-            let exclude = options.exclude || [];
-            if (!Array.isArray(exclude)) {
-              exclude = [exclude];
-            }
-            const isExcluded = matchCondition(
-              [...exclude, /\/node_modules\//],
-              filePath
-            );
-            const isIncluded = matchCondition(options.include || [], filePath);
 
-            if (isExcluded && !isIncluded) {
+            if (isExcludedFile(filePath, options)) {
               return code;
             }
 

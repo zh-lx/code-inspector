@@ -1,7 +1,7 @@
 import {
   normalizePath,
   getCodeWithWebComponent,
-  matchCondition,
+  isExcludedFile,
 } from '@code-inspector/core';
 
 export default async function WebpackCodeInjectLoader(
@@ -13,15 +13,8 @@ export default async function WebpackCodeInjectLoader(
   this.cacheable && this.cacheable(true);
   const filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   const options = this.query;
-  let { exclude = [], include } = options || {};
 
-  if (!Array.isArray(exclude)) {
-    exclude = [exclude];
-  }
-  const isExcluded = matchCondition([...exclude, /\/node_modules\//], filePath);
-  const isIncluded = matchCondition(include || [], filePath);
-
-  if (isExcluded && !isIncluded) {
+  if (isExcludedFile(filePath, options)) {
     this.callback(null, content, source, meta);
     return;
   }

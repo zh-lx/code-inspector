@@ -4,7 +4,7 @@ import {
   parseSFC,
   isJsTypeFile,
   getMappingFilePath,
-  matchCondition,
+  isExcludedFile,
 } from '@code-inspector/core';
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
@@ -14,15 +14,9 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   let filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource.split('?')?.[1] || '');
   const options = this.query;
-  let { escapeTags = [], mappings, exclude = [], include } = options || {};
+  let { escapeTags = [], mappings } = options || {};
 
-  if (!Array.isArray(exclude)) {
-    exclude = [exclude];
-  }
-  const isExcluded = matchCondition([...exclude, /\/node_modules\//], filePath);
-  const isIncluded = matchCondition(include || [], filePath);
-
-  if (isExcluded && !isIncluded) {
+  if (isExcludedFile(filePath, options)) {
     return content;
   }
 
