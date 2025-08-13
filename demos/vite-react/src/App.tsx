@@ -1,8 +1,11 @@
+/* eslint-disable no-undef */
 import { Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import router from '@/router/index';
 import Loading from '@/components/Loading';
 import useGlobalTips from '@/hooks/useGlobalTips';
+
+log(221);
 
 function MyApp() {
   useGlobalTips();

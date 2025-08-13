@@ -1,4 +1,4 @@
-import { Condition, EscapeTags } from './type';
+import { CodeOptions, Condition, EscapeTags } from './type';
 export declare function getIP(ip: boolean | string): string;
 export declare function fileURLToPath(fileURL: string): string;
 export declare function isJsTypeFile(file: string): boolean;
@@ -13,4 +13,5 @@ export declare function getMappingFilePath(file: string, mappings?: Record<strin
     find: string | RegExp;
     replacement: string;
 }>): string;
+export declare function isExcludedFile(file: string, options: CodeOptions): boolean;
 export {};

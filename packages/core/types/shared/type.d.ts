@@ -36,7 +36,7 @@ export type CodeOptions = {
      * @zh 指定项目的打包器
      * @en specify the bundler of the project
      */
-    bundler: 'vite' | 'webpack' | 'rspack' | 'esbuild' | 'turbopack';
+    bundler: 'vite' | 'webpack' | 'rspack' | 'esbuild' | 'turbopack' | 'mako';
     /**
      * @cn 触发 DOM 定位功能的组合键，ctrlKey/altKey/metaKey/shiftKey 中一个或多个组成的数组，默认值为 ['altKey', 'shiftKey]。即 Mac 系统默认是 Option + Shift；Window 默认是 Alt + Shift。
      * @en The combination keys that triggers the DOM positioning function, it is an array of one or more from ctrlKey/altKey/metaKey/shiftKey, with default values of ['altKey', 'shiftKey']. The default for Mac systems is Option+Shift; and for Window is Alt+Shift.

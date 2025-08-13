@@ -1,0 +1,59 @@
+{
+  "name": "@code-inspector/webpack",
+  "version": "1.1.0",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.mjs",
+  "typings": "./types/index.d.ts",
+  "scripts": {
+    "build:plugin": "vite build",
+    "build:loader": "vite build --config vite.loader.config.ts",
+    "build:inject": "vite build --config vite.inject-loader.config.ts",
+    "clear": "rimraf ./dist && rimraf ./types",
+    "build": "pnpm clear && tsc && pnpm build:plugin && pnpm build:loader && pnpm build:inject",
+    "pub": "pnpm publish",
+    "pub:beta": "pnpm publish --tag beta"
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.umd.js"
+      }
+    },
+    "./dist/loader.js": "./dist/loader.js",
+    "./dist/inject-loader.js": "./dist/inject-loader.js"
+  },
+  "repository": "git@github.com:zh-lx/code-inspector.git",
+  "author": "zh-lx <18366276315@163.com>",
+  "license": "MIT",
+  "homepage": "https://inspector.fe-dev.cn/en",
+  "description": "Click the dom on the page, it will open your IDE and position the cursor to the source code location of the dom.",
+  "keywords": [
+    "webpack",
+    "vite",
+    "plugin",
+    "vue",
+    "vscode",
+    "inspector",
+    "inspect"
+  ],
+  "bugs": {
+    "url": "https://github.com/zh-lx/code-inspector/issues"
+  },
+  "dependencies": {
+    "@code-inspector/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.3",
+    "typescript": "^4.9.3",
+    "vite": "^4.3.9"
+  }
+}

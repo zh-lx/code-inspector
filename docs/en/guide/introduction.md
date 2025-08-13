@@ -24,4 +24,4 @@ No intrusion into the source code, effective by simply including it in the bundl
 
 ### Strong Adaptability
 
-Supports usage in `webpack/vite/rspack/rsbuild/esbuild/farm/nextjs/nuxt/umijs`, and supports multiple frameworks such as `Vue/React/Preact/Solid/Qwik/Svelte/Astro`.
+Supports usage in `webpack/vite/rspack/rsbuild/esbuild/farm/mako`, and supports multiple frameworks such as `vue/react/preact/solid/qwik/svelte/astro/nextjs/nuxt/umijs`.

@@ -1,21 +1,17 @@
-import { ViteCodeInspectorPlugin } from 'vite-code-inspector-plugin';
-import WebpackCodeInspectorPlugin from 'webpack-code-inspector-plugin';
-import { EsbuildCodeInspectorPlugin } from 'esbuild-code-inspector-plugin';
-import { TurbopackCodeInspectorPlugin } from 'turbopack-code-inspector-plugin';
+import { ViteCodeInspectorPlugin } from '@code-inspector/vite';
+import WebpackCodeInspectorPlugin from '@code-inspector/webpack';
+import { EsbuildCodeInspectorPlugin } from '@code-inspector/esbuild';
+import { TurbopackCodeInspectorPlugin } from '@code-inspector/turbopack';
+import { MakoCodeInspectorPlugin } from '@code-inspector/mako';
 import {
   CodeOptions,
   fileURLToPath,
   getEnvVariable,
-} from 'code-inspector-core';
+} from '@code-inspector/core';
 import chalk from 'chalk';
 import path, { dirname } from 'path';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
-  /**
-   * @zh 指定项目的打包器
-   * @en specify the bundler of the project
-   */
-  bundler: 'vite' | 'webpack' | 'rspack' | 'esbuild' | 'turbopack';
   /**
    * @zh 设置为 true 时，仅当 .env.local 文件存在且其包含 CODE_INSPECTOR=true 时插件生效；默认值为 false
    * @en When set the value to true, only if the .env.local file exists and it contains CODE_INSPECTOR=true, the plugin takes effect; The default value is false
@@ -60,6 +56,8 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     return EsbuildCodeInspectorPlugin(params);
   } else if (options.bundler === 'turbopack') {
     return TurbopackCodeInspectorPlugin(params);
+  } else if (options.bundler === 'mako') {
+    return MakoCodeInspectorPlugin(params);
   } else {
     // 使用 vite 插件
     return ViteCodeInspectorPlugin(params);

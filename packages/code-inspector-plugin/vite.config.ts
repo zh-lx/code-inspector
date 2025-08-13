@@ -13,9 +13,9 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       external: [
-        'code-inspector-core',
-        'vite-code-inspector-plugin',
-        'webpack-code-inspector-plugin',
+        '@code-inspector/core',
+        '@code-inspector/vite',
+        '@code-inspector/webpack',
         'chalk',
         'path',
       ],
