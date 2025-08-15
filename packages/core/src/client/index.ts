@@ -552,6 +552,9 @@ export class CodeInspectorComponent extends LitElement {
     if (this.target) {
       window.open(this.buildTargetUrl(), '_blank');
     }
+    window.dispatchEvent(new CustomEvent('code-inspector:trackCode', {
+      detail: this.element,
+    }));
   };
 
   copyToClipboard(text: string) {
