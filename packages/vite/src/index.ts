@@ -9,14 +9,73 @@ import {
   getMappingFilePath,
   isExcludedFile,
 } from '@code-inspector/core';
+import chalk from 'chalk';
+
 const PluginName = '@code-inspector/vite';
+
+const OrderedPlugins = [
+  {
+    name: 'vite:react-babel',
+    package: '@vitejs/plugin-react',
+  },
+  {
+    name: 'vite:react-swc',
+    package: '@vitejs/plugin-react-swc',
+  },
+  {
+    name: 'vite:react-oxc:config',
+    package: '@vitejs/plugin-react-oxc',
+  },
+  {
+    name: 'solid',
+    package: 'vite-plugin-solid',
+  },
+  {
+    name: 'vite-plugin-qwik',
+    package: 'qwikVite',
+  },
+  {
+    name: 'vite-plugin-qwik-city',
+    package: 'qwikCity',
+  },
+  {
+    name: 'vite-plugin-qwik-react',
+    package: 'qwikReact',
+  },
+  {
+    name: 'vite:preact-jsx',
+    package: '@preact/preset-vite',
+  },
+  {
+    name: 'vite-plugin-svelte',
+    package: '@sveltejs/vite-plugin-svelte',
+  },
+];
+
+const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
+
+function printOrderWarning(plugins: { name: string }[] = []) {
+  const pluginIndex = plugins.findIndex((plugin) => plugin.name === PluginName);
+  OrderedPlugins.forEach((p) => {
+    const _pluginIndex = plugins.findIndex((plugin) => plugin.name === p.name);
+    if (_pluginIndex !== -1 && _pluginIndex < pluginIndex) {
+      const info = [
+        chalk.yellow('[WARNING]'),
+        'You need to put',
+        chalk.green('code-inspector-plugin'),
+        'before',
+        chalk.green(p.package),
+        'in the vite config file.',
+      ];
+      console.log(info.join(' '));
+    }
+  });
+}
 
 interface Options extends CodeOptions {
   close?: boolean;
   output: string;
 }
-
-const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
 export function ViteCodeInspectorPlugin(options: Options) {
   const record: RecordInfo = {
@@ -111,6 +170,17 @@ export function ViteCodeInspectorPlugin(options: Options) {
         '<head>',
         `<head><script type="module">\n${code}\n</script>`
       );
+    },
+    configureServer(server) {
+      const originalLog = server?.config?.logger?.info;
+
+      server.config.logger.info = function (message, options) {
+        originalLog.call(this, message, options);
+
+        printOrderWarning(server?.config?.plugins || []);
+
+        server.config.logger.info = originalLog;
+      };
     },
   };
 }

@@ -265,20 +265,22 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
       : [options.injectTo];
     injectTo.forEach((injectToPath) => {
       if (!isAbsolute(injectToPath)) {
-        console.log(
-          chalk.cyan('injectTo') +
-            chalk.red(' in ') +
-            chalk.cyan('code-inspector-plugin') +
-            chalk.red('must be an absolute file path!')
-        );
+        const info = [
+          chalk.cyan('injectTo'),
+          chalk.red('in'),
+          chalk.cyan('code-inspector-plugin'),
+          chalk.red('must be an absolute file path!'),
+        ];
+        console.log(info.join(' '));
       } else if (!isJsTypeFile(injectToPath)) {
-        console.log(
-          chalk.red('The ext of ') +
-            chalk.cyan('injectTo') +
-            chalk.red(' in ') +
-            chalk.cyan('code-inspector-plugin') +
-            chalk.red('must in .js/.ts/.mjs/.mts/.jsx/.tsx')
-        );
+        const info = [
+          chalk.red('The ext of '),
+          chalk.cyan('injectTo'),
+          chalk.red('in'),
+          chalk.cyan('code-inspector-plugin'),
+          chalk.red('must in .js/.ts/.mjs/.mts/.jsx/.tsx'),
+        ];
+        console.log(info.join(' '));
       }
     });
     record.injectTo = (injectTo || []).map((file) => normalizePath(file));
