@@ -10,6 +10,7 @@ export declare function ViteCodeInspectorPlugin(options: Options): {
     configResolved(config: any): void;
     transform(code: string, id: string): Promise<string>;
     transformIndexHtml(html: any): Promise<any>;
+    configureServer(server: any): void;
     enforce?: "pre";
     name: string;
 };

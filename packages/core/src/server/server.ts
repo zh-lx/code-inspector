@@ -122,15 +122,16 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
           (port: number) => {
             resolve(port);
             if (options.printServer) {
-              console.log(
-                chalk.blue(`[code-inspector-plugin] `) +
-                  chalk.white(`Server is running on: `) +
-                  chalk.green(
-                    `http://${getIP(options.ip || 'localhost')}:${
-                      options.port ?? DefaultPort
-                    }`
-                  )
-              );
+              const info = [
+                chalk.blue('[code-inspector-plugin]'),
+                'Server is running on:',
+                chalk.green(
+                  `http://${getIP(options.ip || 'localhost')}:${
+                    options.port ?? DefaultPort
+                  }`
+                ),
+              ];
+              console.log(info.join(' '));
             }
           },
           options,
