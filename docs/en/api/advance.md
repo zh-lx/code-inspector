@@ -30,7 +30,7 @@ Below are configurations for some non-standard scenarios.
 In addition to the above behaviors, `code-inspector-plugin` will trigger a `code-inspector:trackCode` custom event when clicking elements. You can use this event to customize the desired functionality(This feature is supported in version `1.2.0+`). For example, if you want to log when clicking elements, you can implement it as follows:
 
 ```ts
-document.addEventListener('code-inspector:trackCode', () => {
+window.addEventListener('code-inspector:trackCode', () => {
   sendLog('trackCode');
 });
 ```
