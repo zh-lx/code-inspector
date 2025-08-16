@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- 【feat】Added a warning about incorrect plugin configuration order in `vite` [#365](https://github.com/zh-lx/code-inspector/pull/365)
+- 【feat】Added a custom event `code-inspector:trackCode` when triggering the `trackCode` function [#364](https://github.com/zh-lx/code-inspector/pull/364)
+
 ## 1.1.1
 
 - 【fix】Fixed the issue where the installation failed [9694900bb](https://github.com/zh-lx/code-inspector/commit/9694900bbde7b254184532b8eda10a3cad105a91)

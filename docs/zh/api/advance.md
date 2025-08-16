@@ -27,6 +27,14 @@
   ```
 - 说明：在某些场景下，如果你在点击元素时不需要定位代码，仅需要复制元素的源码位置信息，则可以设置 `locate: false` 和 `copy: true`，此时点击元素仅会复制源码位置信息。
 
+除了上述的行为之外，`code-inspector-plugin` 在点击元素时会触发一个 `code-inspector:trackCode` 的自定义事件，你可以通过此事件来自定义想要的功能（该功能在 `1.2.0+` 的版本中支持）。例如，在点击元素时，你想统计日志，则可以通过如下方式实现：
+
+```ts
+document.addEventListener('code-inspector:trackCode', () => {
+  sendLog('trackCode');
+});
+```
+
 ## ip <Badge type="tip" text="0.13.0+" vertical="middle" />
 
 - 可选项

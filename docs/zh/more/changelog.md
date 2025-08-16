@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.2.0
+
+- 【feat】增加了关于 `vite` 中插件配置顺序不正确时的提示 [#365](https://github.com/zh-lx/code-inspector/pull/365)
+- 【feat】触发 `trackCode` 功能时增加了 `code-inspector:trackCode` 的自定义事件 [#364](https://github.com/zh-lx/code-inspector/pull/364)
+
 ## 1.1.1
 
 - 【fix】修复了安装报错的问题 [9694900bb](https://github.com/zh-lx/code-inspector/commit/9694900bbde7b254184532b8eda10a3cad105a91)

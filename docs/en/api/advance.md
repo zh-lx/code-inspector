@@ -27,6 +27,16 @@ Below are configurations for some non-standard scenarios.
   ```
 - Description: In some scenarios, if you don't need to locate code when clicking elements and only need to copy the source code location information, you can set `locate: false` and `copy: true`. In this case, clicking elements will only copy the source code location information.
 
+In addition to the above behaviors, `code-inspector-plugin` will trigger a `code-inspector:trackCode` custom event when clicking elements. You can use this event to customize the desired functionality(This feature is supported in version `1.2.0+`). For example, if you want to log when clicking elements, you can implement it as follows:
+
+```ts
+document.addEventListener('code-inspector:trackCode', () => {
+  sendLog('trackCode');
+});
+```
+
+
+
 ## ip <Badge type="tip" text="0.13.0+" vertical="middle" />
 
 - Optional
