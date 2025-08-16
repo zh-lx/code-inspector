@@ -172,12 +172,12 @@ export function ViteCodeInspectorPlugin(options: Options) {
       );
     },
     configureServer(server) {
-      const originalLog = server?.config?.logger?.info;
+      const originalLog = server.config.logger.info;
 
       server.config.logger.info = function (message, options) {
         originalLog.call(this, message, options);
 
-        printOrderWarning(server?.config?.plugins || []);
+        printOrderWarning(server.config.plugins);
 
         server.config.logger.info = originalLog;
       };
