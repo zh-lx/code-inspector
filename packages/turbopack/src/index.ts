@@ -1,4 +1,5 @@
 import { CodeOptions, RecordInfo, isDev } from '@code-inspector/core';
+import path from 'path';
 
 interface Options extends CodeOptions {
   close?: boolean;
@@ -21,11 +22,14 @@ export function TurbopackCodeInspectorPlugin(
     return {};
   }
 
+  const WebpackEntry = require.resolve('@code-inspector/webpack');
+  const WebpackDistDir = path.resolve(WebpackEntry, '..');
+
   return {
     '**/*.{jsx,tsx,js,ts,mjs,mts}': {
       loaders: [
         {
-          loader: '@code-inspector/webpack/dist/loader.js',
+          loader: `${WebpackDistDir}/loader.js`,
           options: {
             ...options,
             record,
@@ -33,7 +37,7 @@ export function TurbopackCodeInspectorPlugin(
           ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
         },
         {
-          loader: '@code-inspector/webpack/dist/inject-loader.js',
+          loader: `${WebpackDistDir}/inject-loader.js`,
           options: {
             ...options,
             record,
