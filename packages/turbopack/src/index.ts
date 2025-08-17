@@ -6,15 +6,15 @@ interface Options extends CodeOptions {
   output: string;
 }
 
+const record: RecordInfo = {
+  port: 0,
+  entry: '',
+  output: '',
+};
+
 export function TurbopackCodeInspectorPlugin(
   options: Options
 ): Record<string, any> {
-  const record: RecordInfo = {
-    port: 0,
-    entry: '',
-    output: options.output,
-  };
-
   if (
     options.close ||
     !isDev(options.dev, process.env.NODE_ENV === 'development')
