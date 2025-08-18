@@ -6,12 +6,6 @@ interface Options extends CodeOptions {
   output: string;
 }
 
-const record: RecordInfo = {
-  port: 0,
-  entry: '',
-  output: '',
-};
-
 export function TurbopackCodeInspectorPlugin(
   options: Options
 ): Record<string, any> {
@@ -21,6 +15,12 @@ export function TurbopackCodeInspectorPlugin(
   ) {
     return {};
   }
+
+  const record: RecordInfo = {
+    port: 0,
+    entry: '',
+    output: options.output,
+  };
 
   const WebpackEntry = require.resolve('@code-inspector/webpack');
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
