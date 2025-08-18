@@ -1,6 +1,6 @@
 {
   "name": "@code-inspector/mako",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- 【fix】Fixed the error issue `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` in `nextjs 15.x(turbopack)` [#369](https://github.com/zh-lx/code-inspector/pull/369)
+
 ## 1.2.1
 
 - 【fix】Fixed the error issue `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` in `nextjs 15.x(turbopack)` [#367](https://github.com/zh-lx/code-inspector/pull/367)

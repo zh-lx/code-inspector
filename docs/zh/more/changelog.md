@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.2
+
+- 【fix】修复了在 turbopack 中 `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` 的报错问题 [#369](https://github.com/zh-lx/code-inspector/pull/369)
+
 ## 1.2.1
 
 - 【fix】修复了在 turbopack 中 `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` 的报错问题 [#367](https://github.com/zh-lx/code-inspector/pull/367)
