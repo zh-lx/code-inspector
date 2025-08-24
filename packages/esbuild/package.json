@@ -1,6 +1,6 @@
 {
   "name": "@code-inspector/esbuild",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

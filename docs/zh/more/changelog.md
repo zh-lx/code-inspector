@@ -1,5 +1,11 @@
 # 更新日志
 
+## 1.2.3
+
+- 【feat】增加了 `skipSnippets` 参数，支持用户自定义跳过注入的代码片段 [#375](https://github.com/zh-lx/code-inspector/pull/375)
+- 【fix】兼容了 `.mjs` 格式的 `next.config.mjs` 文件 [#374](https://github.com/zh-lx/code-inspector/pull/374)
+- 【fix】修复了 `turbopack` 中 `address already in use` 的报错问题 [#373](https://github.com/zh-lx/code-inspector/pull/373)
+
 ## 1.2.2
 
 - 【fix】修复了在 turbopack 中 `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` 的报错问题 [#369](https://github.com/zh-lx/code-inspector/pull/369)

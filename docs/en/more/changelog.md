@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.3
+
+- 【feat】Added `skipSnippets` parameter, support user-defined code snippet injection skipping [#375](https://github.com/zh-lx/code-inspector/pull/375)
+- 【fix】Compatible with `.mjs` format `next.config.mjs` file [#374](https://github.com/zh-lx/code-inspector/pull/374)
+- 【fix】Fixed the error issue `address already in use` in `turbopack` [#373](https://github.com/zh-lx/code-inspector/pull/373)
+
 ## 1.2.2
 
 - 【fix】Fixed the error issue `Error: Cannot find module '@code-inspector/webpack/dist/loader.js'` in `nextjs 15.x(turbopack)` [#369](https://github.com/zh-lx/code-inspector/pull/369)

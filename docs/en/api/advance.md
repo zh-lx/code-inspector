@@ -212,3 +212,10 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Type: `boolean`, default value is `false`
 - Description: This option only works for `webpack/rspack` projects with `filesystem` cache type. It's mainly used to prevent communication failures between the page and IDE due to inconsistent port numbers. Defaults to `false`, meaning no cache is used on each cold start; when set to `true`, caching will be enabled (when setting to `true`, it's recommended to also set `port` to a fixed port number).
 
+## skipSnippets <Badge type="tip" text="1.2.3+" vertical="middle" />
+
+- Optional
+- Type: `('console' | 'htmlScript')[]`, default value is `[]`
+- Description: Skip injecting certain code snippets:
+  - `console`: Skip injecting `console.error` and `console.warn` code snippets, it's not recommended to skip this item for nextjs and nuxt projects
+  - `htmlScript`: Skip injecting `script` tags in html, it's not recommended to skip this item for MPA projects
