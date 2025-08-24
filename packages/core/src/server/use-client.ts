@@ -42,7 +42,9 @@ export function getInjectedCode(
   isNextjs: boolean
 ) {
   let code = `'use client';`;
-  code += getEliminateWarningCode();
+  if (!options?.skipSnippets?.includes?.('console')) {
+    code += getEliminateWarningCode();
+  }
   if (options?.hideDomPathAttr) {
     code += getHidePathAttrCode();
   }
