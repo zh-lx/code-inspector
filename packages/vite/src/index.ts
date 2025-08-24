@@ -92,6 +92,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
     },
     configResolved(config) {
       record.envDir = config.envDir || config.root;
+      record.root = config.root;
     },
     async transform(code: string, id: string) {
       if (isExcludedFile(id, options)) {

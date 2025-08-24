@@ -13,7 +13,8 @@ export type RecordInfo = {
   findPort?: Promise<number>;
   inputs?: Promise<string[]>; // 入口文件，适配 MPA 项目
   injectTo?: string[]; // 用户自定义的 injectTo 路径
-  envDir?: string; // 项目根目录
+  envDir?: string; // 项目 env 目录
+  root?: string; // 项目根目录
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';
