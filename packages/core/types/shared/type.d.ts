@@ -13,6 +13,7 @@ export type RecordInfo = {
     inputs?: Promise<string[]>;
     injectTo?: string[];
     envDir?: string;
+    root?: string;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

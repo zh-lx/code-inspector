@@ -105,42 +105,52 @@ export function createServer(
 }
 
 // record the server of each project
-const projectServerMap = new Map<string, Server>();
+const projectServerMap = new Map<
+  string,
+  { server: Server; findPort: Promise<number> }
+>();
 
 export async function startServer(options: CodeOptions, record: RecordInfo) {
-  if (!record.port) {
-    if (!record.findPort) {
-      record.findPort = new Promise((resolve) => {
-        // get current project path
-        const projectName = process.cwd();
-        // close the previous server
-        if (projectServerMap.has(projectName)) {
-          (projectServerMap.get(projectName) as Server)?.close();
-        }
-        // create server
-        const server = createServer(
-          (port: number) => {
-            resolve(port);
-            if (options.printServer) {
-              const info = [
-                chalk.blue('[code-inspector-plugin]'),
-                'Server is running on:',
-                chalk.green(
-                  `http://${getIP(options.ip || 'localhost')}:${
-                    options.port ?? DefaultPort
-                  }`
-                ),
-              ];
-              console.log(info.join(' '));
-            }
-          },
-          options,
-          record
-        );
-        // record the server of current project
-        projectServerMap.set(projectName, server);
-      });
-    }
-    record.port = await record.findPort;
+  if (record.port) {
+    return;
   }
+  const projectName = record.root || process.cwd();
+  // if the server of current project is already running, return
+  if (
+    projectServerMap.has(projectName) &&
+    projectServerMap.get(projectName)?.server?.address
+  ) {
+    record.findPort = projectServerMap.get(projectName)?.findPort;
+  }
+  if (!record.findPort) {
+    let server: Server;
+    record.findPort = new Promise((resolve) => {
+      // create server
+      server = createServer(
+        (port: number) => {
+          resolve(port);
+          if (options.printServer) {
+            const info = [
+              chalk.blue('[code-inspector-plugin]'),
+              'Server is running on:',
+              chalk.green(
+                `http://${getIP(options.ip || 'localhost')}:${
+                  options.port ?? DefaultPort
+                }`
+              ),
+            ];
+            console.log(info.join(' '));
+          }
+        },
+        options,
+        record
+      );
+    });
+    // record the server of current project
+    projectServerMap.set(projectName, {
+      server: server!,
+      findPort: record.findPort!,
+    });
+  }
+  record.port = await record.findPort!;
 }

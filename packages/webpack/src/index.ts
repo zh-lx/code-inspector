@@ -148,6 +148,7 @@ class WebpackCodeInspectorPlugin {
         compiler?.options?.context
       ),
       envDir: compiler?.options?.context,
+      root: compiler?.options?.context,
     };
 
     // webpack file system cache
