@@ -160,6 +160,9 @@ export function ViteCodeInspectorPlugin(options: Options) {
     },
     // 追加到 html 中，适配 MPA 项目
     async transformIndexHtml(html) {
+      if (options.skipSnippets?.includes?.('htmlScript')) {
+        return html;
+      }
       const code = await getCodeWithWebComponent({
         options: { ...options, importClient: 'code' },
         file: 'main.js',

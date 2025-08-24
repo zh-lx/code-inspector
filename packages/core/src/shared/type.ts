@@ -162,4 +162,13 @@ export type CodeOptions = {
    * @en The type of path injected into the DOM, the default value is `absolute`, which means the path is relative to the project root directory
    */
   pathType?: PathType;
+  /**
+   * @zh 要跳过注入的代码片段：
+   * - console: 跳过注入 console.error 和 console.warn 的代码片段，nextjs 和 nuxt 项目不建议跳过此项
+   * - htmlScript: 跳过在 html 中注入 script 标签的代码片段，MPA 项目不建议跳过此项
+   * @en The code snippets to skip injecting
+   * - console: Skip injecting the code snippet that injects console.error and console.warn, it is not recommended to skip this item for nextjs and nuxt projects
+   * - htmlScript: Skip injecting the code snippet that injects script tags in html, it is not recommended to skip this item for MPA projects
+   */
+  skipSnippets?: ('console' | 'htmlScript')[];
 };
