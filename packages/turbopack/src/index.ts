@@ -1,5 +1,6 @@
 import { CodeOptions, RecordInfo, isDev } from '@code-inspector/core';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 interface Options extends CodeOptions {
   close?: boolean;
@@ -27,7 +28,10 @@ export function TurbopackCodeInspectorPlugin(
     WebpackEntry = require.resolve('@code-inspector/webpack');
   }
   if (typeof import.meta.resolve === 'function') {
-    WebpackEntry = import.meta.resolve('@code-inspector/webpack');
+    const dir = import.meta.resolve(
+      '@code-inspector/webpack'
+    ) as unknown as string;
+    WebpackEntry = fileURLToPath(dir);
   }
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 

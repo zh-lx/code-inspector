@@ -17,6 +17,7 @@ export default defineConfig({
         '@code-inspector/webpack',
         'path',
         'fs',
+        'url',
       ],
     },
     target: ['node8', 'es2015'],
