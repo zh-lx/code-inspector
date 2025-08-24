@@ -22,7 +22,13 @@ export function TurbopackCodeInspectorPlugin(
     output: options.output,
   };
 
-  const WebpackEntry = require.resolve('@code-inspector/webpack');
+  let WebpackEntry = null;
+  if (typeof require !== 'undefined' && typeof require.resolve === 'function') {
+    WebpackEntry = require.resolve('@code-inspector/webpack');
+  }
+  if (typeof import.meta.resolve === 'function') {
+    WebpackEntry = import.meta.resolve('@code-inspector/webpack');
+  }
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 
   return {

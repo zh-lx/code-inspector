@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "declaration": true,
-    "module": "CommonJS",
+    "module": "ESNext",
     "emitDeclarationOnly": true,
     "outDir": "./types",
     "noUnusedLocals": true,
