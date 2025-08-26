@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.4
+
+- 【feat】Optimized the speed of opening editor when locating files [#381](https://github.com/zh-lx/code-inspector/pull/381)
+- 【feat】Support `Qoder` editor recognition [#381](https://github.com/zh-lx/code-inspector/pull/381)
+- 【fix】Fixed the issue where `client code` was injected into multiple files in `turbopack` [#380](https://github.com/zh-lx/code-inspector/pull/380)
+
 ## 1.2.3
 
 - 【feat】Added `skipSnippets` parameter, support user-defined code snippet injection skipping [#375](https://github.com/zh-lx/code-inspector/pull/375)

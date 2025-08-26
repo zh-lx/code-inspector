@@ -1,5 +1,11 @@
 # 更新日志
 
+## 1.2.4
+
+- 【feat】优化了定位文件时打开 editor 的速度 [#381](https://github.com/zh-lx/code-inspector/pull/381)
+- 【feat】支持 `Qoder` 编辑器的识别 [#381](https://github.com/zh-lx/code-inspector/pull/381)
+- 【fix】修复了 `turbopack` 中 `client code` 重复注入多个文件的问题 [#380](https://github.com/zh-lx/code-inspector/pull/380)
+
 ## 1.2.3
 
 - 【feat】增加了 `skipSnippets` 参数，支持用户自定义跳过注入的代码片段 [#375](https://github.com/zh-lx/code-inspector/pull/375)
