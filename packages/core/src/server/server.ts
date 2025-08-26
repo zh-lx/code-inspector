@@ -3,7 +3,13 @@ import http, { Server } from 'http';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
-import { getIP } from '../shared';
+import {
+  cleanProjectRecord,
+  getIP,
+  getProjectRecord,
+  isProjectAlive,
+  setProjectRecord,
+} from '../shared';
 import type { PathType, CodeOptions, RecordInfo } from '../shared';
 import { execSync } from 'child_process';
 import path from 'path';
@@ -104,27 +110,13 @@ export function createServer(
   return server;
 }
 
-// record the server of each project
-const projectServerMap = new Map<
-  string,
-  { server: Server; findPort: Promise<number> }
->();
-
 export async function startServer(options: CodeOptions, record: RecordInfo) {
-  if (record.port) {
+  if (getProjectRecord(record)?.port) {
     return;
   }
-  const projectName = record.root || process.cwd();
-  // if the server of current project is already running, return
-  if (
-    projectServerMap.has(projectName) &&
-    projectServerMap.get(projectName)?.server?.address
-  ) {
-    record.findPort = projectServerMap.get(projectName)?.findPort;
-  }
-  if (!record.findPort) {
+  if (!isProjectAlive(record) || !getProjectRecord(record)?.findPort) {
     let server: Server;
-    record.findPort = new Promise((resolve) => {
+    const findPort = new Promise<number>((resolve) => {
       // create server
       server = createServer(
         (port: number) => {
@@ -147,10 +139,10 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
       );
     });
     // record the server of current project
-    projectServerMap.set(projectName, {
-      server: server!,
-      findPort: record.findPort!,
-    });
+    cleanProjectRecord(record);
+    setProjectRecord(record, 'server', server!);
+    setProjectRecord(record, 'findPort', findPort);
   }
-  record.port = await record.findPort!;
+  const port = await getProjectRecord(record)?.findPort!;
+  setProjectRecord(record, 'port', port);
 }
