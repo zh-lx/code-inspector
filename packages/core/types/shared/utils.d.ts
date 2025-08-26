@@ -1,4 +1,5 @@
-import { CodeOptions, Condition, EscapeTags } from './type';
+/// <reference types="node" />
+import { CodeOptions, Condition, EscapeTags, RecordInfo } from './type';
 export declare function getIP(ip: boolean | string): string;
 export declare function fileURLToPath(fileURL: string): string;
 export declare function isJsTypeFile(file: string): boolean;
@@ -14,4 +15,9 @@ export declare function getMappingFilePath(file: string, mappings?: Record<strin
     replacement: string;
 }>): string;
 export declare function isExcludedFile(file: string, options: CodeOptions): boolean;
+export declare const hasProjectRecord: (record: RecordInfo) => boolean;
+export declare const getProjectRecord: (record: RecordInfo) => Partial<RecordInfo> | undefined;
+export declare const setProjectRecord: (record: RecordInfo, key: keyof RecordInfo, value: any) => void;
+export declare const cleanProjectRecord: (record: RecordInfo) => void;
+export declare const isProjectAlive: (record: RecordInfo) => false | (() => string | import("net").AddressInfo | null) | undefined;
 export {};

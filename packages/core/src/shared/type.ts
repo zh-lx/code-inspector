@@ -1,3 +1,4 @@
+import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
@@ -15,6 +16,7 @@ export type RecordInfo = {
   injectTo?: string[]; // 用户自定义的 injectTo 路径
   envDir?: string; // 项目 env 目录
   root?: string; // 项目根目录
+  server?: Server;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

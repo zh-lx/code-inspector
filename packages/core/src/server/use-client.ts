@@ -21,6 +21,8 @@ import {
   getIP,
   getDenpendencies,
   normalizePath,
+  getProjectRecord,
+  setProjectRecord,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -233,7 +235,7 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
     }
   }
   if (
-    !record.entry &&
+    !getProjectRecord(record)?.entry &&
     isJsTypeFile(file) &&
     !isNextjsInstrumentationFile(file)
   ) {
@@ -245,17 +247,18 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
     if (file.replace(path.extname(file), '').endsWith('/app/layout')) {
       return;
     }
-    record.entry = getFilePathWithoutExt(file);
+    setProjectRecord(record, 'entry', getFilePathWithoutExt(file));
   }
 }
 
 // target file to inject code
 async function isTargetFileToInject(file: string, record: RecordInfo) {
-  const inputs: string[] = await (record.inputs || []);
+  const inputs: string[] = await (record?.inputs || []);
   return (
-    (isJsTypeFile(file) && getFilePathWithoutExt(file) === record.entry) ||
+    (isJsTypeFile(file) &&
+      getFilePathWithoutExt(file) === getProjectRecord(record)?.entry) ||
     file === AstroToolbarFile ||
-    record.injectTo?.includes(normalizePath(file)) ||
+    getProjectRecord(record)?.injectTo?.includes(normalizePath(file)) ||
     inputs?.includes(normalizePath(file))
   );
 }
@@ -285,7 +288,11 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
         console.log(info.join(' '));
       }
     });
-    record.injectTo = (injectTo || []).map((file) => normalizePath(file));
+    setProjectRecord(
+      record,
+      'injectTo',
+      (injectTo || []).map((file) => normalizePath(file))
+    );
   }
 }
 
@@ -315,13 +322,17 @@ export async function getCodeWithWebComponent({
   // 注入消除 warning 代码
   const isTargetFile = await isTargetFileToInject(file, record);
   if (isTargetFile || inject) {
-    const injectCode = getInjectedCode(options, record.port, isNextjs);
+    const injectCode = getInjectedCode(
+      options,
+      getProjectRecord(record)?.port || 0,
+      isNextjs
+    );
     if (isNextjs || options.importClient === 'file') {
       writeEslintRcFile(record.output);
       const webComponentNpmPath = writeWebComponentFile(
         record.output,
         injectCode,
-        record.port
+        getProjectRecord(record)?.port || 0
       );
       if (!file.match(webComponentNpmPath)) {
         if (isNextjs) {
