@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6
+
+- 【fix】Compatible with other `loader`s in `turbopack` [#386](https://github.com/zh-lx/code-inspector/pull/386)
+
 ## 1.2.5
 
 - 【fix】Re-fixed the `address already in use` error issue in `turbopack` [#384](https://github.com/zh-lx/code-inspector/pull/384)

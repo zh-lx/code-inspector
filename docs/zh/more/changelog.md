@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.6
+
+- 【fix】兼容了在 `turbopack` 中与其他 `loader` 共同使用的问题 [#386](https://github.com/zh-lx/code-inspector/pull/386)
+
 ## 1.2.5
 
 - 【fix】重新修复了 `turbopack` 中 `address already in use` 的报错问题 [#384](https://github.com/zh-lx/code-inspector/pull/384)
