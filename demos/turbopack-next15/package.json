@@ -23,6 +23,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
     "@eslint/eslintrc": "^3",
-    "code-inspector-plugin": "workspace:^"
+    "code-inspector-plugin": "workspace:^",
+    "@next/mdx": "15.4.4",
+    "@mdx-js/loader": "^3.1.0"
   }
 }
