@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { transformJsx } from './transform-jsx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
@@ -31,12 +32,18 @@ const CodeInspectorEscapeTags = [
 ];
 
 export function transformCode(params: TransformCodeParams) {
-  let { content, filePath, fileType, escapeTags = [], pathType = 'relative' } = params;
-  const finalEscapeTags = [
-    ...CodeInspectorEscapeTags,
-    ...escapeTags,
-  ];
-  
+  let {
+    content,
+    filePath,
+    fileType,
+    escapeTags = [],
+    pathType = 'relative',
+  } = params;
+  if (!fs.existsSync(filePath)) {
+    return content;
+  }
+  const finalEscapeTags = [...CodeInspectorEscapeTags, ...escapeTags];
+
   filePath = getRelativeOrAbsolutePath(filePath, pathType);
 
   try {
