@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5
+
+- 【fix】Re-fixed the `address already in use` error issue in `turbopack` [#384](https://github.com/zh-lx/code-inspector/pull/384)
+
 ## 1.2.4
 
 - 【feat】Optimized the speed of opening editor when locating files [#381](https://github.com/zh-lx/code-inspector/pull/381)

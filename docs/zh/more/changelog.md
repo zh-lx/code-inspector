@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.5
+
+- 【fix】重新修复了 `turbopack` 中 `address already in use` 的报错问题 [#384](https://github.com/zh-lx/code-inspector/pull/384)
+
 ## 1.2.4
 
 - 【feat】优化了定位文件时打开 editor 的速度 [#381](https://github.com/zh-lx/code-inspector/pull/381)
