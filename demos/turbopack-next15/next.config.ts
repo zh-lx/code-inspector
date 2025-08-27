@@ -1,10 +1,10 @@
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 import type { NextConfig } from 'next';
-import createMDX from '@next/mdx'
+import createMDX from '@next/mdx';
 
 const withMDX = createMDX({
-  // Add markdown plugins here, as desired
-})
+  extension: /\.(md|mdx)$/,
+});
 
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
@@ -15,4 +15,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withMDX(nextConfig)
+export default withMDX(nextConfig);

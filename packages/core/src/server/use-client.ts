@@ -309,6 +309,9 @@ export async function getCodeWithWebComponent({
   code: string;
   inject?: boolean;
 }) {
+  if (!fs.existsSync(file)) {
+    return code;
+  }
   // start server
   if (options.behavior?.locate !== false) {
     await startServer(options, record);
