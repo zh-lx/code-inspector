@@ -7,6 +7,7 @@ import {
   CodeOptions,
   fileURLToPath,
   getEnvVariable,
+  resetFileRecord,
 } from '@code-inspector/core';
 import chalk from 'chalk';
 import path, { dirname } from 'path';
@@ -49,6 +50,7 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     close,
     output: path.resolve(compatibleDirname, './'),
   };
+  resetFileRecord(params.output);
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {
     // 使用 webpack 插件
     return new WebpackCodeInspectorPlugin(params);
