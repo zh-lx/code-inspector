@@ -1,15 +1,9 @@
 // 启动本地接口，访问时唤起vscode
-import http, { Server } from 'http';
+import http from 'http';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
-import {
-  cleanProjectRecord,
-  getIP,
-  getProjectRecord,
-  isProjectAlive,
-  setProjectRecord,
-} from '../shared';
+import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
 import type { PathType, CodeOptions, RecordInfo } from '../shared';
 import { execSync } from 'child_process';
 import path from 'path';
@@ -114,11 +108,12 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
   if (getProjectRecord(record)?.port) {
     return;
   }
-  if (!isProjectAlive(record) || !getProjectRecord(record)?.findPort) {
-    let server: Server;
+  let restartServer = !getProjectRecord(record)?.findPort;
+
+  if (restartServer) {
     const findPort = new Promise<number>((resolve) => {
       // create server
-      server = createServer(
+      createServer(
         (port: number) => {
           resolve(port);
           if (options.printServer) {
@@ -139,10 +134,13 @@ export async function startServer(options: CodeOptions, record: RecordInfo) {
       );
     });
     // record the server of current project
-    cleanProjectRecord(record);
-    setProjectRecord(record, 'server', server!);
-    setProjectRecord(record, 'findPort', findPort);
+    setProjectRecord(record, 'findPort', 1);
+    const port = await findPort;
+    setProjectRecord(record, 'port', port);
   }
-  const port = await getProjectRecord(record)?.findPort!;
-  setProjectRecord(record, 'port', port);
+
+  if (!getProjectRecord(record)?.port) {
+    const port = await findPort(record);
+    setProjectRecord(record, 'port', port);
+  }
 }

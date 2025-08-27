@@ -2,7 +2,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import { JsFileExtList } from './constant';
-import { CodeOptions, Condition, EscapeTags, RecordInfo } from './type';
+import { CodeOptions, Condition, EscapeTags } from './type';
 
 //获取本机ip地址
 export function getIP(ip: boolean | string) {
@@ -221,36 +221,3 @@ export function isExcludedFile(file: string, options: CodeOptions) {
 
   return false;
 }
-
-const ProjectRecordMap = new Map<string, Partial<RecordInfo>>();
-
-export const hasProjectRecord = (record: RecordInfo) => {
-  const projectName = record.root || process.cwd();
-  return ProjectRecordMap.has(projectName);
-};
-
-export const getProjectRecord = (record: RecordInfo) => {
-  const projectName = record.root || process.cwd();
-  return ProjectRecordMap.get(projectName);
-};
-
-export const setProjectRecord = (
-  record: RecordInfo,
-  key: keyof RecordInfo,
-  value: any
-) => {
-  const projectName = record.root || process.cwd();
-  if (!ProjectRecordMap.has(projectName)) {
-    ProjectRecordMap.set(projectName, {});
-  }
-  ProjectRecordMap.get(projectName)![key] = value;
-};
-
-export const cleanProjectRecord = (record: RecordInfo) => {
-  const projectName = record.root || process.cwd();
-  ProjectRecordMap.set(projectName, {});
-};
-
-export const isProjectAlive = (record: RecordInfo) => {
-  return hasProjectRecord(record) && getProjectRecord(record)?.server?.address;
-};
