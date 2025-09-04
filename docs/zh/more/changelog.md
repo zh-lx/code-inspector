@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.2.7
+
+- 【fix】修复了在有 `app.ts` 文件的 `mako` 项目中的使用报错问题 [#392](https://github.com/zh-lx/code-inspector/pull/392)
+- 【fix】修复了在多 page 的 nextjs 项目中失效的问题 [#391](https://github.com/zh-lx/code-inspector/pull/391)
+
 ## 1.2.6
 
 - 【fix】兼容了在 `turbopack` 中与其他 `loader` 共同使用的问题 [#386](https://github.com/zh-lx/code-inspector/pull/386)

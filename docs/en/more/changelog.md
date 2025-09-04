@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.7
+
+- 【fix】Fixed usage error in mako projects with `app.ts` files [#392](https://github.com/zh-lx/code-inspector/pull/392)
+- 【fix】Fixed issue where it doesn't work in multi-page Next.js projects [#391](https://github.com/zh-lx/code-inspector/pull/391)
+
 ## 1.2.6
 
 - 【fix】Compatible with other `loader`s in `turbopack` [#386](https://github.com/zh-lx/code-inspector/pull/386)
