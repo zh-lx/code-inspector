@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: ['src/client/index.ts'],
-      formats: ['umd'],
+      formats: ['umd', 'iife'],
       fileName: 'client',
       name: 'vueInspectorClient',
     },
@@ -18,8 +18,8 @@ export default defineConfig({
     // @ts-ignore
     terser({
       format: {
-        comments: false
-      }
-    })
+        comments: false,
+      },
+    }),
   ],
 });
