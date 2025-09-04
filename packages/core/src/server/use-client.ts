@@ -37,6 +37,9 @@ if (typeof __dirname !== 'undefined') {
 export const clientJsPath = path.resolve(compatibleDirname, './client.umd.js');
 const jsClientCode = fs.readFileSync(clientJsPath, 'utf-8');
 
+const iifeClientJsPath = path.resolve(compatibleDirname, './client.iife.js');
+const iifeClientJsCode = fs.readFileSync(iifeClientJsPath, 'utf-8');
+
 const NextEmptyElementName = 'CodeInspectorEmptyElement';
 export function getInjectedCode(
   options: CodeOptions,
@@ -142,13 +145,14 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     autoToggle = true,
     behavior = {},
     ip = false,
+    bundler,
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false, target = '' } = behavior;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
-      ${jsClientCode};
+      ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
       
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
