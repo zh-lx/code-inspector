@@ -243,10 +243,6 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
     if (file.includes('/.svelte-kit/')) {
       return;
     }
-    // exclude nextjs layout entry
-    if (file.replace(path.extname(file), '').endsWith('/app/layout')) {
-      return;
-    }
     setProjectRecord(record, 'entry', getFilePathWithoutExt(file));
   }
 }
