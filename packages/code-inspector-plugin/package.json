@@ -42,6 +42,7 @@
   "keywords": [
     "webpack",
     "vite",
+    "turbopack",
     "plugin",
     "vue",
     "vscode",
