@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.8
+
+- 【fix】Fixed the error issue `Maximum call stack size exceeded` [#396](https://github.com/zh-lx/code-inspector/pull/396)
+
 ## 1.2.7
 
 - 【fix】Fixed usage error in mako projects with `app.ts` files [#392](https://github.com/zh-lx/code-inspector/pull/392)

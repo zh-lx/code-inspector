@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.8
+
+- 【fix】修复了在关于 `Maximum call stack size exceeded` 的报错问题 [#396](https://github.com/zh-lx/code-inspector/pull/396)
+
 ## 1.2.7
 
 - 【fix】修复了在有 `app.ts` 文件的 `mako` 项目中的使用报错问题 [#392](https://github.com/zh-lx/code-inspector/pull/392)
