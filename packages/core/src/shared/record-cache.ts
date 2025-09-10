@@ -45,8 +45,10 @@ export const findPort = async (record: RecordInfo): Promise<number> => {
   if (content[process.cwd()].port) {
     return content[process.cwd()].port;
   }
-  return new Promise(async (resolve) => {
-    const port = await findPort(record);
-    resolve(port);
+  return new Promise((resolve) => {
+    setTimeout(async () => {
+      const port = await findPort(record);
+      resolve(port);
+    });
   });
 };
