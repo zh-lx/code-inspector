@@ -1,6 +1,8 @@
-import { CodeOptions, RecordInfo, isDev } from '@code-inspector/core';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { 
+  CodeOptions, 
+  RecordInfo, 
+  isDev
+} from '@code-inspector/core';
 
 interface Options extends CodeOptions {
   close?: boolean;
@@ -23,38 +25,16 @@ export function TurbopackCodeInspectorPlugin(
     output: options.output,
   };
 
-  let WebpackEntry = null;
-  if (typeof require !== 'undefined' && typeof require.resolve === 'function') {
-    WebpackEntry = require.resolve('@code-inspector/webpack');
-  }
-  if (typeof import.meta.resolve === 'function') {
-    const dir = import.meta.resolve(
-      '@code-inspector/webpack'
-    ) as unknown as string;
-    WebpackEntry = fileURLToPath(dir);
-  }
-  const WebpackDistDir = path.resolve(WebpackEntry, '..');
-
   return {
-    '**/*.{jsx,tsx,js,ts,mjs,mts}': {
-      loaders: [
-        {
-          loader: `${WebpackDistDir}/loader.js`,
-          options: {
-            ...options,
-            record,
-          },
-          ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
-        },
-        {
-          loader: `${WebpackDistDir}/inject-loader.js`,
-          options: {
-            ...options,
-            record,
-          },
-          enforce: 'pre',
-        },
-      ],
-    },
+    '**/*.{jsx,tsx}': {
+      loaders: [{
+        loader: '@code-inspector/turbopack/dist/turbopack-loader.js',
+        options: {
+          ...options,
+          record,
+          inject: true,
+        }
+      }]
+    }
   };
 }

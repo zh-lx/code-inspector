@@ -23,7 +23,8 @@
         "types": "./types/index.d.ts",
         "default": "./dist/index.js"
       }
-    }
+    },
+    "./dist/turbopack-loader.js": "./dist/turbopack-loader.js"
   },
   "keywords": [
     "turbopack",
@@ -47,7 +48,7 @@
   },
   "scripts": {
     "clear": "rimraf ./dist && rimraf ./types",
-    "build": "pnpm clear && tsc && vite build",
+    "build": "pnpm clear && tsc && vite build && cp src/turbopack-loader.js dist/",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   }
