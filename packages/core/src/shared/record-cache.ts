@@ -39,10 +39,6 @@ export const setProjectRecord = (
   fs.writeFileSync(recordFilePath, JSON.stringify(content, null, 2), 'utf-8');
 };
 
-const waitms = (ms: 1000) => new Promise(resolve => {
-  setTimeout(resolve, ms)
-})
-
 export const findPort = async (record: RecordInfo): Promise<number> => {
   const recordFilePath = path.resolve(record.output, './record.json');
   const content = JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
@@ -50,8 +46,9 @@ export const findPort = async (record: RecordInfo): Promise<number> => {
     return content[process.cwd()].port;
   }
   return new Promise(async (resolve) => {
-    await waitms(800);
-    const port = await findPort(record);
-    resolve(port);
+    setTimeout(() => {
+      const port = await findPort(record);
+      resolve(port);
+    });
   });
 };
