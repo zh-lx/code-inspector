@@ -36,7 +36,7 @@ export function TurbopackCodeInspectorPlugin(
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 
   return {
-    '**/*.{jsx,tsx,js,ts,mjs,mts}': {
+    '**/app/**/*.{jsx,tsx,js,ts,mjs,mts}': {
       loaders: [
         {
           loader: `${WebpackDistDir}/loader.js`,
