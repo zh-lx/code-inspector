@@ -35,8 +35,32 @@ export function TurbopackCodeInspectorPlugin(
   }
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 
+  // according to: https://nextjs.org/docs/app/getting-started/project-structure#routing-files
+  const validFiles = [
+    '*.jsx',
+    '*.tsx',
+    'layout.js',
+    'layout.ts',
+    'page.js',
+    'page.ts',
+    'loading.js',
+    'loading.ts',
+    'not-found.js',
+    'not-found.ts',
+    'error.js',
+    'error.ts',
+    'global-error.js',
+    'global-error.ts',
+    'template.js',
+    'template.ts',
+    'default.js',
+    'default.ts',
+  ];
+
+  const matchFiles = `**/{${validFiles.join(',')}}`;
+
   return {
-    '**/app/**/*.{jsx,tsx,js,ts,mjs,mts}': {
+    [matchFiles]: {
       loaders: [
         {
           loader: `${WebpackDistDir}/loader.js`,
