@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.10
+
+- 【fix】增加了 `nextjs` 可识别的文件范围 [#399](https://github.com/zh-lx/code-inspector/pull/399)
+
 ## 1.2.9
 
 - 【fix】修复了在 `turbopack` 中使用时与 `middleware` 不兼容的问题 [#398](https://github.com/zh-lx/code-inspector/pull/398)

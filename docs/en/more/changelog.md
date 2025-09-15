@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.10
+
+- 【fix】Increased the scope of files that can be recognized by `nextjs` [#399](https://github.com/zh-lx/code-inspector/pull/399)
+
 ## 1.2.9
 
 - 【fix】Fixed the issue where the plugin did not work with `middleware` in `turbopack` [#398](https://github.com/zh-lx/code-inspector/pull/398)
