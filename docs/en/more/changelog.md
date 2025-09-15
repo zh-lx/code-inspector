@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.9
+
+- 【fix】Fixed the issue where the plugin did not work with `middleware` in `turbopack` [#398](https://github.com/zh-lx/code-inspector/pull/398)
+
 ## 1.2.8
 
 - 【fix】Fixed the error issue `Maximum call stack size exceeded` [#396](https://github.com/zh-lx/code-inspector/pull/396)

@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.2.9
+
+- 【fix】修复了在 `turbopack` 中使用时与 `middleware` 不兼容的问题 [#398](https://github.com/zh-lx/code-inspector/pull/398)
+
 ## 1.2.8
 
 - 【fix】修复了在关于 `Maximum call stack size exceeded` 的报错问题 [#396](https://github.com/zh-lx/code-inspector/pull/396)
