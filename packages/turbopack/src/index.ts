@@ -57,10 +57,10 @@ export function TurbopackCodeInspectorPlugin(
     'default.ts',
   ];
 
-  const expression = `**/{${validFiles.join(',')}}`;
+  const matchFiles = `**/{${validFiles.join(',')}}`;
 
   return {
-    [expression]: {
+    [matchFiles]: {
       loaders: [
         {
           loader: `${WebpackDistDir}/loader.js`,
