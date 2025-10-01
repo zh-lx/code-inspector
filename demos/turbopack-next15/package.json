@@ -9,22 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.5.3",
+    "next": "15.6.0-canary.38",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@mdx-js/loader": "^3.1.1",
-    "@next/mdx": "15.5.3",
+    "@next/mdx": "15.6.0-canary.38",
     "@tailwindcss/postcss": "^4.1.13",
-    "@types/node": "^24.3.1",
-    "@types/react": "^19.1.12",
+    "@types/node": "^24.6.1",
+    "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "code-inspector-plugin": "workspace:^",
-    "eslint": "^9.35.0",
-    "eslint-config-next": "15.5.3",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "15.6.0-canary.38",
     "tailwindcss": "^4.1.13",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
