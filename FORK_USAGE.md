@@ -2,63 +2,19 @@
 
 > 本 fork 添加了 **Shift+Alt+C** 模式切换功能，支持在 IDE 打开和复制路径之间切换。
 
-## 功能说明
+## ✨ 功能说明
 
-- **默认模式（IDE）**：点击元素在 IDE 中打开源代码
-- **复制模式**：点击元素复制文件路径到剪贴板
-- **切换快捷键**：`Shift+Alt+C`
-
----
-
-## 使用方法
-
-### 方法一：curl 直接替换（推荐）⭐
-
-适合想要快速体验新功能的用户，无需编译环境。
-
-```bash
-# 1. 先正常安装原版包
-npm install code-inspector-plugin
-
-# 2. 下载并替换编译后的客户端文件
-curl -L https://github.com/MarkShawn2020/code-inspector/raw/feat/mode-switching/packages/core/dist/client.iife.js \
-  -o node_modules/@code-inspector/core/dist/client.iife.js
-
-curl -L https://github.com/MarkShawn2020/code-inspector/raw/feat/mode-switching/packages/core/dist/client.umd.js \
-  -o node_modules/@code-inspector/core/dist/client.umd.js
-
-# 3. 重启开发服务器
-npm run dev
-```
-
-#### 自动化（可选）
-
-创建 `scripts/patch-code-inspector.sh`：
-
-```bash
-#!/bin/bash
-CORE_DIST="node_modules/@code-inspector/core/dist"
-REPO_URL="https://github.com/MarkShawn2020/code-inspector/raw/feat/mode-switching/packages/core/dist"
-
-echo "🔧 Patching code-inspector..."
-curl -L "$REPO_URL/client.iife.js" -o "$CORE_DIST/client.iife.js"
-curl -L "$REPO_URL/client.umd.js" -o "$CORE_DIST/client.umd.js"
-echo "✅ Done! Please restart dev server."
-```
-
-在 `package.json` 中添加：
-
-```json
-{
-  "scripts": {
-    "postinstall": "bash scripts/patch-code-inspector.sh"
-  }
-}
-```
+- **📝 IDE 模式**（默认）：点击元素在 IDE 中打开源代码
+- **📋 复制模式**：点击元素复制文件路径到剪贴板（格式：`/path/to/file.tsx:42:10`）
+- **⌨️ 切换快捷键**：`Shift+Alt+C`
+- **💡 Toast 提示**：切换时显示当前模式
+- **🎯 模式指示器**：浮窗底部显示当前模式和快捷键
 
 ---
 
-### 方法二：源码编译
+## 🚀 使用方法
+
+### 方法一：源码编译 + npm link
 
 适合开发者或需要自定义修改的场景。
 
@@ -77,9 +33,53 @@ pnpm build
 # 4. 链接到你的项目
 cd /path/to/your-project
 npm link /path/to/code-inspector/packages/code-inspector-plugin
-# 或者
-npm link /path/to/code-inspector/packages/core
 ```
+
+**优点**：
+- ✅ 完全控制，可自定义修改
+- ✅ 适合开发调试
+
+**缺点**：
+- ❌ 需要 Node.js 和 pnpm 环境
+- ❌ 首次构建较慢
+
+---
+
+### 方法二：curl 直接替换（简化版）
+
+如果你想用 curl 方式，需要我们先将编译文件提交到 Git。目前 `dist/` 文件未包含在 Git 中。
+
+**可选操作**（由仓库维护者完成）：
+```bash
+# 在 code-inspector 仓库中
+git add -f packages/core/dist/client.iife.js packages/core/dist/client.umd.js
+git commit -m "chore: add compiled client files for easy patching"
+git push
+```
+
+完成后，用户可以：
+```bash
+# 1. 正常安装原版包
+npm install code-inspector-plugin
+
+# 2. 下载并替换编译后的客户端文件
+curl -L https://github.com/MarkShawn2020/code-inspector/raw/feat/mode-switching/packages/core/dist/client.iife.js \
+  -o node_modules/@code-inspector/core/dist/client.iife.js
+
+curl -L https://github.com/MarkShawn2020/code-inspector/raw/feat/mode-switching/packages/core/dist/client.umd.js \
+  -o node_modules/@code-inspector/core/dist/client.umd.js
+
+# 3. 重启开发服务器
+npm run dev
+```
+
+**优点**：
+- ✅ 无需编译环境
+- ✅ 快速（只替换 2 个 51KB 文件）
+
+**缺点**：
+- ⚠️ 需要先提交 dist 文件到 Git
+- ⚠️ `npm install` 会覆盖，需配合 postinstall 脚本
 
 ---
 
