@@ -94,6 +94,9 @@ export declare class CodeInspectorComponent extends LitElement {
     preUserSelect: string;
     sendType: 'xhr' | 'img';
     activeNode: ActiveNode;
+    actionMode: 'ide' | 'copy';
+    showModeToast: boolean;
+    modeToastTimer: number | null;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
@@ -133,6 +136,8 @@ export declare class CodeInspectorComponent extends LitElement {
     sendXHR: () => void;
     sendImg: () => void;
     buildTargetUrl: () => string;
+    toggleMode: () => void;
+    showModeToastNotification: () => void;
     trackCode: () => void;
     copyToClipboard(text: string): void;
     handleDrag: (e: MouseEvent | TouchEvent) => void;
@@ -142,6 +147,7 @@ export declare class CodeInspectorComponent extends LitElement {
     handleContextMenu: (e: MouseEvent) => void;
     generateNodeTree: (nodePath: HTMLElement[]) => TreeNode;
     handlePointerDown: (e: PointerEvent) => void;
+    handleKeyDown: (e: KeyboardEvent) => void;
     handleKeyUp: (e: KeyboardEvent) => void;
     printTip: () => void;
     getMousePosition: (e: MouseEvent | TouchEvent) => {
