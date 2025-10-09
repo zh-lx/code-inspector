@@ -2,7 +2,6 @@ import { LitElement, TemplateResult, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
-import { formatOpenPath } from 'launch-ide';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -154,6 +153,12 @@ export class CodeInspectorComponent extends LitElement {
   sendType: 'xhr' | 'img' = 'xhr';
   @state()
   activeNode: ActiveNode = {};
+  @state()
+  actionMode: 'ide' | 'copy' = 'ide'; // 模式：ide-在IDE中打开，copy-复制路径
+  @state()
+  showModeToast = false; // 显示模式切换提示
+  @state()
+  modeToastTimer: number | null = null; // 模式切换提示定时器
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -530,30 +535,53 @@ export class CodeInspectorComponent extends LitElement {
     return targetUrl;
   };
 
+  // 切换模式
+  toggleMode = () => {
+    this.actionMode = this.actionMode === 'ide' ? 'copy' : 'ide';
+    this.showModeToastNotification();
+  };
+
+  // 显示模式切换提示
+  showModeToastNotification = () => {
+    // 清除之前的定时器
+    if (this.modeToastTimer !== null) {
+      window.clearTimeout(this.modeToastTimer);
+    }
+
+    this.showModeToast = true;
+
+    // 2秒后自动隐藏
+    this.modeToastTimer = window.setTimeout(() => {
+      this.showModeToast = false;
+      this.modeToastTimer = null;
+    }, 2000);
+  };
+
   // 触发功能的处理
   trackCode = () => {
-    if (this.locate) {
-      // 请求本地服务端，打开vscode
-      if (this.sendType === 'xhr') {
-        this.sendXHR();
-      } else {
-        this.sendImg();
+    // 根据当前模式执行对应操作
+    if (this.actionMode === 'ide') {
+      // IDE模式：打开编辑器
+      if (this.locate) {
+        // 请求本地服务端，打开vscode
+        if (this.sendType === 'xhr') {
+          this.sendXHR();
+        } else {
+          this.sendImg();
+        }
       }
+      if (this.target) {
+        window.open(this.buildTargetUrl(), '_blank');
+      }
+    } else if (this.actionMode === 'copy') {
+      // 复制模式：复制路径
+      // 直接复制文件路径，格式：/path/to/file.tsx:line:column
+      const pathToCopy = `${this.element.path}:${this.element.line}:${this.element.column}`;
+      this.copyToClipboard(pathToCopy);
     }
-    if (this.copy) {
-      const path = formatOpenPath(
-        this.element.path,
-        String(this.element.line),
-        String(this.element.column),
-        this.copy
-      );
-      this.copyToClipboard(path[0]);
-    }
-    if (this.target) {
-      window.open(this.buildTargetUrl(), '_blank');
-    }
+
     window.dispatchEvent(new CustomEvent('code-inspector:trackCode', {
-      detail: this.element,
+      detail: { ...this.element, mode: this.actionMode },
     }));
   };
 
@@ -743,6 +771,23 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  // 监听键盘按下，处理模式切换
+  handleKeyDown = (e: KeyboardEvent) => {
+    // Shift+Alt+C 切换模式
+    // 检查 key, code, 和 keyCode 以确保在不同系统上都能工作
+    const isC =
+      e.key === 'c' ||
+      e.key === 'C' ||
+      e.code === 'KeyC' ||
+      e.keyCode === 67;
+
+    if (e.shiftKey && e.altKey && isC && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleMode();
+    }
+  };
+
   // 监听键盘抬起，清除遮罩层
   handleKeyUp = (e: KeyboardEvent) => {
     if (!this.isTracking(e) && !this.open) {
@@ -882,6 +927,7 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('touchmove', this.handleDrag, true);
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
+    window.addEventListener('keydown', this.handleKeyDown, true);
     window.addEventListener('keyup', this.handleKeyUp, true);
     window.addEventListener('mouseleave', this.removeCover, true);
     window.addEventListener('mouseup', this.handleMouseUp, true);
@@ -896,6 +942,7 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('touchmove', this.handleDrag, true);
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
+    window.removeEventListener('keydown', this.handleKeyDown, true);
     window.removeEventListener('keyup', this.handleKeyUp, true);
     window.removeEventListener('mouseleave', this.removeCover, true);
     window.removeEventListener('mouseup', this.handleMouseUp, true);
@@ -995,11 +1042,19 @@ export class CodeInspectorComponent extends LitElement {
             <div class="name-line">
               <div class="element-name">
                 <span class="element-title">&lt;${this.element.name}&gt;</span>
-                <span class="element-tip">click to open editor</span>
+                <span class="element-tip">${
+                  this.actionMode === 'ide'
+                    ? 'click to open editor'
+                    : 'click to copy path'
+                }</span>
               </div>
             </div>
             <div class="path-line">
               ${this.element.path}:${this.element.line}:${this.element.column}
+            </div>
+            <div class="mode-indicator">
+              Mode: ${this.actionMode === 'ide' ? '📝 IDE' : '📋 Copy'}
+              <span class="mode-hint">(Shift+Alt+C to toggle)</span>
             </div>
           </div>
         </div>
@@ -1149,6 +1204,26 @@ export class CodeInspectorComponent extends LitElement {
       >
         ${this.activeNode.content}
       </div>
+      <div
+        id="mode-toast"
+        class="mode-toast ${this.showModeToast ? 'show' : ''}"
+      >
+        <div class="mode-toast-content">
+          ${
+            this.actionMode === 'ide'
+              ? html`<div class="mode-toast-icon">📝</div>
+                  <div class="mode-toast-text">
+                    <div class="mode-toast-title">IDE Mode</div>
+                    <div class="mode-toast-desc">Click to open in editor</div>
+                  </div>`
+              : html`<div class="mode-toast-icon">📋</div>
+                  <div class="mode-toast-text">
+                    <div class="mode-toast-title">Copy Mode</div>
+                    <div class="mode-toast-desc">Click to copy path</div>
+                  </div>`
+          }
+        </div>
+      </div>
     `;
   }
 
@@ -1233,6 +1308,21 @@ export class CodeInspectorComponent extends LitElement {
       color: #333;
       line-height: 12px;
       margin-top: 4px;
+    }
+    .mode-indicator {
+      color: #006aff;
+      font-size: 11px;
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mode-hint {
+      color: #999;
+      font-size: 10px;
+      margin-left: 4px;
     }
     .inspector-switch {
       position: fixed;
@@ -1335,6 +1425,49 @@ export class CodeInspectorComponent extends LitElement {
     }
     .close-icon {
       cursor: pointer;
+    }
+    .mode-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      z-index: 99999999999999;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: all 0.3s ease-in-out;
+      pointer-events: none;
+      font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        sans-serif;
+    }
+    .mode-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .mode-toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mode-toast-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .mode-toast-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mode-toast-title {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .mode-toast-desc {
+      font-size: 12px;
+      opacity: 0.8;
     }
   `;
 }
