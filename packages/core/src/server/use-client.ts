@@ -57,7 +57,7 @@ export function getInjectedCode(
   code = `/* eslint-disable */ ` + code.replace(/\n/g, '');
   if (isNextjs) {
     code += `
-    export default function ${NextEmptyElementName}() {
+    module.exports = function ${NextEmptyElementName}() {
       return null;
     }
     `;
