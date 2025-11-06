@@ -67,6 +67,10 @@ interface ActiveNode {
   class?: 'tooltip-top' | 'tooltip-bottom';
 }
 
+type InspectorAction = 'copy' | 'locate' | 'target' | 'all';
+type TrackAction = InspectorAction | 'default';
+type ResolvedAction = InspectorAction | 'none';
+
 const PopperWidth = 300;
 
 function nextTick() {
@@ -89,7 +93,9 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   locate: boolean = true;
   @property()
-  copy: boolean | string = false;
+  copy: boolean | string = true;
+  @property({ attribute: 'default-action' })
+  defaultAction: InspectorAction = 'copy';
   @property()
   target: string = '';
   @property()
@@ -531,16 +537,41 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 触发功能的处理
-  trackCode = () => {
-    if (this.locate) {
-      // 请求本地服务端，打开vscode
+  trackCode = (action: TrackAction = 'default') => {
+    let resolvedAction: ResolvedAction;
+    if (action === 'default') {
+      resolvedAction = this.getDefaultAction();
+    } else if (action === 'all') {
+      resolvedAction = this.copy || this.locate || this.target ? 'all' : 'none';
+    } else if (this.isActionEnabled(action)) {
+      resolvedAction = action;
+    } else {
+      resolvedAction = 'none';
+    }
+
+    if (resolvedAction === 'none') {
+      return;
+    }
+
+    const shouldLocate =
+      (resolvedAction === 'locate' || resolvedAction === 'all') && this.locate;
+    const shouldCopy =
+      (resolvedAction === 'copy' || resolvedAction === 'all') && !!this.copy;
+    const shouldTarget =
+      (resolvedAction === 'target' || resolvedAction === 'all') && !!this.target;
+
+    if (!shouldLocate && !shouldCopy && !shouldTarget) {
+      return;
+    }
+
+    if (shouldLocate) {
       if (this.sendType === 'xhr') {
         this.sendXHR();
       } else {
         this.sendImg();
       }
     }
-    if (this.copy) {
+    if (shouldCopy) {
       const path = formatOpenPath(
         this.element.path,
         String(this.element.line),
@@ -549,13 +580,132 @@ export class CodeInspectorComponent extends LitElement {
       );
       this.copyToClipboard(path[0]);
     }
-    if (this.target) {
+    if (shouldTarget) {
       window.open(this.buildTargetUrl(), '_blank');
     }
-    window.dispatchEvent(new CustomEvent('code-inspector:trackCode', {
-      detail: this.element,
-    }));
+    window.dispatchEvent(
+      new CustomEvent('code-inspector:trackCode', {
+        detail: this.element,
+      })
+    );
   };
+
+  private getDefaultAction(): ResolvedAction {
+    const resolved = this.resolvePreferredAction(this.defaultAction);
+    if (resolved !== 'none' && resolved !== this.defaultAction) {
+      this.defaultAction = resolved;
+    }
+    return resolved;
+  }
+
+  private isActionEnabled(action: Exclude<InspectorAction, 'all'>): boolean {
+    if (action === 'copy') {
+      return !!this.copy;
+    }
+    if (action === 'locate') {
+      return !!this.locate;
+    }
+    return !!this.target;
+  }
+
+  private resolvePreferredAction(
+    preferred: InspectorAction
+  ): ResolvedAction {
+    if (preferred === 'all') {
+      return this.copy || this.locate || this.target ? 'all' : 'none';
+    }
+    if (this.isActionEnabled(preferred)) {
+      return preferred;
+    }
+    const fallbackOrder: Array<Exclude<InspectorAction, 'all'>> = [
+      'copy',
+      'locate',
+      'target',
+    ];
+    for (const candidate of fallbackOrder) {
+      if (candidate !== preferred && this.isActionEnabled(candidate)) {
+        return candidate;
+      }
+    }
+    return 'none';
+  }
+
+  private getAvailableDefaultActions(): InspectorAction[] {
+    const actions: InspectorAction[] = [];
+    if (this.copy) {
+      actions.push('copy');
+    }
+    if (this.locate) {
+      actions.push('locate');
+    }
+    if (this.target) {
+      actions.push('target');
+    }
+    if (actions.length > 1 && this.copy && this.locate) {
+      actions.push('all');
+    }
+    return actions;
+  }
+
+  private handleModeShortcut = (e: KeyboardEvent) => {
+    if (!e.shiftKey || !e.altKey) {
+      return;
+    }
+    const code = e.code?.toLowerCase();
+    const key = e.key?.toLowerCase();
+    const isCKey = code ? code === 'keyc' : key === 'c';
+    if (!isCKey) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    const actions = this.getAvailableDefaultActions();
+    if (actions.length <= 1) {
+      return;
+    }
+    const currentIndex = actions.indexOf(this.defaultAction);
+    const nextAction =
+      currentIndex === -1
+        ? actions[0]
+        : actions[(currentIndex + 1) % actions.length];
+    this.defaultAction = nextAction;
+    this.printModeChange(nextAction);
+  };
+
+  private printModeChange(action: InspectorAction) {
+    if (this.hideConsole) {
+      return;
+    }
+    const label = this.getActionLabel(action);
+    const agent =
+      typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
+      (item) => agent.toUpperCase().includes(item.toUpperCase())
+    );
+    const shortcut = isWindows ? 'Shift+Alt+C' : 'Shift+Opt+C';
+    console.log(
+      `%c[code-inspector-plugin]%c Mode switched to %c${label}%c (${shortcut})`,
+      'color: #006aff; font-weight: bolder; font-size: 12px;',
+      'color: #006aff; font-size: 12px;',
+      'color: #00B42A; font-weight: bold; font-size: 12px;',
+      'color: #006aff; font-size: 12px;'
+    );
+  }
+
+  private getActionLabel(action: ResolvedAction): string {
+    switch (action) {
+      case 'copy':
+        return 'Copy Path';
+      case 'locate':
+        return 'Open in IDE';
+      case 'target':
+        return 'Open Target Link';
+      case 'all':
+        return 'Copy + Open';
+      default:
+        return 'Disabled';
+    }
+  }
 
   copyToClipboard(text: string) {
     if (typeof navigator?.clipboard?.writeText === 'function') {
@@ -657,8 +807,10 @@ export class CodeInspectorComponent extends LitElement {
         e.stopPropagation();
         // 阻止默认事件
         e.preventDefault();
-        // 唤醒 vscode
-        this.trackCode();
+        const primaryAction = this.getDefaultAction();
+        if (primaryAction !== 'none') {
+          this.trackCode(primaryAction as InspectorAction);
+        }
         // 清除遮罩层
         this.removeCover();
         if (this.autoToggle) {
@@ -756,6 +908,7 @@ export class CodeInspectorComponent extends LitElement {
     const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
       (item) => agent.toUpperCase().match(item.toUpperCase())
     );
+    const modeShortcut = isWindows ? 'Shift+Alt+C' : 'Shift+Opt+C';
     const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
     const keys = this.hotKeys
       .split(',')
@@ -771,10 +924,11 @@ export class CodeInspectorComponent extends LitElement {
         }
       });
     const replacement = '%c';
+    const currentMode = this.getActionLabel(this.getDefaultAction());
     console.log(
       `${replacement}[code-inspector-plugin]${replacement}Press and hold ${keys.join(
         ` ${replacement}+ `
-      )}${replacement} to enable the feature. (click on page elements to locate the source code in the editor)`,
+      )}${replacement} to enable the feature. (Current mode: ${currentMode}; press ${modeShortcut} to switch)`,
       'color: #006aff; font-weight: bolder; font-size: 12px;',
       ...colors
     );
@@ -829,7 +983,7 @@ export class CodeInspectorComponent extends LitElement {
 
   handleClickTreeNode = (node: TreeNode) => {
     this.element = node;
-    this.trackCode();
+    this.trackCode('locate');
     this.removeLayerPanel();
   };
 
@@ -883,6 +1037,7 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('click', this.handleMouseClick, true);
     window.addEventListener('pointerdown', this.handlePointerDown, true);
     window.addEventListener('keyup', this.handleKeyUp, true);
+    window.addEventListener('keydown', this.handleModeShortcut, true);
     window.addEventListener('mouseleave', this.removeCover, true);
     window.addEventListener('mouseup', this.handleMouseUp, true);
     window.addEventListener('touchend', this.handleMouseUp, true);
@@ -897,6 +1052,7 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('click', this.handleMouseClick, true);
     window.removeEventListener('pointerdown', this.handlePointerDown, true);
     window.removeEventListener('keyup', this.handleKeyUp, true);
+    window.removeEventListener('keydown', this.handleModeShortcut, true);
     window.removeEventListener('mouseleave', this.removeCover, true);
     window.removeEventListener('mouseup', this.handleMouseUp, true);
     window.removeEventListener('touchend', this.handleMouseUp, true);
@@ -967,6 +1123,13 @@ export class CodeInspectorComponent extends LitElement {
       bottom: this.activeNode.bottom,
       display: this.showNodeTree ? '' : 'none',
     };
+    const resolvedDefaultAction = this.getDefaultAction();
+    const modeLabel = this.getActionLabel(resolvedDefaultAction);
+    const modeShortcut =
+      typeof navigator !== 'undefined' &&
+      /mac|iphone|ipad|ipod/i.test(navigator.userAgent)
+        ? 'Shift+Opt+C'
+        : 'Shift+Alt+C';
 
     return html`
       <div
@@ -995,7 +1158,9 @@ export class CodeInspectorComponent extends LitElement {
             <div class="name-line">
               <div class="element-name">
                 <span class="element-title">&lt;${this.element.name}&gt;</span>
-                <span class="element-tip">click to open editor</span>
+                <span class="element-tip">
+                  Mode: ${modeLabel} · ${modeShortcut} to switch
+                </span>
               </div>
             </div>
             <div class="path-line">

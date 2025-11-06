@@ -23,7 +23,8 @@ describe('properties', () => {
     expect(component.autoToggle).toBe(false);
     expect(component.hideConsole).toBe(false);
     expect(component.locate).toBe(true);
-    expect(component.copy).toBe(false);
+    expect(component.copy).toBe(true);
+    expect(component.defaultAction).toBe('copy');
     expect(component.ip).toBe('localhost');
   });
 
@@ -35,6 +36,7 @@ describe('properties', () => {
     component.hideConsole = true;
     component.locate = false;
     component.copy = true;
+    component.defaultAction = 'locate';
     component.ip = '192.168.1.100';
 
     expect(component.hotKeys).toBe('altKey');
@@ -44,6 +46,7 @@ describe('properties', () => {
     expect(component.hideConsole).toBe(true);
     expect(component.locate).toBe(false);
     expect(component.copy).toBe(true);
+    expect(component.defaultAction).toBe('locate');
     expect(component.ip).toBe('192.168.1.100');
   });
 });

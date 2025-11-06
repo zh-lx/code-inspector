@@ -16,6 +16,63 @@ describe('handleMouseClick', () => {
     component.removeCover = vi.fn();
   });
 
+  describe('Preferred Action Logic', () => {
+    it('should fallback to locate when copy is disabled', () => {
+      component.show = true;
+      component.copy = false;
+      component.locate = true;
+      component.defaultAction = 'copy';
+      const mouseEvent = new MouseEvent('click');
+      mouseEvent.stopPropagation = vi.fn();
+      mouseEvent.preventDefault = vi.fn();
+
+      component.handleMouseClick(mouseEvent);
+
+      expect(component.trackCode).toHaveBeenCalledWith('locate');
+    });
+
+    it('should respect an explicit locate defaultAction', () => {
+      component.show = true;
+      component.defaultAction = 'locate';
+      const mouseEvent = new MouseEvent('click');
+      mouseEvent.stopPropagation = vi.fn();
+      mouseEvent.preventDefault = vi.fn();
+
+      component.handleMouseClick(mouseEvent);
+
+      expect(component.trackCode).toHaveBeenCalledWith('locate');
+    });
+
+    it('should fallback to target when locate is disabled', () => {
+      component.show = true;
+      component.copy = false;
+      component.locate = false;
+      component.target = 'https://example.com/{file}';
+      component.defaultAction = 'locate';
+      const mouseEvent = new MouseEvent('click');
+      mouseEvent.stopPropagation = vi.fn();
+      mouseEvent.preventDefault = vi.fn();
+
+      component.handleMouseClick(mouseEvent);
+
+      expect(component.trackCode).toHaveBeenCalledWith('target');
+    });
+
+    it('should skip trackCode when no actions are enabled', () => {
+      component.show = true;
+      component.copy = false;
+      component.locate = false;
+      component.target = '';
+      const mouseEvent = new MouseEvent('click');
+      mouseEvent.stopPropagation = vi.fn();
+      mouseEvent.preventDefault = vi.fn();
+
+      component.handleMouseClick(mouseEvent);
+
+      expect(component.trackCode).not.toHaveBeenCalled();
+    });
+  });
+
   afterEach(() => {
     document.body.removeChild(component);
     vi.clearAllMocks();
@@ -32,7 +89,7 @@ describe('handleMouseClick', () => {
 
       expect(mouseEvent.stopPropagation).toHaveBeenCalled();
       expect(mouseEvent.preventDefault).toHaveBeenCalled();
-      expect(component.trackCode).toHaveBeenCalled();
+      expect(component.trackCode).toHaveBeenCalledWith('copy');
       expect(component.removeCover).toHaveBeenCalled();
     });
 
@@ -47,7 +104,7 @@ describe('handleMouseClick', () => {
 
       expect(mouseEvent.stopPropagation).toHaveBeenCalled();
       expect(mouseEvent.preventDefault).toHaveBeenCalled();
-      expect(component.trackCode).toHaveBeenCalled();
+      expect(component.trackCode).toHaveBeenCalledWith('copy');
       expect(component.removeCover).toHaveBeenCalled();
     });
   });

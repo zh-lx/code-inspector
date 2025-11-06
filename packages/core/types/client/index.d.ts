@@ -35,6 +35,8 @@ interface ActiveNode {
     visibility?: 'visible' | 'hidden';
     class?: 'tooltip-top' | 'tooltip-bottom';
 }
+type InspectorAction = 'copy' | 'locate' | 'target' | 'all';
+type TrackAction = InspectorAction | 'default';
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
     port: number;
@@ -43,6 +45,7 @@ export declare class CodeInspectorComponent extends LitElement {
     hideConsole: boolean;
     locate: boolean;
     copy: boolean | string;
+    defaultAction: InspectorAction;
     target: string;
     ip: string;
     position: {
@@ -133,7 +136,14 @@ export declare class CodeInspectorComponent extends LitElement {
     sendXHR: () => void;
     sendImg: () => void;
     buildTargetUrl: () => string;
-    trackCode: () => void;
+    trackCode: (action?: TrackAction) => void;
+    private getDefaultAction;
+    private isActionEnabled;
+    private resolvePreferredAction;
+    private getAvailableDefaultActions;
+    private handleModeShortcut;
+    private printModeChange;
+    private getActionLabel;
     copyToClipboard(text: string): void;
     handleDrag: (e: MouseEvent | TouchEvent) => void;
     isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
