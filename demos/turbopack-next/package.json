@@ -1,0 +1,30 @@
+{
+  "name": "turbopack-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "16.0.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@mdx-js/loader": "^3.1.1",
+    "@next/mdx": "16.0.1",
+    "@tailwindcss/postcss": "^4.1.16",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "code-inspector-plugin": "workspace:^",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "16.0.1",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3"
+  }
+}
