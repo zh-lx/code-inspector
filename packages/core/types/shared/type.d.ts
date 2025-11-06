@@ -6,6 +6,7 @@ export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
+    defaultAction?: 'copy' | 'locate' | 'target' | 'all';
 };
 export type RecordInfo = {
     port: number;

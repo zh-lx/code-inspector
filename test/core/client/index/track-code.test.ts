@@ -14,6 +14,7 @@ describe('trackCode', () => {
   let component: CodeInspectorComponent;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     // 创建组件实例
     component = new CodeInspectorComponent();
     
@@ -38,7 +39,7 @@ describe('trackCode', () => {
 
     it('should call sendXHR when sendType is xhr', () => {
       component.sendType = 'xhr';
-      component.trackCode();
+      component.trackCode('locate');
       
       expect(component.sendXHR).toHaveBeenCalled();
       expect(component.sendImg).not.toHaveBeenCalled();
@@ -46,7 +47,7 @@ describe('trackCode', () => {
 
     it('should call sendImg when sendType is img', () => {
       component.sendType = 'img';
-      component.trackCode();
+      component.trackCode('locate');
       
       expect(component.sendImg).toHaveBeenCalled();
       expect(component.sendXHR).not.toHaveBeenCalled();
@@ -55,7 +56,7 @@ describe('trackCode', () => {
     it('should not call any send method when locate is false', () => {
       component.locate = false;
       component.sendType = 'xhr';
-      component.trackCode();
+      component.trackCode('locate');
       
       expect(component.sendXHR).not.toHaveBeenCalled();
       expect(component.sendImg).not.toHaveBeenCalled();
@@ -69,7 +70,7 @@ describe('trackCode', () => {
 
     it('should not call formatOpenPath when copy is false', () => {
       component.copy = false;
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(formatOpenPath).not.toHaveBeenCalled();
       expect(component.copyToClipboard).not.toHaveBeenCalled();
@@ -79,7 +80,7 @@ describe('trackCode', () => {
       component.locate = false;
       component.copy = false;
       
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(component.sendXHR).not.toHaveBeenCalled();
       expect(component.sendImg).not.toHaveBeenCalled();
@@ -88,7 +89,7 @@ describe('trackCode', () => {
     });
 
     it('should call formatOpenPath and copyToClipboard when copy is true', () => {
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(formatOpenPath).toHaveBeenCalledWith(
         '/path/to/file.ts',
@@ -98,6 +99,32 @@ describe('trackCode', () => {
       );
       expect(component.copyToClipboard).toHaveBeenCalledWith('formatted/path:10:5');
     });
+
+    it('should default to copy when no action is provided', () => {
+      component.locate = true;
+      component.copy = true;
+      component.defaultAction = 'copy';
+      component.sendType = 'xhr';
+
+      component.trackCode();
+
+      expect(formatOpenPath).toHaveBeenCalled();
+      expect(component.copyToClipboard).toHaveBeenCalled();
+      expect(component.sendXHR).not.toHaveBeenCalled();
+    });
+
+    it('should fallback to locate when copy is disabled', () => {
+      component.copy = false;
+      component.locate = true;
+      component.defaultAction = 'copy';
+      component.sendType = 'xhr';
+
+      component.trackCode();
+
+      expect(component.sendXHR).toHaveBeenCalled();
+      expect(component.copyToClipboard).not.toHaveBeenCalled();
+      expect(formatOpenPath).not.toHaveBeenCalled();
+    });
   });
 
   describe('Combined Functionality', () => {
@@ -106,7 +133,7 @@ describe('trackCode', () => {
       component.copy = true;
       component.sendType = 'xhr';
       
-      component.trackCode();
+      component.trackCode('all');
       
       expect(component.sendXHR).toHaveBeenCalled();
       expect(formatOpenPath).toHaveBeenCalled();
@@ -120,7 +147,7 @@ describe('trackCode', () => {
       // @ts-ignore
       component.element = {};
       
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(formatOpenPath).toHaveBeenCalledWith(
         undefined,
@@ -135,7 +162,7 @@ describe('trackCode', () => {
       // @ts-ignore
       component.sendType = 'invalid';
       
-      component.trackCode();
+      component.trackCode('locate');
       
       expect(component.sendXHR).not.toHaveBeenCalled();
       expect(component.sendImg).toHaveBeenCalled();
@@ -152,7 +179,7 @@ describe('trackCode', () => {
         name: 'test'
       };
       
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(formatOpenPath).toHaveBeenCalledWith(
         '/path/to/file.ts',
@@ -173,7 +200,7 @@ describe('trackCode', () => {
         name: 'test'
       };
       
-      component.trackCode();
+      component.trackCode('copy');
       
       expect(formatOpenPath).toHaveBeenCalledWith(
         '/path/to/file.ts',
