@@ -5,12 +5,11 @@ import { TurbopackCodeInspectorPlugin } from '@code-inspector/turbopack';
 import { MakoCodeInspectorPlugin } from '@code-inspector/mako';
 import {
   CodeOptions,
-  fileURLToPath,
   getEnvVariable,
   resetFileRecord,
 } from '@code-inspector/core';
 import chalk from 'chalk';
-import path, { dirname } from 'path';
+import path from 'path';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
   /**
@@ -39,16 +38,14 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
     }
   }
 
-  let compatibleDirname = '';
-  if (typeof __dirname !== 'undefined') {
-    compatibleDirname = __dirname;
-  } else {
-    compatibleDirname = dirname(fileURLToPath(import.meta.url));
-  }
+  // Write generated files to user project's node_modules/.cache directory
+  // This ensures relative imports work correctly with pnpm link
+  const outputDir = path.resolve(process.cwd(), 'node_modules/.cache/code-inspector');
+
   const params = {
     ...options,
     close,
-    output: path.resolve(compatibleDirname, './'),
+    output: outputDir,
   };
   resetFileRecord(params.output);
   if (options.bundler === 'webpack' || options.bundler === 'rspack') {

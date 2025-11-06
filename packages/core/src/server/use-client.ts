@@ -332,17 +332,18 @@ export async function getCodeWithWebComponent({
     );
     if (isNextjs || options.importClient === 'file') {
       writeEslintRcFile(record.output);
-      const webComponentNpmPath = writeWebComponentFile(
+      const webComponentPath = writeWebComponentFile(
         record.output,
         injectCode,
-        getProjectRecord(record)?.port || 0
+        getProjectRecord(record)?.port || 0,
+        file
       );
-      if (!file.match(webComponentNpmPath)) {
+      if (!file.match(webComponentPath)) {
         if (isNextjs) {
-          code = addImportToEntry(code, webComponentNpmPath);
+          code = addImportToEntry(code, webComponentPath);
           code = addNextEmptyElementToEntry(code);
         } else {
-          code = `import '${webComponentNpmPath}';${code}`;
+          code = `import '${webComponentPath}';${code}`;
         }
       }
     } else {
@@ -370,13 +371,22 @@ module.exports = {
 function writeWebComponentFile(
   targetPath: string,
   content: string,
-  port: number
+  port: number,
+  fromFile: string
 ) {
   const webComponentFileName = `append-code-${port}.js`;
-  const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
   fs.writeFileSync(webComponentFilePath, content, 'utf-8');
-  return webComponentNpmPath;
+
+  // Calculate relative path from the importing file to the generated file
+  // This works with pnpm link and is required by Next.js
+  const relativePath = path.relative(path.dirname(fromFile), webComponentFilePath);
+  // Ensure path starts with ./ or ../
+  const normalizedRelative = relativePath.startsWith('.')
+    ? relativePath
+    : `./${relativePath}`;
+
+  return normalizePath(normalizedRelative);
 }
 
 export function isNextjsProject() {
