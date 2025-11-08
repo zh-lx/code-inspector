@@ -1283,7 +1283,7 @@ export class CodeInspectorComponent extends LitElement {
           @touchstart="${(e: TouchEvent) =>
             this.recordMousePosition(e, 'nodeTree')}"
         >
-          <div>🔍️ click node to open editor</div>
+          <div>🔍️ Click node · ${this.getActionLabel(this.getDefaultAction())}</div>
           ${html`<svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
