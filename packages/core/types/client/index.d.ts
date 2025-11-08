@@ -144,7 +144,9 @@ export declare class CodeInspectorComponent extends LitElement {
     private handleModeShortcut;
     private printModeChange;
     private getActionLabel;
+    showNotification(message: string, type?: 'success' | 'error'): void;
     copyToClipboard(text: string): void;
+    private fallbackCopy;
     handleDrag: (e: MouseEvent | TouchEvent) => void;
     isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
     handleMouseMove: (e: MouseEvent | TouchEvent) => Promise<void>;
