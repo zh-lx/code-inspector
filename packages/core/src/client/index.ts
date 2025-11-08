@@ -983,7 +983,10 @@ export class CodeInspectorComponent extends LitElement {
 
   handleClickTreeNode = (node: TreeNode) => {
     this.element = node;
-    this.trackCode('locate');
+    const primaryAction = this.getDefaultAction();
+    if (primaryAction !== 'none') {
+      this.trackCode(primaryAction as InspectorAction);
+    }
     this.removeLayerPanel();
   };
 
