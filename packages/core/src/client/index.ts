@@ -707,16 +707,59 @@ export class CodeInspectorComponent extends LitElement {
     }
   }
 
+  showNotification(message: string, type: 'success' | 'error' = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `code-inspector-notification code-inspector-notification-${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      notification.classList.add('code-inspector-notification-show');
+    });
+
+    // Remove after 2 seconds
+    setTimeout(() => {
+      notification.classList.remove('code-inspector-notification-show');
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 2000);
+  }
+
   copyToClipboard(text: string) {
-    if (typeof navigator?.clipboard?.writeText === 'function') {
-      navigator.clipboard.writeText(text);
-    } else {
+    try {
+      if (typeof navigator?.clipboard?.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(() => {
+          this.showNotification('✓ Copied to clipboard');
+        }).catch(() => {
+          this.fallbackCopy(text);
+        });
+      } else {
+        this.fallbackCopy(text);
+      }
+    } catch (error) {
+      this.fallbackCopy(text);
+    }
+  }
+
+  private fallbackCopy(text: string) {
+    try {
       const textarea = document.createElement('textarea');
       textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
-      document.execCommand('copy');
+      const success = document.execCommand('copy');
       document.body.removeChild(textarea);
+      if (success) {
+        this.showNotification('✓ Copied to clipboard');
+      } else {
+        this.showNotification('✗ Copy failed', 'error');
+      }
+    } catch (error) {
+      this.showNotification('✗ Copy failed', 'error');
     }
   }
 
@@ -983,7 +1026,10 @@ export class CodeInspectorComponent extends LitElement {
 
   handleClickTreeNode = (node: TreeNode) => {
     this.element = node;
-    this.trackCode('locate');
+    const primaryAction = this.getDefaultAction();
+    if (primaryAction !== 'none') {
+      this.trackCode(primaryAction as InspectorAction);
+    }
     this.removeLayerPanel();
   };
 
@@ -1280,7 +1326,7 @@ export class CodeInspectorComponent extends LitElement {
           @touchstart="${(e: TouchEvent) =>
             this.recordMousePosition(e, 'nodeTree')}"
         >
-          <div>🔍️ click node to open editor</div>
+          <div>🔍️ Click node · ${this.getActionLabel(this.getDefaultAction())}</div>
           ${html`<svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -1502,6 +1548,45 @@ export class CodeInspectorComponent extends LitElement {
       cursor: pointer;
     }
   `;
+}
+
+// Global notification styles
+if (!document.getElementById('code-inspector-notification-styles')) {
+  const notificationStyles = document.createElement('style');
+  notificationStyles.id = 'code-inspector-notification-styles';
+  notificationStyles.textContent = `
+    .code-inspector-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999999999999999;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    .code-inspector-notification-success {
+      background: hsl(143, 85%, 96%);
+      color: hsl(140, 100%, 27%);
+      border: 1px solid hsl(145, 92%, 91%);
+    }
+    .code-inspector-notification-error {
+      background: hsl(0, 93%, 94%);
+      color: hsl(0, 84%, 40%);
+      border: 1px solid hsl(0, 93%, 94%);
+    }
+    .code-inspector-notification-show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  `;
+  document.head.appendChild(notificationStyles);
 }
 
 if (!customElements.get('code-inspector-component')) {
