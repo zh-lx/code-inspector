@@ -23,6 +23,7 @@ import {
   normalizePath,
   getProjectRecord,
   setProjectRecord,
+  getDependenciesMap,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -384,6 +385,20 @@ function writeWebComponentFile(
 export function isNextjsProject() {
   const dependencies = getDenpendencies();
   return dependencies.includes('next');
+}
+
+export function isNextGET16() {
+  const dependencies = getDependenciesMap();
+  if (dependencies.next) {
+    const version = dependencies.next;
+    const majorVersion = version.split('.')[0];
+    if (majorVersion === 'latest') {
+      return true;
+    }
+    const majorVersionNumber = parseInt(majorVersion.replace(/\D/g, ''));
+    return majorVersionNumber >= 16;
+  }
+  return false;
 }
 
 function isNextjsInstrumentationFile(file: string) {

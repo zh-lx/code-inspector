@@ -1,4 +1,9 @@
-import { CodeOptions, RecordInfo, isDev } from '@code-inspector/core';
+import {
+  CodeOptions,
+  RecordInfo,
+  isDev,
+  isNextGET16,
+} from '@code-inspector/core';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,8 +40,35 @@ export function TurbopackCodeInspectorPlugin(
   }
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 
+  // according to: https://nextjs.org/docs/app/getting-started/project-structure#routing-files
+  // compatible for nextjs below 15.x
+  const validFiles = [
+    '*.jsx',
+    '*.tsx',
+    'layout.js',
+    'layout.ts',
+    'page.js',
+    'page.ts',
+    'loading.js',
+    'loading.ts',
+    'not-found.js',
+    'not-found.ts',
+    'error.js',
+    'error.ts',
+    'global-error.js',
+    'global-error.ts',
+    'template.js',
+    'template.ts',
+    'default.js',
+    'default.ts',
+  ];
+
+  const matchFiles = `**/{${validFiles.join(',')}}`;
+  const files = isNextGET16() ? '**/*.{jsx,tsx,js,ts,mjs,mts}' : matchFiles;
+
+  console.log(files);
   return {
-    '**/*.{jsx,tsx,js,ts,mjs,mts}': {
+    [files]: {
       loaders: [
         {
           loader: `${WebpackDistDir}/loader.js`,

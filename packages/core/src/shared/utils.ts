@@ -74,7 +74,7 @@ export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
   });
 }
 
-export function getDenpendencies() {
+export function getDependenciesMap() {
   const packageJsonPath = path.resolve(process.cwd(), './package.json');
   if (fs.existsSync(packageJsonPath)) {
     const packageJson = JSON.parse(
@@ -85,9 +85,13 @@ export function getDenpendencies() {
       ...packageJson.devDependencies,
       ...packageJson.peerDependencies,
     };
-    return Array.from(new Set(Object.keys(dependencies)));
+    return dependencies;
   }
-  return [];
+  return {};
+}
+
+export function getDenpendencies() {
+  return Object.keys(getDependenciesMap());
 }
 
 type BooleanFunction = () => boolean;
