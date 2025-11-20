@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+- 【feat】Compatible with `nextjs 16.x` and above projects [#401](https://github.com/zh-lx/code-inspector/pull/401)
+- 【feat】Support switching the status of `locate/copy/target` features at runtime [#424](https://github.com/zh-lx/code-inspector/pull/424)
+- 【feat】Added `server` parameter to close the local node server startup [#424](https://github.com/zh-lx/code-inspector/pull/424)
+- 【feat】Added recognition of `Codebuddy CN` and `Antigravity` editors [#427](https://github.com/zh-lx/code-inspector/pull/427)
+
 ## 1.2.10
 
 - 【fix】Increased the scope of files that can be recognized by `nextjs` [#399](https://github.com/zh-lx/code-inspector/pull/399)

@@ -1,5 +1,12 @@
 # 更新日志
 
+## 1.3.0
+
+- 【feat】兼容了 `nextjs 16.x` 及以上版本的项目 [#401](https://github.com/zh-lx/code-inspector/pull/401)
+- 【feat】支持使用时切换 `locate/copy/target` 等功能的状态 [#424](https://github.com/zh-lx/code-inspector/pull/424)
+- 【feat】新增 `server` 参数以关闭本地 node server 的启动 [#424](https://github.com/zh-lx/code-inspector/pull/424)
+- 【feat】增加了对 `Codebuddy CN` 和 `Antigravity` 编辑器的识别 [#427](https://github.com/zh-lx/code-inspector/pull/427)
+
 ## 1.2.10
 
 - 【fix】增加了 `nextjs` 可识别的文件范围 [#399](https://github.com/zh-lx/code-inspector/pull/399)
