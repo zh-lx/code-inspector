@@ -146,13 +146,9 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     behavior = {},
     ip = false,
     bundler,
+    modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const {
-    locate = true,
-    copy = true,
-    target = '',
-    defaultAction = 'copy',
-  } = behavior;
+  const { locate = true, copy = false, target = '' } = behavior;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -169,7 +165,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
       inspector.ip = '${getIP(ip)}';
-      inspector.defaultAction = ${JSON.stringify(defaultAction)};
+      inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
       document.documentElement.append(inspector);
     }
   }
@@ -319,7 +315,7 @@ export async function getCodeWithWebComponent({
     return code;
   }
   // start server
-  if (options.behavior?.locate !== false) {
+  if (options.server !== 'close') {
     await startServer(options, record);
   }
 

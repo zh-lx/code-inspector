@@ -35,8 +35,6 @@ interface ActiveNode {
     visibility?: 'visible' | 'hidden';
     class?: 'tooltip-top' | 'tooltip-bottom';
 }
-type InspectorAction = 'copy' | 'locate' | 'target' | 'all';
-type TrackAction = InspectorAction | 'default';
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
     port: number;
@@ -45,9 +43,9 @@ export declare class CodeInspectorComponent extends LitElement {
     hideConsole: boolean;
     locate: boolean;
     copy: boolean | string;
-    defaultAction: InspectorAction;
     target: string;
     ip: string;
+    modeKey: string;
     position: {
         top: number;
         right: number;
@@ -97,12 +95,22 @@ export declare class CodeInspectorComponent extends LitElement {
     preUserSelect: string;
     sendType: 'xhr' | 'img';
     activeNode: ActiveNode;
+    showSettingsModal: boolean;
+    internalLocate: boolean;
+    internalCopy: boolean;
+    internalTarget: boolean;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
     nodeTreeRef: HTMLDivElement;
     nodeTreeTitleRef: HTMLDivElement;
     nodeTreeTooltipRef: HTMLDivElement;
+    features: {
+        label: string;
+        description: string;
+        checked: () => boolean;
+        onChange: () => void;
+    }[];
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
     calculateElementInfoPosition: (target: HTMLElement) => Promise<{
@@ -136,14 +144,8 @@ export declare class CodeInspectorComponent extends LitElement {
     sendXHR: () => void;
     sendImg: () => void;
     buildTargetUrl: () => string;
-    trackCode: (action?: TrackAction) => void;
-    private getDefaultAction;
-    private isActionEnabled;
-    private resolvePreferredAction;
-    private getAvailableDefaultActions;
+    trackCode: () => void;
     private handleModeShortcut;
-    private printModeChange;
-    private getActionLabel;
     showNotification(message: string, type?: 'success' | 'error'): void;
     copyToClipboard(text: string): void;
     private fallbackCopy;
@@ -166,6 +168,11 @@ export declare class CodeInspectorComponent extends LitElement {
     handleClickTreeNode: (node: TreeNode) => void;
     handleMouseEnterNode: (e: MouseEvent, node: TreeNode) => Promise<void>;
     handleMouseLeaveNode: () => void;
+    toggleSettingsModal: () => void;
+    closeSettingsModal: () => void;
+    toggleLocate: () => void;
+    toggleCopy: () => void;
+    toggleTarget: () => void;
     protected firstUpdated(): void;
     disconnectedCallback(): void;
     renderNodeTree: (node: TreeNode) => TemplateResult;

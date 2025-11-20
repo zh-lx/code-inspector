@@ -174,4 +174,14 @@ export type CodeOptions = {
    * - htmlScript: Skip injecting the code snippet that injects script tags in html, it is not recommended to skip this item for MPA projects
    */
   skipSnippets?: ('console' | 'htmlScript')[];
+  /**
+   * @zh 功能开关的快捷键，默认值为 `z`。同时按下 hotKeys 和 modeKey 可以打开功能开关设置
+   * @en The shortcut key of the feature switch, the default value is `z`. Pressing hotKeys and modeKey at the same time can open the feature switch settings
+   */
+  modeKey?: string;
+  /**
+   * @zh 是否启用 server 功能。默认值为 `open`，即启用 server 功能。使用代码定位功能时必须启用 server 功能，线上构建只看 dom 路径时可以关闭 server 功能。
+   * @en Whether to enable the server function. The default value is `open`, which means enabling the server function. The server function must be enabled when using the code location function, and it can be closed when building online only to view the dom path.
+   */
+  server?: 'open' | 'close';
 };
