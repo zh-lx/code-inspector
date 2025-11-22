@@ -13,7 +13,7 @@
   "devDependencies": {
     "@rsbuild/core": "^0.4.15",
     "@rsbuild/plugin-vue": "^0.4.15",
-    "code-inspector-plugin": "^0.10.0",
+    "code-inspector-plugin": "workspace:*",
     "typescript": "^5.4.2"
   }
 }
