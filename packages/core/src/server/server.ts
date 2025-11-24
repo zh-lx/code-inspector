@@ -50,7 +50,7 @@ export function createServer(
     const params = new URLSearchParams(req.url.slice(1));
     let file = decodeURIComponent(params.get('file') as string);
     if (ProjectRootPath && !path.isAbsolute(file)) {
-      file = `${ProjectRootPath}/${file}`;
+      file = path.resolve(ProjectRootPath, file);
     }
     if (
       options?.pathType === 'relative' &&
