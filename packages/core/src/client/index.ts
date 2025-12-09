@@ -599,9 +599,9 @@ export class CodeInspectorComponent extends LitElement {
       e.key?.toLowerCase() === this.modeKey;
     if (isModeKeyDown) {
       this.toggleSettingsModal();
+      e.preventDefault();
+      e.stopPropagation();
     }
-    e.preventDefault();
-    e.stopPropagation();
   };
 
   showNotification(message: string, type: 'success' | 'error' = 'success') {
