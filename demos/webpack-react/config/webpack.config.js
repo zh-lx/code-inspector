@@ -614,6 +614,7 @@ module.exports = function (webpackEnv) {
       new webpack.DefinePlugin(env.stringified),
       CodeInspectorPlugin({
         bundler: 'webpack',
+        cache: true,
       }),
       // Experimental hot reloading for React .
       // https://github.com/facebook/react/tree/main/packages/react-refresh

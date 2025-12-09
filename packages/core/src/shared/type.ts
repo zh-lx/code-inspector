@@ -18,6 +18,7 @@ export type RecordInfo = {
   envDir?: string; // 项目 env 目录
   root?: string; // 项目根目录
   server?: Server;
+  previousPort?: number; // 随机端口，用于在 cache 情况下启动 node server
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';

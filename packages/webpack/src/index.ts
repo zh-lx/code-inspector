@@ -3,6 +3,7 @@ import {
   RecordInfo,
   fileURLToPath,
   getCodeWithWebComponent,
+  getProjectRecord,
   isDev,
   isNextjsProject,
 } from '@code-inspector/core';
@@ -79,7 +80,8 @@ interface Options extends CodeOptions {
 
 function getPureClientCodeString(
   options: Options,
-  record: RecordInfo
+  record: RecordInfo,
+  server?: boolean
 ): Promise<string> {
   return getCodeWithWebComponent({
     options: { ...options, importClient: 'code' },
@@ -87,6 +89,7 @@ function getPureClientCodeString(
     code: '',
     record,
     inject: true,
+    server,
   });
 }
 
@@ -151,22 +154,18 @@ class WebpackCodeInspectorPlugin {
       root: compiler?.options?.context,
     };
 
+    // webpack cache || rspack persistent cache
+    const cache =
+      compiler?.options?.cache || compiler?.options?.experiments?.cache;
     // webpack file system cache
-    if (compiler?.options?.cache?.type === 'filesystem') {
+    if (cache?.type === 'filesystem') {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
-        getPureClientCodeString(this.options, record);
+        record.port =
+          this.options.port || getProjectRecord(record)?.previousPort;
+        getPureClientCodeString(this.options, record, true);
       } else {
-        compiler.options.cache.version = `code-inspector-${Date.now()}`;
-      }
-    }
-    // rspack persistent cache
-    if (compiler?.options?.experiments?.cache?.type === 'persistent') {
-      if (this.options.cache) {
-        // 用来在 cache 情况下启动 node server
-        getPureClientCodeString(this.options, record);
-      } else {
-        compiler.options.experiments.cache.version = `code-inspector-${Date.now()}`;
+        cache.version = `code-inspector-${Date.now()}`;
       }
     }
 

@@ -305,14 +305,19 @@ export async function getCodeWithWebComponent({
   file,
   code,
   inject = false,
+  server = false,
 }: {
   options: CodeOptions;
   record: RecordInfo;
   file: string;
   code: string;
   inject?: boolean;
+  server?: boolean;
 }) {
   if (!fs.existsSync(file)) {
+    if (server) {
+      await startServer(options, record);
+    }
     return code;
   }
   // start server
