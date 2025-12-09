@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- 【fix】Fixed the issue where requests failed after the project was restarted in `webpack` with `cache` [#438](https://github.com/zh-lx/code-inspector/pull/438)
+- 【fix】Fixed the issue where the `hotKeys` would block the original `keydown` event [#437](https://github.com/zh-lx/code-inspector/pull/437)
+
 ## 1.3.0
 
 - 【feat】Compatible with `nextjs 16.x` and above projects [#401](https://github.com/zh-lx/code-inspector/pull/401)
