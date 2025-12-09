@@ -16,6 +16,7 @@ export const resetFileRecord = (output: string) => {
     }
   }
   content[projectDir] = {
+    previousPort: content[projectDir]?.port,
     port: 0,
     entry: '',
   };

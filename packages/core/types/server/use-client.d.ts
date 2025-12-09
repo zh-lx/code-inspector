@@ -4,12 +4,13 @@ export declare function getInjectedCode(options: CodeOptions, port: number, isNe
 export declare function getWebComponentCode(options: CodeOptions, port: number): string;
 export declare function getEliminateWarningCode(): string;
 export declare function getHidePathAttrCode(): string;
-export declare function getCodeWithWebComponent({ options, record, file, code, inject, }: {
+export declare function getCodeWithWebComponent({ options, record, file, code, inject, server, }: {
     options: CodeOptions;
     record: RecordInfo;
     file: string;
     code: string;
     inject?: boolean;
+    server?: boolean;
 }): Promise<string>;
 export declare function isNextjsProject(): boolean;
 export declare function isNextGET16(): boolean;

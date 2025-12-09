@@ -18,6 +18,7 @@ export type RecordInfo = {
     envDir?: string;
     root?: string;
     server?: Server;
+    previousPort?: number;
 };
 export type IDEOpenMethod = 'reuse' | 'new' | 'auto';
 export type ImportClientWay = 'file' | 'code';
