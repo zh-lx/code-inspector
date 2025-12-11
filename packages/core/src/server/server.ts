@@ -1,13 +1,14 @@
 // 启动本地接口，访问时唤起vscode
 import http from 'http';
+import path from 'path';
+import chalk from 'chalk';
+import net from 'net';
+import { execSync } from 'child_process';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
 import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
 import type { PathType, CodeOptions, RecordInfo } from '../shared';
-import { execSync } from 'child_process';
-import path from 'path';
-import chalk from 'chalk';
 
 // 获取项目 git 根目录
 function getProjectRoot(): string {
@@ -104,9 +105,39 @@ export function createServer(
   return server;
 }
 
+// check if the port is started
+async function isPortStarted(port: number) {
+  return new Promise((resolve) => {
+    // create TCP server
+    const server = net.createServer();
+    // disable default connection listening (only for detecting port)
+    server.unref();
+
+    // bind port successfully → started
+    server.on('listening', () => {
+      server.close(); // immediately close server, release port
+      resolve(false);
+    });
+
+    // bind port failed → not started
+    server.on('error', () => {
+      resolve(true);
+    });
+
+    server.listen(port);
+  });
+}
+
 export async function startServer(options: CodeOptions, record: RecordInfo) {
-  if (getProjectRecord(record)?.port) {
-    return;
+  const previousPort = getProjectRecord(record)?.port;
+  if (previousPort) {
+    const isStarted = await isPortStarted(previousPort);
+    if (isStarted) {
+      return;
+    }
+    // restart server
+    setProjectRecord(record, 'findPort', undefined);
+    setProjectRecord(record, 'port', undefined);
   }
   let restartServer = !getProjectRecord(record)?.findPort;
 

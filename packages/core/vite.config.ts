@@ -20,6 +20,7 @@ export default defineConfig({
         'crypto',
         'http',
         'https',
+        'net',
         'chalk',
         'launch-ide',
         'portfinder',
