@@ -66,7 +66,6 @@ export function TurbopackCodeInspectorPlugin(
   const matchFiles = `**/{${validFiles.join(',')}}`;
   const files = isNextGET16() ? '**/*.{jsx,tsx,js,ts,mjs,mts}' : matchFiles;
 
-  console.log(files);
   return {
     [files]: {
       loaders: [
