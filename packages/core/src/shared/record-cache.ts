@@ -3,6 +3,11 @@ import fs from 'fs';
 import { RecordInfo } from './type';
 
 export const resetFileRecord = (output: string) => {
+  // Ensure output directory exists
+  if (!fs.existsSync(output)) {
+    fs.mkdirSync(output, { recursive: true });
+  }
+
   const recordFilePath = path.resolve(output, './record.json');
   const projectDir = process.cwd();
   let content: {
