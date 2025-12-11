@@ -30,6 +30,21 @@
 CODE_EDITOR=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
 ```
 
+## 如何忽略某些文件
+
+可以通过在文件中添加 `code-inspector-ignore` 或 `code-inspector-disable` 注释来忽略某些文件，例如：
+
+- vue / svelte 文件：
+  ```html
+  <!-- code-inspector-ignore -->
+  ```
+
+- jsx / tsx 文件：
+  ```javascript
+  // code-inspector-ignore
+  ```
+
+
 ## 其他问题
 
 如果遇到无法解决的问题，请 [加入用户群](/more/feedback) 或到 github 提 [issue](https://github.com/zh-lx/code-inspector/issues)，加群咨询能够解决绝大部分问题。

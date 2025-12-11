@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.3.2
+
+- 【feat】支持了通过 `code-inspector-ignore` 或 `code-inspector-disable` 注释来忽略某些文件 [#443](https://github.com/zh-lx/code-inspector/pull/443)
+- 【fix】修复了在 nextjs 中使用时，当编译出错后 server 会退出并无法自动重启的问题 [#442](https://github.com/zh-lx/code-inspector/pull/442)
+
 ## 1.3.1
 
 - 【fix】修复了在 `webpack` 中使用 `cache` 时，二次启动后请求失败的问题 [#438](https://github.com/zh-lx/code-inspector/pull/438)

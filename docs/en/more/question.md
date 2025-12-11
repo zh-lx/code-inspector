@@ -30,6 +30,20 @@ Then create a `.env.local` file in your project root directory and add the follo
 CODE_EDITOR=/home/xxx/.vscode-server/bin/dc96b837cf6bb4af9cd736aa3af08cf8279f7685/bin/remote-cli/code
 ```
 
+## How to ignore certain files
+
+You can add `code-inspector-ignore` or `code-inspector-disable` comments to certain files to ignore them, for example:
+
+- vue / svelte files:
+  ```html
+  <!-- code-inspector-ignore -->
+  ```
+  
+- jsx / tsx / ts files:
+  ```javascript
+  // code-inspector-ignore
+  ```
+
 ## Other Issues
 
 If you encounter any unresolvable issues, please [join our user group](/more/feedback) or submit an [issue](https://github.com/zh-lx/code-inspector/issues) on GitHub. Most problems can be resolved through group consultation.

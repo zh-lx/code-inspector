@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+
+- 【feat】Supported ignoring certain files through `code-inspector-ignore` or `code-inspector-disable` comments [#443](https://github.com/zh-lx/code-inspector/pull/443)
+- 【fix】Fixed the issue where the server would exit and not automatically restart after compilation errors in `nextjs` [#442](https://github.com/zh-lx/code-inspector/pull/442)
+
 ## 1.3.1
 
 - 【fix】Fixed the issue where requests failed after the project was restarted in `webpack` with `cache` [#438](https://github.com/zh-lx/code-inspector/pull/438)

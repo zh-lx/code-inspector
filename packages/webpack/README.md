@@ -391,4 +391,9 @@ For Chinese users, you can join the QQ group `769748484` or add the author's Wei
 
 ## 💖 Sponsor
 
-Sponsoring this project can help the author create better. If you are willing, thanks for sponsoring me through [here](https://inspector.fe-dev.cn/en/more/sponsor.html).
+Sponsoring this project can help the author create better. If you are willing, you can sponsor me through Alipay or WeChatPay:
+
+<div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wxpay.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.jpg" width="180" height="272" />
+</div>

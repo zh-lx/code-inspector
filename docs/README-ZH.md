@@ -288,4 +288,9 @@ pnpm add code-inspector-plugin -D
 
 ## 💖 赞助
 
-赞助此项目可以帮助作者更好地创作，如果您愿意，欢迎通过[这里](https://inspector.fe-dev.cn/more/sponsor.html)对作者进行赞助。
+赞助此项目可以帮助作者更好地创作，如果您愿意，可以通过支付宝或微信对作者进行赞助：
+
+<div style="display: flex; column-gap: 16px; row-gap: 16px; flex-wrap: wrap;">
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wxpay.jpg" width="200" height="272" />
+  <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/alipay.jpg" width="180" height="272" />
+</div>
