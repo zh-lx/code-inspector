@@ -31,6 +31,50 @@ const CodeInspectorEscapeTags = [
   'fragment',
 ];
 
+function isIgnoredFile({
+  content,
+  fileType,
+}: {
+  content: string;
+  fileType: FileType;
+}) {
+  if (!content) {
+    return false;
+  }
+  const trimmed = content.trimStart();
+  const directives = ['code-inspector-disable', 'code-inspector-ignore'];
+
+  // Vue / Svelte
+  if (fileType === 'vue' || fileType === 'svelte') {
+    if (trimmed.startsWith('<!--')) {
+      const endIndex = trimmed.indexOf('-->');
+      if (endIndex !== -1) {
+        const body = trimmed.slice(0, endIndex + 3).toLowerCase();
+        return directives.some((d) => body.includes(d));
+      }
+    }
+    return false;
+  }
+
+  // single line comment
+  const lineComment = trimmed.match(/^\/\/\s*([^\n]+)/);
+  if (lineComment) {
+    const body = lineComment[1].toLowerCase();
+    return directives.some((d) => body.includes(d));
+  }
+
+  // block comment (contains /** */ multi-line)
+  if (trimmed.startsWith('/*')) {
+    const endIndex = trimmed.indexOf('*/');
+    if (endIndex !== -1) {
+      const body = trimmed.slice(0, endIndex + 2).toLowerCase();
+      return directives.some((d) => body.includes(d));
+    }
+  }
+
+  return false;
+}
+
 export function transformCode(params: TransformCodeParams) {
   let {
     content,
@@ -39,7 +83,7 @@ export function transformCode(params: TransformCodeParams) {
     escapeTags = [],
     pathType = 'relative',
   } = params;
-  if (!fs.existsSync(filePath)) {
+  if (!fs.existsSync(filePath) || isIgnoredFile({ content, fileType })) {
     return content;
   }
   const finalEscapeTags = [...CodeInspectorEscapeTags, ...escapeTags];
