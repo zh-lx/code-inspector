@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.1.6"
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "next": "15.1.9"
   },
   "devDependencies": {
     "code-inspector-plugin": "workspace:*",
