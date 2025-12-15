@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.3
+
+- 【fix】Compatible with the issue where the server cannot be started normally when there is no write file permission [#445](https://github.com/zh-lx/code-inspector/pull/445)
+
 ## 1.3.2
 
 - 【feat】Supported ignoring certain files through `code-inspector-ignore` or `code-inspector-disable` comments [#443](https://github.com/zh-lx/code-inspector/pull/443)

@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.3.3
+
+- 【fix】兼容了无写文件权限时 server 无法正常启动的问题 [#445](https://github.com/zh-lx/code-inspector/pull/445)
+
 ## 1.3.2
 
 - 【feat】支持了通过 `code-inspector-ignore` 或 `code-inspector-disable` 注释来忽略某些文件 [#443](https://github.com/zh-lx/code-inspector/pull/443)
