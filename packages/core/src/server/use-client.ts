@@ -24,6 +24,7 @@ import {
   getProjectRecord,
   setProjectRecord,
   getDependenciesMap,
+  hasWritePermission,
 } from '../shared';
 
 let compatibleDirname = '';
@@ -338,7 +339,10 @@ export async function getCodeWithWebComponent({
       getProjectRecord(record)?.port || 0,
       isNextjs
     );
-    if (isNextjs || options.importClient === 'file') {
+    if (
+      (isNextjs || options.importClient === 'file') &&
+      hasWritePermission(record.output)
+    ) {
       writeEslintRcFile(record.output);
       const webComponentNpmPath = writeWebComponentFile(
         record.output,
