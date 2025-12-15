@@ -225,3 +225,23 @@ export function isExcludedFile(file: string, options: CodeOptions) {
 
   return false;
 }
+
+// check if the file or directory has write permission
+export function hasWritePermission(filePath: string): boolean {
+  try {
+    // if the file does not exist, check the write permission of the parent directory
+    if (!fs.existsSync(filePath)) {
+      const dir = path.dirname(filePath);
+      if (fs.existsSync(dir)) {
+        fs.accessSync(dir, fs.constants.W_OK);
+        return true;
+      }
+      return false;
+    }
+    // if the file exists, check the write permission of the file
+    fs.accessSync(filePath, fs.constants.W_OK);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}

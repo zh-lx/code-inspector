@@ -15,4 +15,5 @@ export declare function getMappingFilePath(file: string, mappings?: Record<strin
     replacement: string;
 }>): string;
 export declare function isExcludedFile(file: string, options: CodeOptions): boolean;
+export declare function hasWritePermission(filePath: string): boolean;
 export {};

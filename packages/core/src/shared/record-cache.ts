@@ -1,32 +1,52 @@
 import path from 'path';
 import fs from 'fs';
-import { RecordInfo } from './type';
+import type { RecordInfo } from './type';
+import { hasWritePermission } from './utils';
+
+const RecordCache: { [key: string]: Partial<RecordInfo> } = {};
+
+function getRecordFileContent(recordFilePath: string): {
+  [key: string]: Partial<RecordInfo>;
+} {
+  if (!hasWritePermission(recordFilePath)) {
+    return RecordCache;
+  }
+  if (fs.existsSync(recordFilePath)) {
+    try {
+      return JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
 
 export const resetFileRecord = (output: string) => {
   const recordFilePath = path.resolve(output, './record.json');
   const projectDir = process.cwd();
-  let content: {
-    [key: string]: any;
-  } = {};
-  if (fs.existsSync(recordFilePath)) {
-    try {
-      content = JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
-    } catch (error) {
-      content = {};
-    }
-  }
-  content[projectDir] = {
+  const content = getRecordFileContent(recordFilePath);
+  const EmptyRecord: Partial<RecordInfo> = {
     previousPort: content[projectDir]?.port,
     port: 0,
     entry: '',
   };
-  fs.writeFileSync(recordFilePath, JSON.stringify(content, null, 2), 'utf-8');
+  content[projectDir] = EmptyRecord;
+  if (hasWritePermission(recordFilePath)) {
+    fs.writeFileSync(recordFilePath, JSON.stringify(content, null, 2), 'utf-8');
+  } else {
+    RecordCache[projectDir] = EmptyRecord;
+  }
 };
 
 export const getProjectRecord = (record: RecordInfo) => {
   const recordFilePath = path.resolve(record.output, './record.json');
-  const content = JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
-  return content[process.cwd()];
+  const content = getRecordFileContent(recordFilePath);
+  const projectDir = process.cwd();
+  if (hasWritePermission(recordFilePath)) {
+    return content[projectDir];
+  } else {
+    return RecordCache[projectDir];
+  }
 };
 
 export const setProjectRecord = (
@@ -35,16 +55,28 @@ export const setProjectRecord = (
   value: RecordInfo[keyof RecordInfo]
 ) => {
   const recordFilePath = path.resolve(record.output, './record.json');
-  const content = JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
-  content[process.cwd()][key] = value;
-  fs.writeFileSync(recordFilePath, JSON.stringify(content, null, 2), 'utf-8');
+  const content = getRecordFileContent(recordFilePath);
+  const projectDir = process.cwd();
+  if (!content[projectDir]) {
+    content[projectDir] = {};
+  }
+  // @ts-ignore
+  content[projectDir][key] = value;
+  if (hasWritePermission(recordFilePath)) {
+    fs.writeFileSync(recordFilePath, JSON.stringify(content, null, 2), 'utf-8');
+  } else {
+    RecordCache[projectDir] = content[projectDir];
+  }
 };
 
 export const findPort = async (record: RecordInfo): Promise<number> => {
   const recordFilePath = path.resolve(record.output, './record.json');
-  const content = JSON.parse(fs.readFileSync(recordFilePath, 'utf-8'));
-  if (content[process.cwd()].port) {
-    return content[process.cwd()].port;
+  const content = getRecordFileContent(recordFilePath);
+  const projectDir = process.cwd();
+  if (content[projectDir]?.port) {
+    return content[projectDir].port as number;
+  } else if (RecordCache[projectDir]?.port) {
+    return RecordCache[projectDir]?.port as number;
   }
   return new Promise((resolve) => {
     setTimeout(async () => {
