@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.3.4
+
+- 【feat】支持 `Kiro` IDE 的识别 [#447](https://github.com/zh-lx/code-inspector/pull/447)
+
 ## 1.3.3
 
 - 【fix】兼容了无写文件权限时 server 无法正常启动的问题 [#445](https://github.com/zh-lx/code-inspector/pull/445)

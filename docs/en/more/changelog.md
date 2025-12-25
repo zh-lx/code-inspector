@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4
+
+- 【feat】Supported `Kiro` IDE recognition [#447](https://github.com/zh-lx/code-inspector/pull/447)
+
 ## 1.3.3
 
 - 【fix】Compatible with the issue where the server cannot be started normally when there is no write file permission [#445](https://github.com/zh-lx/code-inspector/pull/445)
