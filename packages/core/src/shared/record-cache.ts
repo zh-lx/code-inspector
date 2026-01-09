@@ -22,6 +22,11 @@ function getRecordFileContent(recordFilePath: string): {
 }
 
 export const resetFileRecord = (output: string) => {
+  // Ensure output directory exists
+  if (!fs.existsSync(output)) {
+    fs.mkdirSync(output, { recursive: true });
+  }
+
   const recordFilePath = path.resolve(output, './record.json');
   const projectDir = process.cwd();
   const content = getRecordFileContent(recordFilePath);
