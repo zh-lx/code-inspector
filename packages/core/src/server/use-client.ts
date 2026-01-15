@@ -98,7 +98,7 @@ function addNextEmptyElementToEntry(content: string) {
   return s.toString();
 }
 
-function addImportToEntry(content: string, webComponentNpmPath: string) {
+function addImportToEntry(content: string, webComponentFilePath: string) {
   let hasAddedImport = false;
   const s = new MagicString(content);
 
@@ -125,7 +125,7 @@ function addImportToEntry(content: string, webComponentNpmPath: string) {
       ) {
         s.prependRight(
           node.end,
-          `;import ${NextEmptyElementName} from '${webComponentNpmPath}';`
+          `;import ${NextEmptyElementName} from '${webComponentFilePath}';`
         );
         hasAddedImport = true;
       }
@@ -135,7 +135,7 @@ function addImportToEntry(content: string, webComponentNpmPath: string) {
   if (hasAddedImport) {
     return s.toString();
   } else {
-    return `import ${NextEmptyElementName} from '${webComponentNpmPath}';${s.toString()}`;
+    return `import ${NextEmptyElementName} from '${webComponentFilePath}';${s.toString()}`;
   }
 }
 
@@ -344,17 +344,21 @@ export async function getCodeWithWebComponent({
       hasWritePermission(record.output)
     ) {
       writeEslintRcFile(record.output);
-      const webComponentNpmPath = writeWebComponentFile(
+      const webComponentFilePath = writeWebComponentFile(
         record.output,
         injectCode,
         getProjectRecord(record)?.port || 0
       );
-      if (!file.match(webComponentNpmPath)) {
+      if (!file.match(webComponentFilePath)) {
+        const relativePath = path.relative(
+          path.dirname(file),
+          webComponentFilePath
+        );
         if (isNextjs) {
-          code = addImportToEntry(code, webComponentNpmPath);
+          code = addImportToEntry(code, relativePath);
           code = addNextEmptyElementToEntry(code);
         } else {
-          code = `import '${webComponentNpmPath}';${code}`;
+          code = `import '${relativePath}';${code}`;
         }
       }
     } else {
@@ -385,10 +389,9 @@ function writeWebComponentFile(
   port: number
 ) {
   const webComponentFileName = `append-code-${port}.js`;
-  const webComponentNpmPath = `code-inspector-plugin/dist/${webComponentFileName}`;
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
   fs.writeFileSync(webComponentFilePath, content, 'utf-8');
-  return webComponentNpmPath;
+  return webComponentFilePath;
 }
 
 export function isNextjsProject() {
