@@ -23,7 +23,7 @@ codeInspectorPlugin({
 
 - Optional
 - Type: `string`
-- Available values: `code / cursor / webstorm / appcode / atom / atom-beta / brackets / code-insiders / codium / colin / emacs / goland / hbuilder / idea / notepad / phpstorm / pycharm / rider / rubymine / sublime / vim / zed`
+- Available values: [Supported editor list](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#-supported-editors)
 - Description: By default, `code-inspector-plugin` automatically detects and opens your IDE based on the running processes in your system. When multiple IDEs are running simultaneously, the IDE opened by `code-inspector-plugin` might not be the one you want. In this case, you can specify which IDE to open by setting the `editor` parameter. For more details, refer to the [IDE](/guide/ide.html) section
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
@@ -61,5 +61,5 @@ codeInspectorPlugin({
 - Optional. Default value is `exec`
 - Type: `exec | open`
 - Description: The method for launching the IDE. Only supports MacOS. If the editor is in the support list, it is strongly recommended to set `launchType: 'open'`. The support list can be found at: [which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open).
-  - `exec`, use the executable path to open the editor;
-  - `open` use `open "{editor}://file/xxx/main.jsx:10:20"` to open, it is fast and provides a very smooth experience
+  - `exec`: use the executable path to open the editor;
+  - `open`: use `open "{editor}://file/xxx/main.jsx:10:20"` to open, it is fast and provides a very smooth experience

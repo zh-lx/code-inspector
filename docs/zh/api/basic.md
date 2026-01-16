@@ -23,7 +23,7 @@ codeInspectorPlugin({
 
 - 可选项。
 - 类型：`string`
-- 可选值：`code / cursor / webstorm / appcode / atom / atom-beta / brackets / code-insiders / codium / colin / emacs / goland / hbuilder / idea / notepad / phpstorm / pycharm / rider / rubymine / sublime / vim / zed`
+- 可选值：[支持的 editor 列表](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#-supported-editors)
 - 说明：`code-inspector-plugin` 默认会根据当前系统中运行的进程，自动识别你所使用的 IDE 并打开。当你的系统中同时运行多个类别的 IDE 时，`code-inspector-plugin` 所打开的 IDE 可能不是你所想打开的那个，此时，你可以通过设置 `editor` 参数来指定打开的 IDE。更多细节可以参考 [IDE](/guide/ide.html) 一节
 
 ## dev <Badge type="tip" text="0.5.0+" vertical="middle" />
@@ -61,5 +61,5 @@ codeInspectorPlugin({
 - 可选项。默认值为 `exec`
 - 类型：`exec | open`
 - 说明：启动 IDE 的方式。仅支持 MacOS，如果 editor 在支持列表内，强烈建议设置 `launchType: 'open'`。editor 支持列表请参考：[which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open)。
-  - `exec`，使用可执行路径打开 editor；
-  - `open` 使用 `open "{editor}://file/xxx/main.jsx:10:20"` 方式来打开，速度快且体验更丝滑
+  - `exec`: 使用可执行路径打开 editor；
+  - `open`: 使用 `open "{editor}://file/xxx/main.jsx:10:20"` 方式来打开，速度快且体验更丝滑
