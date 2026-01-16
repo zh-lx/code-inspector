@@ -181,5 +181,19 @@ export type CodeOptions = {
      * @en Whether to enable the server function. The default value is `open`, which means enabling the server function. The server function must be enabled when using the code location function, and it can be closed when building online only to view the dom path.
      */
     server?: 'open' | 'close';
+    /**
+     * @zh 启动 IDE 的方式。默认为 `exec`
+     * - exec: 使用可执行路径打开 editor
+     * - open: 使用 `open "{editor}://file/xxx/main.jsx:10:20"` 方式来打开。速度快且体验非常丝滑
+     *
+     * 仅支持 MacOS，如果 editor 在支持列表内，强烈建议设置 `launchType: 'open'`。editor 支持列表请参考：[which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open)。
+     *
+     * @en The method for launching the IDE. Default value is `exec`
+     * - exec: Use the executable path to open the editor
+     * - open: Use `open "{editor}://file/xxx/main.jsx:10:20"` to open. It is fast and provides a very smooth experience
+     *
+     * Only supports MacOS. If the editor is in the support list, it is strongly recommended to set `launchType: 'open'`. The support list can be found at: [which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open).
+     */
+    launchType?: 'exec' | 'open';
 };
 export {};
