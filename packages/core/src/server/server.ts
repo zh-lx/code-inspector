@@ -87,6 +87,7 @@ export function createServer(
       method: options?.openIn,
       format: options?.pathFormat,
       rootDir: record?.envDir,
+      type: options?.launchType,
     });
   });
 

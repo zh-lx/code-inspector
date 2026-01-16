@@ -55,3 +55,11 @@ codeInspectorPlugin({
 - 可选项。默认值为 `true`
 - 类型：`boolean`
 - 说明：配合 `showSwitch: true` 使用，触发了跳转 IDE 功能后，会自动将 `switch` 的功能关闭。（主要是为了防止用户切回页面后，页面聚焦时会直接误触发源码定位功能。）
+
+## launchType <Badge type="tip" text="1.3.5+" vertical="middle" />
+
+- 可选项。默认值为 `exec`
+- 类型：`exec | open`
+- 说明：启动 IDE 的方式。仅支持 MacOS，如果 editor 在支持列表内，强烈建议设置 `launchType: 'open'`。editor 支持列表请参考：[which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open)。
+  - `exec`，使用可执行路径打开 editor；
+  - `open` 使用 `open "{editor}://file/xxx/main.jsx:10:20"` 方式来打开，速度快且体验更丝滑

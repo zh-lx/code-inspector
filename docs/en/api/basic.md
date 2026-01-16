@@ -55,3 +55,11 @@ codeInspectorPlugin({
 - Optional. Default value is `true`
 - Type: `boolean`
 - Description: Used with `showSwitch: true`. After triggering the IDE jump feature, it automatically turns off the `switch` functionality. (This is mainly to prevent accidental triggering of the source code location feature when users switch back to the page and it gains focus.)
+
+## launchType <Badge type="tip" text="1.3.5+" vertical="middle" />
+
+- Optional. Default value is `exec`
+- Type: `exec | open`
+- Description: The method for launching the IDE. Only supports MacOS. If the editor is in the support list, it is strongly recommended to set `launchType: 'open'`. The support list can be found at: [which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open).
+  - `exec`, use the executable path to open the editor;
+  - `open` use `open "{editor}://file/xxx/main.jsx:10:20"` to open, it is fast and provides a very smooth experience
