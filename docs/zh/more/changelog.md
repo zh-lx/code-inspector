@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.3.5
+
+- 【feat】新增 `launchType` 参数，对于 MacOS 上的部分 editor 可以通过 `open` 指令快速定位文件 [#452](https://github.com/zh-lx/code-inspector/pull/452)
+- 【fix】修复了 `Nextjs` 中部分情况会出现 `Module not found` 的错误 [#451](https://github.com/zh-lx/code-inspector/pull/451)
+
 ## 1.3.4
 
 - 【feat】支持 `Kiro` IDE 的识别 [#447](https://github.com/zh-lx/code-inspector/pull/447)

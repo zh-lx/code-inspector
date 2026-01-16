@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.5
+
+- 【feat】Added `launchType` parameter to quickly locate files using `open` command for some editors on MacOS [#452](https://github.com/zh-lx/code-inspector/pull/452)
+- 【fix】Fixed the issue where `Module not found` errors would occur in `Nextjs` in some cases [#451](https://github.com/zh-lx/code-inspector/pull/451)
+
 ## 1.3.4
 
 - 【feat】Supported `Kiro` IDE recognition [#447](https://github.com/zh-lx/code-inspector/pull/447)
