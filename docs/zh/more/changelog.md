@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.3.6
+
+- 【fix】修复 Windows 系统中关于 `Module not found` 的错误 [#453](https://github.com/zh-lx/code-inspector/pull/453)
+
 ## 1.3.5
 
 - 【feat】新增 `launchType` 参数，对于 MacOS 上的部分 editor 可以通过 `open` 指令快速定位文件 [#452](https://github.com/zh-lx/code-inspector/pull/452)

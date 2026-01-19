@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.6
+
+- 【fix】Fixed the issue where `Module not found` errors would occur in Windows system [#453](https://github.com/zh-lx/code-inspector/pull/453)
+
 ## 1.3.5
 
 - 【feat】Added `launchType` parameter to quickly locate files using `open` command for some editors on MacOS [#452](https://github.com/zh-lx/code-inspector/pull/452)
