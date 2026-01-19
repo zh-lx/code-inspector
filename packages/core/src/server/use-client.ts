@@ -350,9 +350,8 @@ export async function getCodeWithWebComponent({
         getProjectRecord(record)?.port || 0
       );
       if (!file.match(webComponentFilePath)) {
-        const relativePath = path.relative(
-          path.dirname(file),
-          webComponentFilePath
+        const relativePath = normalizePath(
+          path.relative(path.dirname(file), webComponentFilePath)
         );
         if (isNextjs) {
           code = addImportToEntry(code, relativePath);
