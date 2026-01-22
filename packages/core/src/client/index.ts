@@ -369,6 +369,9 @@ export class CodeInspectorComponent extends LitElement {
 
   // 渲染遮罩层
   renderCover = async (target: HTMLElement) => {
+    if (target === this.targetNode) {
+      return;
+    }
     this.targetNode = target;
     // 设置 target 的位置
     const { top, right, bottom, left } = target.getBoundingClientRect();
