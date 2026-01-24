@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.4.0
+
+- 【feat】新增通过滚轮滚动切换父子元素的功能 [#456](https://github.com/zh-lx/code-inspector/pull/456)
+
 ## 1.3.6
 
 - 【fix】修复 Windows 系统中关于 `Module not found` 的错误 [#453](https://github.com/zh-lx/code-inspector/pull/453)

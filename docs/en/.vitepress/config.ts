@@ -19,6 +19,7 @@ export default defineConfig({
         items: [
           { text: 'Introduction', link: '/guide/introduction' },
           { text: 'Use', link: '/guide/start' },
+          { text: 'Feature', link: '/guide/feature' },
           { text: 'IDE', link: '/guide/ide' },
         ],
       },

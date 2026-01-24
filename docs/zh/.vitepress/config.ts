@@ -18,6 +18,7 @@ export default defineConfig({
         items: [
           { text: '介绍', link: '/guide/introduction' },
           { text: '使用', link: '/guide/start' },
+          { text: '功能大全', link: '/guide/feature' },
           { text: 'IDE', link: '/guide/ide' },
         ],
       },

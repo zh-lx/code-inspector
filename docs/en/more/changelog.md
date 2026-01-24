@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+- 【feat】Added the ability to switch parent/child elements by scrolling with the mouse wheel [#456](https://github.com/zh-lx/code-inspector/pull/456)
+
 ## 1.3.6
 
 - 【fix】Fixed the issue where `Module not found` errors would occur in Windows system [#453](https://github.com/zh-lx/code-inspector/pull/453)
