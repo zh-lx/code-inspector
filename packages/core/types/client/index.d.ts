@@ -44,7 +44,9 @@ export declare class CodeInspectorComponent extends LitElement {
     locate: boolean;
     copy: boolean | string;
     target: string;
+    targetNode: HTMLElement | null;
     ip: string;
+    private wheelThrottling;
     modeKey: string;
     position: {
         top: number;
@@ -150,8 +152,13 @@ export declare class CodeInspectorComponent extends LitElement {
     copyToClipboard(text: string): void;
     private fallbackCopy;
     handleDrag: (e: MouseEvent | TouchEvent) => void;
+    getValidNodeList: (nodePath: HTMLElement[]) => {
+        node: HTMLElement;
+        isAstro: boolean;
+    }[];
     isSamePositionNode: (node1: HTMLElement, node2: HTMLElement) => boolean;
     handleMouseMove: (e: MouseEvent | TouchEvent) => Promise<void>;
+    handleWheel: (e: WheelEvent) => void;
     handleMouseClick: (e: MouseEvent | TouchEvent) => void;
     handleContextMenu: (e: MouseEvent) => void;
     generateNodeTree: (nodePath: HTMLElement[]) => TreeNode;

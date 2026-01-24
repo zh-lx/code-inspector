@@ -93,7 +93,11 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   target: string = '';
   @property()
+  targetNode: HTMLElement | null = null;
+  @property()
   ip: string = 'localhost';
+
+  private wheelThrottling: boolean = false;
   @property()
   modeKey: string = 'z';
 
@@ -367,6 +371,10 @@ export class CodeInspectorComponent extends LitElement {
 
   // 渲染遮罩层
   renderCover = async (target: HTMLElement) => {
+    if (target === this.targetNode) {
+      return;
+    }
+    this.targetNode = target;
     // 设置 target 的位置
     const { top, right, bottom, left } = target.getBoundingClientRect();
     this.position = {
@@ -453,6 +461,7 @@ export class CodeInspectorComponent extends LitElement {
     if (force !== true && this.nodeTree) {
       return;
     }
+    this.targetNode = null
     this.show = false;
     this.removeGlobalCursorStyle();
     document.body.style.userSelect = this.preUserSelect;
@@ -693,6 +702,18 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  getValidNodeList = (nodePath: HTMLElement[]) => {
+    const validNodeList: { node: HTMLElement; isAstro: boolean }[] = [];
+    for (const node of nodePath) {
+      if (node.hasAttribute && node.hasAttribute(AstroFile)) {
+        validNodeList.push({ node, isAstro: true });
+      } else if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
+        validNodeList.push({ node, isAstro: false });
+      }
+    }
+    return validNodeList;
+  };
+
   isSamePositionNode = (node1: HTMLElement, node2: HTMLElement) => {
     const node1Rect = node1.getBoundingClientRect();
     const node2Rect = node2.getBoundingClientRect();
@@ -711,25 +732,18 @@ export class CodeInspectorComponent extends LitElement {
       !this.hoverSwitch
     ) {
       const nodePath = e.composedPath() as HTMLElement[];
+      const validNodeList = this.getValidNodeList(nodePath);
       let targetNode;
-      // 寻找第一个有 data-insp-path 属性的元素
-      for (let i = 0; i < nodePath.length; i++) {
-        const node = nodePath[i];
-        if (
-          (node.hasAttribute && node.hasAttribute(PathName)) ||
-          node[PathName]
-        ) {
-          if (!targetNode) {
-            targetNode = node;
-          } else if (this.isSamePositionNode(targetNode, node)) {
-            // 优先寻找组件被调用处源码
-            targetNode = node;
-          }
-        }
-        // Todo: transform astro inside
-        if (node.hasAttribute && node.hasAttribute('data-astro-source-file')) {
+      for (const { node, isAstro } of validNodeList) {
+        if (isAstro) {
           targetNode = node;
           break;
+        }
+        if (!targetNode) {
+          targetNode = node;
+        } else if (this.isSamePositionNode(targetNode, node)) {
+          // 优先寻找组件被调用处源码
+          targetNode = node;
         }
       }
       if (targetNode) {
@@ -740,6 +754,38 @@ export class CodeInspectorComponent extends LitElement {
     } else {
       this.removeCover();
     }
+  };
+
+  handleWheel = (e: WheelEvent) => {
+    if (!this.targetNode || this.wheelThrottling) {
+      return;
+    }
+    e.stopPropagation();
+    e.preventDefault();
+
+    this.wheelThrottling = true;
+
+    const nodePath = e.composedPath() as HTMLElement[];
+    const validNodeList = this.getValidNodeList(nodePath);
+    let targetNodeIndex = validNodeList.findIndex(({ node }) => node === this.targetNode);
+    if (targetNodeIndex === -1) {
+      this.wheelThrottling = false;
+      return;
+    }
+    const wheelDelta = e.deltaX || e.deltaY;
+    if (wheelDelta > 0) {
+      targetNodeIndex--;
+    } else if (wheelDelta < 0) {
+      targetNodeIndex++;
+    }
+    if (targetNodeIndex >= 0 && targetNodeIndex < validNodeList.length) {
+      this.renderCover(validNodeList[targetNodeIndex].node);
+    }
+
+    // mac 触摸板太灵敏，添加节流
+    setTimeout(() => {
+      this.wheelThrottling = false;
+    }, 200);
   };
 
   // 鼠标点击唤醒遮罩层
@@ -1034,6 +1080,7 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('mouseup', this.handleMouseUp, true);
     window.addEventListener('touchend', this.handleMouseUp, true);
     window.addEventListener('contextmenu', this.handleContextMenu, true);
+    window.addEventListener('wheel', this.handleWheel, { passive: false });
   }
 
   disconnectedCallback(): void {
@@ -1049,6 +1096,7 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('mouseup', this.handleMouseUp, true);
     window.removeEventListener('touchend', this.handleMouseUp, true);
     window.removeEventListener('contextmenu', this.handleContextMenu, true);
+    window.removeEventListener('wheel', this.handleWheel, { passive: false } as EventListenerOptions);
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`
