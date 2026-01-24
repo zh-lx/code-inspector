@@ -96,6 +96,8 @@ export class CodeInspectorComponent extends LitElement {
   targetNode: HTMLElement | null = null;
   @property()
   ip: string = 'localhost';
+
+  private wheelThrottling: boolean = false;
   @property()
   modeKey: string = 'z';
 
@@ -755,21 +757,21 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   handleWheel = (e: WheelEvent) => {
-    if (!this.targetNode) {
+    if (!this.targetNode || this.wheelThrottling) {
       return;
     }
-    // 阻止冒泡
     e.stopPropagation();
-    // 阻止默认事件
     e.preventDefault();
+
+    this.wheelThrottling = true;
 
     const nodePath = e.composedPath() as HTMLElement[];
     const validNodeList = this.getValidNodeList(nodePath);
     let targetNodeIndex = validNodeList.findIndex(({ node }) => node === this.targetNode);
     if (targetNodeIndex === -1) {
+      this.wheelThrottling = false;
       return;
     }
-    // shift 被按下时，滚轮事件会被映射成水平滚动
     const wheelDelta = e.deltaX || e.deltaY;
     if (wheelDelta > 0) {
       targetNodeIndex--;
@@ -779,6 +781,11 @@ export class CodeInspectorComponent extends LitElement {
     if (targetNodeIndex >= 0 && targetNodeIndex < validNodeList.length) {
       this.renderCover(validNodeList[targetNodeIndex].node);
     }
+
+    // mac 触摸板太灵敏，添加节流
+    setTimeout(() => {
+      this.wheelThrottling = false;
+    }, 200);
   };
 
   // 鼠标点击唤醒遮罩层
@@ -1073,7 +1080,7 @@ export class CodeInspectorComponent extends LitElement {
     window.addEventListener('mouseup', this.handleMouseUp, true);
     window.addEventListener('touchend', this.handleMouseUp, true);
     window.addEventListener('contextmenu', this.handleContextMenu, true);
-    window.addEventListener('wheel', this.handleWheel, true);
+    window.addEventListener('wheel', this.handleWheel, { passive: false });
   }
 
   disconnectedCallback(): void {
@@ -1089,7 +1096,7 @@ export class CodeInspectorComponent extends LitElement {
     window.removeEventListener('mouseup', this.handleMouseUp, true);
     window.removeEventListener('touchend', this.handleMouseUp, true);
     window.removeEventListener('contextmenu', this.handleContextMenu, true);
-    window.removeEventListener('wheel', this.handleWheel, true);
+    window.removeEventListener('wheel', this.handleWheel, { passive: false } as EventListenerOptions);
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`
