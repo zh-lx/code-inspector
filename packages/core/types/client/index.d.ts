@@ -46,6 +46,7 @@ export declare class CodeInspectorComponent extends LitElement {
     target: string;
     targetNode: HTMLElement | null;
     ip: string;
+    private wheelThrottling;
     modeKey: string;
     position: {
         top: number;
