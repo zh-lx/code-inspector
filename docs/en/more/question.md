@@ -8,6 +8,8 @@ The plugin automatically detects whether it's in production or development envir
 
 If you encounter issues where DOM selection and navigation don't work in micro-frontend child projects, you need to apply `code-inspector-plugin` in both the main project and child projects for normal operation.
 
+If the main and child applications of micro-frontend are distributed in multiple repositories, you need to add the configuration `pathFormat: 'absolute'` to the plugin.
+
 ## SSR Scenarios
 
 Most conventional framework SSR projects are supported by default. For custom-rendered SSR projects, please join our user group for adaptation guidance.
