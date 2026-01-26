@@ -1,0 +1,28 @@
+name: Code Review
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  pr_agent_job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: PR Agent action step
+      uses: Codium-ai/pr-agent@main
+      env:
+        OPENAI_KEY: ${{ secrets.CODE_REVIEW_KEY }}
+        GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
+        # Set the model to a local Ollama model
+        config.model: "qwen/qwen3-coder-480b-a35b-instruct"
+        config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
+        config.custom_model_max_tokens: "128000"
+        # Ollama configuration
+        OLLAMA.API_BASE: "https://integrate.api.nvidia.com/v1"
+        # Tool configuration
+        github_action_config.auto_review: "true"
+        github_action_config.auto_describe: "true"
+        github_action_config.auto_improve: "true"

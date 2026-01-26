@@ -21,7 +21,6 @@ export function getIP(ip: boolean | string) {
           alias.address !== '127.0.0.1' &&
           !alias.internal
         ) {
-          console.log(alias.address);
           return alias.address;
         }
       }
