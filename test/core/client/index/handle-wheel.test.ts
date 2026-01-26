@@ -78,7 +78,8 @@ describe('handleWheel', () => {
       expect(renderCoverCalls).toEqual([validNode1, validNode0]);
     });
 
-    it('should handle multiple valid nodes correctly', () => {
+    it('should handle multiple valid nodes correctly', async () => {
+      vi.useFakeTimers();
       const [validNode0, validNode1, validNode2] = createValidNodes(3);
 
       component.renderCover(validNode0);
@@ -105,8 +106,11 @@ describe('handleWheel', () => {
       wheelDownEvent1.composedPath = composedPath;
 
       component.handleWheel(wheelUpEvent0);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelUpEvent1);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelDownEvent0);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelDownEvent1);
 
       expect(renderCoverCalls).toEqual([
@@ -116,6 +120,8 @@ describe('handleWheel', () => {
         validNode1,
         validNode0
       ]);
+
+      vi.useRealTimers();
     });
   });
 
