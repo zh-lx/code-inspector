@@ -12,18 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: PR Agent action step
-      uses: Codium-ai/pr-agent@main
+      uses: anc95/ChatGPT-CodeReview@main
       env:
-        OPENAI_KEY: ${{ secrets.CODE_REVIEW_KEY }}
         GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
-        # Set the model to a local Deepseek model
-        config.model: "deepseek-ai/deepseek-v3.2"
-        config.fallback_models: '["deepseek-ai/deepseek-v3.2"]'
-        config.custom_model_max_tokens: "128000"
-        # Deepseek configuration
-        DEEPSEEK.API_BASE: "https://integrate.api.nvidia.com/v1"
-        DEEPSEEK.KEY: ${{ secrets.CODE_REVIEW_KEY }}
-        # Tool configuration
-        github_action_config.auto_review: "true"
-        github_action_config.auto_describe: "true"
-        github_action_config.auto_improve: "true"
+        # Set the model to Deepseek model
+        OPENAI_API_KEY: ${{ secrets.CODE_REVIEW_KEY }}
+        OPENAI_API_ENDPOINT: https://integrate.api.nvidia.com/v1
+        MODEL: deepseek-ai/deepseek-v3.2
+        # Common configuration
+        LANGUAGE: Chinese
+        max_tokens: 128000
