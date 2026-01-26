@@ -18,7 +18,7 @@ jobs:
         # Set the model to Deepseek model
         OPENAI_API_KEY: ${{ secrets.CODE_REVIEW_KEY }}
         OPENAI_API_ENDPOINT: https://integrate.api.nvidia.com/v1
-        MODEL: deepseek-ai/deepseek-v3.2
+        MODEL: minimaxai/minimax-m2
         # Common configuration
         LANGUAGE: Chinese
-        max_tokens: 128000
+        max_tokens: 16384
