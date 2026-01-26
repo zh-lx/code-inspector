@@ -15,10 +15,10 @@ jobs:
       uses: anc95/ChatGPT-CodeReview@main
       env:
         GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
-        # Set the model to Deepseek model
+        # Model config
         OPENAI_API_KEY: ${{ secrets.CODE_REVIEW_KEY }}
         OPENAI_API_ENDPOINT: https://integrate.api.nvidia.com/v1
         MODEL: minimaxai/minimax-m2
-        # Common configuration
+        # Common config
         LANGUAGE: Chinese
         max_tokens: 16384
