@@ -23,8 +23,8 @@ describe('properties', () => {
     expect(component.autoToggle).toBe(false);
     expect(component.hideConsole).toBe(false);
     expect(component.locate).toBe(true);
-    expect(component.copy).toBe(true);
-    expect(component.defaultAction).toBe('copy');
+    expect(component.copy).toBe(false);
+    expect(component.target).toBe('');
     expect(component.ip).toBe('localhost');
   });
 
@@ -35,8 +35,8 @@ describe('properties', () => {
     component.autoToggle = true;
     component.hideConsole = true;
     component.locate = false;
-    component.copy = true;
-    component.defaultAction = 'locate';
+    component.copy = 'custom';
+    component.target = 'https://example.com';
     component.ip = '192.168.1.100';
 
     expect(component.hotKeys).toBe('altKey');
@@ -45,8 +45,8 @@ describe('properties', () => {
     expect(component.autoToggle).toBe(true);
     expect(component.hideConsole).toBe(true);
     expect(component.locate).toBe(false);
-    expect(component.copy).toBe(true);
-    expect(component.defaultAction).toBe('locate');
+    expect(component.copy).toBe('custom');
+    expect(component.target).toBe('https://example.com');
     expect(component.ip).toBe('192.168.1.100');
   });
 });
