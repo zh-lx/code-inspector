@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.1
+- 【fix】Fixed the issue where `$$` would be replaced with `$` in webpack [#462](https://github.com/zh-lx/code-inspector/pull/462)
+
 ## 1.4.0
 
 - 【feat】Added the ability to switch parent/child elements by scrolling with the mouse wheel [#456](https://github.com/zh-lx/code-inspector/pull/456)

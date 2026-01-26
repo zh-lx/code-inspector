@@ -60,7 +60,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
         escapeTags,
         pathType: options.pathType,
       });
-      content = content.replace(script, newScript);
+      content = content.replace(script, () => newScript);
     }
     return content;
   }
