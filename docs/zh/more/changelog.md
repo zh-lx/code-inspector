@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.4.1
+
+- 【fix】修复 webpack 中 `$$` 会被替换成 `$` 的问题 [#462](https://github.com/zh-lx/code-inspector/pull/462)
+
 ## 1.4.0
 
 - 【feat】新增通过滚轮滚动切换父子元素的功能 [#456](https://github.com/zh-lx/code-inspector/pull/456)
