@@ -18,7 +18,7 @@ jobs:
         # Model config
         OPENAI_API_KEY: ${{ secrets.CODE_REVIEW_KEY }}
         OPENAI_API_ENDPOINT: https://integrate.api.nvidia.com/v1
-        MODEL: minimaxai/minimax-m2
+        MODEL: z-ai/glm4.7
         # Common config
         LANGUAGE: Chinese
         max_tokens: 16384
