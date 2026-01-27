@@ -32,6 +32,7 @@ export function TurbopackCodeInspectorPlugin(
   if (typeof require !== 'undefined' && typeof require.resolve === 'function') {
     WebpackEntry = require.resolve('@code-inspector/webpack');
   }
+  /* v8 ignore next 6 -- ESM import.meta.resolve branch not available in CJS test environment */
   if (typeof import.meta.resolve === 'function') {
     const dir = import.meta.resolve(
       '@code-inspector/webpack'
