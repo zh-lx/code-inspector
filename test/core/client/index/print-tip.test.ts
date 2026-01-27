@@ -74,4 +74,23 @@ describe('printTip', () => {
     expect(logMessage).toContain('⌥option');
   });
 
+  it('should print None when no features are active', () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      configurable: true,
+    });
+
+    component.hotKeys = 'shiftKey,altKey';
+    // Disable all features
+    component.internalLocate = false;
+    component.internalCopy = false;
+    component.internalTarget = false;
+
+    component.printTip();
+
+    expect(consoleSpy).toHaveBeenCalled();
+    const logMessage = consoleSpy.mock.calls[1][0];
+    expect(logMessage).toContain('None');
+  });
+
 });

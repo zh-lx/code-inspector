@@ -166,4 +166,26 @@ describe('handleDrag', () => {
       expect(component.inspectorSwitchRef.style.top).toBe('100px'); // baseY remains unchanged
     });
   });
+
+  describe('NodeTree Dragging', () => {
+    it('should update nodeTree position when dragging nodeTree', async () => {
+      component.dragging = true;
+      component.draggingTarget = 'nodeTree';
+      component.showNodeTree = true;
+      await component.updateComplete;
+
+      const mouseEvent = new MouseEvent('mousemove');
+      Object.defineProperty(mouseEvent, 'pageX', { value: 150 });
+      Object.defineProperty(mouseEvent, 'pageY', { value: 150 });
+      mouseEvent.composedPath = vi.fn().mockReturnValue([document.body]);
+
+      component.handleDrag(mouseEvent);
+
+      expect(component.moved).toBe(true);
+      expect(component.nodeTreeRef.style.left).toBe('200px'); // 100 + (150 - 50)
+      expect(component.nodeTreeRef.style.top).toBe('200px'); // 100 + (150 - 50)
+      expect(component.nodeTreePosition.left).toBe('200px');
+      expect(component.nodeTreePosition.top).toBe('200px');
+    });
+  });
 });

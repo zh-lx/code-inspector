@@ -58,6 +58,30 @@ describe('getIP', () => {
     vi.mocked(os.networkInterfaces).mockReturnValue(mockNetworkInterfaces as any);
     expect(getIP(true)).toBe('localhost');
   });
+
+  it('should handle Node 18.0-18.3 where family is returned as number 4', () => {
+    // Node 18.0 - 18.3 returns number instead of string for family
+    const mockNetworkInterfaces = {
+      'eth0': [
+        {
+          family: 4, // number instead of 'IPv4'
+          address: '10.0.0.50',
+          internal: false
+        }
+      ],
+      'lo': [
+        {
+          family: 4,
+          address: '127.0.0.1',
+          internal: true
+        }
+      ]
+    };
+
+    vi.mock('os')
+    vi.mocked(os.networkInterfaces).mockReturnValue(mockNetworkInterfaces as any);
+    expect(getIP(true)).toBe('10.0.0.50');
+  });
 });
 
 
