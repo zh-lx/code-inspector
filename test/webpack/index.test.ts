@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock core module before imports
 vi.mock('@code-inspector/core', () => ({
@@ -33,7 +33,6 @@ import {
   isDev,
   isNextjsProject,
 } from '@code-inspector/core';
-import { getWebpackEntrys } from '@/webpack/src/entry';
 
 describe('WebpackCodeInspectorPlugin', () => {
   let mockCompiler: any;

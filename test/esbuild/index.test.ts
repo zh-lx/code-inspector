@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Create mock functions with vi.hoisted to ensure they're available before module mocking
 const mockReadFile = vi.hoisted(() => vi.fn());
@@ -35,7 +35,6 @@ vi.mock('@code-inspector/core', () => ({
 import { EsbuildCodeInspectorPlugin } from '@/esbuild/src/index';
 import {
   transformCode,
-  getCodeWithWebComponent,
   isDev,
   isJsTypeFile,
   parseSFC,

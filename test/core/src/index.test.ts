@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
-import path from 'path';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
 
 // Mock fs.readFileSync to handle missing client files

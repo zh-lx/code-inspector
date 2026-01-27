@@ -2,7 +2,6 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
-import { PathName } from '@/core/src/shared';
 
 describe('handleMouseClick', () => {
   let component: CodeInspectorComponent;

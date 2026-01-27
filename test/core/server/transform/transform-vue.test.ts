@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
 import { transformVue } from '@/core/src/server/transform/transform-vue';
 import { PathName } from '@/core/src/shared/constant';

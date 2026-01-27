@@ -54,7 +54,7 @@ vi.mock('launch-ide', () => ({
 }));
 
 import { getCodeWithWebComponent } from '@/core/src/server/use-client';
-import { setProjectRecord, resetFileRecord, getProjectRecord } from '@/core/src/shared/record-cache';
+import { setProjectRecord, resetFileRecord } from '@/core/src/shared/record-cache';
 import * as sharedUtils from '@/core/src/shared/utils';
 import * as sharedModule from '@/core/src/shared';
 

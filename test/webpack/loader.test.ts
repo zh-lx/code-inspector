@@ -18,10 +18,8 @@ vi.mock('@code-inspector/core', () => ({
 import WebpackCodeInspectorLoader from '@/webpack/src/loader';
 import {
   transformCode,
-  normalizePath,
   parseSFC,
   isJsTypeFile,
-  getMappingFilePath,
   isExcludedFile,
 } from '@code-inspector/core';
 
