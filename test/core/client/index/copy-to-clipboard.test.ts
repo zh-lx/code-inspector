@@ -117,6 +117,28 @@ describe('CodeInspectorComponent - copyToClipboard method', () => {
         component.copyToClipboard(testText);
       }).not.toThrow();
     });
+
+    it('should use fallback when navigator.clipboard.writeText throws synchronously', () => {
+      // 模拟 clipboard API 同步抛出异常
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: vi.fn().mockImplementation(() => {
+            throw new Error('Sync error');
+          })
+        },
+        configurable: true
+      });
+
+      document.execCommand = vi.fn().mockReturnValue(true);
+
+      // 确保不会抛出错误
+      expect(() => {
+        component.copyToClipboard(testText);
+      }).not.toThrow();
+
+      // 应该调用 fallback
+      expect(document.execCommand).toHaveBeenCalledWith('copy');
+    });
   });
 
 });

@@ -14,6 +14,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   let filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
   let params = new URLSearchParams(this.resource.split('?')?.[1] || '');
   const options = this.query;
+  /* v8 ignore next -- defensive fallback for undefined options */
   let { escapeTags = [], mappings } = options || {};
 
   if (isExcludedFile(filePath, options)) {

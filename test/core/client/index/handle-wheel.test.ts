@@ -78,7 +78,8 @@ describe('handleWheel', () => {
       expect(renderCoverCalls).toEqual([validNode1, validNode0]);
     });
 
-    it('should handle multiple valid nodes correctly', () => {
+    it('should handle multiple valid nodes correctly', async () => {
+      vi.useFakeTimers();
       const [validNode0, validNode1, validNode2] = createValidNodes(3);
 
       component.renderCover(validNode0);
@@ -105,8 +106,11 @@ describe('handleWheel', () => {
       wheelDownEvent1.composedPath = composedPath;
 
       component.handleWheel(wheelUpEvent0);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelUpEvent1);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelDownEvent0);
+      await vi.advanceTimersByTimeAsync(200);
       component.handleWheel(wheelDownEvent1);
 
       expect(renderCoverCalls).toEqual([
@@ -116,10 +120,77 @@ describe('handleWheel', () => {
         validNode1,
         validNode0
       ]);
+
+      vi.useRealTimers();
     });
   });
 
   describe('Edge Cases', () => {
+    it('should use deltaY when deltaX is 0', () => {
+      const [validNode0, validNode1] = createValidNodes(2);
+
+      component.renderCover(validNode0);
+
+      // Use deltaY instead of deltaX
+      const wheelUpEvent = new WheelEvent('wheel', { deltaX: 0, deltaY: -40 });
+      wheelUpEvent.composedPath = vi
+        .fn()
+        .mockReturnValue([
+          validNode0,
+          document.createElement('div'),
+          validNode1,
+          document.body
+        ] as EventTarget[]);
+
+      component.handleWheel(wheelUpEvent);
+
+      expect(renderCoverCalls).toEqual([validNode0, validNode1]);
+    });
+
+    it('should move to previous node when deltaY is positive', () => {
+      const [validNode0, validNode1] = createValidNodes(2);
+
+      component.renderCover(validNode1);
+
+      // Use deltaY with positive value
+      const wheelDownEvent = new WheelEvent('wheel', { deltaX: 0, deltaY: 40 });
+      wheelDownEvent.composedPath = vi
+        .fn()
+        .mockReturnValue([
+          validNode0,
+          document.createElement('div'),
+          validNode1,
+          document.body
+        ] as EventTarget[]);
+
+      component.handleWheel(wheelDownEvent);
+
+      expect(renderCoverCalls).toEqual([validNode1, validNode0]);
+    });
+
+    it('should not change node when both deltaX and deltaY are 0', () => {
+      const [validNode0, validNode1] = createValidNodes(2);
+
+      component.renderCover(validNode0);
+
+      // Both deltas are 0
+      const wheelEvent = new WheelEvent('wheel', { deltaX: 0, deltaY: 0 });
+      wheelEvent.composedPath = vi
+        .fn()
+        .mockReturnValue([
+          validNode0,
+          document.createElement('div'),
+          validNode1,
+          document.body
+        ] as EventTarget[]);
+
+      component.handleWheel(wheelEvent);
+
+      // When wheelDelta is 0, targetNodeIndex stays the same (0)
+      // renderCover is called with the same node (validNode0)
+      expect(renderCoverCalls).toEqual([validNode0, validNode0]);
+    });
+
     it('should not move when already at the last node and scrolling up', () => {
       const [validNode0, validNode1] = createValidNodes(2);
 

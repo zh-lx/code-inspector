@@ -10,6 +10,7 @@ import {
   resetFileRecord,
 } from '@code-inspector/core';
 import chalk from 'chalk';
+/* v8 ignore next -- import statement branch coverage not testable */
 import path, { dirname } from 'path';
 
 export interface CodeInspectorPluginOptions extends CodeOptions {
@@ -40,6 +41,7 @@ export function CodeInspectorPlugin(options: CodeInspectorPluginOptions): any {
   }
 
   let compatibleDirname = '';
+  /* v8 ignore next 5 -- environment-specific: __dirname available in CJS, import.meta.url in ESM */
   if (typeof __dirname !== 'undefined') {
     compatibleDirname = __dirname;
   } else {

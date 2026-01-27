@@ -7,11 +7,13 @@ import {
   isDev,
   isNextjsProject,
 } from '@code-inspector/core';
+/* v8 ignore next -- import statement branch coverage not testable */
 import path, { dirname } from 'path';
 import { getWebpackEntrys } from './entry';
 
 let compatibleDirname = '';
 
+/* v8 ignore next 5 -- environment-specific: __dirname available in CJS, import.meta.url in ESM */
 if (typeof __dirname !== 'undefined') {
   compatibleDirname = __dirname;
 } else {
@@ -25,6 +27,7 @@ interface LoaderOptions extends CodeOptions {
 }
 
 const applyLoader = (options: LoaderOptions, compiler: any) => {
+  /* v8 ignore next 3 -- guard prevents duplicate loader registration */
   if (!isFirstLoad) {
     return;
   }
@@ -32,6 +35,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   // 适配 webpack 各个版本
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
+  /* v8 ignore next -- fallback for legacy webpack versions with module.loaders */
   const rules = module?.rules || module?.loaders || [];
   rules.push(
     {

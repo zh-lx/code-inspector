@@ -6,71 +6,11 @@ import { CodeInspectorComponent } from '@/core/src/client';
 describe('handleMouseClick', () => {
   let component: CodeInspectorComponent;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     component = new CodeInspectorComponent();
+    component.hideConsole = true;
     document.body.appendChild(component);
-    
-    // 模拟方法
-    component.isTracking = vi.fn().mockReturnValue(true);
-    component.trackCode = vi.fn();
-    component.removeCover = vi.fn();
-  });
-
-  describe('Preferred Action Logic', () => {
-    it('should fallback to locate when copy is disabled', () => {
-      component.show = true;
-      component.copy = false;
-      component.locate = true;
-      component.defaultAction = 'copy';
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
-
-      component.handleMouseClick(mouseEvent);
-
-      expect(component.trackCode).toHaveBeenCalledWith('locate');
-    });
-
-    it('should respect an explicit locate defaultAction', () => {
-      component.show = true;
-      component.defaultAction = 'locate';
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
-
-      component.handleMouseClick(mouseEvent);
-
-      expect(component.trackCode).toHaveBeenCalledWith('locate');
-    });
-
-    it('should fallback to target when locate is disabled', () => {
-      component.show = true;
-      component.copy = false;
-      component.locate = false;
-      component.target = 'https://example.com/{file}';
-      component.defaultAction = 'locate';
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
-
-      component.handleMouseClick(mouseEvent);
-
-      expect(component.trackCode).toHaveBeenCalledWith('target');
-    });
-
-    it('should skip trackCode when no actions are enabled', () => {
-      component.show = true;
-      component.copy = false;
-      component.locate = false;
-      component.target = '';
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
-
-      component.handleMouseClick(mouseEvent);
-
-      expect(component.trackCode).not.toHaveBeenCalled();
-    });
+    await component.updateComplete;
   });
 
   afterEach(() => {
@@ -78,136 +18,164 @@ describe('handleMouseClick', () => {
     vi.clearAllMocks();
   });
 
-  describe('Basic Functionality', () => {
-    it('should handle click when tracking and show is true', () => {
+  const createMouseEvent = (composedPath: EventTarget[] = []) => {
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true
+    });
+    event.composedPath = vi.fn().mockReturnValue(composedPath);
+    event.preventDefault = vi.fn();
+    event.stopPropagation = vi.fn();
+    return event;
+  };
+
+  describe('Tracking or Open Condition', () => {
+    it('should trigger actions when isTracking returns true and show is true', async () => {
+      component.isTracking = vi.fn().mockReturnValue(true);
       component.show = true;
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+      component.element = { name: 'div', path: '/path/file.ts', line: 10, column: 5 };
 
-      component.handleMouseClick(mouseEvent);
+      const trackCodeSpy = vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
 
-      expect(mouseEvent.stopPropagation).toHaveBeenCalled();
-      expect(mouseEvent.preventDefault).toHaveBeenCalled();
-      expect(component.trackCode).toHaveBeenCalledWith('copy');
-      expect(component.removeCover).toHaveBeenCalled();
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
+
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(trackCodeSpy).toHaveBeenCalled();
+      expect(removeCoverSpy).toHaveBeenCalled();
     });
 
-    it('should handle click when open and show is true', () => {
+    it('should trigger actions when open is true and show is true', async () => {
+      component.isTracking = vi.fn().mockReturnValue(false);
       component.open = true;
       component.show = true;
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+      component.element = { name: 'div', path: '/path/file.ts', line: 10, column: 5 };
 
-      component.handleMouseClick(mouseEvent);
+      const trackCodeSpy = vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
 
-      expect(mouseEvent.stopPropagation).toHaveBeenCalled();
-      expect(mouseEvent.preventDefault).toHaveBeenCalled();
-      expect(component.trackCode).toHaveBeenCalledWith('copy');
-      expect(component.removeCover).toHaveBeenCalled();
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
+
+      expect(trackCodeSpy).toHaveBeenCalled();
+      expect(removeCoverSpy).toHaveBeenCalled();
+    });
+
+    it('should not trigger actions when show is false', async () => {
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.show = false;
+
+      const trackCodeSpy = vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
+
+      expect(trackCodeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger actions when neither tracking nor open', async () => {
+      component.isTracking = vi.fn().mockReturnValue(false);
+      component.open = false;
+      component.show = true;
+
+      const trackCodeSpy = vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
+
+      expect(trackCodeSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('Auto Toggle Behavior', () => {
-    it('should set open to false when autoToggle is true', () => {
+  describe('Auto Toggle', () => {
+    it('should set open to false when autoToggle is true', async () => {
+      component.isTracking = vi.fn().mockReturnValue(true);
       component.show = true;
       component.open = true;
       component.autoToggle = true;
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+      component.element = { name: 'div', path: '/path/file.ts', line: 10, column: 5 };
 
-      component.handleMouseClick(mouseEvent);
+      vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+      vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
 
       expect(component.open).toBe(false);
     });
 
-    it('should not change open state when autoToggle is false', () => {
+    it('should not change open when autoToggle is false', async () => {
+      component.isTracking = vi.fn().mockReturnValue(true);
       component.show = true;
       component.open = true;
       component.autoToggle = false;
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+      component.element = { name: 'div', path: '/path/file.ts', line: 10, column: 5 };
 
-      component.handleMouseClick(mouseEvent);
+      vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+      vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
 
       expect(component.open).toBe(true);
     });
   });
 
-  describe('No Action Conditions', () => {
-    it('should not take action when show is false', () => {
-      component.show = false;
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+  describe('Layer Panel Removal', () => {
+    it('should call removeLayerPanel when click is outside nodeTree', async () => {
+      component.isTracking = vi.fn().mockReturnValue(false);
+      component.open = false;
 
-      component.handleMouseClick(mouseEvent);
+      const removeLayerPanelSpy = vi.spyOn(component, 'removeLayerPanel').mockImplementation(() => {});
 
-      expect(mouseEvent.stopPropagation).not.toHaveBeenCalled();
-      expect(mouseEvent.preventDefault).not.toHaveBeenCalled();
-      expect(component.trackCode).not.toHaveBeenCalled();
-      expect(component.removeCover).not.toHaveBeenCalled();
+      const event = createMouseEvent([document.body]);
+      component.handleMouseClick(event);
+
+      expect(removeLayerPanelSpy).toHaveBeenCalled();
     });
 
-    it('should not take action when neither tracking nor open', () => {
-      component.show = true;
+    it('should not call removeLayerPanel when click is inside nodeTree', async () => {
+      component.isTracking = vi.fn().mockReturnValue(false);
       component.open = false;
-      // @ts-ignore
-      component.isTracking.mockReturnValue(false);
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn();
-      mouseEvent.preventDefault = vi.fn();
+      component.showNodeTree = true;
+      await component.updateComplete;
 
-      component.handleMouseClick(mouseEvent);
+      const removeLayerPanelSpy = vi.spyOn(component, 'removeLayerPanel').mockImplementation(() => {});
 
-      expect(mouseEvent.stopPropagation).not.toHaveBeenCalled();
-      expect(mouseEvent.preventDefault).not.toHaveBeenCalled();
-      expect(component.trackCode).not.toHaveBeenCalled();
-      expect(component.removeCover).not.toHaveBeenCalled();
+      // Include nodeTreeRef in composedPath
+      const nodeTreeRef = component.nodeTreeRef;
+      const event = createMouseEvent([nodeTreeRef, document.body]);
+      component.handleMouseClick(event);
+
+      expect(removeLayerPanelSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('Touch Events', () => {
-    it('should handle touch events correctly', () => {
+    it('should handle touch events', async () => {
+      component.isTracking = vi.fn().mockReturnValue(true);
       component.show = true;
-      const touchEvent = new TouchEvent('touchstart');
-      touchEvent.stopPropagation = vi.fn();
+      component.element = { name: 'div', path: '/path/file.ts', line: 10, column: 5 };
+
+      vi.spyOn(component, 'trackCode').mockImplementation(() => {});
+      vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      const touch = { clientX: 100, clientY: 100, identifier: 0, target: document.body };
+      const touchEvent = new TouchEvent('touchend', {
+        touches: [],
+        changedTouches: [touch as Touch],
+        bubbles: true
+      });
+      (touchEvent as any).composedPath = vi.fn().mockReturnValue([document.body]);
       touchEvent.preventDefault = vi.fn();
+      touchEvent.stopPropagation = vi.fn();
 
       component.handleMouseClick(touchEvent);
 
       expect(touchEvent.stopPropagation).toHaveBeenCalled();
       expect(touchEvent.preventDefault).toHaveBeenCalled();
-      expect(component.trackCode).toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-  });
-
-  describe('Method Call Order', () => {
-    it('should call methods in correct order', () => {
-      const calls: string[] = [];
-      component.show = true;
-      component.autoToggle = true;
-      
-      // 模拟方法以记录调用顺序
-      component.trackCode = vi.fn(() => calls.push('trackCode'));
-      component.removeCover = vi.fn(() => calls.push('removeCover'));
-      
-      const mouseEvent = new MouseEvent('click');
-      mouseEvent.stopPropagation = vi.fn(() => calls.push('stopPropagation'));
-      mouseEvent.preventDefault = vi.fn(() => calls.push('preventDefault'));
-
-      component.handleMouseClick(mouseEvent);
-
-      expect(calls).toEqual([
-        'stopPropagation',
-        'preventDefault',
-        'trackCode',
-        'removeCover'
-      ]);
     });
   });
 });

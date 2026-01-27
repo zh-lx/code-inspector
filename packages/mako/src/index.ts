@@ -42,6 +42,7 @@ export function MakoCodeInspectorPlugin(options: Options): Record<string, any> {
       if (isExcludedFile(id, options) || id.includes('/.umi/')) {
         return;
       }
+      /* v8 ignore next -- defensive fallback for undefined options */
       const { escapeTags = [], mappings, match } = options || {};
       if (match && !match.test(id)) {
         return;

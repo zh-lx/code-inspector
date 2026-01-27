@@ -1,213 +1,192 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CodeInspectorComponent } from '@/core/src/client';
-import { formatOpenPath } from 'launch-ide';
+// @vitest-environment jsdom
 
-// 模拟 formatOpenPath
-vi.mock('launch-ide', () => ({
-  formatOpenPath: vi.fn().mockReturnValue(['formatted/path:10:5']),
-}));
-vi.mock('@/core/src/shared', () => ({
-  DefaultPort: 5678
-}));
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { CodeInspectorComponent } from '@/core/src/client';
 
 describe('trackCode', () => {
   let component: CodeInspectorComponent;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    // 创建组件实例
     component = new CodeInspectorComponent();
-    
-    // 设置基本属性
+    document.body.appendChild(component);
+
+    // Set up element info for tests
     component.element = {
+      name: 'div',
       path: '/path/to/file.ts',
       line: 10,
-      column: 5,
-      name: 'test'
+      column: 5
     };
-    
-    // 模拟方法
-    component.sendXHR = vi.fn();
-    component.sendImg = vi.fn();
-    component.copyToClipboard = vi.fn();
   });
 
-  describe('Locate Functionality', () => {
-    beforeEach(() => {
-      component.locate = true;
-    });
+  afterEach(() => {
+    document.body.removeChild(component);
+    vi.clearAllMocks();
+  });
 
-    it('should call sendXHR when sendType is xhr', () => {
+  describe('Locate Feature', () => {
+    it('should call sendXHR when internalLocate is true and sendType is xhr', () => {
+      component.internalLocate = true;
       component.sendType = 'xhr';
-      component.trackCode('locate');
-      
-      expect(component.sendXHR).toHaveBeenCalled();
-      expect(component.sendImg).not.toHaveBeenCalled();
+      const sendXHRSpy = vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
+
+      component.trackCode();
+
+      expect(sendXHRSpy).toHaveBeenCalled();
     });
 
-    it('should call sendImg when sendType is img', () => {
+    it('should call sendImg when internalLocate is true and sendType is img', () => {
+      component.internalLocate = true;
       component.sendType = 'img';
-      component.trackCode('locate');
-      
-      expect(component.sendImg).toHaveBeenCalled();
-      expect(component.sendXHR).not.toHaveBeenCalled();
-    });
-
-    it('should not call any send method when locate is false', () => {
-      component.locate = false;
-      component.sendType = 'xhr';
-      component.trackCode('locate');
-      
-      expect(component.sendXHR).not.toHaveBeenCalled();
-      expect(component.sendImg).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Copy Functionality', () => {
-    beforeEach(() => {
-      component.copy = true;
-    });
-
-    it('should not call formatOpenPath when copy is false', () => {
-      component.copy = false;
-      component.trackCode('copy');
-      
-      expect(formatOpenPath).not.toHaveBeenCalled();
-      expect(component.copyToClipboard).not.toHaveBeenCalled();
-    });
-
-    it('should handle both locate and copy being false', () => {
-      component.locate = false;
-      component.copy = false;
-      
-      component.trackCode('copy');
-      
-      expect(component.sendXHR).not.toHaveBeenCalled();
-      expect(component.sendImg).not.toHaveBeenCalled();
-      expect(formatOpenPath).not.toHaveBeenCalled();
-      expect(component.copyToClipboard).not.toHaveBeenCalled();
-    });
-
-    it('should call formatOpenPath and copyToClipboard when copy is true', () => {
-      component.trackCode('copy');
-      
-      expect(formatOpenPath).toHaveBeenCalledWith(
-        '/path/to/file.ts',
-        '10',
-        '5',
-        true
-      );
-      expect(component.copyToClipboard).toHaveBeenCalledWith('formatted/path:10:5');
-    });
-
-    it('should default to copy when no action is provided', () => {
-      component.locate = true;
-      component.copy = true;
-      component.defaultAction = 'copy';
-      component.sendType = 'xhr';
+      const sendImgSpy = vi.spyOn(component, 'sendImg').mockImplementation(() => {});
 
       component.trackCode();
 
-      expect(formatOpenPath).toHaveBeenCalled();
-      expect(component.copyToClipboard).toHaveBeenCalled();
-      expect(component.sendXHR).not.toHaveBeenCalled();
+      expect(sendImgSpy).toHaveBeenCalled();
     });
 
-    it('should fallback to locate when copy is disabled', () => {
-      component.copy = false;
-      component.locate = true;
-      component.defaultAction = 'copy';
-      component.sendType = 'xhr';
+    it('should not call send methods when internalLocate is false', () => {
+      component.internalLocate = false;
+      const sendXHRSpy = vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
+      const sendImgSpy = vi.spyOn(component, 'sendImg').mockImplementation(() => {});
 
       component.trackCode();
 
-      expect(component.sendXHR).toHaveBeenCalled();
-      expect(component.copyToClipboard).not.toHaveBeenCalled();
-      expect(formatOpenPath).not.toHaveBeenCalled();
+      expect(sendXHRSpy).not.toHaveBeenCalled();
+      expect(sendImgSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('Combined Functionality', () => {
-    it('should handle both locate and copy being true', () => {
-      component.locate = true;
+  describe('Copy Feature', () => {
+    it('should call copyToClipboard when internalCopy is true', () => {
+      component.internalCopy = true;
       component.copy = true;
+      const copyToClipboardSpy = vi.spyOn(component, 'copyToClipboard').mockImplementation(() => {});
+
+      component.trackCode();
+
+      expect(copyToClipboardSpy).toHaveBeenCalled();
+    });
+
+    it('should not call copyToClipboard when internalCopy is false', () => {
+      component.internalCopy = false;
+      const copyToClipboardSpy = vi.spyOn(component, 'copyToClipboard').mockImplementation(() => {});
+
+      component.trackCode();
+
+      expect(copyToClipboardSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Target Feature', () => {
+    it('should open target URL when internalTarget is true', () => {
+      component.internalTarget = true;
+      component.target = 'https://example.com/{file}';
+      const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+      component.trackCode();
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com//path/to/file.ts',
+        '_blank'
+      );
+    });
+
+    it('should not open window when internalTarget is false', () => {
+      component.internalTarget = false;
+      const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+      component.trackCode();
+
+      expect(windowOpenSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Custom Event', () => {
+    it('should dispatch code-inspector:trackCode custom event', () => {
+      const eventHandler = vi.fn();
+      window.addEventListener('code-inspector:trackCode', eventHandler);
+
+      component.trackCode();
+
+      expect(eventHandler).toHaveBeenCalled();
+      const event = eventHandler.mock.calls[0][0] as CustomEvent;
+      expect(event.type).toBe('code-inspector:trackCode');
+      expect(event.detail).toEqual(component.element);
+
+      window.removeEventListener('code-inspector:trackCode', eventHandler);
+    });
+
+    it('should include element info in custom event detail', () => {
+      component.element = {
+        name: 'span',
+        path: '/custom/path.tsx',
+        line: 42,
+        column: 15
+      };
+
+      const eventHandler = vi.fn();
+      window.addEventListener('code-inspector:trackCode', eventHandler);
+
+      component.trackCode();
+
+      const event = eventHandler.mock.calls[0][0] as CustomEvent;
+      expect(event.detail.name).toBe('span');
+      expect(event.detail.path).toBe('/custom/path.tsx');
+      expect(event.detail.line).toBe(42);
+      expect(event.detail.column).toBe(15);
+
+      window.removeEventListener('code-inspector:trackCode', eventHandler);
+    });
+  });
+
+  describe('Multiple Features', () => {
+    it('should handle all features enabled', () => {
+      component.internalLocate = true;
+      component.internalCopy = true;
+      component.internalTarget = true;
       component.sendType = 'xhr';
-      
-      component.trackCode('all');
-      
-      expect(component.sendXHR).toHaveBeenCalled();
-      expect(formatOpenPath).toHaveBeenCalled();
-      expect(component.copyToClipboard).toHaveBeenCalled();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('should handle undefined element properties', () => {
+      component.target = 'https://example.com/{file}';
       component.copy = true;
-      // @ts-ignore
-      component.element = {};
-      
-      component.trackCode('copy');
-      
-      expect(formatOpenPath).toHaveBeenCalledWith(
-        undefined,
-        'undefined',
-        'undefined',
-        true
-      );
+
+      const sendXHRSpy = vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
+      const copyToClipboardSpy = vi.spyOn(component, 'copyToClipboard').mockImplementation(() => {});
+      const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const eventHandler = vi.fn();
+      window.addEventListener('code-inspector:trackCode', eventHandler);
+
+      component.trackCode();
+
+      expect(sendXHRSpy).toHaveBeenCalled();
+      expect(copyToClipboardSpy).toHaveBeenCalled();
+      expect(windowOpenSpy).toHaveBeenCalled();
+      expect(eventHandler).toHaveBeenCalled();
+
+      window.removeEventListener('code-inspector:trackCode', eventHandler);
     });
 
-    it('should handle invalid sendType', () => {
-      component.locate = true;
-      // @ts-ignore
-      component.sendType = 'invalid';
-      
-      component.trackCode('locate');
-      
-      expect(component.sendXHR).not.toHaveBeenCalled();
-      expect(component.sendImg).toHaveBeenCalled();
-    });
-  });
+    it('should handle all features disabled except custom event', () => {
+      component.internalLocate = false;
+      component.internalCopy = false;
+      component.internalTarget = false;
 
-  describe('Parameter Conversion', () => {
-    it('should convert line and column to strings for formatOpenPath', () => {
-      component.copy = true;
-      component.element = {
-        path: '/path/to/file.ts',
-        line: 10,
-        column: 5,
-        name: 'test'
-      };
-      
-      component.trackCode('copy');
-      
-      expect(formatOpenPath).toHaveBeenCalledWith(
-        '/path/to/file.ts',
-        '10',
-        '5',
-        true
-      );
-    });
+      const sendXHRSpy = vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
+      const sendImgSpy = vi.spyOn(component, 'sendImg').mockImplementation(() => {});
+      const copyToClipboardSpy = vi.spyOn(component, 'copyToClipboard').mockImplementation(() => {});
+      const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const eventHandler = vi.fn();
+      window.addEventListener('code-inspector:trackCode', eventHandler);
 
-    it('should handle non-numeric line and column values', () => {
-      component.copy = true;
-      component.element = {
-        path: '/path/to/file.ts',
-        // @ts-ignore
-        line: 'abc',
-        // @ts-ignore
-        column: null,
-        name: 'test'
-      };
-      
-      component.trackCode('copy');
-      
-      expect(formatOpenPath).toHaveBeenCalledWith(
-        '/path/to/file.ts',
-        'abc',
-        'null',
-        true
-      );
+      component.trackCode();
+
+      expect(sendXHRSpy).not.toHaveBeenCalled();
+      expect(sendImgSpy).not.toHaveBeenCalled();
+      expect(copyToClipboardSpy).not.toHaveBeenCalled();
+      expect(windowOpenSpy).not.toHaveBeenCalled();
+      // Custom event should still be dispatched
+      expect(eventHandler).toHaveBeenCalled();
+
+      window.removeEventListener('code-inspector:trackCode', eventHandler);
     });
   });
 });

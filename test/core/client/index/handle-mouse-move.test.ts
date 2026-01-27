@@ -4,23 +4,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
 import { PathName } from '@/core/src/shared';
 
-// 模拟 composedPath
-vi.mock('@/core/src/shared', () => ({
-  PathName: 'data-insp-path',
-  DefaultPort: 5678
-}));
+const AstroFile = 'data-astro-source-file';
+const AstroLocation = 'data-astro-source-loc';
 
 describe('handleMouseMove', () => {
   let component: CodeInspectorComponent;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     component = new CodeInspectorComponent();
+    component.hideConsole = true;
     document.body.appendChild(component);
-    
-    // 模拟方法
-    component.renderCover = vi.fn();
-    component.removeCover = vi.fn();
-    component.isTracking = vi.fn().mockReturnValue(true);
+    await component.updateComplete;
   });
 
   afterEach(() => {
@@ -28,164 +22,255 @@ describe('handleMouseMove', () => {
     vi.clearAllMocks();
   });
 
-  describe('Basic Functionality', () => {
-    it('should call renderCover when valid target is found with PathName attribute', () => {
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
+  const createElementWithPath = (tagName: string, path: string) => {
+    const element = document.createElement(tagName);
+    element.setAttribute(PathName, path);
+    return element;
+  };
 
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(mouseEvent);
+  const createAstroElement = (tagName: string, file: string, loc: string) => {
+    const element = document.createElement(tagName);
+    element.setAttribute(AstroFile, file);
+    element.setAttribute(AstroLocation, loc);
+    return element;
+  };
 
-      expect(component.renderCover).toHaveBeenCalledWith(targetNode);
-      expect(component.removeCover).not.toHaveBeenCalled();
+  const createMouseEvent = (composedPath: EventTarget[]) => {
+    const event = new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true
     });
+    event.composedPath = vi.fn().mockReturnValue(composedPath);
+    return event;
+  };
 
-    it('should call renderCover when valid target is found with PathName property', () => {
-      const targetNode = document.createElement('div');
-      // @ts-ignore
-      targetNode[PathName] = '/path/to/file.ts:10:5:div';
+  describe('Tracking Conditions', () => {
+    it('should render cover when tracking and not dragging', async () => {
+      const element = createElementWithPath('div', '/path/file.ts:10:5:div');
+      const event = createMouseEvent([element, document.body]);
 
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).toHaveBeenCalledWith(targetNode);
-    });
-
-    it('should call renderCover when valid target is found with Astro attributes', () => {
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute('data-astro-source-file', '/astro/file.ts');
-
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).toHaveBeenCalledWith(targetNode);
-    });
-  });
-
-  describe('Conditions for Not Rendering', () => {
-    it('should call removeCover when no valid target is found', () => {
-      const normalNode = document.createElement('div');
-      
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([normalNode, document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).not.toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-
-    it('should call removeCover when dragging is true', () => {
-      component.dragging = true;
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
-
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).not.toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-
-    it('should call removeCover when hoverSwitch is true', () => {
-      component.hoverSwitch = true;
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
-
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).not.toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-  });
-
-  describe('Touch Events', () => {
-    it('should handle touch events correctly', () => {
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
-
-      const touchEvent = new TouchEvent('touchmove');
-      touchEvent.composedPath = vi.fn().mockReturnValue([targetNode, document.body]);
-      component.handleMouseMove(touchEvent);
-
-      expect(component.renderCover).toHaveBeenCalledWith(targetNode);
-    });
-  });
-
-  describe('Path Traversal', () => {
-    it('should find first valid target in path', () => {
-      const validNode = document.createElement('div');
-      validNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
-      const anotherValidNode = document.createElement('div');
-      anotherValidNode.setAttribute(PathName, '/another/path.ts:20:5:div');
-      
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([
-        document.createElement('div'),
-        validNode,
-        anotherValidNode,
-        document.body
-      ] as EventTarget[]);
-
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).toHaveBeenCalledWith(validNode);
-    });
-
-    it('should handle empty path', () => {
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).not.toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('should handle nodes without hasAttribute method', () => {
-      const node = { nodeType: 1 };
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([document.body]);
-      component.handleMouseMove(mouseEvent);
-
-      expect(component.renderCover).not.toHaveBeenCalled();
-      expect(component.removeCover).toHaveBeenCalled();
-    });
-  });
-
-  describe('State Combinations', () => {
-    it('should render when isTracking is true and open is false', () => {
-      component.open = false;
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = false;
       component.hoverSwitch = false;
 
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
+      const renderCoverSpy = vi.spyOn(component, 'renderCover').mockImplementation(async () => {});
 
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode]);
-      component.handleMouseMove(mouseEvent);
+      await component.handleMouseMove(event);
 
-      expect(component.renderCover).toHaveBeenCalled();
+      expect(renderCoverSpy).toHaveBeenCalledWith(element);
     });
 
-    it('should render when isTracking is false but open is true', () => {
+    it('should render cover when open is true', async () => {
+      const element = createElementWithPath('div', '/path/file.ts:10:5:div');
+      const event = createMouseEvent([element, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(false);
       component.open = true;
       component.hoverSwitch = false;
 
-      const targetNode = document.createElement('div');
-      targetNode.setAttribute(PathName, '/path/to/file.ts:10:5:div');
+      const renderCoverSpy = vi.spyOn(component, 'renderCover').mockImplementation(async () => {});
 
-      const mouseEvent = new MouseEvent('mousemove');
-      mouseEvent.composedPath = vi.fn().mockReturnValue([targetNode]);
-      component.handleMouseMove(mouseEvent);
+      await component.handleMouseMove(event);
 
-      expect(component.renderCover).toHaveBeenCalled();
+      expect(renderCoverSpy).toHaveBeenCalledWith(element);
     });
+
+    it('should call removeCover when hoverSwitch is true', async () => {
+      const element = createElementWithPath('div', '/path/file.ts:10:5:div');
+      const event = createMouseEvent([element, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = false;
+      component.hoverSwitch = true;
+
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      await component.handleMouseMove(event);
+
+      expect(removeCoverSpy).toHaveBeenCalled();
+    });
+
+    it('should call removeCover when dragging', async () => {
+      const element = createElementWithPath('div', '/path/file.ts:10:5:div');
+      const event = createMouseEvent([element, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = true;
+      component.hoverSwitch = false;
+
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      await component.handleMouseMove(event);
+
+      expect(removeCoverSpy).toHaveBeenCalled();
+    });
+
+    it('should call removeCover when not tracking and not open', async () => {
+      const element = createElementWithPath('div', '/path/file.ts:10:5:div');
+      const event = createMouseEvent([element, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(false);
+      component.open = false;
+
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      await component.handleMouseMove(event);
+
+      expect(removeCoverSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Astro Elements', () => {
+    it('should prioritize Astro elements', async () => {
+      const astroElement = createAstroElement('div', '/path/astro.astro', '5:3');
+      const normalElement = createElementWithPath('span', '/path/file.ts:10:5:span');
+      const event = createMouseEvent([normalElement, astroElement, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = false;
+      component.hoverSwitch = false;
+
+      const renderCoverSpy = vi.spyOn(component, 'renderCover').mockImplementation(async () => {});
+
+      await component.handleMouseMove(event);
+
+      expect(renderCoverSpy).toHaveBeenCalledWith(astroElement);
+    });
+  });
+
+  describe('Same Position Nodes', () => {
+    it('should prefer the outer component when nodes have same position', async () => {
+      const innerElement = createElementWithPath('div', '/path/inner.ts:5:1:div');
+      const outerElement = createElementWithPath('section', '/path/outer.ts:10:5:section');
+
+      // Make both elements have the same bounding rect
+      innerElement.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 100, left: 50, right: 200, bottom: 150
+      });
+      outerElement.getBoundingClientRect = vi.fn().mockReturnValue({
+        top: 100, left: 50, right: 200, bottom: 150
+      });
+
+      const event = createMouseEvent([innerElement, outerElement, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = false;
+      component.hoverSwitch = false;
+
+      const renderCoverSpy = vi.spyOn(component, 'renderCover').mockImplementation(async () => {});
+
+      await component.handleMouseMove(event);
+
+      // Should prefer the outer element when positions are the same
+      expect(renderCoverSpy).toHaveBeenCalledWith(outerElement);
+    });
+  });
+
+  describe('No Valid Nodes', () => {
+    it('should call removeCover when no valid nodes found', async () => {
+      const noPathElement = document.createElement('div');
+      const event = createMouseEvent([noPathElement, document.body]);
+
+      component.isTracking = vi.fn().mockReturnValue(true);
+      component.dragging = false;
+      component.hoverSwitch = false;
+
+      const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
+
+      await component.handleMouseMove(event);
+
+      expect(removeCoverSpy).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('isSamePositionNode', () => {
+  let component: CodeInspectorComponent;
+
+  beforeEach(async () => {
+    component = new CodeInspectorComponent();
+    component.hideConsole = true;
+    document.body.appendChild(component);
+    await component.updateComplete;
+  });
+
+  afterEach(() => {
+    document.body.removeChild(component);
+  });
+
+  it('should return true for nodes with same position', () => {
+    const node1 = document.createElement('div');
+    const node2 = document.createElement('span');
+
+    node1.getBoundingClientRect = vi.fn().mockReturnValue({
+      top: 100, left: 50, right: 200, bottom: 150
+    });
+    node2.getBoundingClientRect = vi.fn().mockReturnValue({
+      top: 100, left: 50, right: 200, bottom: 150
+    });
+
+    expect(component.isSamePositionNode(node1, node2)).toBe(true);
+  });
+
+  it('should return false for nodes with different positions', () => {
+    const node1 = document.createElement('div');
+    const node2 = document.createElement('span');
+
+    node1.getBoundingClientRect = vi.fn().mockReturnValue({
+      top: 100, left: 50, right: 200, bottom: 150
+    });
+    node2.getBoundingClientRect = vi.fn().mockReturnValue({
+      top: 110, left: 50, right: 200, bottom: 160
+    });
+
+    expect(component.isSamePositionNode(node1, node2)).toBe(false);
+  });
+});
+
+describe('getValidNodeList', () => {
+  let component: CodeInspectorComponent;
+
+  beforeEach(async () => {
+    component = new CodeInspectorComponent();
+    component.hideConsole = true;
+    document.body.appendChild(component);
+    await component.updateComplete;
+  });
+
+  afterEach(() => {
+    document.body.removeChild(component);
+  });
+
+  it('should return nodes with PathName attribute', () => {
+    const validNode = document.createElement('div');
+    validNode.setAttribute(PathName, '/path/file.ts:10:5:div');
+    const invalidNode = document.createElement('span');
+
+    const result = component.getValidNodeList([validNode, invalidNode]);
+
+    expect(result.length).toBe(1);
+    expect(result[0].node).toBe(validNode);
+    expect(result[0].isAstro).toBe(false);
+  });
+
+  it('should mark Astro nodes correctly', () => {
+    const astroNode = document.createElement('div');
+    astroNode.setAttribute(AstroFile, '/path/file.astro');
+    astroNode.setAttribute(AstroLocation, '5:3');
+
+    const result = component.getValidNodeList([astroNode]);
+
+    expect(result.length).toBe(1);
+    expect(result[0].isAstro).toBe(true);
+  });
+
+  it('should return nodes with PathName property', () => {
+    const nodeWithProperty = document.createElement('div') as any;
+    nodeWithProperty[PathName] = '/path/file.ts:10:5:div';
+
+    const result = component.getValidNodeList([nodeWithProperty]);
+
+    expect(result.length).toBe(1);
+    expect(result[0].isAstro).toBe(false);
   });
 });
