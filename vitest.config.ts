@@ -3,6 +3,7 @@ import path from 'path';
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    fileParallelism: false,
     coverage: {
       include: ['packages/*/src/**'],
     },
