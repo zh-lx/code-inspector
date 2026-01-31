@@ -43,7 +43,7 @@ describe('startServer', () => {
     };
     vi.mocked(http.createServer).mockReturnValue(mockHttpServer as any);
 
-    // Mock net server for isPortStarted
+    // Mock net server for isPortOccupied
     mockNetServer = {
       unref: vi.fn(),
       close: vi.fn(),
@@ -74,7 +74,7 @@ describe('startServer', () => {
   });
 
   describe('when previous port exists and is still running', () => {
-    it('should not restart server if port is already started', async () => {
+    it('should not restart server if port is occupied (already running)', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/running');
 
       // Set up record with existing port
@@ -87,10 +87,10 @@ describe('startServer', () => {
       // Create initial record with port
       setProjectRecord(record, 'port', 8888);
 
-      // Mock net server to indicate port is in use
+      // Mock net server to indicate port is occupied (in use)
       mockNetServer.on = vi.fn((event: string, callback: Function) => {
         if (event === 'error') {
-          // Port is in use (already started)
+          // Port is occupied (already started)
           setTimeout(() => callback(), 0);
         }
         return mockNetServer;
@@ -103,14 +103,14 @@ describe('startServer', () => {
       await startServer(options, record);
 
       // Should not create a new server since port is already running
-      // The server check happens through isPortStarted
+      // The server check happens through isPortOccupied
       const projectRecord = getProjectRecord(record);
       expect(projectRecord?.port).toBe(8888);
     });
   });
 
   describe('when previous port exists but is not running', () => {
-    it('should restart server when port is no longer running', async () => {
+    it('should restart server when port is available (not occupied)', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/restart');
 
       const record: RecordInfo = {
@@ -123,10 +123,10 @@ describe('startServer', () => {
       setProjectRecord(record, 'port', 7777);
       setProjectRecord(record, 'findPort', 1);
 
-      // Mock net server to indicate port is available (not started)
+      // Mock net server to indicate port is available (not occupied)
       mockNetServer.on = vi.fn((event: string, callback: Function) => {
         if (event === 'listening') {
-          // Port is available (not started)
+          // Port is available (not occupied)
           setTimeout(() => callback(), 0);
         }
         return mockNetServer;

@@ -109,23 +109,27 @@ export function createServer(
   return server;
 }
 
-// check if the port is started
-async function isPortStarted(port: number) {
+/**
+ * Check if a port is occupied (in use)
+ * @param port - The port number to check
+ * @returns Promise<boolean> - true if port is occupied, false if available
+ */
+async function isPortOccupied(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    // create TCP server
+    // Create TCP server to test port availability
     const server = net.createServer();
-    // disable default connection listening (only for detecting port)
+    // Disable default connection listening (only for detecting port)
     server.unref();
 
-    // bind port successfully → started
+    // Port is available - we can bind to it
     server.on('listening', () => {
-      server.close(); // immediately close server, release port
-      resolve(false);
+      server.close(); // Immediately close server, release port
+      resolve(false); // Port is NOT occupied
     });
 
-    // bind port failed → not started
+    // Port is occupied - binding failed
     server.on('error', () => {
-      resolve(true);
+      resolve(true); // Port IS occupied
     });
 
     server.listen(port);
@@ -135,11 +139,12 @@ async function isPortStarted(port: number) {
 export async function startServer(options: CodeOptions, record: RecordInfo) {
   const previousPort = getProjectRecord(record)?.port;
   if (previousPort) {
-    const isStarted = await isPortStarted(previousPort);
-    if (isStarted) {
+    const isOccupied = await isPortOccupied(previousPort);
+    if (isOccupied) {
+      // Port is occupied, server is already running
       return;
     }
-    // restart server
+    // Port is available, need to restart server
     setProjectRecord(record, 'findPort', undefined);
     setProjectRecord(record, 'port', undefined);
   }
