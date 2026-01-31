@@ -20,7 +20,7 @@ import {
   fileURLToPath,
   AstroToolbarFile,
   getIP,
-  getDenpendencies,
+  getDependencies,
   normalizePath,
   getProjectRecord,
   setProjectRecord,
@@ -399,7 +399,7 @@ function writeWebComponentFile(
 }
 
 export function isNextjsProject() {
-  const dependencies = getDenpendencies();
+  const dependencies = getDependencies();
   return dependencies.includes('next');
 }
 

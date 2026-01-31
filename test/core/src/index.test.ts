@@ -77,7 +77,7 @@ describe('core/src/index exports', () => {
     expect(typeof exports.normalizePath).toBe('function');
     expect(typeof exports.isEscapeTags).toBe('function');
     expect(typeof exports.getDependenciesMap).toBe('function');
-    expect(typeof exports.getDenpendencies).toBe('function');
+    expect(typeof exports.getDependencies).toBe('function');
     expect(typeof exports.isDev).toBe('function');
     expect(typeof exports.matchCondition).toBe('function');
     expect(typeof exports.getMappingFilePath).toBe('function');

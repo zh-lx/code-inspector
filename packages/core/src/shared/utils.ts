@@ -90,7 +90,7 @@ export function getDependenciesMap() {
   return {};
 }
 
-export function getDenpendencies() {
+export function getDependencies() {
   return Object.keys(getDependenciesMap());
 }
 

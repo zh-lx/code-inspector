@@ -93,7 +93,7 @@ describe('Next.js Integration Tests', () => {
   describe('Next.js project detection and code injection', () => {
     it('should add Next.js empty element and import for Next.js project with use client directive', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-useClient');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'page.tsx');
       const originalCode = `'use client';
@@ -127,7 +127,7 @@ export default function Page() {
 
     it('should add Next.js empty element for JSX without use client directive', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-no-useClient');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'component.tsx');
       const originalCode = `export default function Component() {
@@ -160,7 +160,7 @@ export default function Page() {
 
     it('should handle nested JSX elements correctly', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-nested');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'nested.tsx');
       const originalCode = `'use client';
@@ -198,7 +198,7 @@ export default function Nested() {
 
     it('should not re-process file if already processed (identical content after transform)', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-reprocess');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'already-processed.tsx');
       // Code that already has the empty element (simulating already processed)
@@ -233,7 +233,7 @@ export default function AlreadyProcessed() {
   describe('Next.js instrumentation file handling', () => {
     it('should not record instrumentation file as entry for Next.js project', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-instrumentation');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'instrumentation.ts');
       fs.writeFileSync(testFile, 'export function register() {}');
@@ -261,7 +261,7 @@ export default function AlreadyProcessed() {
 
     it('should not record instrumentation.js file as entry', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-instrumentation-js');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'src', 'instrumentation.js');
       fs.mkdirSync(path.join(testDir, 'src'), { recursive: true });
@@ -292,7 +292,7 @@ export default function AlreadyProcessed() {
   describe('importClient file mode for Next.js', () => {
     it('should correctly handle file matching web component file path', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-file-match');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       // Create the web component file first
       const webComponentFile = path.join(testDir, 'append-code-5678.js');
@@ -326,7 +326,7 @@ export default function AlreadyProcessed() {
   describe('Edge cases for Next.js code transformation', () => {
     it('should handle JSX without closing element gracefully', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-self-closing');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'self-closing.tsx');
       const originalCode = `'use client';
@@ -360,7 +360,7 @@ export default function SelfClosing() {
 
     it('should handle multiple JSX roots by only modifying first', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-multiple-roots');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
 
       const testFile = path.join(testDir, 'multiple.tsx');
       const originalCode = `'use client';
@@ -398,7 +398,7 @@ export default Header;`;
   describe('hasWritePermission branch', () => {
     it('should fall back to inline injection when no write permission', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/no-write-permission');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
       const hasWritePermissionSpy = vi.spyOn(sharedModule, 'hasWritePermission').mockReturnValue(false);
 
       const testFile = path.join(testDir, 'no-write.tsx');
@@ -438,7 +438,7 @@ export default function NoWrite() {
   describe('injectTo matching', () => {
     it('should inject code when file matches injectTo path', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/inject-to-test');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['react']);
 
       const testFile = path.join(testDir, 'inject-target.tsx');
       const originalCode = 'const x = 1;';
@@ -471,7 +471,7 @@ export default function NoWrite() {
   describe('edge cases for fallback branches', () => {
     it('should handle undefined port gracefully', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/undefined-port');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['react']);
 
       const testFile = path.join(testDir, 'undefined-port.ts');
       fs.writeFileSync(testFile, 'const x = 1;');
@@ -501,7 +501,7 @@ export default function NoWrite() {
 
     it('should inject code when file matches injectTo in record', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/inject-to-record');
-      vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['react']);
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['react']);
 
       const testFile = path.join(testDir, 'inject-record.tsx');
       const normalizedPath = testFile.replace(/\\/g, '/');

@@ -49,17 +49,17 @@ describe('isNextjsProject', () => {
   });
 
   it('should return true when next is in dependencies', () => {
-    vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['next', 'react']);
+    vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
     expect(isNextjsProject()).toBe(true);
   });
 
   it('should return false when next is not in any dependencies', () => {
-    vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue(['react', 'vue']);
+    vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['react', 'vue']);
     expect(isNextjsProject()).toBe(false);
   });
 
   it('should return false when dependencies is empty', () => {
-    vi.spyOn(sharedUtils, 'getDenpendencies').mockReturnValue([]);
+    vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue([]);
     expect(isNextjsProject()).toBe(false);
   });
 });
