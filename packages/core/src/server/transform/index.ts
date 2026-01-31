@@ -2,7 +2,7 @@ import fs from 'fs';
 import { transformJsx } from './transform-jsx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
-import { EscapeTags, PathType } from '../../shared';
+import { EscapeTags, PathType, isIgnoredFile } from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
 
 type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
@@ -30,50 +30,6 @@ const CodeInspectorEscapeTags = [
   'suspense',
   'fragment',
 ];
-
-function isIgnoredFile({
-  content,
-  fileType,
-}: {
-  content: string;
-  fileType: FileType;
-}) {
-  if (!content) {
-    return false;
-  }
-  const trimmed = content.trimStart();
-  const directives = ['code-inspector-disable', 'code-inspector-ignore'];
-
-  // Vue / Svelte
-  if (fileType === 'vue' || fileType === 'svelte') {
-    if (trimmed.startsWith('<!--')) {
-      const endIndex = trimmed.indexOf('-->');
-      if (endIndex !== -1) {
-        const body = trimmed.slice(0, endIndex + 3).toLowerCase();
-        return directives.some((d) => body.includes(d));
-      }
-    }
-    return false;
-  }
-
-  // single line comment
-  const lineComment = trimmed.match(/^\/\/\s*([^\n]+)/);
-  if (lineComment) {
-    const body = lineComment[1].toLowerCase();
-    return directives.some((d) => body.includes(d));
-  }
-
-  // block comment (contains /** */ multi-line)
-  if (trimmed.startsWith('/*')) {
-    const endIndex = trimmed.indexOf('*/');
-    if (endIndex !== -1) {
-      const body = trimmed.slice(0, endIndex + 2).toLowerCase();
-      return directives.some((d) => body.includes(d));
-    }
-  }
-
-  return false;
-}
 
 export function transformCode(params: TransformCodeParams) {
   let {

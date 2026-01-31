@@ -68,6 +68,7 @@ interface ActiveNode {
 }
 
 const PopperWidth = 300;
+const POPPER_MARGIN = 10; // Margin for popper positioning
 
 function nextTick() {
   return new Promise((resolve) => {
@@ -204,6 +205,13 @@ export class CodeInspectorComponent extends LitElement {
       onChange: () => this.toggleTarget(),
     },
   ];
+
+  // Event listeners configuration for centralized management
+  private eventListeners: Array<{
+    event: string;
+    handler: EventListener;
+    options: boolean | AddEventListenerOptions;
+  }> = [];
 
   isTracking = (e: any) => {
     return (
@@ -461,7 +469,7 @@ export class CodeInspectorComponent extends LitElement {
     if (force !== true && this.nodeTree) {
       return;
     }
-    this.targetNode = null
+    this.targetNode = null;
     this.show = false;
     this.removeGlobalCursorStyle();
     document.body.style.userSelect = this.preUserSelect;
@@ -497,10 +505,10 @@ export class CodeInspectorComponent extends LitElement {
 
     if (bottomToViewPort < y) {
       position['bottom'] = bottomToViewPort + 'px';
-      position['maxHeight'] = `${y - 10}px`;
+      position['maxHeight'] = `${y - POPPER_MARGIN}px`;
     } else {
       position['top'] = y + 'px';
-      position['maxHeight'] = `${browserHeight - y - 10}px`;
+      position['maxHeight'] = `${browserHeight - y - POPPER_MARGIN}px`;
     }
     this.nodeTreePosition = position;
     this.nodeTree = nodeTree;
@@ -1059,44 +1067,58 @@ export class CodeInspectorComponent extends LitElement {
     this.internalTarget = !this.internalTarget;
   };
 
+  /**
+   * Attach all event listeners
+   */
+  private attachEventListeners(): void {
+    this.eventListeners.forEach(({ event, handler, options }) => {
+      window.addEventListener(event, handler, options);
+    });
+  }
+
+  /**
+   * Detach all event listeners
+   */
+  private detachEventListeners(): void {
+    this.eventListeners.forEach(({ event, handler, options }) => {
+      window.removeEventListener(event, handler, options as EventListenerOptions);
+    });
+  }
+
   protected firstUpdated(): void {
     // 初始化内部状态
     this.internalLocate = this.locate;
     this.internalCopy = !!this.copy;
     this.internalTarget = !!this.target;
 
+    // Initialize event listeners configuration
+    this.eventListeners = [
+      { event: 'mousemove', handler: this.handleMouseMove as unknown as EventListener, options: true },
+      { event: 'touchmove', handler: this.handleMouseMove as unknown as EventListener, options: true },
+      { event: 'mousemove', handler: this.handleDrag as EventListener, options: true },
+      { event: 'touchmove', handler: this.handleDrag as EventListener, options: true },
+      { event: 'click', handler: this.handleMouseClick as EventListener, options: true },
+      { event: 'pointerdown', handler: this.handlePointerDown as EventListener, options: true },
+      { event: 'keyup', handler: this.handleKeyUp as EventListener, options: true },
+      { event: 'keydown', handler: this.handleModeShortcut as EventListener, options: true },
+      { event: 'mouseleave', handler: this.removeCover as EventListener, options: true },
+      { event: 'mouseup', handler: this.handleMouseUp as EventListener, options: true },
+      { event: 'touchend', handler: this.handleMouseUp as EventListener, options: true },
+      { event: 'contextmenu', handler: this.handleContextMenu as EventListener, options: true },
+      { event: 'wheel', handler: this.handleWheel as EventListener, options: { passive: false } },
+    ];
+
     if (!this.hideConsole) {
       this.printTip();
     }
-    window.addEventListener('mousemove', this.handleMouseMove, true);
-    window.addEventListener('touchmove', this.handleMouseMove, true);
-    window.addEventListener('mousemove', this.handleDrag, true);
-    window.addEventListener('touchmove', this.handleDrag, true);
-    window.addEventListener('click', this.handleMouseClick, true);
-    window.addEventListener('pointerdown', this.handlePointerDown, true);
-    window.addEventListener('keyup', this.handleKeyUp, true);
-    window.addEventListener('keydown', this.handleModeShortcut, true);
-    window.addEventListener('mouseleave', this.removeCover, true);
-    window.addEventListener('mouseup', this.handleMouseUp, true);
-    window.addEventListener('touchend', this.handleMouseUp, true);
-    window.addEventListener('contextmenu', this.handleContextMenu, true);
-    window.addEventListener('wheel', this.handleWheel, { passive: false });
+
+    // Attach all event listeners
+    this.attachEventListeners();
   }
 
   disconnectedCallback(): void {
-    window.removeEventListener('mousemove', this.handleMouseMove, true);
-    window.removeEventListener('touchmove', this.handleMouseMove, true);
-    window.removeEventListener('mousemove', this.handleDrag, true);
-    window.removeEventListener('touchmove', this.handleDrag, true);
-    window.removeEventListener('click', this.handleMouseClick, true);
-    window.removeEventListener('pointerdown', this.handlePointerDown, true);
-    window.removeEventListener('keyup', this.handleKeyUp, true);
-    window.removeEventListener('keydown', this.handleModeShortcut, true);
-    window.removeEventListener('mouseleave', this.removeCover, true);
-    window.removeEventListener('mouseup', this.handleMouseUp, true);
-    window.removeEventListener('touchend', this.handleMouseUp, true);
-    window.removeEventListener('contextmenu', this.handleContextMenu, true);
-    window.removeEventListener('wheel', this.handleWheel, { passive: false } as EventListenerOptions);
+    // Detach all event listeners
+    this.detachEventListeners();
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`

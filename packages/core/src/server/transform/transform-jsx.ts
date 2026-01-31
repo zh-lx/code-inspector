@@ -1,13 +1,13 @@
 import MagicString from 'magic-string';
 import { PathName, EscapeTags, isEscapeTags } from '../../shared';
 import vueJsxPlugin from '@vue/babel-plugin-jsx';
-// @ts-ignore
+// @ts-expect-error - @babel/core doesn't provide TypeScript types
 import { parse, traverse } from '@babel/core';
-// @ts-ignore
+// @ts-expect-error - @babel/plugin-transform-typescript doesn't provide TypeScript types
 import tsPlugin from '@babel/plugin-transform-typescript';
-// @ts-ignore
+// @ts-expect-error - @babel/plugin-syntax-import-meta doesn't provide TypeScript types
 import importMetaPlugin from '@babel/plugin-syntax-import-meta';
-// @ts-ignore
+// @ts-expect-error - @babel/plugin-proposal-decorators doesn't provide TypeScript types
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
 export function transformJsx(content: string, filePath: string, escapeTags: EscapeTags) {

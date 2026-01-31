@@ -68,12 +68,75 @@ describe('showNotification', () => {
 
   describe('Animation', () => {
     it('should add show class via requestAnimationFrame', async () => {
+      const rafSpy = vi.spyOn(window, 'requestAnimationFrame');
+
       component.showNotification('Test message');
 
-      // The show class is added via requestAnimationFrame
-      // Simply verify the notification was created
+      // Verify requestAnimationFrame was called
+      expect(rafSpy).toHaveBeenCalledTimes(1);
+      expect(rafSpy).toHaveBeenCalledWith(expect.any(Function));
+
       const notification = document.querySelector('.code-inspector-notification');
       expect(notification).toBeTruthy();
+
+      // Initially, the show class should not be present
+      expect(notification?.classList.contains('code-inspector-notification-show')).toBe(false);
+
+      // Execute the requestAnimationFrame callback
+      const rafCallback = rafSpy.mock.calls[0][0];
+      rafCallback(0);
+
+      // After the callback, the show class should be added
+      expect(notification?.classList.contains('code-inspector-notification-show')).toBe(true);
+
+      rafSpy.mockRestore();
+    });
+
+    it('should trigger animation by adding show class after notification is appended', () => {
+      const rafSpy = vi.spyOn(window, 'requestAnimationFrame');
+
+      component.showNotification('Animation test');
+
+      const notification = document.querySelector('.code-inspector-notification');
+
+      // Notification should be in DOM before requestAnimationFrame
+      expect(notification).toBeTruthy();
+      expect(document.body.contains(notification!)).toBe(true);
+
+      // Show class should not be present yet
+      expect(notification?.classList.contains('code-inspector-notification-show')).toBe(false);
+
+      // Execute the animation frame callback
+      const rafCallback = rafSpy.mock.calls[0][0];
+      rafCallback(0);
+
+      // Now the show class should be present
+      expect(notification?.classList.contains('code-inspector-notification-show')).toBe(true);
+
+      rafSpy.mockRestore();
+    });
+
+    it('should handle multiple notifications with separate animation frames', () => {
+      const rafSpy = vi.spyOn(window, 'requestAnimationFrame');
+
+      component.showNotification('First');
+      component.showNotification('Second');
+
+      // Should call requestAnimationFrame twice
+      expect(rafSpy).toHaveBeenCalledTimes(2);
+
+      const notifications = document.querySelectorAll('.code-inspector-notification');
+      expect(notifications.length).toBe(2);
+
+      // Execute both callbacks
+      rafSpy.mock.calls.forEach(([callback]) => callback(0));
+
+      // Both should have show class
+      notifications.forEach(notification => {
+        expect(notification.classList.contains('code-inspector-notification-show')).toBe(true);
+      });
+
+      rafSpy.mockRestore();
     });
   });
 
