@@ -40,13 +40,12 @@ export function transformSvelte(content: string, filePath: string, escapeTags: E
   return s.toString();
 }
 
-// 计算给定字符位置在源代码中的行数
-function countLines(text: string, position: number) {
-  let count = 0;
-  for (let i = 0; i < position; i++) {
-    if (text[i] === '\n') {
-      count++;
-    }
-  }
-  return count;
+/**
+ * Calculate the line number for a given character position in the source code
+ * @param text - The source text
+ * @param position - The character position
+ * @returns The line number (0-based)
+ */
+function countLines(text: string, position: number): number {
+  return text.slice(0, position).split('\n').length - 1;
 }

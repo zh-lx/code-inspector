@@ -16,4 +16,14 @@ export declare function getMappingFilePath(file: string, mappings?: Record<strin
 }>): string;
 export declare function isExcludedFile(file: string, options: CodeOptions): boolean;
 export declare function hasWritePermission(filePath: string): boolean;
+/**
+ * Check if a file should be ignored based on special directives in comments
+ * @param content - The file content to check
+ * @param fileType - The type of file ('vue', 'jsx', 'svelte', or unknown)
+ * @returns true if the file should be ignored, false otherwise
+ */
+export declare function isIgnoredFile({ content, fileType, }: {
+    content: string;
+    fileType: 'vue' | 'jsx' | 'svelte' | unknown;
+}): boolean;
 export {};
