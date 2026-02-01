@@ -113,6 +113,7 @@ export declare class CodeInspectorComponent extends LitElement {
         checked: () => boolean;
         onChange: () => void;
     }[];
+    private eventListeners;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
     calculateElementInfoPosition: (target: HTMLElement) => Promise<{
@@ -180,6 +181,14 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleLocate: () => void;
     toggleCopy: () => void;
     toggleTarget: () => void;
+    /**
+     * Attach all event listeners
+     */
+    private attachEventListeners;
+    /**
+     * Detach all event listeners
+     */
+    private detachEventListeners;
     protected firstUpdated(): void;
     disconnectedCallback(): void;
     renderNodeTree: (node: TreeNode) => TemplateResult;
