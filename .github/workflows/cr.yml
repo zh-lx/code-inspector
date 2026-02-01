@@ -21,13 +21,12 @@ jobs:
         env:
           OPENAI_KEY: ${{ secrets.CODE_REVIEW_KEY }}
           GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
-          # 模型配置
-          config.model: "qwen/qwen3-coder-480b-a35b-instruct"
-          config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
+          # 模型配置 (openai/ 前缀用于 OpenAI 兼容 API)
+          config.model: "openai/qwen/qwen3-coder-480b-a35b-instruct"
+          config.fallback_models: '["openai/qwen/qwen3-coder-480b-a35b-instruct"]'
           config.custom_model_max_tokens: "16384"
           # OpenAI 兼容 API 端点
-          OPENAI_API_BASE: "https://integrate.api.nvidia.com/v1"
-          OPENAI.API_BASE: "https://integrate.api.nvidia.com/v1"
+          openai.api_base: "https://integrate.api.nvidia.com/v1"
           # 自动功能配置
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "true"
