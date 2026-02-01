@@ -26,7 +26,8 @@ jobs:
           config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
           config.custom_model_max_tokens: "16384"
           # OpenAI 兼容 API 端点
-          openai.api_base: "https://integrate.api.nvidia.com/v1"
+          OPENAI_API_BASE: "https://integrate.api.nvidia.com/v1"
+          OPENAI.API_BASE: "https://integrate.api.nvidia.com/v1"
           # 自动功能配置
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "true"
