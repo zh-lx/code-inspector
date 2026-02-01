@@ -1,28 +1,33 @@
 name: Code Review
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
 
 jobs:
   pr_agent_job:
+    # 排除 Bot 触发，避免循环
+    if: ${{ github.event.sender.type != 'Bot' }}
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
     steps:
-    - name: PR Agent action step
-      uses: Codium-ai/pr-agent@main
-      env:
-        OPENAI_KEY: ${{ secrets.CODE_REVIEW_KEY }}
-        GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
-        # Set the model to a local Ollama model
-        config.model: "qwen/qwen3-coder-480b-a35b-instruct"
-        config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
-        config.custom_model_max_tokens: "16384"
-        # Ollama configuration
-        OPENAI.API_BASE: "https://integrate.api.nvidia.com/v1"
-        # Tool configuration
-        github_action_config.auto_review: "true"
-        github_action_config.auto_describe: "true"
-        github_action_config.auto_improve: "true"
+      - name: PR Agent action step
+        uses: qodo-ai/pr-agent@main
+        env:
+          OPENAI_KEY: ${{ secrets.CODE_REVIEW_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CODE_REVIEW_SECRET_TOKEN }}
+          # 模型配置
+          config.model: "qwen/qwen3-coder-480b-a35b-instruct"
+          config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
+          config.custom_model_max_tokens: "16384"
+          # OpenAI 兼容 API 端点
+          openai.api_base: "https://integrate.api.nvidia.com/v1"
+          # 自动功能配置
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
