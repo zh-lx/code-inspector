@@ -21,7 +21,7 @@ jobs:
         config.fallback_models: '["qwen/qwen3-coder-480b-a35b-instruct"]'
         config.custom_model_max_tokens: "16384"
         # Ollama configuration
-        OLLAMA.API_BASE: "https://integrate.api.nvidia.com/v1"
+        OPENAI.API_BASE: "https://integrate.api.nvidia.com/v1"
         # Tool configuration
         github_action_config.auto_review: "true"
         github_action_config.auto_describe: "true"
