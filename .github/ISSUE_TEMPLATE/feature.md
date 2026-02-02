@@ -1,10 +1,10 @@
 ---
-name: 功能建议
-about: 这是一个功能建议
+name: New Feature Request
+about: I have a new feature request
 ---
 
-> 提示：如果方便请加入本项目 README.md 最下面的 QQ 群或者微信群提供更详细的信息
+> Tip: If you can, please join the QQ group or WeChat group at the bottom of the README.md file to provide more detailed information
 
-## 功能描述
+## Feature Description
 
-_请描述一下你的功能……_
+_Please describe your feature……_

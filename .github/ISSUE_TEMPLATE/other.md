@@ -1,6 +1,6 @@
 ---
-name: 其他问题
-about: 欢迎在这里提出任何问题
+name: Other Issues
+about: I have other issues
 ---
 
-> 提示：如果方便请加入本项目 README.md 最下面的 QQ 群或者微信群提供更详细的信息
+> Tip: If you can, please join the QQ group or WeChat group at the bottom of the README.md file to provide more detailed information
