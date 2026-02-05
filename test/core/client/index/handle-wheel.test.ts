@@ -249,6 +249,30 @@ describe('handleWheel', () => {
       expect(renderCoverCalls).toEqual([]);
     });
 
+    it('should not do anything when wheelThrottling is true', () => {
+      const [validNode0, validNode1] = createValidNodes(2);
+
+      component.renderCover(validNode0);
+
+      // Set wheelThrottling to true to simulate throttling state
+      (component as any).wheelThrottling = true;
+
+      const wheelUpEvent = new WheelEvent('wheel', { deltaX: -40 });
+      wheelUpEvent.composedPath = vi
+        .fn()
+        .mockReturnValue([
+          validNode0,
+          document.createElement('div'),
+          validNode1,
+          document.body
+        ] as EventTarget[]);
+
+      component.handleWheel(wheelUpEvent);
+
+      // renderCover should only have been called once (in setup), not again
+      expect(renderCoverCalls).toEqual([validNode0]);
+    });
+
     it('should not do anything when targetNode is not in composedPath', () => {
       const [validNode0, validNode1, unrelatedNode] = createValidNodes(3);
 
