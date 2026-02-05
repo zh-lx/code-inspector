@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.4.2
+
+- 【fix】修复了通过滚轮滚动切换父子元素时，会触发页面滚动的问题 [#465](https://github.com/zh-lx/code-inspector/pull/480)
+
 ## 1.4.1
 
 - 【fix】修复 webpack 中 `$$` 会被替换成 `$` 的问题 [#462](https://github.com/zh-lx/code-inspector/pull/462)

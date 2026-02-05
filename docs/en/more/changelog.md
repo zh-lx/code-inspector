@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.2
+- 【fix】Fixed the issue where the page would scroll when switching parent/child elements by scrolling with the mouse wheel [#480](https://github.com/zh-lx/code-inspector/pull/480)
+
 ## 1.4.1
 - 【fix】Fixed the issue where `$$` would be replaced with `$` in webpack [#462](https://github.com/zh-lx/code-inspector/pull/462)
 

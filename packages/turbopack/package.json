@@ -1,6 +1,6 @@
 {
   "name": "@code-inspector/turbopack",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",
