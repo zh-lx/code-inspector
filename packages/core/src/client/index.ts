@@ -765,11 +765,15 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   handleWheel = (e: WheelEvent) => {
-    if (!this.targetNode || this.wheelThrottling) {
+    if (!this.targetNode) {
       return;
     }
     e.stopPropagation();
     e.preventDefault();
+
+    if (this.wheelThrottling) {
+      return;
+    }
 
     this.wheelThrottling = true;
 
