@@ -67,6 +67,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -91,6 +93,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=src%2Ffile.ts&line=1&column=1',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -114,6 +118,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Fetc%2Fpasswd&line=1&column=1',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -141,6 +147,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -169,6 +177,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -194,6 +204,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Fpath%2Fwith%20spaces%2Ffile.ts&line=5&column=10',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -217,6 +229,8 @@ describe('createServer', () => {
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
       };
       const mockRes = {
         writeHead: vi.fn(),
@@ -232,6 +246,31 @@ describe('createServer', () => {
           column: 0,
         })
       );
+    });
+
+    it('should handle OPTIONS request for CORS preflight', () => {
+      const callback = vi.fn();
+      createServer(callback);
+
+      const mockReq = {
+        url: '/',
+        method: 'OPTIONS',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      expect(mockRes.writeHead).toHaveBeenCalledWith(200, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Private-Network': 'true',
+      });
+      expect(mockRes.end).toHaveBeenCalled();
     });
   });
 });

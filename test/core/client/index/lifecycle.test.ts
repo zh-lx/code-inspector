@@ -18,7 +18,7 @@ describe('Lifecycle methods', () => {
   });
 
   describe('firstUpdated', () => {
-    it('should initialize internal states from properties', async () => {
+    it('should initialize internal states from properties (mutually exclusive)', async () => {
       component = new CodeInspectorComponent();
       component.locate = true;
       component.copy = 'custom';
@@ -28,9 +28,45 @@ describe('Lifecycle methods', () => {
       document.body.appendChild(component);
       await component.updateComplete;
 
-      expect(component.internalLocate).toBe(true);
-      expect(component.internalCopy).toBe(true);
+      // 互斥逻辑：优先级 chat > target > copy > locate
+      // 由于 target 被设置，只有 internalTarget 应该为 true
+      expect(component.internalLocate).toBe(false);
+      expect(component.internalCopy).toBe(false);
       expect(component.internalTarget).toBe(true);
+    });
+
+    it('should respect defaultAction when set', async () => {
+      component = new CodeInspectorComponent();
+      component.locate = true;
+      component.copy = true;
+      component.target = 'https://example.com';
+      component.defaultAction = 'copy';
+      component.hideConsole = true;
+
+      document.body.appendChild(component);
+      await component.updateComplete;
+
+      // defaultAction 为 'copy'，所以只有 internalCopy 应该为 true
+      expect(component.internalLocate).toBe(false);
+      expect(component.internalCopy).toBe(true);
+      expect(component.internalTarget).toBe(false);
+    });
+
+    it('should fallback to priority when defaultAction target is disabled', async () => {
+      component = new CodeInspectorComponent();
+      component.locate = true;
+      component.copy = true;
+      component.target = '';
+      component.defaultAction = 'target'; // target 未启用
+      component.hideConsole = true;
+
+      document.body.appendChild(component);
+      await component.updateComplete;
+
+      // defaultAction 为 'target' 但 target 为空，按优先级应该选择 copy
+      expect(component.internalLocate).toBe(false);
+      expect(component.internalCopy).toBe(true);
+      expect(component.internalTarget).toBe(false);
     });
 
     it('should call printTip when hideConsole is false', async () => {

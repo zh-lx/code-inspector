@@ -152,13 +152,15 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '' } = behavior;
+  const { locate = true, copy = false, target = '', claudeCode = false, default: defaultAction = '' } = behavior;
+  // claudeCode 可能是 boolean 或 AIOptions 对象，客户端只需要知道是否启用
+  const claudeCodeEnabled = !!claudeCode;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
       ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
-      
+
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
@@ -168,8 +170,10 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
+      inspector.claudeCode = ${claudeCodeEnabled};
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
+      inspector.defaultAction = '${defaultAction}';
       document.documentElement.append(inspector);
     }
   }

@@ -3,6 +3,18 @@ import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
 import { formatOpenPath } from 'launch-ide';
+import {
+  ChatMessage,
+  ChatContext,
+  ContentBlock,
+  ToolCall,
+  renderChatModal,
+  chatStyles,
+  sendChatToServer,
+  updateChatModalPosition,
+  setProjectRoot,
+  fetchModelInfo,
+} from './ai';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -97,10 +109,14 @@ export class CodeInspectorComponent extends LitElement {
   targetNode: HTMLElement | null = null;
   @property()
   ip: string = 'localhost';
+  @property()
+  claudeCode: boolean = false;
 
   private wheelThrottling: boolean = false;
   @property()
   modeKey: string = 'z';
+  @property()
+  defaultAction: string = ''; // 默认开启的功能
 
   @state()
   position = {
@@ -164,11 +180,51 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   showSettingsModal = false; // 是否显示设置弹窗
   @state()
-  internalLocate = true; // 内部 locate 状态
+  internalLocate = false; // 内部 locate 状态
   @state()
   internalCopy: boolean = false; // 内部 copy 状态
   @state()
   internalTarget = false; // 内部 target 状态
+  @state()
+  internalChat = false; // 内部 chat 状态
+  @state()
+  showChatModal = false; // 聊天框显示状态
+  @state()
+  chatMessages: ChatMessage[] = []; // 聊天消息列表
+  @state()
+  chatInput = ''; // 聊天输入内容
+  @state()
+  chatLoading = false; // 聊天加载状态
+  @state()
+  chatContext: ChatContext | null = null; // 聊天上下文（当前选中的元素信息）
+  @state()
+  currentTools: Map<string, ToolCall> = new Map(); // 当前正在执行的工具调用
+  chatSessionId: string | null = null; // CLI 会话 ID，用于 --resume 恢复上下文
+  @state()
+  chatTheme: 'light' | 'dark' = 'dark'; // 聊天主题
+  @state()
+  turnStatus: 'idle' | 'running' | 'done' | 'interrupt' = 'idle'; // 当前轮状态
+  @state()
+  turnDuration: number = 0; // 当前轮持续时间（秒）
+  @state()
+  chatModel: string = ''; // 当前使用的模型名称
+
+  // 中断控制器和计时器
+  private chatAbortController: AbortController | null = null;
+  private turnTimerInterval: ReturnType<typeof setInterval> | null = null;
+  private turnStartTime: number = 0;
+
+  // 拖拽相关
+  @state()
+  isDragging = false;
+  private dragStartX: number = 0;
+  private dragStartY: number = 0;
+  private modalStartX: number = 0;
+  private modalStartY: number = 0;
+  private wasDragging: boolean = false; // 防止拖拽结束后点击关闭弹窗
+
+  // floating-ui autoUpdate 清理函数
+  private chatPositionCleanup: (() => void) | null = null;
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -203,6 +259,12 @@ export class CodeInspectorComponent extends LitElement {
       description: 'Open the target url',
       checked: () => !!this.internalTarget,
       onChange: () => this.toggleTarget(),
+    },
+    {
+      label: 'AI Chat',
+      description: 'Chat with AI about this code',
+      checked: () => !!this.internalChat,
+      onChange: () => this.toggleChat(),
     },
   ];
 
@@ -599,6 +661,9 @@ export class CodeInspectorComponent extends LitElement {
     if (this.internalTarget) {
       window.open(this.buildTargetUrl(), '_blank');
     }
+    if (this.internalChat) {
+      this.openChatModal();
+    }
     // 触发自定义事件
     window.dispatchEvent(
       new CustomEvent('code-inspector:trackCode', {
@@ -616,6 +681,48 @@ export class CodeInspectorComponent extends LitElement {
       e.key?.toLowerCase() === this.modeKey;
     if (isModeKeyDown) {
       this.toggleSettingsModal();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    const code = e.code.toLowerCase();
+    const keyCode = e.keyCode;
+
+    // hotKeys + 4: 唤起 Claude Code 对话框（无需选中元素）
+    if ((code === 'digit4' || keyCode === 52) && this.claudeCode) {
+      this.openChatModal();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // hotKeys + 1/2/3: 需要 targetNode 存在
+    if (!this.targetNode || !this.element.path) return;
+
+    if ((code === 'digit1' || keyCode === 49) && this.locate) {
+      // 执行 locate
+      if (this.sendType === 'xhr') {
+        this.sendXHR();
+      } else {
+        this.sendImg();
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((code === 'digit2' || keyCode === 50) && this.copy) {
+      // 执行 copy
+      const path = formatOpenPath(
+        this.element.path,
+        String(this.element.line),
+        String(this.element.column),
+        this.copy
+      );
+      this.copyToClipboard(path[0]);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if ((code === 'digit3' || keyCode === 51) && this.target) {
+      // 执行 target
+      window.open(this.buildTargetUrl(), '_blank');
       e.preventDefault();
       e.stopPropagation();
     }
@@ -739,6 +846,10 @@ export class CodeInspectorComponent extends LitElement {
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
     ) {
+      // 确保页面聚焦，否则后续键盘快捷键无法触发
+      if (!document.hasFocus()) {
+        window.focus();
+      }
       const nodePath = e.composedPath() as HTMLElement[];
       const validNodeList = this.getValidNodeList(nodePath);
       let targetNode;
@@ -1056,19 +1167,380 @@ export class CodeInspectorComponent extends LitElement {
     this.showSettingsModal = false;
   };
 
-  // 切换 locate 功能
+  // 清除所有功能状态
+  private clearAllActions = () => {
+    this.internalLocate = false;
+    this.internalCopy = false;
+    this.internalTarget = false;
+    this.internalChat = false;
+  };
+
+  // 切换 locate 功能（互斥）
   toggleLocate = () => {
-    this.internalLocate = !this.internalLocate;
+    const newValue = !this.internalLocate;
+    this.clearAllActions();
+    this.internalLocate = newValue;
   };
 
-  // 切换 copy 功能
+  // 切换 copy 功能（互斥）
   toggleCopy = () => {
-    this.internalCopy = !this.internalCopy;
+    const newValue = !this.internalCopy;
+    this.clearAllActions();
+    this.internalCopy = newValue;
   };
 
-  // 切换 target 功能
+  // 切换 target 功能（互斥）
   toggleTarget = () => {
-    this.internalTarget = !this.internalTarget;
+    const newValue = !this.internalTarget;
+    this.clearAllActions();
+    this.internalTarget = newValue;
+  };
+
+  // 切换 chat 功能（互斥）
+  toggleChat = () => {
+    const newValue = !this.internalChat;
+    this.clearAllActions();
+    this.internalChat = newValue;
+  };
+
+  // 打开聊天框
+  openChatModal = () => {
+    // 有选中元素时提供上下文，否则全局模式（无 DOM 上下文）
+    if (this.element.path) {
+      this.chatContext = {
+        file: this.element.path,
+        line: this.element.line,
+        column: this.element.column,
+        name: this.element.name,
+      };
+    } else {
+      this.chatContext = null;
+    }
+
+    // 同步保存 targetNode 引用，因为 removeCover 会将其清空
+    const referenceNode = this.targetNode;
+
+    this.showChatModal = true;
+
+    // 获取模型信息
+    if (!this.chatModel) {
+      fetchModelInfo(this.ip, this.port).then((model) => {
+        if (model) this.chatModel = model;
+      });
+    }
+
+    // 阻止背景滚动
+    document.body.style.overflow = 'hidden';
+
+    // 等待 DOM 更新后设置位置
+    this.updateComplete.then(() => {
+      requestAnimationFrame(() => {
+        const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+        if (chatModal) {
+          if (referenceNode) {
+            // 有参考元素时，使用 floating-ui 定位
+            this.chatPositionCleanup = updateChatModalPosition(referenceNode, chatModal);
+          } else {
+            // 全局模式：居中显示
+            const viewportWidth = document.documentElement.clientWidth;
+            const viewportHeight = document.documentElement.clientHeight;
+            const modalRect = chatModal.getBoundingClientRect();
+            const centerX = (viewportWidth - modalRect.width) / 2;
+            const centerY = (viewportHeight - modalRect.height) / 2;
+
+            chatModal.style.left = `${Math.max(16, centerX)}px`;
+            chatModal.style.top = `${Math.max(16, centerY)}px`;
+            chatModal.classList.add('chat-modal-centered');
+          }
+        }
+      });
+    });
+  };
+
+  // 关闭聊天框
+  closeChatModal = () => {
+    // 清理 floating-ui autoUpdate
+    if (this.chatPositionCleanup) {
+      this.chatPositionCleanup();
+      this.chatPositionCleanup = null;
+    }
+    this.showChatModal = false;
+
+    // 恢复背景滚动
+    document.body.style.overflow = '';
+  };
+
+  // 清空聊天记录
+  clearChatMessages = () => {
+    this.chatMessages = [];
+    this.chatSessionId = null;
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+  };
+
+  // 切换聊天主题
+  toggleTheme = () => {
+    this.chatTheme = this.chatTheme === 'dark' ? 'light' : 'dark';
+    if (this.chatTheme === 'light') {
+      this.classList.add('chat-theme-light');
+    } else {
+      this.classList.remove('chat-theme-light');
+    }
+  };
+
+  // 处理聊天输入
+  handleChatInput = (e: Event) => {
+    this.chatInput = (e.target as HTMLTextAreaElement).value;
+  };
+
+  // 处理聊天输入框键盘事件
+  handleChatKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      this.sendChatMessage();
+    }
+  };
+
+  // 滚动聊天内容到底部（去重，避免高频调用）
+  private scrollPending = false;
+  private scrollChatToBottom = () => {
+    if (this.scrollPending) return;
+    this.scrollPending = true;
+    requestAnimationFrame(() => {
+      const content = this.shadowRoot?.querySelector('.chat-modal-content');
+      if (content) {
+        content.scrollTop = content.scrollHeight;
+      }
+      this.scrollPending = false;
+    });
+  };
+
+  // 开始计时
+  private startTurnTimer = () => {
+    this.turnStartTime = Date.now();
+    this.turnDuration = 0;
+    this.turnStatus = 'running';
+    this.turnTimerInterval = setInterval(() => {
+      this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
+    }, 1000);
+  };
+
+  // 停止计时
+  private stopTurnTimer = (status: 'done' | 'interrupt') => {
+    if (this.turnTimerInterval) {
+      clearInterval(this.turnTimerInterval);
+      this.turnTimerInterval = null;
+    }
+    this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
+    this.turnStatus = status;
+  };
+
+  // 中断聊天
+  interruptChat = () => {
+    if (this.chatAbortController) {
+      this.chatAbortController.abort();
+      this.chatAbortController = null;
+    }
+    this.stopTurnTimer('interrupt');
+    this.chatLoading = false;
+  };
+
+  // 聊天框拖拽开始
+  handleChatDragStart = (e: MouseEvent) => {
+    // 只响应鼠标左键
+    if (e.button !== 0) return;
+
+    const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+    if (!chatModal) return;
+
+    // 停止 floating-ui 自动更新
+    if (this.chatPositionCleanup) {
+      this.chatPositionCleanup();
+      this.chatPositionCleanup = null;
+    }
+
+    this.isDragging = true;
+    this.wasDragging = true;
+    this.dragStartX = e.clientX;
+    this.dragStartY = e.clientY;
+    this.modalStartX = chatModal.offsetLeft;
+    this.modalStartY = chatModal.offsetTop;
+
+    e.preventDefault();
+  };
+
+  // 聊天框拖拽移动
+  handleChatDragMove = (e: MouseEvent) => {
+    if (!this.isDragging) return;
+
+    const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+    if (!chatModal) return;
+
+    const deltaX = e.clientX - this.dragStartX;
+    const deltaY = e.clientY - this.dragStartY;
+
+    const newX = this.modalStartX + deltaX;
+    const newY = this.modalStartY + deltaY;
+
+    // 限制在视口范围内
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const modalRect = chatModal.getBoundingClientRect();
+
+    const clampedX = Math.max(0, Math.min(newX, viewportWidth - modalRect.width));
+    const clampedY = Math.max(0, Math.min(newY, viewportHeight - modalRect.height));
+
+    chatModal.style.left = `${clampedX}px`;
+    chatModal.style.top = `${clampedY}px`;
+  };
+
+  // 聊天框拖拽结束
+  handleChatDragEnd = () => {
+    this.isDragging = false;
+    // 延迟重置 wasDragging，防止 click 事件关闭弹窗
+    setTimeout(() => {
+      this.wasDragging = false;
+    }, 100);
+  };
+
+  // 处理点击遮罩层关闭弹窗
+  handleOverlayClick = () => {
+    // 如果刚刚拖拽结束，不关闭弹窗
+    if (this.wasDragging) return;
+    this.closeChatModal();
+  };
+
+  // 发送聊天消息
+  sendChatMessage = async () => {
+    if (!this.chatInput.trim() || this.chatLoading) return;
+
+    const userMessage = this.chatInput.trim();
+    this.chatInput = '';
+    this.chatMessages = [...this.chatMessages, { role: 'user', content: userMessage }];
+    this.chatLoading = true;
+    this.scrollChatToBottom();
+
+    // 开始计时
+    this.startTurnTimer();
+
+    // 创建中断控制器
+    this.chatAbortController = new AbortController();
+
+    // 添加空的 assistant 消息用于流式更新
+    this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+    let assistantContent = '';
+    const blocks: ContentBlock[] = [];
+    const toolIdToIndex = new Map<string, number>(); // toolId -> blocks 中的索引
+
+    // 辅助函数：更新最后一条 assistant 消息
+    const updateAssistantMessage = () => {
+      this.chatMessages = [
+        ...this.chatMessages.slice(0, -1),
+        { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+      ];
+      this.scrollChatToBottom();
+    };
+
+    // 渲染节流：逐字流式时避免每个字符都触发重渲染
+    let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+    const throttledUpdate = () => {
+      if (!renderThrottleTimer) {
+        renderThrottleTimer = setTimeout(() => {
+          renderThrottleTimer = null;
+          updateAssistantMessage();
+        }, 50);
+      }
+    };
+    const flushUpdate = () => {
+      if (renderThrottleTimer) {
+        clearTimeout(renderThrottleTimer);
+        renderThrottleTimer = null;
+      }
+      updateAssistantMessage();
+    };
+
+    try {
+      await sendChatToServer(
+        this.ip,
+        this.port,
+        userMessage,
+        this.chatContext,
+        this.chatMessages.slice(0, -1), // 不包含空的 assistant 消息
+        {
+          onText: (content) => {
+            assistantContent += content;
+            // 找到或创建文本块
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock && lastBlock.type === 'text') {
+              lastBlock.content = (lastBlock.content || '') + content;
+            } else {
+              blocks.push({ type: 'text', content });
+            }
+            throttledUpdate();
+          },
+          onToolStart: (toolId, toolName, _index) => {
+            const tool: ToolCall = {
+              id: toolId,
+              name: toolName,
+              isComplete: false,
+            };
+            const blockIndex = blocks.length;
+            blocks.push({ type: 'tool', tool });
+            toolIdToIndex.set(toolId, blockIndex);
+            flushUpdate();
+          },
+          onToolInput: (_index, input) => {
+            // 找到最近的未完成工具调用块
+            for (let i = blocks.length - 1; i >= 0; i--) {
+              if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
+                blocks[i].tool!.input = input;
+                flushUpdate();
+                break;
+              }
+            }
+          },
+          onToolResult: (toolUseId, content, isError) => {
+            const blockIndex = toolIdToIndex.get(toolUseId);
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.result = content;
+              blocks[blockIndex].tool!.isError = isError;
+              blocks[blockIndex].tool!.isComplete = true;
+              flushUpdate();
+            }
+          },
+          onError: (error) => {
+            console.error('Chat error:', error);
+          },
+          onSessionId: (sessionId) => {
+            this.chatSessionId = sessionId;
+          },
+          onProjectRoot: (cwd) => {
+            setProjectRoot(cwd);
+          },
+          onModel: (model) => {
+            this.chatModel = model;
+          },
+        },
+        this.chatAbortController.signal,
+        this.chatSessionId
+      );
+      // 正常完成：最终刷新确保所有内容显示
+      flushUpdate();
+      this.stopTurnTimer('done');
+    } catch (error) {
+      // 检查是否是中断导致的错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        // 中断已在 interruptChat 中处理
+      } else {
+        // 其他错误
+        this.chatMessages = this.chatMessages.slice(0, -1);
+        this.showNotification('Failed to send message', 'error');
+        this.stopTurnTimer('interrupt');
+      }
+    } finally {
+      this.chatLoading = false;
+      this.chatAbortController = null;
+    }
   };
 
   /**
@@ -1090,10 +1562,60 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   protected firstUpdated(): void {
-    // 初始化内部状态
-    this.internalLocate = this.locate;
-    this.internalCopy = !!this.copy;
-    this.internalTarget = !!this.target;
+    // 初始化内部状态（互斥，只能有一个为 true）
+    // 如果有 defaultAction，优先使用 defaultAction 对应的功能（前提是该功能已启用）
+    // 否则按优先级：chat > target > copy > locate
+    let actionSet = false;
+
+    if (this.defaultAction) {
+      // 根据 defaultAction 决定开启哪个功能
+      switch (this.defaultAction) {
+        case 'claudeCode':
+          if (this.claudeCode) {
+            this.internalChat = true;
+            actionSet = true;
+          }
+          break;
+        case 'target':
+          if (this.target) {
+            this.internalTarget = true;
+            actionSet = true;
+          }
+          break;
+        case 'copy':
+          if (this.copy) {
+            this.internalCopy = true;
+            actionSet = true;
+          }
+          break;
+        case 'locate':
+          if (this.locate) {
+            this.internalLocate = true;
+            actionSet = true;
+          }
+          break;
+      }
+    }
+
+    // 如果 defaultAction 对应的功能未启用，则按优先级开启第一个可用的功能
+    if (!actionSet) {
+      if (this.claudeCode) {
+        this.internalChat = true;
+      } else if (this.target) {
+        this.internalTarget = true;
+      } else if (this.copy) {
+        this.internalCopy = true;
+      } else if (this.locate) {
+        this.internalLocate = true;
+      }
+    }
+
+    // 检测系统主题偏好
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+    this.chatTheme = prefersDark ? 'dark' : 'light';
+    if (this.chatTheme === 'light') {
+      this.classList.add('chat-theme-light');
+    }
 
     // Initialize event listeners configuration
     this.eventListeners = [
@@ -1413,6 +1935,36 @@ export class CodeInspectorComponent extends LitElement {
           `
         : ''}
 
+      <!-- 聊天框 -->
+      ${renderChatModal(
+        {
+          showChatModal: this.showChatModal,
+          chatMessages: this.chatMessages,
+          chatInput: this.chatInput,
+          chatLoading: this.chatLoading,
+          chatContext: this.chatContext,
+          currentTools: this.currentTools,
+          chatTheme: this.chatTheme,
+          turnStatus: this.turnStatus,
+          turnDuration: this.turnDuration,
+          isDragging: this.isDragging,
+          chatModel: this.chatModel,
+        },
+        {
+          closeChatModal: this.closeChatModal,
+          clearChatMessages: this.clearChatMessages,
+          handleChatInput: this.handleChatInput,
+          handleChatKeyDown: this.handleChatKeyDown,
+          sendChatMessage: this.sendChatMessage,
+          toggleTheme: this.toggleTheme,
+          interruptChat: this.interruptChat,
+          handleDragStart: this.handleChatDragStart,
+          handleDragMove: this.handleChatDragMove,
+          handleDragEnd: this.handleChatDragEnd,
+          handleOverlayClick: this.handleOverlayClick,
+        }
+      )}
+
       <div
         id="node-tree-tooltip"
         class="${this.activeNode.class}"
@@ -1423,7 +1975,8 @@ export class CodeInspectorComponent extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [
+    css`
     .code-inspector-container {
       position: fixed;
       pointer-events: none;
@@ -1769,7 +2322,9 @@ export class CodeInspectorComponent extends LitElement {
         opacity: 1;
       }
     }
-  `;
+  `,
+    chatStyles,
+  ];
 }
 
 // Global notification styles

@@ -1,4 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
+import { ChatMessage, ChatContext, ToolCall } from './ai';
 interface Position {
     left?: string;
     right?: string;
@@ -46,8 +47,10 @@ export declare class CodeInspectorComponent extends LitElement {
     target: string;
     targetNode: HTMLElement | null;
     ip: string;
+    claudeCode: boolean;
     private wheelThrottling;
     modeKey: string;
+    defaultAction: string;
     position: {
         top: number;
         right: number;
@@ -101,6 +104,28 @@ export declare class CodeInspectorComponent extends LitElement {
     internalLocate: boolean;
     internalCopy: boolean;
     internalTarget: boolean;
+    internalChat: boolean;
+    showChatModal: boolean;
+    chatMessages: ChatMessage[];
+    chatInput: string;
+    chatLoading: boolean;
+    chatContext: ChatContext | null;
+    currentTools: Map<string, ToolCall>;
+    chatSessionId: string | null;
+    chatTheme: 'light' | 'dark';
+    turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
+    turnDuration: number;
+    chatModel: string;
+    private chatAbortController;
+    private turnTimerInterval;
+    private turnStartTime;
+    isDragging: boolean;
+    private dragStartX;
+    private dragStartY;
+    private modalStartX;
+    private modalStartY;
+    private wasDragging;
+    private chatPositionCleanup;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
@@ -178,9 +203,27 @@ export declare class CodeInspectorComponent extends LitElement {
     handleMouseLeaveNode: () => void;
     toggleSettingsModal: () => void;
     closeSettingsModal: () => void;
+    private clearAllActions;
     toggleLocate: () => void;
     toggleCopy: () => void;
     toggleTarget: () => void;
+    toggleChat: () => void;
+    openChatModal: () => void;
+    closeChatModal: () => void;
+    clearChatMessages: () => void;
+    toggleTheme: () => void;
+    handleChatInput: (e: Event) => void;
+    handleChatKeyDown: (e: KeyboardEvent) => void;
+    private scrollPending;
+    private scrollChatToBottom;
+    private startTurnTimer;
+    private stopTurnTimer;
+    interruptChat: () => void;
+    handleChatDragStart: (e: MouseEvent) => void;
+    handleChatDragMove: (e: MouseEvent) => void;
+    handleChatDragEnd: () => void;
+    handleOverlayClick: () => void;
+    sendChatMessage: () => Promise<void>;
     /**
      * Attach all event listeners
      */
@@ -193,6 +236,6 @@ export declare class CodeInspectorComponent extends LitElement {
     disconnectedCallback(): void;
     renderNodeTree: (node: TreeNode) => TemplateResult;
     render(): TemplateResult<1>;
-    static styles: import("lit").CSSResult;
+    static styles: import("lit").CSSResult[];
 }
 export {};

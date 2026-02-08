@@ -48,10 +48,13 @@
     "pub:beta": "pnpm publish --tag beta"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.29",
+    "@floating-ui/dom": "^1.7.5",
     "@vue/compiler-dom": "^3.5.13",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
-    "launch-ide": "1.4.0",
+    "launch-ide": "1.4.2",
+    "marked": "^17.0.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
