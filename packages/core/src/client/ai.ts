@@ -472,8 +472,12 @@ export function renderChatModal(
             <button
               class="chat-modal-close"
               @click="${handlers.closeChatModal}"
+              title="Close"
             >
-              ×
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -545,7 +549,7 @@ export function renderChatModal(
             @input="${handlers.handleChatInput}"
             @keydown="${handlers.handleChatKeyDown}"
             ?disabled="${state.chatLoading}"
-            rows="1"
+            rows="2"
           ></textarea>
           <button
             class="chat-send-btn"
@@ -600,8 +604,8 @@ export const chatStyles = css`
     --chat-border: #333;
     --chat-text: #d4d4d4;
     --chat-text-secondary: #ccc;
-    --chat-text-muted: #888;
-    --chat-text-placeholder: #666;
+    --chat-text-muted: #aaa;
+    --chat-text-placeholder: #888;
     --chat-accent: #569cd6;
     --chat-accent-hover: #6cb6ff;
     --chat-overlay: rgba(0, 0, 0, 0.3);
@@ -647,7 +651,7 @@ export const chatStyles = css`
     --chat-border: #e0e0e0;
     --chat-text: #333333;
     --chat-text-secondary: #555555;
-    --chat-text-muted: #888888;
+    --chat-text-muted: #666;
     --chat-text-placeholder: #aaaaaa;
     --chat-accent: #0969da;
     --chat-accent-hover: #0550ae;
@@ -845,7 +849,6 @@ export const chatStyles = css`
   .chat-modal-close {
     background: transparent;
     border: none;
-    font-size: 18px;
     color: var(--chat-text-muted);
     cursor: pointer;
     padding: 0;
@@ -1163,15 +1166,14 @@ export const chatStyles = css`
     border: 1px solid var(--chat-border);
     color: var(--chat-text-muted);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 0;
+    width: 24px;
+    height: 24px;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.15s;
-    font-size: 11px;
-    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    gap: 4px;
   }
 
   .chat-interrupt-btn:hover {
@@ -1209,8 +1211,6 @@ export const chatStyles = css`
     font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     color: var(--chat-text);
     resize: none;
-    min-height: 28px;
-    max-height: 100px;
     line-height: 1.4;
     outline: none;
     transition: border-color 0.15s;

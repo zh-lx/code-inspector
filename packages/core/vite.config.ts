@@ -26,6 +26,7 @@ export default defineConfig({
         'portfinder',
         'child_process',
         '@vue/compiler-dom',
+        '@anthropic-ai/claude-agent-sdk'
       ],
     },
     target: ['node8', 'es2015'],

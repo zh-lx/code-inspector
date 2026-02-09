@@ -7,6 +7,7 @@ import { spawn, ChildProcess, execSync } from 'child_process';
 import type { AIOptions } from '../shared';
 import type { AIContext, AIMessage } from './ai';
 import { getEnvVars } from './server';
+import chalk from 'chalk';
 
 // ============================================================================
 // Provider 统一入口
@@ -161,7 +162,7 @@ export function handleClaudeRequest(
         sendSSE('[DONE]');
         onEnd();
       } catch (error: any) {
-        console.error('[code-inspector-plugin] AI error:', error);
+        console.log(chalk.red('[code-inspector-plugin] AI error:') + error.message);
         sendSSE({
           error: `Failed to communicate with Claude: ${error.message}. Install Claude Code CLI or configure apiKey.`,
         });
@@ -382,7 +383,7 @@ function queryViaCli(
 
   child.stderr?.on('data', (chunk: Buffer) => {
     const text = chunk.toString();
-    console.error('[claude-cli stderr]', text);
+    console.log(chalk.red('[claude-cli stderr]') + text);
   });
 
   child.on('error', (err) => {
@@ -480,7 +481,23 @@ async function queryViaSdk(
 
   const query = await getClaudeQuery();
   if (!query) {
-    throw new Error('Claude Agent SDK not available');
+    console.log(
+      chalk.blue('[code-inspector-plugin]'),
+      chalk.yellow('Claude Agent SDK not found.'),
+      'Install it with:',
+      chalk.green('npm install @anthropic-ai/claude-agent-sdk'),
+    );
+    sendSSE({
+      type: 'text',
+      content:
+        '**Claude Agent SDK not installed.**\n\n' +
+        'Please install it in your project:\n\n' +
+        '```bash\n' +
+        'npm install @anthropic-ai/claude-agent-sdk\n' +
+        '```\n\n' +
+        "Or use CLI mode by setting `agent: 'cli'` in your config.",
+    });
+    return;
   }
 
   const queryOptions = buildSdkQueryOptions(aiOptions, cwd);
