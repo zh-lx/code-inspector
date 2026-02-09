@@ -69,8 +69,11 @@ export function getModelInfo(aiOptions: AIOptions | undefined): string {
   }
 
   // 从本地 CLI 配置文件读取
+  const home = process.env.HOME;
+  if (!home) return '';
+
   try {
-    const settingsPath = path.join(process.env.HOME || '', '.claude', 'settings.json');
+    const settingsPath = path.join(home, '.claude', 'settings.json');
     if (fs.existsSync(settingsPath)) {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
       // settings.model 是简写（如 "opus"），env.ANTHROPIC_MODEL 是完整 model ID

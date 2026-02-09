@@ -152,7 +152,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '', claudeCode = false, default: defaultAction = '' } = behavior;
+  const { locate = true, copy = false, target = '', claudeCode = false, defaultAction = '' } = behavior;
   // claudeCode 可能是 boolean 或 AIOptions 对象，客户端只需要知道是否启用
   const claudeCodeEnabled = !!claudeCode;
   return `

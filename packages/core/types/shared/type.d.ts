@@ -50,7 +50,7 @@ export type Behavior = {
     copy?: boolean | string;
     target?: string;
     claudeCode?: boolean | AIOptions;
-    default?: 'copy' | 'locate' | 'target' | 'claudeCode';
+    defaultAction?: 'copy' | 'locate' | 'target' | 'claudeCode';
 };
 export type RecordInfo = {
     port: number;

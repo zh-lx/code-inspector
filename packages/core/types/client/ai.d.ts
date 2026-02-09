@@ -1,5 +1,5 @@
 /**
- * Chat 模块 - 客户端聊天功能相关类型、模板和样式
+ * AI 模块 - 客户端 AI 聊天功能相关类型、模板和样式
  */
 import { TemplateResult } from 'lit';
 /**

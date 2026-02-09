@@ -28,11 +28,11 @@ describe('Lifecycle methods', () => {
       document.body.appendChild(component);
       await component.updateComplete;
 
-      // 互斥逻辑：优先级 chat > target > copy > locate
-      // 由于 target 被设置，只有 internalTarget 应该为 true
-      expect(component.internalLocate).toBe(false);
+      // 互斥逻辑：优先级 locate > copy > target > chat
+      // 由于 locate 被设置，只有 internalLocate 应该为 true
+      expect(component.internalLocate).toBe(true);
       expect(component.internalCopy).toBe(false);
-      expect(component.internalTarget).toBe(true);
+      expect(component.internalTarget).toBe(false);
     });
 
     it('should respect defaultAction when set', async () => {
@@ -63,9 +63,9 @@ describe('Lifecycle methods', () => {
       document.body.appendChild(component);
       await component.updateComplete;
 
-      // defaultAction 为 'target' 但 target 为空，按优先级应该选择 copy
-      expect(component.internalLocate).toBe(false);
-      expect(component.internalCopy).toBe(true);
+      // defaultAction 为 'target' 但 target 为空，按优先级应该选择 locate
+      expect(component.internalLocate).toBe(true);
+      expect(component.internalCopy).toBe(false);
       expect(component.internalTarget).toBe(false);
     });
 

@@ -1225,7 +1225,7 @@ export class CodeInspectorComponent extends LitElement {
     // 获取模型信息
     if (!this.chatModel) {
       fetchModelInfo(this.ip, this.port).then((model) => {
-        if (model) this.chatModel = model;
+        if (model && this.isConnected) this.chatModel = model;
       });
     }
 
@@ -1564,7 +1564,7 @@ export class CodeInspectorComponent extends LitElement {
   protected firstUpdated(): void {
     // 初始化内部状态（互斥，只能有一个为 true）
     // 如果有 defaultAction，优先使用 defaultAction 对应的功能（前提是该功能已启用）
-    // 否则按优先级：chat > target > copy > locate
+    // 否则按优先级：locate > copy > target > chat
     let actionSet = false;
 
     if (this.defaultAction) {
@@ -1599,14 +1599,14 @@ export class CodeInspectorComponent extends LitElement {
 
     // 如果 defaultAction 对应的功能未启用，则按优先级开启第一个可用的功能
     if (!actionSet) {
-      if (this.claudeCode) {
-        this.internalChat = true;
-      } else if (this.target) {
-        this.internalTarget = true;
+      if (this.locate) {
+        this.internalLocate = true;
       } else if (this.copy) {
         this.internalCopy = true;
-      } else if (this.locate) {
-        this.internalLocate = true;
+      } else if (this.target) {
+        this.internalTarget = true;
+      } else if (this.claudeCode) {
+        this.internalChat = true;
       }
     }
 

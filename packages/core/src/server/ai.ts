@@ -4,9 +4,8 @@
  */
 import http from 'http';
 import type { AIOptions } from '../shared';
-import { handleClaudeRequest } from './ai-provider-claude';
+import { handleClaudeRequest, getModelInfo } from './ai-provider-claude';
 import type { ProviderResult } from './ai-provider-claude';
-import { getModelInfo } from './ai-provider-claude';
 
 // ============================================================================
 // 类型定义

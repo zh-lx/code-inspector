@@ -1,5 +1,5 @@
 /**
- * Chat 模块 - 客户端聊天功能相关类型、模板和样式
+ * AI 模块 - 客户端 AI 聊天功能相关类型、模板和样式
  */
 import { html, css, TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
@@ -242,9 +242,7 @@ function formatDuration(seconds: number): string {
  */
 function renderMarkdown(content: string): string {
   try {
-    // 使用 marked 解析 Markdown
-    const html = marked.parse(content) as string;
-    return html;
+    return marked.parse(content, { async: false }) as string;
   } catch {
     // 解析失败时返回原始文本（转义 HTML）
     return content
