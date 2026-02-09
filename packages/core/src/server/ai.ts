@@ -125,12 +125,12 @@ export async function handleAIRequest(
 /**
  * 处理 AI 模型信息请求
  */
-export function handleAIModelRequest(
+export async function handleAIModelRequest(
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
   aiOptions: AIOptions | undefined,
-): void {
-  const model = getModelInfo(aiOptions);
+): Promise<void> {
+  const model = await getModelInfo(aiOptions);
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ model }));
 }

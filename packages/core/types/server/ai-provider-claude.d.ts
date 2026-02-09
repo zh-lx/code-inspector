@@ -9,9 +9,9 @@ export interface ProviderResult {
 }
 /**
  * 获取模型信息
- * 优先使用用户配置，否则从本地 Claude Code CLI 配置中读取
+ * 优先使用用户配置，否则通过 CLI 的 system 事件获取（无 API 消耗）
  */
-export declare function getModelInfo(aiOptions: AIOptions | undefined): string;
+export declare function getModelInfo(aiOptions: AIOptions | undefined): Promise<string>;
 /**
  * Claude provider 统一入口
  * ai.ts 只需调用此函数，不感知 CLI/SDK 细节

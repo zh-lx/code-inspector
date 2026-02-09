@@ -59,36 +59,84 @@ function buildPrompt(
 }
 
 /**
- * 获取模型信息
- * 优先使用用户配置，否则从本地 Claude Code CLI 配置中读取
+ * 缓存 CLI 检测到的模型名
  */
-export function getModelInfo(aiOptions: AIOptions | undefined): string {
-  // 优先使用用户配置的 model
+let cachedCliModel: string | undefined;
+
+/**
+ * 获取模型信息
+ * 优先使用用户配置，否则通过 CLI 的 system 事件获取（无 API 消耗）
+ */
+export async function getModelInfo(aiOptions: AIOptions | undefined): Promise<string> {
   if (aiOptions?.sdkOptions?.model) {
     return aiOptions.sdkOptions.model;
   }
 
-  // 从本地 CLI 配置文件读取
-  const home = process.env.HOME;
-  if (!home) return '';
-
-  try {
-    const settingsPath = path.join(home, '.claude', 'settings.json');
-    if (fs.existsSync(settingsPath)) {
-      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
-      // settings.model 是简写（如 "opus"），env.ANTHROPIC_MODEL 是完整 model ID
-      if (settings.env?.ANTHROPIC_MODEL) {
-        return settings.env.ANTHROPIC_MODEL;
-      }
-      if (settings.model) {
-        return settings.model;
-      }
-    }
-  } catch {
-    // 读取失败，忽略
+  // 有缓存直接返回
+  if (cachedCliModel !== undefined) {
+    return cachedCliModel;
   }
 
-  return '';
+  // 通过 CLI stream-json 的 system init 事件获取 model
+  // system 事件在 API 调用前发出，读取后立即 kill 进程，无 token 消耗
+  const cliPath = findClaudeCodeCli();
+  if (!cliPath) {
+    cachedCliModel = '';
+    return '';
+  }
+
+  try {
+    const model = await new Promise<string>((resolve) => {
+      const child = spawn(cliPath, ['-p', 'hi', '--output-format', 'stream-json', '--verbose'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: getEnvVars(),
+      });
+      child.stdin?.end();
+
+      let buffer = '';
+      const timeout = setTimeout(() => {
+        child.kill('SIGTERM');
+        resolve('');
+      }, 10000);
+
+      child.stdout?.on('data', (chunk: Buffer) => {
+        buffer += chunk.toString();
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line);
+            if (event.type === 'system' && event.model) {
+              clearTimeout(timeout);
+              child.kill('SIGTERM');
+              resolve(event.model);
+              return;
+            }
+          } catch {
+            // 忽略解析错误
+          }
+        }
+      });
+
+      child.on('error', () => {
+        clearTimeout(timeout);
+        resolve('');
+      });
+
+      child.on('close', () => {
+        clearTimeout(timeout);
+        resolve('');
+      });
+    });
+
+    cachedCliModel = model;
+    return model;
+  } catch {
+    cachedCliModel = '';
+    return '';
+  }
 }
 
 /**

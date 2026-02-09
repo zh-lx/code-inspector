@@ -43,4 +43,4 @@ export declare function handleAIRequest(req: http.IncomingMessage, res: http.Ser
 /**
  * 处理 AI 模型信息请求
  */
-export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: AIOptions | undefined): void;
+export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: AIOptions | undefined): Promise<void>;
