@@ -430,7 +430,7 @@ export function renderChatModal(
             </div>
             ${state.chatContext
               ? html`<span class="chat-context-info"
-                  >&lt;${state.chatContext.name}&gt; ${state.chatContext.file}:${state.chatContext.line}</span
+                  >&lt;${state.chatContext.name}&gt; ${state.chatContext.file}#${state.chatContext.line}</span
                 >`
               : ''}
           </div>

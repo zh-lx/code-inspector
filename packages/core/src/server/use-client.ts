@@ -168,7 +168,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
-      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : 'undefined'};
       inspector.target = '${target}';
       inspector.claudeCode = ${claudeCodeEnabled};
       inspector.ip = '${getIP(ip)}';

@@ -3,6 +3,7 @@ import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
 import { formatOpenPath } from 'launch-ide';
+import { browserChalk } from '../shared/browser-chalk';
 import {
   ChatMessage,
   ChatContext,
@@ -102,7 +103,7 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   locate: boolean = true;
   @property()
-  copy: boolean | string = false;
+  copy: boolean | undefined | string = undefined;
   @property()
   target: string = '';
   @property()
@@ -186,7 +187,7 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   internalTarget = false; // 内部 target 状态
   @state()
-  internalChat = false; // 内部 chat 状态
+  internalClaudeCode = false; // 内部 chat 状态
   @state()
   showChatModal = false; // 聊天框显示状态
   @state()
@@ -247,24 +248,40 @@ export class CodeInspectorComponent extends LitElement {
       description: 'Open the editor and locate code',
       checked: () => !!this.internalLocate,
       onChange: () => this.toggleLocate(),
+      action: 'locate',
+      fn: () => this.locateCode(),
+      key: 1,
+      available: () => !!this.locate,
     },
     {
       label: 'Copy Path',
       description: 'Copy the code path to clipboard',
       checked: () => !!this.internalCopy,
       onChange: () => this.toggleCopy(),
+      action: 'copy',
+      fn: () => this.copyCode(),
+      key: 2,
+      available: () => this.copy !== false,
     },
     {
       label: 'Open Target',
       description: 'Open the target url',
       checked: () => !!this.internalTarget,
       onChange: () => this.toggleTarget(),
+      action: 'target',
+      fn: () => this.targetCode(),
+      key: 3,
+      available: () => !!this.target,
     },
     {
-      label: 'AI Chat',
-      description: 'Chat with AI about this code',
-      checked: () => !!this.internalChat,
-      onChange: () => this.toggleChat(),
+      label: 'Claude Code',
+      description: 'Use claude code to write code',
+      checked: () => !!this.internalClaudeCode,
+      onChange: () => this.toggleClaudeCode(),
+      action: 'claudeCode',
+      fn: () => this.openChatModal(),
+      key: 4,
+      available: () => !!this.claudeCode,
     },
   ];
 
@@ -416,18 +433,16 @@ export class CodeInspectorComponent extends LitElement {
         const overflowWidth = containerLeft + width - browserWidth;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(-${overflowWidth}px) ${
-              pos.additionStyle?.transform || ''
-            }`,
+            transform: `translateX(-${overflowWidth}px) ${pos.additionStyle?.transform || ''
+              }`,
           };
         }
       } else {
         const overflowWidth = width - containerRight;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(${overflowWidth}px) ${
-              pos.additionStyle?.transform || ''
-            }`,
+            transform: `translateX(${overflowWidth}px) ${pos.additionStyle?.transform || ''
+              }`,
           };
         }
       }
@@ -559,9 +574,8 @@ export class CodeInspectorComponent extends LitElement {
       position['left'] = x + 'px';
       // 检测是否横向一定超出屏幕
       if (rightToViewPort < PopperWidth) {
-        position['transform'] = `translateX(-${
-          PopperWidth - rightToViewPort
-        }px)`;
+        position['transform'] = `translateX(-${PopperWidth - rightToViewPort
+          }px)`;
       }
     }
 
@@ -640,36 +654,47 @@ export class CodeInspectorComponent extends LitElement {
     return targetUrl;
   };
 
-  // 触发功能的处理
-  trackCode = () => {
-    if (this.internalLocate) {
-      if (this.sendType === 'xhr') {
-        this.sendXHR();
-      } else {
-        this.sendImg();
-      }
+  locateCode = () => {
+    if (this.sendType === 'xhr') {
+      this.sendXHR();
+    } else {
+      this.sendImg();
     }
-    if (this.internalCopy) {
-      const path = formatOpenPath(
-        this.element.path,
-        String(this.element.line),
-        String(this.element.column),
-        this.copy
-      );
-      this.copyToClipboard(path[0]);
-    }
-    if (this.internalTarget) {
-      window.open(this.buildTargetUrl(), '_blank');
-    }
-    if (this.internalChat) {
-      this.openChatModal();
-    }
-    // 触发自定义事件
+  };
+
+  copyCode = () => {
+    const path = formatOpenPath(
+      this.element.path,
+      String(this.element.line),
+      String(this.element.column),
+      this.copy || false
+    );
+    this.copyToClipboard(path[0]);
+  };
+
+  targetCode = () => {
+    window.open(this.buildTargetUrl(), '_blank');
+  };
+
+  dispatchCustomEvent = (action: 'locate' | 'copy' | 'target' | 'chat' | string) => {
     window.dispatchEvent(
       new CustomEvent('code-inspector:trackCode', {
-        detail: this.element,
+        detail: {
+          action,
+          element: this.element,
+        },
       })
     );
+  };
+
+  // 触发功能的处理
+  trackCode = () => {
+    this.features.forEach((feature) => {
+      if (feature.checked()) {
+        feature.fn();
+        this.dispatchCustomEvent(feature.action);
+      }
+    });
   };
 
   private handleModeShortcut = (e: KeyboardEvent) => {
@@ -689,43 +714,20 @@ export class CodeInspectorComponent extends LitElement {
     const code = e.code.toLowerCase();
     const keyCode = e.keyCode;
 
-    // hotKeys + 4: 唤起 Claude Code 对话框（无需选中元素）
-    if ((code === 'digit4' || keyCode === 52) && this.claudeCode) {
-      this.openChatModal();
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-
-    // hotKeys + 1/2/3: 需要 targetNode 存在
-    if (!this.targetNode || !this.element.path) return;
-
-    if ((code === 'digit1' || keyCode === 49) && this.locate) {
-      // 执行 locate
-      if (this.sendType === 'xhr') {
-        this.sendXHR();
-      } else {
-        this.sendImg();
+    this.features.forEach((feature) => {
+      const targetDigitCode = 'digit' + feature.key;
+      const targetNumCode = 'numpad' + feature.key;
+      const targetKeyCode = 48 + feature.key; // key code of number1 is 49
+      if ((code === targetDigitCode || code === targetNumCode || keyCode === targetKeyCode) && feature.available()) {
+        if (feature.action === 'claudeCode' || (this.targetNode && this.element.path)) {
+          feature.fn();
+          e.preventDefault();
+          e.stopPropagation();
+          this.dispatchCustomEvent(feature.action);
+          return;
+        }
       }
-      e.preventDefault();
-      e.stopPropagation();
-    } else if ((code === 'digit2' || keyCode === 50) && this.copy) {
-      // 执行 copy
-      const path = formatOpenPath(
-        this.element.path,
-        String(this.element.line),
-        String(this.element.column),
-        this.copy
-      );
-      this.copyToClipboard(path[0]);
-      e.preventDefault();
-      e.stopPropagation();
-    } else if ((code === 'digit3' || keyCode === 51) && this.target) {
-      // 执行 target
-      window.open(this.buildTargetUrl(), '_blank');
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    });
   };
 
   showNotification(message: string, type: 'success' | 'error' = 'success') {
@@ -1019,49 +1021,49 @@ export class CodeInspectorComponent extends LitElement {
       (item) => agent.toUpperCase().match(item.toUpperCase())
     );
     const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
-    const rep = '%c';
-    const hotKeys = this.hotKeys
+    const hotKeyNames = this.hotKeys
       .split(',')
-      .map((item) => rep + hotKeyMap[item.trim() as keyof typeof hotKeyMap]);
-    const switchKeys = [...hotKeys, rep + this.modeKey.toUpperCase()];
-    const activeFeatures = this.features
-      .filter((feature) => feature.checked())
-      .map((feature) => `${rep}${feature.label}`);
-    const currentFeature =
-      activeFeatures.length > 0
-        ? activeFeatures.join(`${rep}、`)
-        : `${rep}None`;
+      .map((item) => hotKeyMap[item.trim() as keyof typeof hotKeyMap]);
+    const switchKeyNames = [...hotKeyNames, this.modeKey.toUpperCase()];
+    // const currentFeature = this.features.find((feature) => feature.checked())?.label || 'None';
 
-    const colorCount =
-      hotKeys.length * 2 +
-      switchKeys.length * 2 +
-      currentFeature.match(/%c/g)!.length +
-      1;
-    const colors = Array(colorCount)
-      .fill('')
-      .map((_, index) => {
-        if (index % 2 === 0) {
-          return 'color: #00B42A; font-family: PingFang SC; font-size: 12px;';
-        } else {
-          return 'color: #006aff; font-weight: bold; font-family: PingFang SC; font-size: 12px;';
-        }
-      });
+    const c = browserChalk;
+    const keysChain = (names: string[]) => {
+      const chain = c.yellow(names[0]).bold();
+      for (let i = 1; i < names.length; i++) {
+        chain.green(' + ').yellow(names[i]).bold();
+      }
+      return chain;
+    };
 
-    const content = [
-      `${rep}[code-inspector-plugin]`,
-      `${rep}• Press and hold ${hotKeys.join(
-        ` ${rep}+ `
-      )} ${rep}to use the feature.`,
-      `• Press ${switchKeys.join(
-        ` ${rep}+ `
-      )} ${rep}to see and change feature.`,
-      `• Current Feature: ${currentFeature}`,
-    ].join('\n');
-    console.log(
-      content,
-      'color: #006aff; font-weight: bolder; font-size: 12px;',
-      ...colors
-    );
+    c.blue('[code-inspector-plugin] click to expand the guide')
+      .groupCollapsed(() => {
+        keysChain(hotKeyNames.concat('left click'))
+          .green(' to use active feature')
+          .log()
+
+        keysChain(hotKeyNames.concat('right click'))
+          .green(' to open node tree')
+          .log()
+
+        keysChain(hotKeyNames.concat('mouse wheel'))
+          .green(' to select parent node or child node')
+          .log()
+
+        keysChain(switchKeyNames)
+          .green(' to change active feature')
+          .log()
+
+        this.features.forEach((feature) => {
+          keysChain(hotKeyNames.concat(feature.key.toString()))
+            .green(' to use ')
+            .yellow(feature.label)
+            .bold()
+            .log();
+        });
+      })
+
+
   };
 
   // 获取鼠标位置
@@ -1172,7 +1174,7 @@ export class CodeInspectorComponent extends LitElement {
     this.internalLocate = false;
     this.internalCopy = false;
     this.internalTarget = false;
-    this.internalChat = false;
+    this.internalClaudeCode = false;
   };
 
   // 切换 locate 功能（互斥）
@@ -1197,10 +1199,10 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 切换 chat 功能（互斥）
-  toggleChat = () => {
-    const newValue = !this.internalChat;
+  toggleClaudeCode = () => {
+    const newValue = !this.internalClaudeCode;
     this.clearAllActions();
-    this.internalChat = newValue;
+    this.internalClaudeCode = newValue;
   };
 
   // 打开聊天框
@@ -1572,7 +1574,7 @@ export class CodeInspectorComponent extends LitElement {
       switch (this.defaultAction) {
         case 'claudeCode':
           if (this.claudeCode) {
-            this.internalChat = true;
+            this.internalClaudeCode = true;
             actionSet = true;
           }
           break;
@@ -1606,7 +1608,7 @@ export class CodeInspectorComponent extends LitElement {
       } else if (this.target) {
         this.internalTarget = true;
       } else if (this.claudeCode) {
-        this.internalChat = true;
+        this.internalClaudeCode = true;
       }
     }
 
@@ -1652,7 +1654,7 @@ export class CodeInspectorComponent extends LitElement {
       class="inspector-layer"
       style="padding-left: ${node.depth * 8}px;"
       @mouseenter="${async (e: MouseEvent) =>
-        await this.handleMouseEnterNode(e, node)}"
+      await this.handleMouseEnterNode(e, node)}"
       @mouseleave="${this.handleMouseLeaveNode}"
       @click="${() => this.handleClickTreeNode(node)}"
     >
@@ -1666,18 +1668,16 @@ export class CodeInspectorComponent extends LitElement {
       display: this.show ? 'block' : 'none',
       top: `${this.position.top - this.position.margin.top}px`,
       left: `${this.position.left - this.position.margin.left}px`,
-      height: `${
-        this.position.bottom -
+      height: `${this.position.bottom -
         this.position.top +
         this.position.margin.bottom +
         this.position.margin.top
-      }px`,
-      width: `${
-        this.position.right -
+        }px`,
+      width: `${this.position.right -
         this.position.left +
         this.position.margin.right +
         this.position.margin.left
-      }px`,
+        }px`,
     };
     const marginPosition = {
       borderTopWidth: `${this.position.margin.top}px`,
@@ -1728,12 +1728,12 @@ export class CodeInspectorComponent extends LitElement {
         <div
           id="element-info"
           class="element-info ${this.elementTipStyle.vertical} ${this
-            .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
+        .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
           style=${styleMap({
-            width: PopperWidth + 'px',
-            maxWidth: '100vw',
-            ...this.elementTipStyle.additionStyle,
-          })}
+          width: PopperWidth + 'px',
+          maxWidth: '100vw',
+          ...this.elementTipStyle.additionStyle,
+        })}
         >
           <div class="element-info-content">
             <div class="name-line">
@@ -1750,16 +1750,16 @@ export class CodeInspectorComponent extends LitElement {
       <div
         id="inspector-switch"
         class="inspector-switch ${this.open
-          ? 'active-inspector-switch'
-          : ''} ${this.moved ? 'move-inspector-switch' : ''}"
+        ? 'active-inspector-switch'
+        : ''} ${this.moved ? 'move-inspector-switch' : ''}"
         style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
         @mousedown="${(e: MouseEvent) => this.recordMousePosition(e, 'switch')}"
         @touchstart="${(e: TouchEvent) =>
-          this.recordMousePosition(e, 'switch')}"
+        this.recordMousePosition(e, 'switch')}"
         @click="${this.switch}"
       >
         ${this.open
-          ? html`
+        ? html`
               <svg
                 t="1677801709811"
                 class="icon"
@@ -1803,7 +1803,7 @@ export class CodeInspectorComponent extends LitElement {
                 ></path>
               </svg>
             `
-          : html`<svg
+        : html`<svg
               t="1677801709811"
               class="icon"
               viewBox="0 0 1024 1024"
@@ -1854,9 +1854,9 @@ export class CodeInspectorComponent extends LitElement {
         <div
           class="inspector-layer-title"
           @mousedown="${(e: MouseEvent) =>
-            this.recordMousePosition(e, 'nodeTree')}"
+        this.recordMousePosition(e, 'nodeTree')}"
           @touchstart="${(e: TouchEvent) =>
-            this.recordMousePosition(e, 'nodeTree')}"
+        this.recordMousePosition(e, 'nodeTree')}"
         >
           <div>🔍️ Click node to locate</div>
           ${html`<svg
@@ -1908,7 +1908,7 @@ export class CodeInspectorComponent extends LitElement {
                 </div>
                 <div class="settings-modal-content">
                   ${this.features.map(
-                    (feature) => html`
+          (feature) => html`
                       <div class="settings-item">
                         <label class="settings-label">
                           <span class="settings-label-text"
@@ -1928,7 +1928,7 @@ export class CodeInspectorComponent extends LitElement {
                         </label>
                       </div>
                     `
-                  )}
+        )}
                 </div>
               </div>
             </div>
@@ -1937,33 +1937,33 @@ export class CodeInspectorComponent extends LitElement {
 
       <!-- 聊天框 -->
       ${renderChatModal(
-        {
-          showChatModal: this.showChatModal,
-          chatMessages: this.chatMessages,
-          chatInput: this.chatInput,
-          chatLoading: this.chatLoading,
-          chatContext: this.chatContext,
-          currentTools: this.currentTools,
-          chatTheme: this.chatTheme,
-          turnStatus: this.turnStatus,
-          turnDuration: this.turnDuration,
-          isDragging: this.isDragging,
-          chatModel: this.chatModel,
-        },
-        {
-          closeChatModal: this.closeChatModal,
-          clearChatMessages: this.clearChatMessages,
-          handleChatInput: this.handleChatInput,
-          handleChatKeyDown: this.handleChatKeyDown,
-          sendChatMessage: this.sendChatMessage,
-          toggleTheme: this.toggleTheme,
-          interruptChat: this.interruptChat,
-          handleDragStart: this.handleChatDragStart,
-          handleDragMove: this.handleChatDragMove,
-          handleDragEnd: this.handleChatDragEnd,
-          handleOverlayClick: this.handleOverlayClick,
-        }
-      )}
+          {
+            showChatModal: this.showChatModal,
+            chatMessages: this.chatMessages,
+            chatInput: this.chatInput,
+            chatLoading: this.chatLoading,
+            chatContext: this.chatContext,
+            currentTools: this.currentTools,
+            chatTheme: this.chatTheme,
+            turnStatus: this.turnStatus,
+            turnDuration: this.turnDuration,
+            isDragging: this.isDragging,
+            chatModel: this.chatModel,
+          },
+          {
+            closeChatModal: this.closeChatModal,
+            clearChatMessages: this.clearChatMessages,
+            handleChatInput: this.handleChatInput,
+            handleChatKeyDown: this.handleChatKeyDown,
+            sendChatMessage: this.sendChatMessage,
+            toggleTheme: this.toggleTheme,
+            interruptChat: this.interruptChat,
+            handleDragStart: this.handleChatDragStart,
+            handleDragMove: this.handleChatDragMove,
+            handleDragEnd: this.handleChatDragEnd,
+            handleOverlayClick: this.handleOverlayClick,
+          }
+        )}
 
       <div
         id="node-tree-tooltip"
