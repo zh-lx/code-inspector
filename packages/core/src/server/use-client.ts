@@ -32,7 +32,7 @@ let compatibleDirname = '';
 
 if (typeof __dirname !== 'undefined') {
   compatibleDirname = __dirname;
-/* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
+  /* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
 } else {
   compatibleDirname = dirname(fileURLToPath(import.meta.url));
 }
@@ -152,13 +152,14 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '' } = behavior;
+  const { locate = true, copy = false, target = '', defaultAction = '' } = behavior;
+  const aiEnabled = Object.keys(behavior.ai || {}).length > 0;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
       ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
-      
+
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
@@ -166,10 +167,12 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
-      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
+      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : 'undefined'};
       inspector.target = '${target}';
+      inspector.ai = ${aiEnabled};
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
+      inspector.defaultAction = '${defaultAction}';
       document.documentElement.append(inspector);
     }
   }

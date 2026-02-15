@@ -120,8 +120,8 @@ describe('toggleSettingsModal and related functions', () => {
   });
 
   describe('features array', () => {
-    it('should have three features', () => {
-      expect(component.features.length).toBe(3);
+    it('should have four features', () => {
+      expect(component.features.length).toBe(4);
     });
 
     it('should have Locate Code feature', () => {
@@ -140,6 +140,12 @@ describe('toggleSettingsModal and related functions', () => {
       const targetFeature = component.features.find(f => f.label === 'Open Target');
       expect(targetFeature).toBeDefined();
       expect(targetFeature!.description).toBe('Open the target url');
+    });
+
+    it('should have AI Chat feature', () => {
+      const chatFeature = component.features.find(f => f.label === 'AI Chat');
+      expect(chatFeature).toBeDefined();
+      expect(chatFeature!.description).toBe('Chat with AI about this code');
     });
 
     it('should have checked functions that reflect internal state', () => {

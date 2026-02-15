@@ -51,7 +51,8 @@
     "@vue/compiler-dom": "^3.5.13",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
-    "launch-ide": "1.4.0",
+    "launch-ide": "1.4.2",
+    "marked": "^17.0.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
@@ -59,6 +60,7 @@
     "@babel/plugin-proposal-decorators": "^7.22.7",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
+    "@floating-ui/dom": "^1.7.5",
     "@types/node": "^18.14.1",
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-sfc": "^3.3.4",
@@ -70,5 +72,8 @@
     "vite": "^4.3.9",
     "vite-plugin-node-stdlib-browser": "^0.2.1",
     "volar-service-pug": "^0.0.63"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.29"
   }
 }
