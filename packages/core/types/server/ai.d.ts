@@ -34,7 +34,9 @@ export interface AIRequest {
  * 从 behavior 配置中提取 AI 选项
  */
 export declare function getAIOptions(behavior?: {
-    claudeCode?: boolean | AIOptions;
+    ai?: {
+        claudeCode?: boolean | AIOptions;
+    };
 }): AIOptions | undefined;
 /**
  * 处理 AI 请求

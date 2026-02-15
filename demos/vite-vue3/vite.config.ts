@@ -10,12 +10,14 @@ export default defineConfig({
     CodeInspectorPlugin({
       bundler: 'vite',
       behavior: {
-        claudeCode: {
-          // agent: 'sdk',
-          // sdkOptions: {
-          //   model: 'claude-opus-4-5-20251101',
-          //   maxTurns: 50,
-          // },
+        ai: {
+          claudeCode: {
+            // agent: 'sdk',
+            // sdkOptions: {
+            //   model: 'claude-opus-4-5-20251101',
+            //   maxTurns: 50,
+            // },
+          }
         }
       }    
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']

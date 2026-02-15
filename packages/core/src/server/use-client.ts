@@ -32,7 +32,7 @@ let compatibleDirname = '';
 
 if (typeof __dirname !== 'undefined') {
   compatibleDirname = __dirname;
-/* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
+  /* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
 } else {
   compatibleDirname = dirname(fileURLToPath(import.meta.url));
 }
@@ -152,9 +152,8 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '', claudeCode = false, defaultAction = '' } = behavior;
-  // claudeCode 可能是 boolean 或 AIOptions 对象，客户端只需要知道是否启用
-  const claudeCodeEnabled = !!claudeCode;
+  const { locate = true, copy = false, target = '', defaultAction = '' } = behavior;
+  const aiEnabled = Object.keys(behavior.ai || {}).length > 0;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -170,7 +169,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : 'undefined'};
       inspector.target = '${target}';
-      inspector.claudeCode = ${claudeCodeEnabled};
+      inspector.ai = ${aiEnabled};
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
       inspector.defaultAction = '${defaultAction}';

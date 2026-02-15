@@ -43,11 +43,11 @@ export declare class CodeInspectorComponent extends LitElement {
     autoToggle: boolean;
     hideConsole: boolean;
     locate: boolean;
-    copy: boolean | string;
+    copy: boolean | undefined | string;
     target: string;
     targetNode: HTMLElement | null;
     ip: string;
-    claudeCode: boolean;
+    ai: boolean;
     private wheelThrottling;
     modeKey: string;
     defaultAction: string;
@@ -104,7 +104,7 @@ export declare class CodeInspectorComponent extends LitElement {
     internalLocate: boolean;
     internalCopy: boolean;
     internalTarget: boolean;
-    internalChat: boolean;
+    internalAI: boolean;
     showChatModal: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
@@ -137,6 +137,10 @@ export declare class CodeInspectorComponent extends LitElement {
         description: string;
         checked: () => boolean;
         onChange: () => void;
+        action: string;
+        fn: () => void;
+        key: number;
+        available: () => boolean;
     }[];
     private eventListeners;
     isTracking: (e: any) => boolean | "";
@@ -172,6 +176,10 @@ export declare class CodeInspectorComponent extends LitElement {
     sendXHR: () => void;
     sendImg: () => void;
     buildTargetUrl: () => string;
+    locateCode: () => void;
+    copyCode: () => void;
+    targetCode: () => void;
+    dispatchCustomEvent: (action: 'locate' | 'copy' | 'target' | 'chat' | string) => void;
     trackCode: () => void;
     private handleModeShortcut;
     showNotification(message: string, type?: 'success' | 'error'): void;
@@ -207,7 +215,7 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleLocate: () => void;
     toggleCopy: () => void;
     toggleTarget: () => void;
-    toggleChat: () => void;
+    toggleAICode: () => void;
     openChatModal: () => void;
     closeChatModal: () => void;
     clearChatMessages: () => void;

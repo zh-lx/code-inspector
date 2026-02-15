@@ -49,8 +49,10 @@ export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
-    claudeCode?: boolean | AIOptions;
-    defaultAction?: 'copy' | 'locate' | 'target' | 'claudeCode';
+    ai?: {
+        claudeCode?: boolean | AIOptions;
+    };
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };
 export type RecordInfo = {
     port: number;

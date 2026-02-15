@@ -111,7 +111,7 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   ip: string = 'localhost';
   @property()
-  claudeCode: boolean = false;
+  ai: boolean = false;
 
   private wheelThrottling: boolean = false;
   @property()
@@ -187,7 +187,7 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   internalTarget = false; // 内部 target 状态
   @state()
-  internalClaudeCode = false; // 内部 chat 状态
+  internalAI = false; // 内部 chat 状态
   @state()
   showChatModal = false; // 聊天框显示状态
   @state()
@@ -274,14 +274,14 @@ export class CodeInspectorComponent extends LitElement {
       available: () => !!this.target,
     },
     {
-      label: 'Claude Code',
-      description: 'Use claude code to write code',
-      checked: () => !!this.internalClaudeCode,
-      onChange: () => this.toggleClaudeCode(),
-      action: 'claudeCode',
+      label: 'AI Coding',
+      description: 'Use AI to write code',
+      checked: () => !!this.internalAI,
+      onChange: () => this.toggleAICode(),
+      action: 'ai',
       fn: () => this.openChatModal(),
       key: 4,
-      available: () => !!this.claudeCode,
+      available: () => !!this.ai,
     },
   ];
 
@@ -719,7 +719,7 @@ export class CodeInspectorComponent extends LitElement {
       const targetNumCode = 'numpad' + feature.key;
       const targetKeyCode = 48 + feature.key; // key code of number1 is 49
       if ((code === targetDigitCode || code === targetNumCode || keyCode === targetKeyCode) && feature.available()) {
-        if (feature.action === 'claudeCode' || (this.targetNode && this.element.path)) {
+        if (feature.action === 'ai' || (this.targetNode && this.element.path)) {
           feature.fn();
           e.preventDefault();
           e.stopPropagation();
@@ -1174,7 +1174,7 @@ export class CodeInspectorComponent extends LitElement {
     this.internalLocate = false;
     this.internalCopy = false;
     this.internalTarget = false;
-    this.internalClaudeCode = false;
+    this.internalAI = false;
   };
 
   // 切换 locate 功能（互斥）
@@ -1199,10 +1199,10 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 切换 chat 功能（互斥）
-  toggleClaudeCode = () => {
-    const newValue = !this.internalClaudeCode;
+  toggleAICode = () => {
+    const newValue = !this.internalAI;
     this.clearAllActions();
-    this.internalClaudeCode = newValue;
+    this.internalAI = newValue;
   };
 
   // 打开聊天框
@@ -1572,9 +1572,9 @@ export class CodeInspectorComponent extends LitElement {
     if (this.defaultAction) {
       // 根据 defaultAction 决定开启哪个功能
       switch (this.defaultAction) {
-        case 'claudeCode':
-          if (this.claudeCode) {
-            this.internalClaudeCode = true;
+        case 'ai':
+          if (this.ai) {
+            this.internalAI = true;
             actionSet = true;
           }
           break;
@@ -1607,8 +1607,8 @@ export class CodeInspectorComponent extends LitElement {
         this.internalCopy = true;
       } else if (this.target) {
         this.internalTarget = true;
-      } else if (this.claudeCode) {
-        this.internalClaudeCode = true;
+      } else if (this.ai) {
+        this.internalAI = true;
       }
     }
 

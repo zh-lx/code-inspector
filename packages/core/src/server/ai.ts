@@ -46,10 +46,10 @@ export interface AIRequest {
 /**
  * 从 behavior 配置中提取 AI 选项
  */
-export function getAIOptions(behavior?: { claudeCode?: boolean | AIOptions }): AIOptions | undefined {
-  if (!behavior?.claudeCode) return undefined;
-  if (typeof behavior.claudeCode === 'boolean') return {};
-  return behavior.claudeCode;
+export function getAIOptions(behavior?: { ai?: { claudeCode?: boolean | AIOptions } }): AIOptions | undefined {
+  if (!behavior?.ai?.claudeCode) return undefined;
+  if (typeof behavior.ai.claudeCode === 'boolean') return {};
+  return behavior.ai.claudeCode;
 }
 
 /**
