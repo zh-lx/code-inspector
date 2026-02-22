@@ -3,7 +3,7 @@
  */
 import { html, css, TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { computePosition, flip, shift, offset, autoUpdate, Placement } from '@floating-ui/dom';
+import { computePosition, flip, shift, offset, Placement } from '@floating-ui/dom';
 import { marked } from 'marked';
 
 /** 项目根路径，由服务端 SSE info 事件传入 */
@@ -204,17 +204,10 @@ export function updateChatModalPosition(
     }
   };
 
-  // 初始更新
+  // 仅初始定位一次，fixed 定位不需要持续追踪
   updatePosition();
 
-  // 设置自动更新（滚动、resize 等情况）
-  const cleanup = autoUpdate(referenceEl, floatingEl, updatePosition, {
-    ancestorScroll: true,
-    ancestorResize: true,
-    elementResize: true,
-  });
-
-  return cleanup;
+  return null;
 }
 
 /**
@@ -722,9 +715,7 @@ export const chatStyles = css`
     left: 0;
     width: 480px;
     min-width: 360px;
-    min-height: 280px;
-    max-height: min(520px, calc(100vh - 32px));
-    height: auto;
+    height: min(520px, calc(100vh - 32px));
     animation: slideIn 0.3s ease-out;
   }
 
