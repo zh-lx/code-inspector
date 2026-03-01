@@ -216,6 +216,7 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleCopy: () => void;
     toggleTarget: () => void;
     toggleAICode: () => void;
+    private persistAIState;
     openChatModal: () => void;
     closeChatModal: () => void;
     clearChatMessages: () => void;

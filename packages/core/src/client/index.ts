@@ -16,6 +16,7 @@ import {
   setProjectRoot,
   fetchModelInfo,
 } from './ai';
+import { saveAIState, loadAIState, clearAIState } from './ai-persist';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -1205,6 +1206,26 @@ export class CodeInspectorComponent extends LitElement {
     this.internalAI = newValue;
   };
 
+  // 持久化 AI 对话状态到 sessionStorage
+  private persistAIState = () => {
+    let modalPosition: { left: string; top: string } | null = null;
+    if (this.showChatModal) {
+      const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+      if (chatModal) {
+        modalPosition = { left: chatModal.style.left, top: chatModal.style.top };
+      }
+    }
+    saveAIState({
+      showChatModal: this.showChatModal,
+      chatMessages: this.chatMessages,
+      chatContext: this.chatContext,
+      chatSessionId: this.chatSessionId,
+      chatTheme: this.chatTheme,
+      chatModel: this.chatModel,
+      modalPosition,
+    });
+  };
+
   // 打开聊天框
   openChatModal = () => {
     // 有选中元素时提供上下文，否则全局模式（无 DOM 上下文）
@@ -1255,6 +1276,8 @@ export class CodeInspectorComponent extends LitElement {
             chatModal.classList.add('chat-modal-centered');
           }
         }
+        // 位置确定后持久化
+        requestAnimationFrame(() => this.persistAIState());
       });
     });
   };
@@ -1270,6 +1293,9 @@ export class CodeInspectorComponent extends LitElement {
 
     // 恢复背景滚动
     document.body.style.overflow = '';
+
+    // 关闭弹窗时清除持久化状态
+    clearAIState();
   };
 
   // 清空聊天记录
@@ -1278,6 +1304,7 @@ export class CodeInspectorComponent extends LitElement {
     this.chatSessionId = null;
     this.turnStatus = 'idle';
     this.turnDuration = 0;
+    this.persistAIState();
   };
 
   // 切换聊天主题
@@ -1288,6 +1315,7 @@ export class CodeInspectorComponent extends LitElement {
     } else {
       this.classList.remove('chat-theme-light');
     }
+    this.persistAIState();
   };
 
   // 处理聊天输入
@@ -1403,6 +1431,7 @@ export class CodeInspectorComponent extends LitElement {
     setTimeout(() => {
       this.wasDragging = false;
     }, 100);
+    this.persistAIState();
   };
 
   // 处理点击遮罩层关闭弹窗
@@ -1459,6 +1488,7 @@ export class CodeInspectorComponent extends LitElement {
         renderThrottleTimer = null;
       }
       updateAssistantMessage();
+      this.persistAIState();
     };
 
     try {
@@ -1515,6 +1545,7 @@ export class CodeInspectorComponent extends LitElement {
           },
           onSessionId: (sessionId) => {
             this.chatSessionId = sessionId;
+            this.persistAIState();
           },
           onProjectRoot: (cwd) => {
             setProjectRoot(cwd);
@@ -1612,11 +1643,39 @@ export class CodeInspectorComponent extends LitElement {
       }
     }
 
-    // 检测系统主题偏好
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
-    this.chatTheme = prefersDark ? 'dark' : 'light';
-    if (this.chatTheme === 'light') {
-      this.classList.add('chat-theme-light');
+    // 恢复 AI 对话状态（页面刷新后）
+    const persisted = loadAIState();
+    if (persisted?.showChatModal) {
+      this.chatMessages = persisted.chatMessages;
+      this.chatContext = persisted.chatContext;
+      this.chatSessionId = persisted.chatSessionId;
+      this.chatTheme = persisted.chatTheme;
+      this.chatModel = persisted.chatModel;
+      this.showChatModal = true;
+
+      if (this.chatTheme === 'light') {
+        this.classList.add('chat-theme-light');
+      }
+
+      document.body.style.overflow = 'hidden';
+
+      // 恢复弹窗位置
+      this.updateComplete.then(() => {
+        requestAnimationFrame(() => {
+          const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+          if (chatModal && persisted.modalPosition) {
+            chatModal.style.left = persisted.modalPosition.left;
+            chatModal.style.top = persisted.modalPosition.top;
+          }
+        });
+      });
+    } else {
+      // 无持久化状态时，检测系统主题偏好
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+      this.chatTheme = prefersDark ? 'dark' : 'light';
+      if (this.chatTheme === 'light') {
+        this.classList.add('chat-theme-light');
+      }
     }
 
     // Initialize event listeners configuration
