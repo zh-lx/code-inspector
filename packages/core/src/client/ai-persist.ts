@@ -16,6 +16,7 @@ export interface PersistedAIState {
   chatTheme: 'light' | 'dark';
   chatModel: string;
   modalPosition: { left: string; top: string } | null;
+  turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
 }
 
 /**

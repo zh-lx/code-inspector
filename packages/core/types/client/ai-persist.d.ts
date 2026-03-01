@@ -16,6 +16,7 @@ export interface PersistedAIState {
         left: string;
         top: string;
     } | null;
+    turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
 }
 /**
  * 保存 AI 状态到 sessionStorage

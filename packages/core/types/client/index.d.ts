@@ -233,6 +233,7 @@ export declare class CodeInspectorComponent extends LitElement {
     handleChatDragEnd: () => void;
     handleOverlayClick: () => void;
     sendChatMessage: () => Promise<void>;
+    private resumeAITask;
     /**
      * Attach all event listeners
      */

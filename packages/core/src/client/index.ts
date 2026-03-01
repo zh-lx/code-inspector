@@ -1223,6 +1223,7 @@ export class CodeInspectorComponent extends LitElement {
       chatTheme: this.chatTheme,
       chatModel: this.chatModel,
       modalPosition,
+      turnStatus: this.turnStatus,
     });
   };
 
@@ -1576,6 +1577,125 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  // 页面刷新后自动恢复未完成的 AI 任务
+  private resumeAITask = async () => {
+    if (!this.chatSessionId || this.chatLoading) return;
+
+    this.chatLoading = true;
+    this.startTurnTimer();
+    this.chatAbortController = new AbortController();
+
+    // 添加空的 assistant 消息用于流式更新
+    this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+    let assistantContent = '';
+    const blocks: ContentBlock[] = [];
+    const toolIdToIndex = new Map<string, number>();
+
+    const updateAssistantMessage = () => {
+      this.chatMessages = [
+        ...this.chatMessages.slice(0, -1),
+        { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+      ];
+      this.scrollChatToBottom();
+    };
+
+    let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+    const throttledUpdate = () => {
+      if (!renderThrottleTimer) {
+        renderThrottleTimer = setTimeout(() => {
+          renderThrottleTimer = null;
+          updateAssistantMessage();
+        }, 50);
+      }
+    };
+    const flushUpdate = () => {
+      if (renderThrottleTimer) {
+        clearTimeout(renderThrottleTimer);
+        renderThrottleTimer = null;
+      }
+      updateAssistantMessage();
+      this.persistAIState();
+    };
+
+    try {
+      await sendChatToServer(
+        this.ip,
+        this.port,
+        'The previous task was interrupted by a page refresh. Please continue from where you left off.',
+        this.chatContext,
+        this.chatMessages.slice(0, -1),
+        {
+          onText: (content) => {
+            assistantContent += content;
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock && lastBlock.type === 'text') {
+              lastBlock.content = (lastBlock.content || '') + content;
+            } else {
+              blocks.push({ type: 'text', content });
+            }
+            throttledUpdate();
+          },
+          onToolStart: (toolId, toolName, _index) => {
+            const tool: ToolCall = {
+              id: toolId,
+              name: toolName,
+              isComplete: false,
+            };
+            const blockIndex = blocks.length;
+            blocks.push({ type: 'tool', tool });
+            toolIdToIndex.set(toolId, blockIndex);
+            flushUpdate();
+          },
+          onToolInput: (_index, input) => {
+            for (let i = blocks.length - 1; i >= 0; i--) {
+              if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
+                blocks[i].tool!.input = input;
+                flushUpdate();
+                break;
+              }
+            }
+          },
+          onToolResult: (toolUseId, content, isError) => {
+            const blockIndex = toolIdToIndex.get(toolUseId);
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.result = content;
+              blocks[blockIndex].tool!.isError = isError;
+              blocks[blockIndex].tool!.isComplete = true;
+              flushUpdate();
+            }
+          },
+          onError: (error) => {
+            console.error('Resume error:', error);
+          },
+          onSessionId: (sessionId) => {
+            this.chatSessionId = sessionId;
+            this.persistAIState();
+          },
+          onProjectRoot: (cwd) => {
+            setProjectRoot(cwd);
+          },
+          onModel: (model) => {
+            this.chatModel = model;
+          },
+        },
+        this.chatAbortController.signal,
+        this.chatSessionId
+      );
+      flushUpdate();
+      this.stopTurnTimer('done');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // 中断已在 interruptChat 中处理
+      } else {
+        this.chatMessages = this.chatMessages.slice(0, -1);
+        this.stopTurnTimer('interrupt');
+      }
+    } finally {
+      this.chatLoading = false;
+      this.chatAbortController = null;
+    }
+  };
+
   /**
    * Attach all event listeners
    */
@@ -1666,6 +1786,10 @@ export class CodeInspectorComponent extends LitElement {
           if (chatModal && persisted.modalPosition) {
             chatModal.style.left = persisted.modalPosition.left;
             chatModal.style.top = persisted.modalPosition.top;
+          }
+          // 如果刷新前任务正在执行，自动恢复
+          if (persisted.turnStatus === 'running' && persisted.chatSessionId) {
+            this.resumeAITask();
           }
         });
       });
