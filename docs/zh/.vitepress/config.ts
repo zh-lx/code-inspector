@@ -18,7 +18,19 @@ export default defineConfig({
         items: [
           { text: '介绍', link: '/guide/introduction' },
           { text: '使用', link: '/guide/start' },
-          { text: '功能大全', link: '/guide/feature' },
+          {
+            text: '功能',
+            collapsed: false,
+            items: [
+              { text: '1. 代码定位', link: '/guide/feature/locate' },
+              { text: '2. 复制元素路径', link: '/guide/feature/copy' },
+              { text: '3. 自定义跳转', link: '/guide/feature/target' },
+              { text: '4. AI 助手', link: '/guide/feature/ai' },
+              { text: '切换功能', link: '/guide/feature/switch' },
+              { text: '快速选择元素', link: '/guide/feature/select-dom' },
+              { text: '自定义功能', link: '/guide/feature/custom-event' },
+            ],
+          },
           { text: 'IDE', link: '/guide/ide' },
         ],
       },

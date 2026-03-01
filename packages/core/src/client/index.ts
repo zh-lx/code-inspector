@@ -275,7 +275,7 @@ export class CodeInspectorComponent extends LitElement {
     },
     {
       label: 'AI Assistant',
-      description: 'Use AI to write code',
+      description: 'Use AI for coding',
       checked: () => !!this.internalAI,
       onChange: () => this.toggleAICode(),
       action: 'ai',
