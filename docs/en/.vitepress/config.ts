@@ -19,7 +19,19 @@ export default defineConfig({
         items: [
           { text: 'Introduction', link: '/guide/introduction' },
           { text: 'Use', link: '/guide/start' },
-          { text: 'Feature', link: '/guide/feature' },
+          {
+            text: 'Features',
+            collapsed: false,
+            items: [
+              { text: '1. Code Location', link: '/guide/feature/locate' },
+              { text: '2. Copy Element Path', link: '/guide/feature/copy' },
+              { text: '3. Custom Target', link: '/guide/feature/target' },
+              { text: '4. AI Assistant', link: '/guide/feature/ai' },
+              { text: 'Switch Features', link: '/guide/feature/switch' },
+              { text: 'Quick Select Element', link: '/guide/feature/select-dom' },
+              { text: 'Custom Event', link: '/guide/feature/custom-event' },
+            ],
+          },
           { text: 'IDE', link: '/guide/ide' },
         ],
       },

@@ -2,11 +2,57 @@
 import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+export type AIOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI，'sdk' 使用 Claude Agent SDK。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local Claude Code CLI, 'sdk' uses Claude Agent SDK. Defaults to 'cli'
+     */
+    agent?: 'cli' | 'sdk';
+    /**
+     * @zh SDK 选项，参数格式继承 @anthropic-ai/claude-agent-sdk 官方 SDK 的 Options 类型
+     * @en SDK options, parameter format follows the official @anthropic-ai/claude-agent-sdk Options type
+     * @see https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk
+     */
+    sdkOptions?: {
+        /** 允许自动执行的工具列表 */
+        allowedTools?: string[];
+        /** 禁止的工具列表 */
+        disallowedTools?: string[];
+        /** 使用的模型 */
+        model?: string;
+        /** 最大执行轮数，默认为 20 */
+        maxTurns?: number;
+        /**
+         * 权限模式。默认为 'bypassPermissions'
+         * - 'default' 需要用户确认
+         * - 'acceptEdits' 自动接受编辑
+         * - 'bypassPermissions' 绕过所有权限检查
+         */
+        permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+        /** 系统提示 */
+        systemPrompt?: string | {
+            type: 'preset';
+            preset: 'claude_code';
+            append?: string;
+        };
+        /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
+        env?: Record<string, string | undefined>;
+        /** MCP 服务器配置 */
+        mcpServers?: Record<string, any>;
+        /** 最大思考 token 数 */
+        maxThinkingTokens?: number;
+        /** 最大预算（美元） */
+        maxBudgetUsd?: number;
+    };
+};
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
-    defaultAction?: 'copy' | 'locate' | 'target' | 'all';
+    ai?: {
+        claudeCode?: boolean | AIOptions;
+    };
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };
 export type RecordInfo = {
     port: number;

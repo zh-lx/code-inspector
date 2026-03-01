@@ -247,7 +247,7 @@ describe('render', () => {
       await component.updateComplete;
 
       const switches = component.shadowRoot?.querySelectorAll('.settings-switch');
-      expect(switches?.length).toBe(3);
+      expect(switches?.length).toBe(4);
     });
 
     it('should close modal when clicking overlay', async () => {

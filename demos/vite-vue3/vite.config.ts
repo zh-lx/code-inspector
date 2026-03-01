@@ -10,8 +10,16 @@ export default defineConfig({
     CodeInspectorPlugin({
       bundler: 'vite',
       behavior: {
-        copy: '{file}',
-      },
+        ai: {
+          claudeCode: {
+            // agent: 'sdk',
+            // sdkOptions: {
+            //   model: 'claude-opus-4-5-20251101',
+            //   maxTurns: 50,
+            // },
+          }
+        }
+      }    
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),
     vueJsx(),
