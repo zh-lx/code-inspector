@@ -6,13 +6,13 @@ The AI assistant allows you to chat with AI directly in the browser to modify co
 
 ## Configuration
 
-Enable the AI assistant via `behavior.ai`. Currently supports `claudeCode`:
+Enable the AI assistant via `behavior.ai`. Currently supports `claudeCode` and `codex`:
 
 ```js
 codeInspectorPlugin({
   behavior: {
     ai: {
-      claudeCode: true,
+      codex: true,
     },
   },
 }),
@@ -40,6 +40,43 @@ Hold the combination key on the page (default is `Option + Shift` on Mac; `Alt +
 - If you press the `4` key directly without moving the mouse to show the DOM mask layer, it opens a project-level AI Assistant.
 
 <b>This method works regardless of whether the AI Assistant feature is enabled.</b>
+
+## Codex Configuration
+
+### Using Codex CLI
+
+The `codex` provider only supports local `Codex CLI` and does not support SDK mode.
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: true,
+    },
+  },
+}),
+```
+
+You can also pass custom Codex CLI options:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: {
+        model: 'gpt-5.3-codex',
+        profile: 'default',
+        sandbox: 'workspace-write',
+        fullAuto: true,
+        // Pass through as -c key=value
+        config: {
+          'reasoning.effort': 'high',
+        },
+      },
+    },
+  },
+}),
+```
 
 ## Claude Code Configuration
 

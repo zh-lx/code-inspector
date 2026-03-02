@@ -4,7 +4,7 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { AIOptions } from '../shared';
+import type { AIOptions, CodexOptions } from '../shared';
 /**
  * AI 上下文信息
  */
@@ -26,23 +26,32 @@ export interface AIMessage {
  */
 export interface AIRequest {
     message: string;
-    context: AIContext;
+    context: AIContext | null;
     history: AIMessage[];
     sessionId?: string;
 }
+export type AIProviderType = 'claudeCode' | 'codex';
+export type ActiveAIOptions = {
+    provider: 'claudeCode';
+    options: AIOptions;
+} | {
+    provider: 'codex';
+    options: CodexOptions;
+};
 /**
  * 从 behavior 配置中提取 AI 选项
  */
 export declare function getAIOptions(behavior?: {
     ai?: {
         claudeCode?: boolean | AIOptions;
+        codex?: boolean | CodexOptions;
     };
-}): AIOptions | undefined;
+}): ActiveAIOptions | undefined;
 /**
  * 处理 AI 请求
  */
-export declare function handleAIRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: AIOptions | undefined, projectRootPath: string): Promise<void>;
+export declare function handleAIRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ActiveAIOptions | undefined, projectRootPath: string): Promise<void>;
 /**
  * 处理 AI 模型信息请求
  */
-export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: AIOptions | undefined): Promise<void>;
+export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ActiveAIOptions | undefined): Promise<void>;

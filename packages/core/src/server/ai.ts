@@ -3,8 +3,9 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { AIOptions } from '../shared';
-import { handleClaudeRequest, getModelInfo } from './ai-provider-claude';
+import type { AIOptions, CodexOptions } from '../shared';
+import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-provider-claude';
+import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
 import type { ProviderResult } from './ai-provider-claude';
 
 // ============================================================================
@@ -34,10 +35,22 @@ export interface AIMessage {
  */
 export interface AIRequest {
   message: string;
-  context: AIContext;
+  context: AIContext | null;
   history: AIMessage[];
   sessionId?: string;
 }
+
+export type AIProviderType = 'claudeCode' | 'codex';
+
+export type ActiveAIOptions =
+  | {
+    provider: 'claudeCode';
+    options: AIOptions;
+  }
+  | {
+    provider: 'codex';
+    options: CodexOptions;
+  };
 
 // ============================================================================
 // 公共 API
@@ -46,10 +59,24 @@ export interface AIRequest {
 /**
  * 从 behavior 配置中提取 AI 选项
  */
-export function getAIOptions(behavior?: { ai?: { claudeCode?: boolean | AIOptions } }): AIOptions | undefined {
-  if (!behavior?.ai?.claudeCode) return undefined;
-  if (typeof behavior.ai.claudeCode === 'boolean') return {};
-  return behavior.ai.claudeCode;
+export function getAIOptions(
+  behavior?: { ai?: { claudeCode?: boolean | AIOptions; codex?: boolean | CodexOptions } }
+): ActiveAIOptions | undefined {
+  if (behavior?.ai?.codex) {
+    return {
+      provider: 'codex',
+      options: typeof behavior.ai.codex === 'boolean' ? {} : behavior.ai.codex,
+    };
+  }
+
+  if (behavior?.ai?.claudeCode) {
+    return {
+      provider: 'claudeCode',
+      options: typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode,
+    };
+  }
+
+  return undefined;
 }
 
 /**
@@ -69,7 +96,7 @@ export async function handleAIRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
-  aiOptions: AIOptions | undefined,
+  aiOptions: ActiveAIOptions | undefined,
   projectRootPath: string
 ): Promise<void> {
   // 读取请求体
@@ -101,20 +128,41 @@ export async function handleAIRequest(
   const sendSSE = createSSESender(res);
   const cwd = projectRootPath || process.cwd();
 
-  // 调用 provider
-  // 目前仅支持 Claude，后续可根据 aiOptions 的配置分发到不同 provider
-  const provider: ProviderResult = handleClaudeRequest(
-    message,
-    context,
-    history,
-    sessionId,
-    cwd,
-    aiOptions,
-    {
-      sendSSE,
-      onEnd: () => res.end(),
-    },
-  );
+  if (!aiOptions) {
+    sendSSE({ error: 'AI provider is not configured. Please set behavior.ai.claudeCode or behavior.ai.codex.' });
+    sendSSE('[DONE]');
+    res.end();
+    return;
+  }
+
+  let provider: ProviderResult;
+  if (aiOptions.provider === 'codex') {
+    provider = handleCodexRequest(
+      message,
+      context,
+      history,
+      sessionId,
+      cwd,
+      aiOptions.options,
+      {
+        sendSSE,
+        onEnd: () => res.end(),
+      },
+    );
+  } else {
+    provider = handleClaudeRequest(
+      message,
+      context,
+      history,
+      sessionId,
+      cwd,
+      aiOptions.options,
+      {
+        sendSSE,
+        onEnd: () => res.end(),
+      },
+    );
+  }
 
   // 处理客户端断开连接
   req.on('close', () => {
@@ -128,9 +176,11 @@ export async function handleAIRequest(
 export async function handleAIModelRequest(
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
-  aiOptions: AIOptions | undefined,
+  aiOptions: ActiveAIOptions | undefined,
 ): Promise<void> {
-  const model = await getModelInfo(aiOptions);
+  const model = aiOptions?.provider === 'codex'
+    ? await getCodexModelInfo(aiOptions.options)
+    : await getClaudeModelInfo(aiOptions?.options);
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ model }));
 }

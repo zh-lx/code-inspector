@@ -2,6 +2,10 @@
 import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+/**
+ * @zh Claude Code provider 配置
+ * @en Claude Code provider options
+ */
 export type AIOptions = {
     /**
      * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI，'sdk' 使用 Claude Agent SDK。默认为 'cli'
@@ -45,12 +49,35 @@ export type AIOptions = {
         maxBudgetUsd?: number;
     };
 };
+/**
+ * @zh Codex provider 配置（仅支持本地 CLI）
+ * @en Codex provider options (local CLI only)
+ */
+export type CodexOptions = {
+    /** 指定 Codex 模型，等价于 `codex exec -m` */
+    model?: string;
+    /** 指定 Codex profile，等价于 `codex exec -p` */
+    profile?: string;
+    /** 指定 sandbox 模式，等价于 `codex exec -s` */
+    sandbox?: 'read-only' | 'workspace-write' | 'danger-full-access';
+    /** 是否启用 `--full-auto` */
+    fullAuto?: boolean;
+    /** 是否启用 `--skip-git-repo-check` */
+    skipGitRepoCheck?: boolean;
+    /** 是否启用 `--ephemeral` */
+    ephemeral?: boolean;
+    /** 通过 `-c key=value` 透传给 codex cli 的配置 */
+    config?: Record<string, string | number | boolean>;
+    /** 环境变量，传递给 Codex CLI 进程 */
+    env?: Record<string, string | undefined>;
+};
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
     ai?: {
         claudeCode?: boolean | AIOptions;
+        codex?: boolean | CodexOptions;
     };
     defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };
