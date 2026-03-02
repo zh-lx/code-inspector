@@ -1,4 +1,4 @@
-# AI 助手
+# AI 助手 <Badge type="tip" text="2.0.0-beta.6+" vertical="middle" />
 
 AI 助手可以在浏览器中直接与 AI 对话，并结合当前 DOM 对应的源码上下文来修改代码。
 

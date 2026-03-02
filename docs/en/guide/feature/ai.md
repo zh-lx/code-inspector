@@ -1,4 +1,4 @@
-# AI Assistant
+# AI Assistant  <Badge type="tip" text="2.0.0-beta.6+" vertical="middle" />
 
 The AI Assistant lets you chat with AI directly in the browser and modify code with DOM-related source context.
 
