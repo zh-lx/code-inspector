@@ -1326,7 +1326,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 处理聊天输入框键盘事件
   handleChatKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
       this.sendChatMessage();
     }
