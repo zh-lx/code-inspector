@@ -1,10 +1,10 @@
 # 自定义跳转链接
 
-自定义 Target 功能可以在点击元素时跳转到指定的链接，如 GitHub、GitLab 的仓库代码地址等。
+Target 功能可以在触发时按模板拼接链接并打开新页面，常用于跳转 GitHub/GitLab 等代码托管平台。
 
-## 配置
+## 快速开启
 
-通过 `behavior.target` 设置跳转链接模板：
+通过 `behavior.target` 设置链接模板：
 
 ```js
 codeInspectorPlugin({
@@ -14,23 +14,27 @@ codeInspectorPlugin({
 }),
 ```
 
-链接中可以通过 `{file}`、`{line}`、`{column}` 模板代替源码位置信息，点击元素前会将模板替换为对应的值。
+可用占位符：
+- `{file}`：文件路径
+- `{line}`：行号
+- `{column}`：列号
 
-## 快捷键
+## 触发方式
 
-
-:::tip 注意事项
-方式 1 和 方式 2 需要确保 Open Target 功能是开启状态，按 `插件组合键 + Z` 可以查看功能是否开启。<img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/target.png" width="240" /> 
+:::tip 注意
+方式 1 和方式 2 需要先确保 Open Target 功能已开启。按 `插件组合键 + Z` 可查看状态。<img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/target.png" width="240" />
 :::
 
-### 方式1: 组合键 + 单击鼠标左键
+### 方式 1：组合键 + 鼠标左键
 
-在页面上按住组合键 (Mac 系统默认为 `Option + Shift`；Window 的默认为是 `Alt + Shift`) 时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，此时单击鼠标左键会跳转至自定义链接。
+按住组合键（Mac 默认 `Option + Shift`，Windows 默认 `Alt + Shift`），鼠标移动到元素后左键点击，即可打开自定义链接。
 
-### 方式2: 功能开关 + 单击鼠标左键
+### 方式 2：功能开关 + 鼠标左键
 
-当插件参数中配置了 `showSwitch: true` 且开关的颜色为打开状态(彩色) <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block; transform: translateY(5px);" /> 时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，此时单击鼠标左键会跳转至自定义链接。
+当 `showSwitch: true` 且开关处于开启状态时，鼠标移动到元素后左键点击，即可打开自定义链接。
 
-### 方式3: 组合键 + 3键
+### 方式 3：组合键 + 数字 `3`
 
-在页面上按住组合键 (Mac 系统默认为 `Option + Shift`；Window 的默认为是 `Alt + Shift`) 时，鼠标在页面移动即会在 DOM 上出现遮罩层并显示相关信息，此时再按 `数字3` 键，就可以快捷跳转至自定义链接。<b>此方式无论 Open Target 功能是否开启，都可以快速触发自定义跳转链接功能。</b>
+按住组合键并将鼠标移动到目标元素后，按 `3` 可快捷打开自定义链接。
+
+此方式不受 Open Target 开关状态影响，可直接触发。

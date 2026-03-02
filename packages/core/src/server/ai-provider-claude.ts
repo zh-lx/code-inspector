@@ -4,7 +4,12 @@
 import path from 'path';
 import fs from 'fs';
 import { spawn, ChildProcess, execSync } from 'child_process';
-import type { AIOptions } from '../shared';
+import type {
+  ClaudeCodeOptions,
+  ClaudeCliOptions,
+  ClaudeSdkOptions,
+  ClaudeAgentOptions,
+} from '../shared';
 import type { AIContext, AIMessage } from './ai';
 import { getEnvVars } from './server';
 import chalk from 'chalk';
@@ -63,13 +68,32 @@ function buildPrompt(
  */
 let cachedCliModel: string | undefined;
 
+function getClaudeAgentOptions(aiOptions?: ClaudeCodeOptions): ClaudeAgentOptions {
+  return aiOptions?.options || {};
+}
+
+function getClaudeCliOptions(aiOptions?: ClaudeCodeOptions): ClaudeCliOptions {
+  if (aiOptions?.agent === 'sdk') {
+    return {};
+  }
+  return aiOptions?.options || {};
+}
+
+function getClaudeSdkOptions(aiOptions?: ClaudeCodeOptions): ClaudeSdkOptions {
+  if (!aiOptions || aiOptions.agent === 'cli' || aiOptions.agent === undefined) {
+    return {};
+  }
+  return aiOptions.options || {};
+}
+
 /**
  * 获取模型信息
  * 优先使用用户配置，否则通过 CLI 的 system 事件获取（无 API 消耗）
  */
-export async function getModelInfo(aiOptions: AIOptions | undefined): Promise<string> {
-  if (aiOptions?.sdkOptions?.model) {
-    return aiOptions.sdkOptions.model;
+export async function getModelInfo(aiOptions: ClaudeCodeOptions | undefined): Promise<string> {
+  const options = getClaudeAgentOptions(aiOptions);
+  if (options.model) {
+    return options.model;
   }
 
   // 有缓存直接返回
@@ -149,7 +173,7 @@ export function handleClaudeRequest(
   history: AIMessage[],
   sessionId: string | undefined,
   cwd: string,
-  aiOptions: AIOptions | undefined,
+  aiOptions: ClaudeCodeOptions | undefined,
   callbacks: ProviderCallbacks,
 ): ProviderResult {
   const { sendSSE, onEnd } = callbacks;
@@ -286,14 +310,14 @@ function queryViaCli(
   cliPath: string,
   prompt: string,
   cwd: string,
-  aiOptions: AIOptions | undefined,
+  aiOptions: ClaudeCodeOptions | undefined,
   onData: (data: string) => void,
   onError: (error: string) => void,
   onEnd: () => void,
   sessionId?: string,
   onSessionId?: (id: string) => void
 ): ChildProcess {
-  const opts = aiOptions?.sdkOptions;
+  const opts = getClaudeCliOptions(aiOptions);
   const args = [
     '-p', prompt,
     '--output-format', 'stream-json',
@@ -310,6 +334,30 @@ function queryViaCli(
   }
   if (opts?.allowedTools && opts.allowedTools.length > 0) {
     args.push('--allowedTools', opts.allowedTools.join(','));
+  }
+  if (opts?.disallowedTools && opts.disallowedTools.length > 0) {
+    args.push('--disallowedTools', opts.disallowedTools.join(','));
+  }
+  if (typeof opts?.maxTurns === 'number' && Number.isFinite(opts.maxTurns) && opts.maxTurns > 0) {
+    args.push('--max-turns', String(opts.maxTurns));
+  }
+  if (typeof opts?.maxCost === 'number' && Number.isFinite(opts.maxCost) && opts.maxCost > 0) {
+    args.push('--max-cost', String(opts.maxCost));
+  }
+  const systemPrompt = opts?.systemPrompt;
+  if (typeof systemPrompt === 'string' && systemPrompt.trim()) {
+    args.push('--system-prompt', systemPrompt);
+  } else if (
+    systemPrompt &&
+    typeof systemPrompt === 'object' &&
+    systemPrompt.type === 'preset' &&
+    systemPrompt.append?.trim()
+  ) {
+    args.push('--append-system-prompt', systemPrompt.append);
+  }
+  if (opts?.mcpServers && Object.keys(opts.mcpServers).length > 0) {
+    // Claude CLI 支持 --mcp-config 传入 JSON 字符串
+    args.push('--mcp-config', JSON.stringify({ mcpServers: opts.mcpServers }));
   }
 
   const env = { ...getEnvVars(), ...opts?.env };
@@ -494,8 +542,8 @@ const DEFAULT_ALLOWED_TOOLS = [
   'WebSearch',
 ];
 
-function setupSdkEnvironment(aiOptions?: AIOptions): void {
-  const env = aiOptions?.sdkOptions?.env;
+function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
+  const env = getClaudeSdkOptions(aiOptions).env;
   if (!process.env) {
     process.env = {};
   }
@@ -508,8 +556,8 @@ function setupSdkEnvironment(aiOptions?: AIOptions): void {
   }
 }
 
-function buildSdkQueryOptions(aiOptions: AIOptions | undefined, cwd: string): Record<string, any> {
-  const { env, ...queryOpts } = aiOptions?.sdkOptions || {};
+function buildSdkQueryOptions(aiOptions: ClaudeCodeOptions | undefined, cwd: string): Record<string, any> {
+  const { env, ...queryOpts } = getClaudeSdkOptions(aiOptions);
   return {
     maxTurns: 20,
     permissionMode: 'bypassPermissions',
@@ -524,7 +572,7 @@ function buildSdkQueryOptions(aiOptions: AIOptions | undefined, cwd: string): Re
 async function queryViaSdk(
   prompt: string,
   cwd: string,
-  aiOptions: AIOptions | undefined,
+  aiOptions: ClaudeCodeOptions | undefined,
   sendSSE: (data: object | string) => void,
   isAborted: () => boolean
 ): Promise<void> {

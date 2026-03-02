@@ -1,12 +1,12 @@
 # Code Location
 
-Code location is the core feature of `code-inspector-plugin`. When you click on a page element, it automatically opens your code editor and moves the cursor to the corresponding code position.
+Code Location is the core capability of `code-inspector-plugin`: click a page element, then your editor opens and jumps to the corresponding source position.
 
 ![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/demo.gif)
 
-## Configuration
+## Quick Start
 
-Set `behavior.locate` to enable or disable this feature. Default is `true`, no manual configuration needed:
+Use `behavior.locate` to enable or disable this feature. Default is `true` (usually no extra config is needed):
 
 ```js
 codeInspectorPlugin({
@@ -16,20 +16,24 @@ codeInspectorPlugin({
 }),
 ```
 
-## Usage
+If you want to temporarily disable locate behavior, set it to `false`.
+
+## Trigger Methods
 
 :::tip Note
-Methods 1 and 2 require the Locate Code feature to be enabled. Press `hotKeys + Z` to check if it is enabled. <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/locate.png" width="240" />
+Methods 1 and 2 require the Locate Code feature to be enabled. Press `hotKeys + Z` to check the current state. <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/locate.png" width="240" />
 :::
 
 ### Method 1: HotKeys + Left Click
 
-Hold the combination key on the page (default is `Option + Shift` on Mac; `Alt + Shift` on Windows), move the mouse over the page and a mask layer will appear on DOM elements with related information. Left click to trigger the code location feature.
+Hold the combination key (`Option + Shift` on Mac, `Alt + Shift` on Windows), move to an element, and left click to locate code.
 
 ### Method 2: Switch + Left Click
 
-When `showSwitch: true` is configured and the switch is in the on state (colored) <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block; transform: translateY(5px);" />, move the mouse over the page and a mask layer will appear on DOM elements. Left click to trigger the code location feature.
+When `showSwitch: true` and the switch is on, move to an element and left click to locate code.
 
-### Method 3: HotKeys + Key 1
+### Method 3: HotKeys + Key `1`
 
-Hold the combination key on the page (default is `Option + Shift` on Mac; `Alt + Shift` on Windows), move the mouse over the page and a mask layer will appear on DOM elements. Press the `1` key to quickly trigger the code location feature. <b>This method works regardless of whether the Locate Code feature is enabled.</b>
+Hold the combination key, move to the target element, then press `1` to trigger code location quickly.
+
+This method works even when Locate Code is turned off.

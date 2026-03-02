@@ -20,16 +20,45 @@ describe('getAIOptions', () => {
       getAIOptions({
         ai: {
           codex: {
-            model: 'gpt-5.3-codex',
-            sandbox: 'workspace-write',
+            options: {
+              model: 'gpt-5.3-codex',
+              sandbox: 'workspace-write',
+            },
           },
         },
       })
     ).toEqual({
       provider: 'codex',
       options: {
-        model: 'gpt-5.3-codex',
-        sandbox: 'workspace-write',
+        options: {
+          model: 'gpt-5.3-codex',
+          sandbox: 'workspace-write',
+        },
+      },
+    });
+  });
+
+  it('should parse codex config with agent and options', () => {
+    expect(
+      getAIOptions({
+        ai: {
+          codex: {
+            agent: 'sdk',
+            options: {
+              model: 'gpt-5-codex',
+              approvalPolicy: 'full-auto',
+            },
+          },
+        },
+      })
+    ).toEqual({
+      provider: 'codex',
+      options: {
+        agent: 'sdk',
+        options: {
+          model: 'gpt-5-codex',
+          approvalPolicy: 'full-auto',
+        },
       },
     });
   });
@@ -38,6 +67,31 @@ describe('getAIOptions', () => {
     expect(getAIOptions({ ai: { claudeCode: true } })).toEqual({
       provider: 'claudeCode',
       options: {},
+    });
+  });
+
+  it('should parse claudeCode config with agent and options', () => {
+    expect(
+      getAIOptions({
+        ai: {
+          claudeCode: {
+            agent: 'sdk',
+            options: {
+              model: 'claude-sonnet-4-5',
+              maxTurns: 20,
+            },
+          },
+        },
+      })
+    ).toEqual({
+      provider: 'claudeCode',
+      options: {
+        agent: 'sdk',
+        options: {
+          model: 'claude-sonnet-4-5',
+          maxTurns: 20,
+        },
+      },
     });
   });
 

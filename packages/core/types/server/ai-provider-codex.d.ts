@@ -7,6 +7,6 @@ import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
  */
 export declare function getModelInfo(codexOptions: CodexOptions | undefined): Promise<string>;
 /**
- * Codex provider 统一入口（仅 CLI）
+ * Codex provider 统一入口
  */
 export declare function handleCodexRequest(message: string, context: AIContext | null, history: AIMessage[], sessionId: string | undefined, cwd: string, codexOptions: CodexOptions | undefined, callbacks: ProviderCallbacks): ProviderResult;

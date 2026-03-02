@@ -3,7 +3,7 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { AIOptions, CodexOptions } from '../shared';
+import type { ClaudeCodeOptions, CodexOptions } from '../shared';
 import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-provider-claude';
 import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
 import type { ProviderResult } from './ai-provider-claude';
@@ -45,7 +45,7 @@ export type AIProviderType = 'claudeCode' | 'codex';
 export type ActiveAIOptions =
   | {
     provider: 'claudeCode';
-    options: AIOptions;
+    options: ClaudeCodeOptions;
   }
   | {
     provider: 'codex';
@@ -60,7 +60,7 @@ export type ActiveAIOptions =
  * 从 behavior 配置中提取 AI 选项
  */
 export function getAIOptions(
-  behavior?: { ai?: { claudeCode?: boolean | AIOptions; codex?: boolean | CodexOptions } }
+  behavior?: { ai?: { claudeCode?: boolean | ClaudeCodeOptions; codex?: boolean | CodexOptions } }
 ): ActiveAIOptions | undefined {
   if (behavior?.ai?.codex) {
     return {

@@ -3,57 +3,102 @@ import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
 /**
- * @zh Claude Code provider 配置
- * @en Claude Code provider options
+ * @zh Claude Code CLI 配置项
+ * @en Claude Code CLI options
  */
-export type AIOptions = {
+export type ClaudeCliOptions = {
+    /** 允许自动执行的工具列表 */
+    allowedTools?: string[];
+    /** 禁止的工具列表 */
+    disallowedTools?: string[];
+    /** 使用的模型 */
+    model?: string;
+    /** 最大执行轮数，默认为 20 */
+    maxTurns?: number;
     /**
-     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI，'sdk' 使用 Claude Agent SDK。默认为 'cli'
-     * @en Specify the agent type to use. 'cli' uses local Claude Code CLI, 'sdk' uses Claude Agent SDK. Defaults to 'cli'
+     * 权限模式。默认为 'bypassPermissions'
+     * - 'default' 需要用户确认
+     * - 'acceptEdits' 自动接受编辑
+     * - 'bypassPermissions' 绕过所有权限检查
      */
-    agent?: 'cli' | 'sdk';
-    /**
-     * @zh SDK 选项，参数格式继承 @anthropic-ai/claude-agent-sdk 官方 SDK 的 Options 类型
-     * @en SDK options, parameter format follows the official @anthropic-ai/claude-agent-sdk Options type
-     * @see https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk
-     */
-    sdkOptions?: {
-        /** 允许自动执行的工具列表 */
-        allowedTools?: string[];
-        /** 禁止的工具列表 */
-        disallowedTools?: string[];
-        /** 使用的模型 */
-        model?: string;
-        /** 最大执行轮数，默认为 20 */
-        maxTurns?: number;
-        /**
-         * 权限模式。默认为 'bypassPermissions'
-         * - 'default' 需要用户确认
-         * - 'acceptEdits' 自动接受编辑
-         * - 'bypassPermissions' 绕过所有权限检查
-         */
-        permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
-        /** 系统提示 */
-        systemPrompt?: string | {
-            type: 'preset';
-            preset: 'claude_code';
-            append?: string;
-        };
-        /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
-        env?: Record<string, string | undefined>;
-        /** MCP 服务器配置 */
-        mcpServers?: Record<string, any>;
-        /** 最大思考 token 数 */
-        maxThinkingTokens?: number;
-        /** 最大预算（美元） */
-        maxBudgetUsd?: number;
+    permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+    /** 系统提示 */
+    systemPrompt?: string | {
+        type: 'preset';
+        preset: 'claude_code';
+        append?: string;
     };
+    /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
+    env?: Record<string, string | undefined>;
+    /** MCP 服务器配置 */
+    mcpServers?: Record<string, any>;
+    /** CLI 最大成本（美元），等价于 `--max-cost` */
+    maxCost?: number;
 };
 /**
- * @zh Codex provider 配置（仅支持本地 CLI）
- * @en Codex provider options (local CLI only)
+ * @zh Claude Code SDK 配置项
+ * @en Claude Code SDK options
  */
-export type CodexOptions = {
+export type ClaudeSdkOptions = {
+    /** 允许自动执行的工具列表 */
+    allowedTools?: string[];
+    /** 禁止的工具列表 */
+    disallowedTools?: string[];
+    /** 使用的模型 */
+    model?: string;
+    /** 最大执行轮数，默认为 20 */
+    maxTurns?: number;
+    /**
+     * 权限模式。默认为 'bypassPermissions'
+     * - 'default' 需要用户确认
+     * - 'acceptEdits' 自动接受编辑
+     * - 'bypassPermissions' 绕过所有权限检查
+     */
+    permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+    /** 系统提示 */
+    systemPrompt?: string | {
+        type: 'preset';
+        preset: 'claude_code';
+        append?: string;
+    };
+    /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
+    env?: Record<string, string | undefined>;
+    /** MCP 服务器配置 */
+    mcpServers?: Record<string, any>;
+    /** 最大思考 token 数 */
+    maxThinkingTokens?: number;
+    /** SDK 最大预算（美元） */
+    maxBudgetUsd?: number;
+};
+export type ClaudeAgentOptions = ClaudeCliOptions | ClaudeSdkOptions;
+export type ClaudeCodeOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local Claude Code CLI. Defaults to 'cli'
+     */
+    agent?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: ClaudeCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 Claude Agent SDK
+     * @en Specify the agent type to use. 'sdk' uses Claude Agent SDK
+     */
+    agent: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: ClaudeSdkOptions;
+};
+/**
+ * @zh Codex CLI 配置项
+ * @en Codex CLI options
+ */
+export type CodexCliOptions = {
     /** 指定 Codex 模型，等价于 `codex exec -m` */
     model?: string;
     /** 指定 Codex profile，等价于 `codex exec -p` */
@@ -71,12 +116,72 @@ export type CodexOptions = {
     /** 环境变量，传递给 Codex CLI 进程 */
     env?: Record<string, string | undefined>;
 };
+/**
+ * @zh Codex SDK 配置项
+ * @en Codex SDK options
+ */
+export type CodexSdkOptions = {
+    /** 指定 Codex 模型 */
+    model?: string;
+    /** 透传 Codex 配置 */
+    config?: Record<string, string | number | boolean>;
+    /** 环境变量 */
+    env?: Record<string, string | undefined>;
+    /** 是否跳过 git 仓库检查 */
+    skipGitRepoCheck?: boolean;
+    /** Codex SDK 可执行路径覆盖，等价于 `new Codex({ codexPathOverride })` */
+    codexPathOverride?: string;
+    /** Codex SDK baseUrl，等价于 `new Codex({ baseUrl })` */
+    baseUrl?: string;
+    /** Codex SDK apiKey，等价于 `new Codex({ apiKey })` */
+    apiKey?: string;
+    /** SDK 线程沙箱模式，等价于 `startThread({ sandboxMode })` */
+    sandboxMode?: 'read-only' | 'workspace-write' | 'danger-full-access';
+    /** SDK 线程工作目录，默认使用当前项目根目录 */
+    workingDirectory?: string;
+    /** SDK 推理强度 */
+    modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
+    /** SDK 是否允许网络访问 */
+    networkAccessEnabled?: boolean;
+    /** SDK web 搜索模式 */
+    webSearchMode?: 'auto' | 'off';
+    /** SDK 是否启用 web 搜索 */
+    webSearchEnabled?: boolean;
+    /** SDK 审批策略 */
+    approvalPolicy?: 'auto-edit' | 'full-auto' | 'on-failure' | 'on-request' | 'untrusted';
+    /** SDK 额外可访问目录 */
+    additionalDirectories?: string[];
+};
+export type CodexAgentOptions = CodexCliOptions | CodexSdkOptions;
+export type CodexOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Codex CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local Codex CLI. Defaults to 'cli'
+     */
+    agent?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: CodexCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 Codex SDK
+     * @en Specify the agent type to use. 'sdk' uses Codex SDK
+     */
+    agent: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: CodexSdkOptions;
+};
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
     ai?: {
-        claudeCode?: boolean | AIOptions;
+        claudeCode?: boolean | ClaudeCodeOptions;
         codex?: boolean | CodexOptions;
     };
     defaultAction?: 'copy' | 'locate' | 'target' | 'ai';

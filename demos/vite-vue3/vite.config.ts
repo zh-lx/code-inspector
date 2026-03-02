@@ -13,7 +13,7 @@ export default defineConfig({
         ai: {
           claudeCode: {
             // agent: 'sdk',
-            // sdkOptions: {
+            // options: {
             //   model: 'claude-opus-4-5-20251101',
             //   maxTurns: 50,
             // },

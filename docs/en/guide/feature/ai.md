@@ -1,12 +1,12 @@
 # AI Assistant
 
-The AI assistant allows you to chat with AI directly in the browser to modify code based on your described requirements.
+The AI Assistant lets you chat with AI directly in the browser and modify code with DOM-related source context.
 
 ![code-inspector](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/ai.gif)
 
-## Configuration
+## Quick Start
 
-Enable the AI assistant via `behavior.ai`. Currently supports `claudeCode` and `codex`:
+Enable AI via `behavior.ai`. Supported providers: `claudeCode` and `codex`.
 
 ```js
 codeInspectorPlugin({
@@ -17,35 +17,37 @@ codeInspectorPlugin({
   },
 }),
 ```
-
 
 ## Usage
 
 :::tip Note
-Methods 1 and 2 require the AI Assistant feature to be enabled. Press `hotKeys + Z` to check if it is enabled. <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/ai.png" width="240" />
+Methods 1 and 2 require AI Assistant to be enabled first. Press `hotKeys + Z` to check the current state. <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/ai.png" width="240" />
 :::
 
 ### Method 1: HotKeys + Left Click
 
-Hold the combination key on the page (default is `Option + Shift` on Mac; `Alt + Shift` on Windows), move the mouse over the page and a mask layer will appear on DOM elements. Left click to open the AI Assistant with the DOM's source code location added to the AI context.
+Hold the combination key (`Option + Shift` on Mac, `Alt + Shift` on Windows). Move over a DOM node, then left-click to open AI Assistant with that DOM node's source context.
 
 ### Method 2: Switch + Left Click
 
-When `showSwitch: true` is configured and the switch is in the on state (colored) <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block; transform: translateY(5px);" />, move the mouse over the page and a mask layer will appear on DOM elements. Left click to open the AI Assistant with the DOM's source code location added to the AI context.
+When `showSwitch: true` and the switch is on, move over a DOM node and left-click to open AI Assistant with the node's source context.
 
-### Method 3: HotKeys + Key 4
+### Method 3: HotKeys + Key `4`
 
-Hold the combination key on the page (default is `Option + Shift` on Mac; `Alt + Shift` on Windows):
-- If you move the mouse to show the DOM mask layer, press the `4` key to quickly open the AI Assistant with the DOM's source code location added to the AI context.
-- If you press the `4` key directly without moving the mouse to show the DOM mask layer, it opens a project-level AI Assistant.
+While holding the combination key:
+- If a DOM mask is active, pressing `4` opens AI Assistant with that DOM context.
+- If no DOM mask is active, pressing `4` opens project-level AI Assistant.
 
-<b>This method works regardless of whether the AI Assistant feature is enabled.</b>
+This method works even when the AI switch is off.
 
 ## Codex Configuration
 
-### Using Codex CLI
+- `agent: 'cli'`: use local Codex CLI (default), best when your local Codex setup is ready.
+- `agent: 'sdk'`: use Codex SDK, best when you need explicit `apiKey/baseUrl` control.
 
-The `codex` provider only supports local `Codex CLI` and does not support SDK mode.
+### Use Codex CLI
+
+Minimal setup:
 
 ```js
 codeInspectorPlugin({
@@ -57,20 +59,22 @@ codeInspectorPlugin({
 }),
 ```
 
-You can also pass custom Codex CLI options:
+Custom CLI options:
 
 ```js
 codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        model: 'gpt-5.3-codex',
-        profile: 'default',
-        sandbox: 'workspace-write',
-        fullAuto: true,
-        // Pass through as -c key=value
-        config: {
-          'reasoning.effort': 'high',
+        agent: 'cli',
+        options: {
+          model: 'gpt-5-codex',
+          profile: 'default',
+          sandbox: 'workspace-write',
+          fullAuto: true,
+          config: {
+            'reasoning.effort': 'high',
+          },
         },
       },
     },
@@ -78,50 +82,251 @@ codeInspectorPlugin({
 }),
 ```
 
-## Claude Code Configuration
+### Use Codex SDK
 
-### Using Claude Code
+Install:
 
-If you have Claude Code installed locally, `code-inspector-plugin` will call the local Claude Code via a Node.js subprocess for the AI Assistant. This approach fully inherits your local Claude Code configuration, requiring no additional manual setup, and provides better context continuity. This is the most recommended approach.
-
-You can refer to [Claude Code Overview](https://code.claude.com/docs/overview) to install and configure Claude Code.
-
-### Using Claude Agent SDK
-
-If you don't want to use local Claude Code, you can use the Claude Agent SDK. Install it in your project with:
-
-```shell
-npm i @anthropic-ai/claude-agent-sdk
+```bash
+npm i @openai/codex
 ```
 
-Then specify `agent: 'sdk'` in `behavior.ai.claudeCode` to use the SDK:
+Configure:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: {
+        agent: 'sdk',
+        options: {
+          model: 'gpt-5-codex',
+          approvalPolicy: 'full-auto',
+          sandboxMode: 'workspace-write',
+        },
+      },
+    },
+  },
+}),
+```
+
+#### Codex SDK `.env` Setup (API Key / Base URL)
+
+Recommended `.env.local` values:
+
+```shell
+# .env.local
+OPENAI_API_KEY=sk-xxxxx
+OPENAI_BASE_URL=https://your-openai-gateway.example.com/v1
+```
+
+Then pass them explicitly in `options`:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: {
+        agent: 'sdk',
+        options: {
+          apiKey: process.env.OPENAI_API_KEY,
+          baseUrl: process.env.OPENAI_BASE_URL,
+          model: 'gpt-5-codex',
+        },
+      },
+    },
+  },
+}),
+```
+
+::: details Full Codex Type Definitions
+
+```ts
+type CodexOptions =
+  | {
+      agent?: 'cli';
+      options?: CodexCliOptions;
+    }
+  | {
+      agent: 'sdk';
+      options?: CodexSdkOptions;
+    };
+
+type CodexCliOptions = {
+  model?: string;
+  profile?: string;
+  sandbox?: 'read-only' | 'workspace-write' | 'danger-full-access';
+  fullAuto?: boolean;
+  skipGitRepoCheck?: boolean;
+  ephemeral?: boolean;
+  config?: Record<string, string | number | boolean>;
+  env?: Record<string, string | undefined>;
+};
+
+type CodexSdkOptions = {
+  model?: string;
+  config?: Record<string, string | number | boolean>;
+  env?: Record<string, string | undefined>;
+  skipGitRepoCheck?: boolean;
+  codexPathOverride?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  sandboxMode?: 'read-only' | 'workspace-write' | 'danger-full-access';
+  workingDirectory?: string;
+  modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
+  networkAccessEnabled?: boolean;
+  webSearchMode?: 'auto' | 'off';
+  webSearchEnabled?: boolean;
+  approvalPolicy?: 'auto-edit' | 'full-auto' | 'on-failure' | 'on-request' | 'untrusted';
+  additionalDirectories?: string[];
+};
+```
+
+:::
+
+## Claude Code Configuration
+
+### Choose A Mode First
+
+- `agent: 'cli'`: use local Claude Code CLI (default), best when your local Claude Code setup is ready.
+- `agent: 'sdk'`: use Claude Agent SDK, best when you need explicit `apiKey/baseUrl` control.
+
+### Use Claude Code CLI
+
+If Claude Code is installed locally, the plugin will call local CLI via a Node subprocess.
+
+Minimal setup:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      claudeCode: true,
+    },
+  },
+}),
+```
+
+Custom CLI options:
 
 ```js
 codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        // Agent type: 'cli' (default) uses local Claude Code CLI, 'sdk' uses Claude Agent SDK
-        agent: 'sdk',
-        // SDK options (used when agent is 'sdk')
-        sdkOptions: {
+        agent: 'cli',
+        options: {
           model: 'claude-sonnet-4.5',
           maxTurns: 20,
           permissionMode: 'bypassPermissions',
-          // ...other options
+          allowedTools: ['Read', 'Write', 'Edit', 'Bash'],
+          disallowedTools: ['WebSearch'],
+          maxCost: 2,
+          systemPrompt: 'You are an expert code assistant.',
         },
       },
-    }
+    },
   },
 }),
 ```
 
-When using this approach, you need to specify `ANTHROPIC_API_KEY` (required) and `ANTHROPIC_BASE_URL` (optional) in `.env.local`:
+See [Claude Code Overview](https://code.claude.com/docs/overview) for installation and setup.
+
+### Use Claude Agent SDK
+
+Install:
+
+```bash
+npm i @anthropic-ai/claude-agent-sdk
+```
+
+Configure:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      claudeCode: {
+        agent: 'sdk',
+        options: {
+          model: 'claude-sonnet-4.5',
+          maxTurns: 20,
+          permissionMode: 'bypassPermissions',
+        },
+      },
+    },
+  },
+}),
+```
+
+#### Claude SDK `.env` Setup (API Key / Base URL)
+
+Set `.env.local`:
 
 ```shell
 # .env.local
 ANTHROPIC_API_KEY=sk-xxxxx
-ANTHROPIC_BASE_URL=https://xxxx.com
+ANTHROPIC_BASE_URL=https://your-claude-gateway.example.com
 ```
 
-For more about sdkOptions configuration, refer to [Claude Code Agent SDK](https://platform.claude.com/docs/agent-sdk/typescript)
+You can also pass them explicitly:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      claudeCode: {
+        agent: 'sdk',
+        options: {
+          env: {
+            ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+            ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL,
+          },
+        },
+      },
+    },
+  },
+}),
+```
+
+::: details Full Claude Code Type Definitions
+
+```ts
+type ClaudeCodeOptions =
+  | {
+      agent?: 'cli';
+      options?: ClaudeCliOptions;
+    }
+  | {
+      agent: 'sdk';
+      options?: ClaudeSdkOptions;
+    };
+
+type ClaudeCliOptions = {
+  allowedTools?: string[];
+  disallowedTools?: string[];
+  model?: string;
+  maxTurns?: number;
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+  systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
+  env?: Record<string, string | undefined>;
+  mcpServers?: Record<string, any>;
+  maxCost?: number;
+};
+
+type ClaudeSdkOptions = {
+  allowedTools?: string[];
+  disallowedTools?: string[];
+  model?: string;
+  maxTurns?: number;
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+  systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
+  env?: Record<string, string | undefined>;
+  mcpServers?: Record<string, any>;
+  maxThinkingTokens?: number;
+  maxBudgetUsd?: number;
+};
+```
+
+:::
+
+For more Claude SDK details, see [Claude Code Agent SDK](https://platform.claude.com/docs/agent-sdk/typescript).

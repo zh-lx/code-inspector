@@ -1,11 +1,11 @@
 /**
- * Codex Provider - 仅支持本地 CLI 调用
+ * Codex Provider - 支持本地 CLI 和 SDK 两种调用方式
  */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { spawn, ChildProcess, execSync } from 'child_process';
-import type { CodexOptions } from '../shared';
+import type { CodexOptions, CodexCliOptions, CodexSdkOptions, CodexAgentOptions } from '../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import { getEnvVars } from './server';
@@ -52,17 +52,37 @@ function buildPrompt(
  */
 let cachedCliModel: string | undefined;
 
+function getCodexAgentOptions(codexOptions?: CodexOptions): CodexAgentOptions {
+  return codexOptions?.options || {};
+}
+
+function getCodexCliOptions(codexOptions?: CodexOptions): CodexCliOptions {
+  if (codexOptions?.agent === 'sdk') {
+    return {};
+  }
+  return codexOptions?.options || {};
+}
+
+function getCodexSdkOptions(codexOptions?: CodexOptions): CodexSdkOptions {
+  if (!codexOptions || codexOptions.agent === 'cli' || codexOptions.agent === undefined) {
+    return {};
+  }
+  return codexOptions.options || {};
+}
+
 /**
  * 获取模型信息
  * 优先使用用户配置（Codex 暂不通过额外请求探测模型）
  */
 export async function getModelInfo(codexOptions: CodexOptions | undefined): Promise<string> {
-  if (codexOptions?.model) {
-    return codexOptions.model;
+  const options = getCodexAgentOptions(codexOptions);
+
+  if (options.model) {
+    return options.model;
   }
 
-  if (typeof codexOptions?.config?.model === 'string') {
-    return codexOptions.config.model;
+  if (typeof options.config?.model === 'string') {
+    return options.config.model;
   }
 
   if (cachedCliModel !== undefined) {
@@ -74,7 +94,7 @@ export async function getModelInfo(codexOptions: CodexOptions | undefined): Prom
 }
 
 /**
- * Codex provider 统一入口（仅 CLI）
+ * Codex provider 统一入口
  */
 export function handleCodexRequest(
   message: string,
@@ -86,61 +106,101 @@ export function handleCodexRequest(
   callbacks: ProviderCallbacks,
 ): ProviderResult {
   const { sendSSE, onEnd } = callbacks;
-  const cliPath = findCodexCli();
-  const model = codexOptions?.model || '';
+  const agentType = codexOptions?.agent || 'cli';
+  const options = getCodexAgentOptions(codexOptions);
+  const cliPath = agentType === 'cli' ? findCodexCli() : null;
+  const model = options.model || '';
 
-  if (!cliPath) {
-    sendSSE({
-      error: 'Codex CLI not found. Please install Codex CLI and ensure the `codex` command is available.',
-    });
-    sendSSE('[DONE]');
-    onEnd();
-    return { abort: () => undefined };
-  }
-
-  // 有 sessionId 时使用 resume 恢复会话，prompt 只需当前消息
-  // 无 sessionId 时为首次对话，构建包含 context 的完整 prompt
-  const prompt = sessionId ? message : buildPrompt(message, context, history, cwd);
-
-  sendSSE({ type: 'info', message: 'Using local Codex CLI', cwd, model });
-
+  let childProcess: ChildProcess | null = null;
+  let activeThread: { interrupt?: () => Promise<void> | void } | null = null;
   let aborted = false;
-  const childProcess = queryViaCli(
-    cliPath,
-    prompt,
-    cwd,
-    codexOptions,
-    (jsonData) => {
+
+  if (agentType === 'cli' && cliPath) {
+    // 有 sessionId 时使用 resume 恢复会话，prompt 只需当前消息
+    // 无 sessionId 时为首次对话，构建包含 context 的完整 prompt
+    const prompt = sessionId ? message : buildPrompt(message, context, history, cwd);
+
+    sendSSE({ type: 'info', message: 'Using local Codex CLI', cwd, model });
+
+    const cliOptions = getCodexCliOptions(codexOptions);
+
+    childProcess = queryViaCli(
+      cliPath,
+      prompt,
+      cwd,
+      cliOptions,
+      (jsonData) => {
+        try {
+          const data = JSON.parse(jsonData);
+          sendSSE(data);
+        } catch {
+          sendSSE({ type: 'text', content: jsonData });
+        }
+      },
+      (error) => {
+        sendSSE({ error });
+      },
+      () => {
+        sendSSE('[DONE]');
+        onEnd();
+      },
+      sessionId,
+      (newSessionId) => {
+        sendSSE({ type: 'session', sessionId: newSessionId });
+      },
+      (newModel) => {
+        if (newModel) {
+          sendSSE({ type: 'info', model: newModel });
+        }
+      },
+      () => aborted
+    );
+  } else {
+    // 使用 SDK（agent='sdk' 或 agent='cli' 但 CLI 未找到时回退）
+    (async () => {
       try {
-        const data = JSON.parse(jsonData);
-        sendSSE(data);
-      } catch {
-        sendSSE({ type: 'text', content: jsonData });
+        if (agentType === 'cli' && !cliPath) {
+          sendSSE({ type: 'info', message: 'Codex CLI not found. Falling back to Codex SDK', cwd });
+        }
+        sendSSE({ type: 'info', message: 'Using Codex SDK', cwd, model });
+
+        const sdkPrompt = sessionId ? message : buildPrompt(message, context, history, cwd);
+        const sdkOptions = getCodexSdkOptions(codexOptions);
+
+        activeThread = await queryViaSdk(
+          sdkPrompt,
+          cwd,
+          sdkOptions,
+          sessionId,
+          sendSSE,
+          () => aborted
+        );
+
+        sendSSE('[DONE]');
+        onEnd();
+      } catch (error: any) {
+        if (!aborted) {
+          console.log(chalk.red('[code-inspector-plugin] Codex AI error:') + error.message);
+          sendSSE({
+            error: `Failed to communicate with Codex: ${error.message}. Install Codex CLI or configure Codex SDK.`,
+          });
+          sendSSE('[DONE]');
+          onEnd();
+        }
       }
-    },
-    (error) => {
-      sendSSE({ error });
-    },
-    () => {
-      sendSSE('[DONE]');
-      onEnd();
-    },
-    sessionId,
-    (newSessionId) => {
-      sendSSE({ type: 'session', sessionId: newSessionId });
-    },
-    (newModel) => {
-      if (newModel) {
-        sendSSE({ type: 'info', model: newModel });
-      }
-    },
-    () => aborted
-  );
+    })();
+  }
 
   return {
     abort: () => {
       aborted = true;
-      childProcess.kill('SIGTERM');
+      if (childProcess) {
+        childProcess.kill('SIGTERM');
+      }
+      const interrupt = activeThread?.interrupt;
+      if (interrupt) {
+        Promise.resolve(interrupt()).catch(() => undefined);
+      }
     },
   };
 }
@@ -199,7 +259,7 @@ function formatConfigValue(value: string | number | boolean): string {
 }
 
 function buildCommonArgs(
-  codexOptions: CodexOptions | undefined,
+  codexOptions: CodexCliOptions,
   outputFile: string
 ): string[] {
   const args = ['--json', '-o', outputFile];
@@ -309,7 +369,7 @@ function queryViaCli(
   cliPath: string,
   prompt: string,
   cwd: string,
-  codexOptions: CodexOptions | undefined,
+  codexOptions: CodexCliOptions,
   onData: (data: string) => void,
   onError: (error: string) => void,
   onEnd: () => void,
@@ -497,4 +557,304 @@ function queryViaCli(
   });
 
   return child;
+}
+
+// ============================================================================
+// SDK 调用
+// ============================================================================
+
+let CodexSDKCtor: any = null;
+
+async function getCodexSDKCtor(): Promise<any | null> {
+  if (!CodexSDKCtor) {
+    try {
+      const sdk: any = await (Function('return import("@openai/codex")')());
+      CodexSDKCtor = sdk.Codex || sdk.default?.Codex || sdk.default;
+    } catch {
+      // SDK 未安装或加载失败
+    }
+  }
+  return CodexSDKCtor;
+}
+
+function buildCodexSDKClientOptions(
+  options: CodexSdkOptions
+): Record<string, any> {
+  const clientOptions: Record<string, any> = {};
+
+  if (options.codexPathOverride) clientOptions.codexPathOverride = options.codexPathOverride;
+  if (options.baseUrl) clientOptions.baseUrl = options.baseUrl;
+  if (options.apiKey) clientOptions.apiKey = options.apiKey;
+  if (options.config) clientOptions.config = options.config;
+  if (options.env) clientOptions.env = { ...getEnvVars(), ...options.env };
+
+  return clientOptions;
+}
+
+function buildCodexSDKThreadOptions(
+  options: CodexSdkOptions,
+  cwd: string
+): Record<string, any> {
+  const threadOptions: Record<string, any> = {
+    workingDirectory: options.workingDirectory || cwd,
+  };
+
+  if (options.model) threadOptions.model = options.model;
+  if (options.sandboxMode) {
+    threadOptions.sandboxMode = options.sandboxMode;
+  }
+  if (options.skipGitRepoCheck !== undefined) {
+    threadOptions.skipGitRepoCheck = options.skipGitRepoCheck;
+  }
+  if (options.modelReasoningEffort) {
+    threadOptions.modelReasoningEffort = options.modelReasoningEffort;
+  }
+  if (options.networkAccessEnabled !== undefined) {
+    threadOptions.networkAccessEnabled = options.networkAccessEnabled;
+  }
+  if (options.webSearchMode) {
+    threadOptions.webSearchMode = options.webSearchMode;
+  }
+  if (options.webSearchEnabled !== undefined) {
+    threadOptions.webSearchEnabled = options.webSearchEnabled;
+  }
+  if (options.approvalPolicy) {
+    threadOptions.approvalPolicy = options.approvalPolicy;
+  }
+  if (options.additionalDirectories) {
+    threadOptions.additionalDirectories = options.additionalDirectories;
+  }
+
+  return threadOptions;
+}
+
+function stringifyUnknown(value: any): string {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function getItemText(item: any): string {
+  if (!item) return '';
+  if (typeof item.text === 'string') return item.text;
+  if (typeof item.message === 'string') return item.message;
+  if (typeof item.output_text === 'string') return item.output_text;
+  if (typeof item.output === 'string') return item.output;
+  if (typeof item.result === 'string') return item.result;
+  return '';
+}
+
+function buildToolEventFromItem(item: any): {
+  toolId: string;
+  toolName: string;
+  input?: Record<string, any>;
+  result?: string;
+  isError?: boolean;
+} | null {
+  if (!item?.id || !item?.type) {
+    return null;
+  }
+
+  if (item.type === 'command_execution') {
+    const exitCode = typeof item.exit_code === 'number' ? item.exit_code : undefined;
+    const status = String(item.status || '');
+    const isError = status === 'failed' || (exitCode !== undefined && exitCode !== 0);
+    return {
+      toolId: String(item.id),
+      toolName: 'Bash',
+      input: item.command ? { command: item.command } : undefined,
+      result: item.aggregated_output || item.output || (exitCode !== undefined ? `exit code ${exitCode}` : ''),
+      isError,
+    };
+  }
+
+  if (item.type === 'file_change') {
+    const changes = Array.isArray(item.changes) ? item.changes : [];
+    return {
+      toolId: String(item.id),
+      toolName: 'Edit',
+      input: changes.length > 0 ? { changes } : undefined,
+      result: changes.length > 0 ? `Applied ${changes.length} file changes` : 'Applied file changes',
+    };
+  }
+
+  if (item.type === 'web_search') {
+    return {
+      toolId: String(item.id),
+      toolName: 'WebSearch',
+      input: item.query ? { query: item.query } : undefined,
+      result: stringifyUnknown(item.result || item.output),
+      isError: item.status === 'failed',
+    };
+  }
+
+  if (item.type === 'mcp_tool_call') {
+    return {
+      toolId: String(item.id),
+      toolName: item.name || item.tool_name || 'MCPTool',
+      input: item.arguments || item.input,
+      result: stringifyUnknown(item.result || item.output || item.error),
+      isError: Boolean(item.error) || item.status === 'failed',
+    };
+  }
+
+  return null;
+}
+
+function buildSDKErrorMessage(event: any): string {
+  if (typeof event?.message === 'string') return event.message;
+  if (typeof event?.error === 'string') return event.error;
+  if (typeof event?.error?.message === 'string') return event.error.message;
+  return 'Codex SDK error';
+}
+
+async function queryViaSdk(
+  prompt: string,
+  cwd: string,
+  codexOptions: CodexSdkOptions,
+  sessionId: string | undefined,
+  sendSSE: (data: object | string) => void,
+  isAborted: () => boolean
+): Promise<{ interrupt?: () => Promise<void> | void } | null> {
+  const CodexSDK = await getCodexSDKCtor();
+  if (!CodexSDK) {
+    console.log(
+      chalk.blue('[code-inspector-plugin]'),
+      chalk.yellow('Codex SDK not found.'),
+      'Install it with:',
+      chalk.green('npm install @openai/codex'),
+    );
+    sendSSE({
+      type: 'text',
+      content:
+        '**Codex SDK not installed.**\n\n' +
+        'Please install it in your project:\n\n' +
+        '```bash\n' +
+        'npm install @openai/codex\n' +
+        '```\n\n' +
+        "Or use CLI mode by setting `agent: 'cli'` in your config.",
+    });
+    return null;
+  }
+
+  const codex = new CodexSDK(buildCodexSDKClientOptions(codexOptions));
+  const threadOptions = buildCodexSDKThreadOptions(codexOptions, cwd);
+  const thread = sessionId
+    ? await codex.resumeThread(sessionId, threadOptions)
+    : await codex.startThread(threadOptions);
+
+  if (thread?.id) {
+    sendSSE({ type: 'session', sessionId: thread.id });
+  }
+
+  if (threadOptions.model) {
+    sendSSE({ type: 'info', model: threadOptions.model });
+  }
+
+  const runResult = await thread.runStreamed(prompt);
+  const events = runResult?.events || runResult;
+  const toolIndexMap = new Map<string, number>();
+  const messageTextMap = new Map<string, string>();
+  let hasAnyText = false;
+  let toolIndex = 0;
+
+  const emitToolFromItem = (item: any, done = false) => {
+    const toolEvent = buildToolEventFromItem(item);
+    if (!toolEvent) return;
+
+    let index = toolIndexMap.get(toolEvent.toolId);
+    if (index === undefined) {
+      index = toolIndex++;
+      toolIndexMap.set(toolEvent.toolId, index);
+      sendSSE({
+        type: 'tool_start',
+        toolId: toolEvent.toolId,
+        toolName: toolEvent.toolName,
+        index,
+      });
+      if (toolEvent.input) {
+        sendSSE({
+          type: 'tool_input',
+          index,
+          input: toolEvent.input,
+        });
+      }
+    }
+
+    if (done && toolEvent.result !== undefined) {
+      sendSSE({
+        type: 'tool_result',
+        toolUseId: toolEvent.toolId,
+        content: toolEvent.result,
+        isError: toolEvent.isError,
+      });
+    }
+  };
+
+  for await (const event of events) {
+    if (isAborted()) {
+      await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
+      break;
+    }
+
+    if (event?.type === 'error' || event?.type === 'turn.failed') {
+      sendSSE({ error: buildSDKErrorMessage(event) });
+      continue;
+    }
+
+    if (event?.type === 'item.started') {
+      emitToolFromItem(event.item, false);
+      continue;
+    }
+
+    if (event?.type === 'item.updated') {
+      const item = event.item;
+      if (item?.type === 'agent_message' && item?.id) {
+        const current = getItemText(item);
+        const previous = messageTextMap.get(item.id) || '';
+        const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+        if (delta) {
+          hasAnyText = true;
+          sendSSE({ type: 'text', content: delta });
+        }
+        messageTextMap.set(item.id, current);
+      } else {
+        emitToolFromItem(item, false);
+      }
+      continue;
+    }
+
+    if (event?.type === 'item.completed') {
+      const item = event.item;
+      if (item?.type === 'agent_message' && item?.id) {
+        const current = getItemText(item);
+        const previous = messageTextMap.get(item.id) || '';
+        const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+        if (delta) {
+          hasAnyText = true;
+          sendSSE({ type: 'text', content: delta });
+        }
+        messageTextMap.delete(item.id);
+      } else {
+        emitToolFromItem(item, true);
+      }
+      continue;
+    }
+
+    if (event?.type === 'task_complete') {
+      if (!hasAnyText && typeof event.last_agent_message === 'string' && event.last_agent_message) {
+        hasAnyText = true;
+        sendSSE({ type: 'text', content: event.last_agent_message });
+      } else if (!hasAnyText && typeof event.result === 'string' && event.result) {
+        hasAnyText = true;
+        sendSSE({ type: 'text', content: event.result });
+      }
+    }
+  }
+
+  return thread;
 }

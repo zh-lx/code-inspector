@@ -1,22 +1,25 @@
+# Quick Element Selection
 
-# Quick Select Element
+Element selection mode is active when either condition is met:
+- You hold the combination key (`Option + Shift` on Mac, `Alt + Shift` on Windows)
+- The feature switch is turned on (colored state)
 
-When holding the combination key on the page (default is `Option + Shift` on Mac; `Alt + Shift` on Windows) or the plugin switch is in the on state (colored) <img src="https://github.com/zh-lx/code-inspector/assets/73059627/842c3e88-dca7-4743-854c-d61093d3d34f" width="20" style="display: inline-block; transform: translateY(5px);" />, there are multiple ways to select elements, allowing you to quickly find the element you want to trigger a feature on.
+In this mode, you can select target elements faster with the following methods.
 
-## Mouse Move Selection
+## Method 1: Mouse Move Selection
 
-Move the mouse over the page to show the element mask layer. This is the simplest way to select an element.
+Move the mouse over the page to highlight the current element. This is the most direct way.
 
-## Scroll to Switch Parent/Child Elements
+## Method 2: Mouse Wheel Parent/Child Switch
 
-When an element is selected by mouse movement, use the mouse wheel to switch between parent and child elements:
-- Scroll up: switch to parent element
-- Scroll down: switch to child element
+When an element is highlighted, use the wheel to switch hierarchy:
+- Scroll up: switch to parent
+- Scroll down: switch to child
 
 ![wheel](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/wheel.gif)
 
-## DOM Tree Element Selection
+## Method 3: DOM Tree Selection
 
-While holding the combination key, right-click on an element to open the DOM tree selector. You can select any element in the DOM tree to trigger a feature.
+Hold the combination key and right-click to open the DOM tree panel. You can select any node directly from the tree.
 
 ![dom-tree](https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/dom-tree.gif)
