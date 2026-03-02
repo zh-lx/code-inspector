@@ -164,9 +164,15 @@ export async function handleAIRequest(
     );
   }
 
-  // 处理客户端断开连接
-  req.on('close', () => {
+  // 仅在客户端真正中断时取消任务，避免请求体读取完成后误触发中断
+  const abortProvider = () => {
     provider.abort();
+  };
+  req.on('aborted', abortProvider);
+  res.on('close', () => {
+    if (!res.writableEnded) {
+      abortProvider();
+    }
   });
 }
 

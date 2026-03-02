@@ -25,8 +25,7 @@ export default defineConfig({
         'launch-ide',
         'portfinder',
         'child_process',
-        '@vue/compiler-dom',
-        '@anthropic-ai/claude-agent-sdk'
+        '@vue/compiler-dom'
       ],
     },
     target: ['node8', 'es2015'],

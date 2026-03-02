@@ -183,7 +183,7 @@ export function handleClaudeRequest(
 
   let childProcess: ChildProcess | null = null;
   let aborted = false;
-  const model = getModelInfo(aiOptions);
+  const model = getClaudeAgentOptions(aiOptions).model || '';
 
   if (agentType === 'cli' && cliPath) {
     // 使用本地 CLI
@@ -224,12 +224,13 @@ export function handleClaudeRequest(
       try {
         sendSSE({ type: 'info', message: 'Using Claude Agent SDK', cwd, model });
 
-        const sdkPrompt = buildPrompt(message, context, history, cwd);
+        const sdkPrompt = sessionId ? message : buildPrompt(message, context, history, cwd);
 
         await queryViaSdk(
           sdkPrompt,
           cwd,
           aiOptions,
+          sessionId,
           sendSSE,
           () => aborted
         );
@@ -543,7 +544,10 @@ const DEFAULT_ALLOWED_TOOLS = [
 ];
 
 function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
-  const env = getClaudeSdkOptions(aiOptions).env;
+  const rawOptions = aiOptions?.agent === 'sdk'
+    ? getClaudeSdkOptions(aiOptions)
+    : getClaudeAgentOptions(aiOptions);
+  const env = { ...getEnvVars(), ...rawOptions.env };
   if (!process.env) {
     process.env = {};
   }
@@ -556,23 +560,57 @@ function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
   }
 }
 
-function buildSdkQueryOptions(aiOptions: ClaudeCodeOptions | undefined, cwd: string): Record<string, any> {
-  const { env, ...queryOpts } = getClaudeSdkOptions(aiOptions);
-  return {
+function buildSdkQueryOptions(
+  aiOptions: ClaudeCodeOptions | undefined,
+  cwd: string,
+  sessionId?: string
+): Record<string, any> {
+  const rawOptions = aiOptions?.agent === 'sdk'
+    ? getClaudeSdkOptions(aiOptions)
+    : getClaudeAgentOptions(aiOptions);
+  const { env, ...queryOpts } = rawOptions;
+  const options: Record<string, any> = {
     maxTurns: 20,
     permissionMode: 'bypassPermissions',
     allowedTools: DEFAULT_ALLOWED_TOOLS,
     includePartialMessages: true,
+    settingSources: ['user', 'project', 'local'],
     env: { ...getEnvVars(), ...env },
     ...queryOpts,
     cwd,
   };
+
+  if (!options.pathToClaudeCodeExecutable) {
+    const cliPath = findClaudeCodeCli();
+    if (cliPath) {
+      options.pathToClaudeCodeExecutable = cliPath;
+    }
+  }
+
+  // Claude SDK requires this flag when bypassPermissions is enabled.
+  if (options.permissionMode === 'bypassPermissions' && options.allowDangerouslySkipPermissions === undefined) {
+    options.allowDangerouslySkipPermissions = true;
+  }
+
+  if (sessionId && options.resume === undefined && options.continue === undefined) {
+    options.resume = sessionId;
+  }
+
+  if (!options.extraArgs || typeof options.extraArgs !== 'object') {
+    options.extraArgs = {};
+  }
+  if (!Object.prototype.hasOwnProperty.call(options.extraArgs, 'enable-auth-status')) {
+    options.extraArgs['enable-auth-status'] = null;
+  }
+
+  return options;
 }
 
 async function queryViaSdk(
   prompt: string,
   cwd: string,
   aiOptions: ClaudeCodeOptions | undefined,
+  sessionId: string | undefined,
   sendSSE: (data: object | string) => void,
   isAborted: () => boolean
 ): Promise<void> {
@@ -599,79 +637,169 @@ async function queryViaSdk(
     return;
   }
 
-  const queryOptions = buildSdkQueryOptions(aiOptions, cwd);
+  const queryOptions = buildSdkQueryOptions(aiOptions, cwd, sessionId);
+  if (typeof queryOptions.stderr !== 'function') {
+    queryOptions.stderr = (data: string) => {
+      const text = String(data || '').trim();
+      if (text) {
+        sendSSE({ type: 'info', message: text });
+      }
+    };
+  }
   const conversation = query({
     prompt,
     options: queryOptions,
   });
 
   let hasStreamContent = false;
+  let emittedSessionId = '';
   const toolInputBuffers: Map<number, string> = new Map();
+  const assistantTextBuffers: Map<string, string> = new Map();
+
+  const emitSessionId = (msg: any) => {
+    const sid = msg?.session_id;
+    if (typeof sid === 'string' && sid && sid !== emittedSessionId) {
+      emittedSessionId = sid;
+      sendSSE({ type: 'session', sessionId: sid });
+    }
+  };
 
   for await (const sdkMessage of conversation) {
     if (isAborted()) {
       conversation.interrupt();
       break;
     }
+    emitSessionId(sdkMessage);
 
-    if (sdkMessage.type === 'stream_event') {
-      const event = sdkMessage.event as any;
+      if (sdkMessage.type === 'stream_event') {
+        const event = sdkMessage.event as any;
 
-      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
-        hasStreamContent = true;
-        sendSSE({ type: 'text', content: event.delta.text });
-      }
-
-      if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
-        const toolUse = event.content_block;
-        toolInputBuffers.set(event.index, '');
-        sendSSE({
-          type: 'tool_start',
-          toolId: toolUse.id,
-          toolName: toolUse.name,
-          index: event.index,
-        });
-      }
-
-      if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
-        const partial = event.delta.partial_json || '';
-        const current = toolInputBuffers.get(event.index) || '';
-        toolInputBuffers.set(event.index, current + partial);
-      }
-
-      if (event.type === 'content_block_stop') {
-        const inputJson = toolInputBuffers.get(event.index);
-        if (inputJson !== undefined) {
-          try {
-            const input = JSON.parse(inputJson);
-            sendSSE({
-              type: 'tool_input',
-              index: event.index,
-              input,
-            });
-          } catch {
-            // 忽略解析错误
-          }
-          toolInputBuffers.delete(event.index);
+        if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+          hasStreamContent = true;
+          sendSSE({ type: 'text', content: event.delta.text });
         }
-      }
-    } else if (sdkMessage.type === 'assistant') {
-      const message = sdkMessage as any;
-      if (message.message?.content) {
-        for (const block of message.message.content) {
-          if (block.type === 'tool_result') {
-            sendSSE({
-              type: 'tool_result',
-              toolUseId: block.tool_use_id,
-              content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
-              isError: block.is_error,
-            });
+
+        if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
+          const toolUse = event.content_block;
+          toolInputBuffers.set(event.index, '');
+          sendSSE({
+            type: 'tool_start',
+            toolId: toolUse.id,
+            toolName: toolUse.name,
+            index: event.index,
+          });
+        }
+
+        if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
+          const partial = event.delta.partial_json || '';
+          const current = toolInputBuffers.get(event.index) || '';
+          toolInputBuffers.set(event.index, current + partial);
+        }
+
+        if (event.type === 'content_block_stop') {
+          const inputJson = toolInputBuffers.get(event.index);
+          if (inputJson !== undefined) {
+            try {
+              const input = JSON.parse(inputJson);
+              sendSSE({
+                type: 'tool_input',
+                index: event.index,
+                input,
+              });
+            } catch {
+              // 忽略解析错误
+            }
+            toolInputBuffers.delete(event.index);
           }
         }
-      }
+
+      } else if (sdkMessage.type === 'assistant') {
+        const message = sdkMessage as any;
+        if (message.message?.content) {
+          let combinedText = '';
+          for (const block of message.message.content) {
+            if (block.type === 'text' && typeof block.text === 'string') {
+              combinedText += block.text;
+            }
+            if (block.type === 'tool_use') {
+              sendSSE({
+                type: 'tool_start',
+                toolId: block.id,
+                toolName: block.name,
+              });
+              if (block.input) {
+                sendSSE({
+                  type: 'tool_input',
+                  toolId: block.id,
+                  input: block.input,
+                });
+              }
+            }
+            if (block.type === 'tool_result') {
+              sendSSE({
+                type: 'tool_result',
+                toolUseId: block.tool_use_id,
+                content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
+                isError: block.is_error,
+              });
+            }
+          }
+
+          if (combinedText) {
+            const messageId = String(message.uuid || '');
+            const previous = assistantTextBuffers.get(messageId) || '';
+            const delta = combinedText.startsWith(previous) ? combinedText.slice(previous.length) : combinedText;
+            if (delta) {
+              hasStreamContent = true;
+              sendSSE({ type: 'text', content: delta });
+            }
+            if (messageId) {
+              assistantTextBuffers.set(messageId, combinedText);
+            }
+          }
+        }
+
+      } else if (sdkMessage.type === 'user') {
+        const message = sdkMessage as any;
+        if (message.message?.content) {
+          for (const block of message.message.content) {
+            if (block.type === 'tool_result') {
+              sendSSE({
+                type: 'tool_result',
+                toolUseId: block.tool_use_id,
+                content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
+                isError: block.is_error,
+              });
+            }
+          }
+        }
+
+      } else if (sdkMessage.type === 'system') {
+        const systemMessage = sdkMessage as any;
+        if (systemMessage.subtype === 'init' && typeof systemMessage.model === 'string') {
+          sendSSE({ type: 'info', model: systemMessage.model });
+          if (typeof systemMessage.apiKeySource === 'string') {
+            sendSSE({ type: 'info', message: `Claude auth source: ${systemMessage.apiKeySource}` });
+          }
+        }
+
+      } else if (sdkMessage.type === 'auth_status') {
+        const authStatus = sdkMessage as any;
+        if (Array.isArray(authStatus.output) && authStatus.output.length > 0) {
+          sendSSE({ type: 'info', message: authStatus.output.join('\n') });
+        }
+        if (authStatus.error) {
+          sendSSE({ error: `Claude auth error: ${authStatus.error}` });
+        }
+
     } else if (sdkMessage.type === 'result') {
       if (!hasStreamContent && sdkMessage.subtype === 'success' && (sdkMessage as any).result) {
         sendSSE({ type: 'text', content: (sdkMessage as any).result });
+      } else if (sdkMessage.subtype !== 'success') {
+        const errorDetails = Array.isArray((sdkMessage as any).errors)
+          ? (sdkMessage as any).errors.filter(Boolean).join('\n')
+          : '';
+        sendSSE({ error: errorDetails || `Claude SDK request failed: ${sdkMessage.subtype}` });
       }
     }
   }

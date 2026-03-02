@@ -74,6 +74,7 @@
     "volar-service-pug": "^0.0.63"
   },
   "optionalDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.29"
+    "@anthropic-ai/claude-agent-sdk": "^0.2.29",
+    "@openai/codex-sdk": "^0.106.0"
   }
 }

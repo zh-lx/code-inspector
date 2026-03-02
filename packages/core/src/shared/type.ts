@@ -63,6 +63,12 @@ export type ClaudeSdkOptions = {
   maxThinkingTokens?: number;
   /** SDK 最大预算（美元） */
   maxBudgetUsd?: number;
+  /** 当 permissionMode='bypassPermissions' 时需要显式开启 */
+  allowDangerouslySkipPermissions?: boolean;
+  /** 控制读取哪些 settings 文件。默认读取 user/project/local */
+  settingSources?: Array<'user' | 'project' | 'local'>;
+  /** 透传给 Claude CLI 的额外参数（key 不带 --，null 表示布尔 flag） */
+  extraArgs?: Record<string, string | null>;
 };
 
 export type ClaudeAgentOptions = ClaudeCliOptions | ClaudeSdkOptions;
@@ -123,6 +129,8 @@ export type CodexCliOptions = {
 export type CodexSdkOptions = {
   /** 指定 Codex 模型 */
   model?: string;
+  /** 指定 Codex profile */
+  profile?: string;
   /** 透传 Codex 配置 */
   config?: Record<string, string | number | boolean>;
   /** 环境变量 */
@@ -136,21 +144,41 @@ export type CodexSdkOptions = {
   /** Codex SDK apiKey，等价于 `new Codex({ apiKey })` */
   apiKey?: string;
   /** SDK 线程沙箱模式，等价于 `startThread({ sandboxMode })` */
-  sandboxMode?: 'read-only' | 'workspace-write' | 'danger-full-access';
-  /** SDK 线程工作目录，默认使用当前项目根目录 */
-  workingDirectory?: string;
+  sandboxMode?:
+    | 'read-only'
+    | 'workspace-write'
+    | 'danger-full-access'
+    | {
+      type: 'workspace-write';
+      writableRoots: string[];
+      networkAccess?: boolean;
+      excludeTmpdirEnvVar?: boolean;
+    }
+    | {
+      type: 'danger-full-access';
+      networkAccess?: boolean;
+      excludeTmpdirEnvVar?: boolean;
+    };
+  /** SDK 线程工作目录（cwd），默认使用当前项目根目录 */
+  cwd?: string;
   /** SDK 推理强度 */
-  modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
-  /** SDK 是否允许网络访问 */
-  networkAccessEnabled?: boolean;
-  /** SDK web 搜索模式 */
-  webSearchMode?: 'auto' | 'off';
+  modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+  /** SDK web 搜索请求参数 */
+  webSearchRequest?: {
+    searchContextSize?: 'low' | 'medium' | 'high';
+    userLocation?: {
+      country?: string;
+      region?: string;
+      city?: string;
+      timezone?: string;
+    };
+  };
   /** SDK 是否启用 web 搜索 */
-  webSearchEnabled?: boolean;
+  enableWebSearch?: boolean;
   /** SDK 审批策略 */
-  approvalPolicy?: 'auto-edit' | 'full-auto' | 'on-failure' | 'on-request' | 'untrusted';
-  /** SDK 额外可访问目录 */
-  additionalDirectories?: string[];
+  approvalPolicy?: 'on-request' | 'on-failure' | 'never' | 'untrusted';
+  /** SDK 额外可写目录 */
+  additionalWritableRoots?: string[];
 };
 
 export type CodexAgentOptions = CodexCliOptions | CodexSdkOptions;

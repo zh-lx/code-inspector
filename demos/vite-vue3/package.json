@@ -16,9 +16,12 @@
     "vue": "^3.2.47"
   },
   "devDependencies": {
+    "@openai/codex-sdk": "^0.106.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "code-inspector-plugin": "workspace:*",
+    "install": "^0.13.0",
+    "npm": "^11.11.0",
     "pug": "^3.0.2",
     "typescript": "^4.9.3",
     "vite": "^4.2.0",

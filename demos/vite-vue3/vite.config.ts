@@ -12,14 +12,21 @@ export default defineConfig({
       behavior: {
         ai: {
           claudeCode: {
-            // agent: 'sdk',
-            // options: {
-            //   model: 'claude-opus-4-5-20251101',
-            //   maxTurns: 50,
-            // },
-          }
-        }
-      }    
+            agent: 'sdk',
+            options: {
+              model: 'claude-opus-4-6',
+              maxTurns: 50,
+            },
+          },
+          // codex: {
+          //   agent: 'sdk',
+          //   options: {
+          //     model: 'gpt-5.3-codex'
+          //   }
+          // }
+        },
+        defaultAction: 'ai'
+      }
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),
     vueJsx(),

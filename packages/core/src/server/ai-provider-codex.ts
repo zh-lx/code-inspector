@@ -564,14 +564,20 @@ function queryViaCli(
 // ============================================================================
 
 let CodexSDKCtor: any = null;
+let loadedCodexSdkPackage = '';
 
 async function getCodexSDKCtor(): Promise<any | null> {
   if (!CodexSDKCtor) {
+    const pkg = '@openai/codex-sdk';
     try {
-      const sdk: any = await (Function('return import("@openai/codex")')());
-      CodexSDKCtor = sdk.Codex || sdk.default?.Codex || sdk.default;
+      const sdk: any = await (Function(`return import("${pkg}")`)());
+      const ctor = sdk.Codex || sdk.default?.Codex || sdk.default;
+      if (ctor) {
+        CodexSDKCtor = ctor;
+        loadedCodexSdkPackage = pkg;
+      }
     } catch {
-      // SDK 未安装或加载失败
+      // ignore
     }
   }
   return CodexSDKCtor;
@@ -596,10 +602,11 @@ function buildCodexSDKThreadOptions(
   cwd: string
 ): Record<string, any> {
   const threadOptions: Record<string, any> = {
-    workingDirectory: options.workingDirectory || cwd,
+    cwd: options.cwd || cwd,
   };
 
   if (options.model) threadOptions.model = options.model;
+  if (options.profile) threadOptions.profile = options.profile;
   if (options.sandboxMode) {
     threadOptions.sandboxMode = options.sandboxMode;
   }
@@ -609,20 +616,17 @@ function buildCodexSDKThreadOptions(
   if (options.modelReasoningEffort) {
     threadOptions.modelReasoningEffort = options.modelReasoningEffort;
   }
-  if (options.networkAccessEnabled !== undefined) {
-    threadOptions.networkAccessEnabled = options.networkAccessEnabled;
+  if (options.webSearchRequest) {
+    threadOptions.webSearchRequest = options.webSearchRequest;
   }
-  if (options.webSearchMode) {
-    threadOptions.webSearchMode = options.webSearchMode;
-  }
-  if (options.webSearchEnabled !== undefined) {
-    threadOptions.webSearchEnabled = options.webSearchEnabled;
+  if (options.enableWebSearch !== undefined) {
+    threadOptions.enableWebSearch = options.enableWebSearch;
   }
   if (options.approvalPolicy) {
     threadOptions.approvalPolicy = options.approvalPolicy;
   }
-  if (options.additionalDirectories) {
-    threadOptions.additionalDirectories = options.additionalDirectories;
+  if (options.additionalWritableRoots) {
+    threadOptions.additionalWritableRoots = options.additionalWritableRoots;
   }
 
   return threadOptions;
@@ -726,7 +730,7 @@ async function queryViaSdk(
       chalk.blue('[code-inspector-plugin]'),
       chalk.yellow('Codex SDK not found.'),
       'Install it with:',
-      chalk.green('npm install @openai/codex'),
+      chalk.green('npm install @openai/codex-sdk'),
     );
     sendSSE({
       type: 'text',
@@ -734,11 +738,15 @@ async function queryViaSdk(
         '**Codex SDK not installed.**\n\n' +
         'Please install it in your project:\n\n' +
         '```bash\n' +
-        'npm install @openai/codex\n' +
+        'npm install @openai/codex-sdk\n' +
         '```\n\n' +
         "Or use CLI mode by setting `agent: 'cli'` in your config.",
     });
     return null;
+  }
+
+  if (loadedCodexSdkPackage) {
+    sendSSE({ type: 'info', message: `Using Codex SDK package: ${loadedCodexSdkPackage}` });
   }
 
   const codex = new CodexSDK(buildCodexSDKClientOptions(codexOptions));

@@ -87,7 +87,7 @@ codeInspectorPlugin({
 Install:
 
 ```bash
-npm i @openai/codex
+npm i @openai/codex-sdk
 ```
 
 Configure:
@@ -100,8 +100,9 @@ codeInspectorPlugin({
         agent: 'sdk',
         options: {
           model: 'gpt-5-codex',
-          approvalPolicy: 'full-auto',
+          approvalPolicy: 'on-request',
           sandboxMode: 'workspace-write',
+          cwd: process.cwd(),
         },
       },
     },
@@ -164,20 +165,42 @@ type CodexCliOptions = {
 
 type CodexSdkOptions = {
   model?: string;
+  profile?: string;
   config?: Record<string, string | number | boolean>;
   env?: Record<string, string | undefined>;
   skipGitRepoCheck?: boolean;
   codexPathOverride?: string;
   baseUrl?: string;
   apiKey?: string;
-  sandboxMode?: 'read-only' | 'workspace-write' | 'danger-full-access';
-  workingDirectory?: string;
-  modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high';
-  networkAccessEnabled?: boolean;
-  webSearchMode?: 'auto' | 'off';
-  webSearchEnabled?: boolean;
-  approvalPolicy?: 'auto-edit' | 'full-auto' | 'on-failure' | 'on-request' | 'untrusted';
-  additionalDirectories?: string[];
+  sandboxMode?:
+    | 'read-only'
+    | 'workspace-write'
+    | 'danger-full-access'
+    | {
+        type: 'workspace-write';
+        writableRoots: string[];
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+      }
+    | {
+        type: 'danger-full-access';
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+      };
+  cwd?: string;
+  modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+  webSearchRequest?: {
+    searchContextSize?: 'low' | 'medium' | 'high';
+    userLocation?: {
+      country?: string;
+      region?: string;
+      city?: string;
+      timezone?: string;
+    };
+  };
+  enableWebSearch?: boolean;
+  approvalPolicy?: 'on-request' | 'on-failure' | 'never' | 'untrusted';
+  additionalWritableRoots?: string[];
 };
 ```
 
@@ -324,6 +347,9 @@ type ClaudeSdkOptions = {
   mcpServers?: Record<string, any>;
   maxThinkingTokens?: number;
   maxBudgetUsd?: number;
+  allowDangerouslySkipPermissions?: boolean;
+  settingSources?: Array<'user' | 'project' | 'local'>;
+  extraArgs?: Record<string, string | null>;
 };
 ```
 
