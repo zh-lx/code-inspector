@@ -403,11 +403,71 @@ function queryViaCli(
   let hasError = false;
   let knownModel = '';
   let ended = false;
+  let toolIndex = 0;
+  const toolIndexMap = new Map<string, number>();
+  const messageTextMap = new Map<string, string>();
+  const fileSnapshotStore = new Map<string, Map<string, FileSnapshot>>();
 
   const finish = () => {
     if (ended) return;
     ended = true;
     onEnd();
+  };
+
+  const emitToolFromItem = (item: any, done = false) => {
+    const toolEvent = buildToolEventFromItem(item, {
+      cwd,
+      fileSnapshots: fileSnapshotStore,
+      done,
+    });
+    if (!toolEvent) return;
+
+    let index = toolIndexMap.get(toolEvent.toolId);
+    let isNewTool = false;
+    if (index === undefined) {
+      index = toolIndex++;
+      isNewTool = true;
+      toolIndexMap.set(toolEvent.toolId, index);
+      hasAnyContent = true;
+      onData(JSON.stringify({
+        type: 'tool_start',
+        toolId: toolEvent.toolId,
+        toolName: toolEvent.toolName,
+        index,
+      }));
+      if (toolEvent.input) {
+        onData(JSON.stringify({
+          type: 'tool_input',
+          toolUseId: toolEvent.toolId,
+          index,
+          input: toolEvent.input,
+        }));
+      }
+    }
+
+    if (done && toolEvent.result !== undefined) {
+      if (
+        !isNewTool
+        && index !== undefined
+        && toolEvent.toolName === 'Edit'
+        && toolEvent.input
+      ) {
+        hasAnyContent = true;
+        onData(JSON.stringify({
+          type: 'tool_input',
+          toolUseId: toolEvent.toolId,
+          index,
+          input: toolEvent.input,
+        }));
+      }
+      hasAnyContent = true;
+      onData(JSON.stringify({
+        type: 'tool_result',
+        toolUseId: toolEvent.toolId,
+        content: toolEvent.result,
+        isError: toolEvent.isError,
+      }));
+    }
   };
 
   const handleLine = (line: string) => {
@@ -437,6 +497,7 @@ function queryViaCli(
 
       if (event.type === 'thread.started' && event.thread_id && onSessionId) {
         onSessionId(event.thread_id);
+        return;
       }
 
       const eventModel = extractModelFromEvent(event);
@@ -459,6 +520,56 @@ function queryViaCli(
         hasError = true;
         const message = event.error?.message || 'Codex turn failed';
         onError(message);
+        return;
+      }
+
+      if (event.type === 'item.started') {
+        emitToolFromItem(event.item, false);
+        return;
+      }
+
+      if (event.type === 'item.updated') {
+        const item = event.item;
+        if (item?.type === 'agent_message' && item?.id) {
+          const current = getItemText(item);
+          const previous = messageTextMap.get(item.id) || '';
+          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          if (delta) {
+            hasAnyContent = true;
+            onData(JSON.stringify({ type: 'text', content: delta }));
+          }
+          messageTextMap.set(item.id, current);
+        } else {
+          emitToolFromItem(item, false);
+        }
+        return;
+      }
+
+      if (event.type === 'item.completed') {
+        const item = event.item;
+        if (item?.type === 'agent_message' && item?.id) {
+          const current = getItemText(item);
+          const previous = messageTextMap.get(item.id) || '';
+          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          if (delta) {
+            hasAnyContent = true;
+            onData(JSON.stringify({ type: 'text', content: delta }));
+          }
+          messageTextMap.delete(item.id);
+        } else {
+          emitToolFromItem(item, true);
+        }
+        return;
+      }
+
+      if (event.type === 'task_complete') {
+        if (!hasAnyContent && typeof event.last_agent_message === 'string' && event.last_agent_message) {
+          hasAnyContent = true;
+          onData(JSON.stringify({ type: 'text', content: event.last_agent_message }));
+        } else if (!hasAnyContent && typeof event.result === 'string' && event.result) {
+          hasAnyContent = true;
+          onData(JSON.stringify({ type: 'text', content: event.result }));
+        }
         return;
       }
 
@@ -642,6 +753,77 @@ function stringifyUnknown(value: any): string {
   }
 }
 
+type FileSnapshot = {
+  absolutePath: string;
+  displayPath: string;
+  beforeContent: string;
+};
+
+const MAX_DIFF_CHARS_PER_FILE = 12000;
+
+function truncateDiffText(text: string): string {
+  if (text.length <= MAX_DIFF_CHARS_PER_FILE) {
+    return text;
+  }
+  return text.slice(0, MAX_DIFF_CHARS_PER_FILE) + `\n...[truncated ${text.length - MAX_DIFF_CHARS_PER_FILE} chars]`;
+}
+
+function readFileText(absolutePath: string): { exists: boolean; content: string } {
+  try {
+    if (!fs.existsSync(absolutePath)) {
+      return { exists: false, content: '' };
+    }
+    const stat = fs.statSync(absolutePath);
+    if (!stat.isFile()) {
+      return { exists: true, content: '[not a regular file]' };
+    }
+    return { exists: true, content: fs.readFileSync(absolutePath, 'utf-8') };
+  } catch {
+    return { exists: fs.existsSync(absolutePath), content: '[unable to read file content]' };
+  }
+}
+
+function resolveChangePath(changePath: string, cwd: string): { absolutePath: string; displayPath: string } {
+  if (path.isAbsolute(changePath)) {
+    return { absolutePath: changePath, displayPath: changePath };
+  }
+  return { absolutePath: path.resolve(cwd, changePath), displayPath: changePath };
+}
+
+function ensureFileSnapshot(
+  toolId: string,
+  displayPath: string,
+  absolutePath: string,
+  store: Map<string, Map<string, FileSnapshot>>
+): FileSnapshot {
+  let toolSnapshots = store.get(toolId);
+  if (!toolSnapshots) {
+    toolSnapshots = new Map();
+    store.set(toolId, toolSnapshots);
+  }
+
+  let snapshot = toolSnapshots.get(absolutePath);
+  if (!snapshot) {
+    const before = readFileText(absolutePath);
+    snapshot = {
+      absolutePath,
+      displayPath,
+      beforeContent: before.content,
+    };
+    toolSnapshots.set(absolutePath, snapshot);
+  }
+
+  return snapshot;
+}
+
+function getFileSnapshot(
+  toolId: string,
+  absolutePath: string,
+  store: Map<string, Map<string, FileSnapshot>>
+): FileSnapshot | null {
+  return store.get(toolId)?.get(absolutePath) || null;
+}
+
 function getItemText(item: any): string {
   if (!item) return '';
   if (typeof item.text === 'string') return item.text;
@@ -652,7 +834,14 @@ function getItemText(item: any): string {
   return '';
 }
 
-function buildToolEventFromItem(item: any): {
+function buildToolEventFromItem(
+  item: any,
+  context?: {
+    cwd?: string;
+    fileSnapshots?: Map<string, Map<string, FileSnapshot>>;
+    done?: boolean;
+  }
+): {
   toolId: string;
   toolName: string;
   input?: Record<string, any>;
@@ -664,25 +853,93 @@ function buildToolEventFromItem(item: any): {
   }
 
   if (item.type === 'command_execution') {
+    const command = typeof item.command === 'string' ? item.command : '';
+    const output = item.aggregated_output || item.output || '';
     const exitCode = typeof item.exit_code === 'number' ? item.exit_code : undefined;
     const status = String(item.status || '');
     const isError = status === 'failed' || (exitCode !== undefined && exitCode !== 0);
+
     return {
       toolId: String(item.id),
       toolName: 'Bash',
-      input: item.command ? { command: item.command } : undefined,
-      result: item.aggregated_output || item.output || (exitCode !== undefined ? `exit code ${exitCode}` : ''),
+      input: command ? { _provider: 'codex', command } : { _provider: 'codex' },
+      result: output || (exitCode !== undefined ? `exit code ${exitCode}` : ''),
       isError,
     };
   }
 
   if (item.type === 'file_change') {
     const changes = Array.isArray(item.changes) ? item.changes : [];
+    const firstPath = typeof changes[0]?.path === 'string' ? changes[0].path : '';
+    let input: Record<string, any> = { _provider: 'codex', file_path: firstPath, changes };
+
+    // Codex file_change 仅包含文件级元信息，这里通过快照补齐前后文本，用于前端红绿 diff
+    if (context?.cwd && context.fileSnapshots && changes.length > 0) {
+      const toolId = String(item.id);
+      const oldSections: string[] = [];
+      const newSections: string[] = [];
+      const diffBlocks: Array<{ file_path: string; old_string: string; new_string: string }> = [];
+
+      for (const change of changes) {
+        const changePath = typeof change?.path === 'string' ? change.path : '';
+        if (!changePath) continue;
+
+        const { absolutePath, displayPath } = resolveChangePath(changePath, context.cwd);
+        if (!context.done) {
+          ensureFileSnapshot(toolId, displayPath, absolutePath, context.fileSnapshots);
+          continue;
+        }
+
+        const snapshot = getFileSnapshot(toolId, absolutePath, context.fileSnapshots);
+        const after = readFileText(absolutePath);
+        const kind = String(change?.kind || '');
+        if (kind !== 'add' && !snapshot) {
+          // Cannot reliably reconstruct pre-edit content if no runtime snapshot was captured.
+          continue;
+        }
+
+        const beforeText = kind === 'add' ? '' : (snapshot?.beforeContent || '');
+        const afterText = kind === 'delete' ? '' : after.content;
+        let oldString = truncateDiffText(beforeText);
+        let newString = truncateDiffText(afterText);
+
+        // If truncation hides the change and collapses old/new into the same text, fallback to full content.
+        if (beforeText !== afterText && oldString === newString) {
+          oldString = beforeText;
+          newString = afterText;
+        }
+
+        diffBlocks.push({
+          file_path: displayPath,
+          old_string: oldString,
+          new_string: newString,
+        });
+
+        if (beforeText) {
+          oldSections.push(`# ${displayPath}\n${oldString}`);
+        }
+        if (afterText) {
+          newSections.push(`# ${displayPath}\n${newString}`);
+        }
+      }
+
+      if (context.done) {
+        input = {
+          _provider: 'codex',
+          file_path: firstPath,
+          old_string: oldSections.join('\n\n'),
+          new_string: newSections.join('\n\n'),
+          diff_blocks: diffBlocks,
+          changes,
+        };
+      }
+    }
     return {
       toolId: String(item.id),
       toolName: 'Edit',
-      input: changes.length > 0 ? { changes } : undefined,
+      input,
       result: changes.length > 0 ? `Applied ${changes.length} file changes` : 'Applied file changes',
+      isError: item.status === 'failed',
     };
   }
 
@@ -690,17 +947,22 @@ function buildToolEventFromItem(item: any): {
     return {
       toolId: String(item.id),
       toolName: 'WebSearch',
-      input: item.query ? { query: item.query } : undefined,
+      input: item.query ? { _provider: 'codex', query: item.query } : { _provider: 'codex' },
       result: stringifyUnknown(item.result || item.output),
       isError: item.status === 'failed',
     };
   }
 
   if (item.type === 'mcp_tool_call') {
+    const mcpInput: Record<string, any> = { _provider: 'codex' };
+    if (item.server) mcpInput.server = item.server;
+    if (item.tool) mcpInput.tool = item.tool;
+    if (item.arguments !== undefined) mcpInput.arguments = item.arguments;
+    if (item.input !== undefined) mcpInput.input = item.input;
     return {
       toolId: String(item.id),
-      toolName: item.name || item.tool_name || 'MCPTool',
-      input: item.arguments || item.input,
+      toolName: item.name || item.tool_name || item.tool || 'MCPTool',
+      input: mcpInput,
       result: stringifyUnknown(item.result || item.output || item.error),
       isError: Boolean(item.error) || item.status === 'failed',
     };
@@ -769,14 +1031,21 @@ async function queryViaSdk(
   const messageTextMap = new Map<string, string>();
   let hasAnyText = false;
   let toolIndex = 0;
+  const fileSnapshotStore = new Map<string, Map<string, FileSnapshot>>();
 
   const emitToolFromItem = (item: any, done = false) => {
-    const toolEvent = buildToolEventFromItem(item);
+    const toolEvent = buildToolEventFromItem(item, {
+      cwd,
+      fileSnapshots: fileSnapshotStore,
+      done,
+    });
     if (!toolEvent) return;
 
     let index = toolIndexMap.get(toolEvent.toolId);
+    let isNewTool = false;
     if (index === undefined) {
       index = toolIndex++;
+      isNewTool = true;
       toolIndexMap.set(toolEvent.toolId, index);
       sendSSE({
         type: 'tool_start',
@@ -787,6 +1056,7 @@ async function queryViaSdk(
       if (toolEvent.input) {
         sendSSE({
           type: 'tool_input',
+          toolUseId: toolEvent.toolId,
           index,
           input: toolEvent.input,
         });
@@ -794,6 +1064,19 @@ async function queryViaSdk(
     }
 
     if (done && toolEvent.result !== undefined) {
+      if (
+        !isNewTool
+        && index !== undefined
+        && toolEvent.toolName === 'Edit'
+        && toolEvent.input
+      ) {
+        sendSSE({
+          type: 'tool_input',
+          toolUseId: toolEvent.toolId,
+          index,
+          input: toolEvent.input,
+        });
+      }
       sendSSE({
         type: 'tool_result',
         toolUseId: toolEvent.toolId,

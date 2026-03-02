@@ -95,7 +95,7 @@ export declare const chatStyles: import("lit").CSSResult;
 export interface StreamHandlers {
     onText: (content: string) => void;
     onToolStart: (toolId: string, toolName: string, index: number) => void;
-    onToolInput: (index: number, input: Record<string, any>) => void;
+    onToolInput: (index: number, input: Record<string, any>, toolUseId?: string) => void;
     onToolResult: (toolUseId: string, content: string, isError?: boolean) => void;
     onError: (error: Error) => void;
     onSessionId?: (sessionId: string) => void;

@@ -1463,6 +1463,7 @@ export class CodeInspectorComponent extends LitElement {
     let assistantContent = '';
     const blocks: ContentBlock[] = [];
     const toolIdToIndex = new Map<string, number>(); // toolId -> blocks 中的索引
+    const toolStreamIndexToBlockIndex = new Map<number, number>(); // stream index -> blocks 中的索引
 
     // 辅助函数：更新最后一条 assistant 消息
     const updateAssistantMessage = () => {
@@ -1511,7 +1512,7 @@ export class CodeInspectorComponent extends LitElement {
             }
             throttledUpdate();
           },
-          onToolStart: (toolId, toolName, _index) => {
+          onToolStart: (toolId, toolName, index) => {
             const tool: ToolCall = {
               id: toolId,
               name: toolName,
@@ -1520,15 +1521,38 @@ export class CodeInspectorComponent extends LitElement {
             const blockIndex = blocks.length;
             blocks.push({ type: 'tool', tool });
             toolIdToIndex.set(toolId, blockIndex);
+            const normalizedIndex = Number(index);
+            if (Number.isFinite(normalizedIndex)) {
+              toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+            }
             flushUpdate();
           },
-          onToolInput: (_index, input) => {
-            // 找到最近的未完成工具调用块
+          onToolInput: (index, input, toolUseId) => {
+            if (toolUseId) {
+              const byIdIndex = toolIdToIndex.get(toolUseId);
+              if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                blocks[byIdIndex].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+
+            const normalizedIndex = Number(index);
+            const blockIndex = Number.isFinite(normalizedIndex)
+              ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+              : undefined;
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.input = input;
+              flushUpdate();
+              return;
+            }
+
+            // 兼容旧事件流：按最近未完成工具回退
             for (let i = blocks.length - 1; i >= 0; i--) {
               if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
                 blocks[i].tool!.input = input;
                 flushUpdate();
-                break;
+                return;
               }
             }
           },
@@ -1590,6 +1614,7 @@ export class CodeInspectorComponent extends LitElement {
     let assistantContent = '';
     const blocks: ContentBlock[] = [];
     const toolIdToIndex = new Map<string, number>();
+    const toolStreamIndexToBlockIndex = new Map<number, number>();
 
     const updateAssistantMessage = () => {
       this.chatMessages = [
@@ -1635,7 +1660,7 @@ export class CodeInspectorComponent extends LitElement {
             }
             throttledUpdate();
           },
-          onToolStart: (toolId, toolName, _index) => {
+          onToolStart: (toolId, toolName, index) => {
             const tool: ToolCall = {
               id: toolId,
               name: toolName,
@@ -1644,14 +1669,37 @@ export class CodeInspectorComponent extends LitElement {
             const blockIndex = blocks.length;
             blocks.push({ type: 'tool', tool });
             toolIdToIndex.set(toolId, blockIndex);
+            const normalizedIndex = Number(index);
+            if (Number.isFinite(normalizedIndex)) {
+              toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+            }
             flushUpdate();
           },
-          onToolInput: (_index, input) => {
+          onToolInput: (index, input, toolUseId) => {
+            if (toolUseId) {
+              const byIdIndex = toolIdToIndex.get(toolUseId);
+              if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                blocks[byIdIndex].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+
+            const normalizedIndex = Number(index);
+            const blockIndex = Number.isFinite(normalizedIndex)
+              ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+              : undefined;
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.input = input;
+              flushUpdate();
+              return;
+            }
+
             for (let i = blocks.length - 1; i >= 0; i--) {
               if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
                 blocks[i].tool!.input = input;
                 flushUpdate();
-                break;
+                return;
               }
             }
           },

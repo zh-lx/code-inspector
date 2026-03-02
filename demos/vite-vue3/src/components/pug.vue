@@ -2,8 +2,8 @@
 .page-container#ok(class="page") page container
 div(:ddd="222") {{ msg }}
   p() 12312
-  a
-    span(style="color: red") 1999
+  a(style="color: blue")
+    span 1999
   p(ok="123") ok123
 
 case friends
@@ -42,4 +42,29 @@ const user = ref({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  padding-left: 0;
+}
+
+li {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #dbe4ff;
+  border-radius: 8px;
+  background: #f5f7ff;
+  color: #1f2d3d;
+  transition: all 0.2s ease;
+}
+
+li:hover {
+  border-color: #b8c9ff;
+  background: #e9efff;
+  transform: translateY(-2px);
+}
+</style>

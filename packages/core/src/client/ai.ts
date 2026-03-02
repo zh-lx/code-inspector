@@ -246,10 +246,49 @@ function renderMarkdown(content: string): string {
   }
 }
 
+function isCodexTool(tool: ToolCall): boolean {
+  return tool.input?._provider === 'codex';
+}
+
+function getChangePath(input: Record<string, any>): string {
+  if (typeof input.file_path === 'string' && input.file_path) {
+    return input.file_path;
+  }
+  if (Array.isArray(input.changes) && typeof input.changes[0]?.path === 'string') {
+    return input.changes[0].path;
+  }
+  return '';
+}
+
+function getCodexDisplayInfo(tool: ToolCall): { name: string; summary: string } {
+  const input = tool.input || {};
+  const done = Boolean(tool.isComplete);
+
+  if (tool.name === 'Bash') {
+    return { name: done ? 'Ran' : 'Running', summary: input.command || '' };
+  }
+  if (tool.name === 'Edit') {
+    const filePath = toRelativePath(getChangePath(input));
+    const fallback = Array.isArray(input.changes) && input.changes.length > 0
+      ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
+      : '';
+    return { name: done ? 'Edited' : 'Editing', summary: filePath || fallback };
+  }
+  if (tool.name === 'WebSearch') {
+    return { name: done ? 'Explored' : 'Exploring', summary: input.query || '' };
+  }
+
+  return { name: tool.name, summary: '' };
+}
+
 /**
- * 获取工具显示名称和参数摘要（对齐 Claude CLI 风格）
+ * 获取工具显示名称和参数摘要
  */
 function getToolDisplayInfo(tool: ToolCall): { name: string; summary: string } {
+  if (isCodexTool(tool)) {
+    return getCodexDisplayInfo(tool);
+  }
+
   const name = tool.name;
   const input = tool.input || {};
 
@@ -308,22 +347,191 @@ function formatToolResult(result: string, toolName: string): string {
  */
 function renderEditDiff(tool: ToolCall): TemplateResult {
   const input = tool.input || {};
-  const oldStr: string = input.old_string || '';
-  const newStr: string = input.new_string || '';
+  const oldStr = String(input.old_string || '');
+  const newStr = String(input.new_string || '');
+  const diffBlocks = Array.isArray(input.diff_blocks)
+    ? input.diff_blocks
+    : [];
+
+  const splitLines = (text: string): string[] => {
+    const normalized = text.replace(/\r\n/g, '\n');
+    const lines = normalized.split('\n');
+    if (lines.length > 0 && lines[lines.length - 1] === '') {
+      lines.pop();
+    }
+    return lines;
+  };
+
+  const fallbackChangedLines = (oldLines: string[], newLines: string[]): Array<{ type: 'add' | 'del'; text: string }> => {
+    let prefix = 0;
+    while (prefix < oldLines.length && prefix < newLines.length && oldLines[prefix] === newLines[prefix]) {
+      prefix++;
+    }
+
+    let suffix = 0;
+    while (
+      suffix < oldLines.length - prefix
+      && suffix < newLines.length - prefix
+      && oldLines[oldLines.length - 1 - suffix] === newLines[newLines.length - 1 - suffix]
+    ) {
+      suffix++;
+    }
+
+    const changed: Array<{ type: 'add' | 'del'; text: string }> = [];
+    for (const line of oldLines.slice(prefix, oldLines.length - suffix)) {
+      changed.push({ type: 'del', text: line });
+    }
+    for (const line of newLines.slice(prefix, newLines.length - suffix)) {
+      changed.push({ type: 'add', text: line });
+    }
+    return changed;
+  };
+
+  const buildChangedLines = (oldText: string, newText: string): Array<{ type: 'add' | 'del'; text: string }> => {
+    const oldLines = splitLines(oldText);
+    const newLines = splitLines(newText);
+
+    if (oldLines.length === 0 && newLines.length === 0) return [];
+    if (oldLines.length === 0) return newLines.map((text) => ({ type: 'add', text }));
+    if (newLines.length === 0) return oldLines.map((text) => ({ type: 'del', text }));
+
+    const maxCells = 200000;
+    if (oldLines.length * newLines.length > maxCells) {
+      return fallbackChangedLines(oldLines, newLines);
+    }
+
+    const dp = Array.from({ length: oldLines.length + 1 }, () => Array<number>(newLines.length + 1).fill(0));
+    for (let i = oldLines.length - 1; i >= 0; i--) {
+      for (let j = newLines.length - 1; j >= 0; j--) {
+        if (oldLines[i] === newLines[j]) {
+          dp[i][j] = dp[i + 1][j + 1] + 1;
+        } else {
+          dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+        }
+      }
+    }
+
+    const changed: Array<{ type: 'add' | 'del'; text: string }> = [];
+    let i = 0;
+    let j = 0;
+    while (i < oldLines.length && j < newLines.length) {
+      if (oldLines[i] === newLines[j]) {
+        i++;
+        j++;
+        continue;
+      }
+      if (dp[i + 1][j] >= dp[i][j + 1]) {
+        changed.push({ type: 'del', text: oldLines[i] });
+        i++;
+      } else {
+        changed.push({ type: 'add', text: newLines[j] });
+        j++;
+      }
+    }
+    while (i < oldLines.length) {
+      changed.push({ type: 'del', text: oldLines[i] });
+      i++;
+    }
+    while (j < newLines.length) {
+      changed.push({ type: 'add', text: newLines[j] });
+      j++;
+    }
+
+    return changed;
+  };
+
+  const parseSections = (text: string): Map<string, string> => {
+    const lines = text.split('\n');
+    const sections = new Map<string, string>();
+    let currentPath = '';
+    let buffer: string[] = [];
+
+    const flush = () => {
+      if (!currentPath) return;
+      sections.set(currentPath, buffer.join('\n'));
+    };
+
+    for (const line of lines) {
+      if (line.startsWith('# ')) {
+        flush();
+        currentPath = line.slice(2).trim();
+        buffer = [];
+      } else if (currentPath) {
+        buffer.push(line);
+      }
+    }
+    flush();
+
+    return sections;
+  };
+
+  const changes = Array.isArray(input.changes)
+    ? input.changes
+    : [];
+
+  const renderedFromBlocks = diffBlocks
+    .map((block: any) => {
+      const filePath = String(block?.file_path || '');
+      const oldString = String(block?.old_string || '');
+      const newString = String(block?.new_string || '');
+      const changed = buildChangedLines(oldString, newString);
+      if (changed.length === 0) return null;
+
+      return html`
+        ${filePath ? html`<div class="diff-file-header">${toRelativePath(filePath)}</div>` : ''}
+        ${changed.map((line) =>
+        html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
+            >${line.type === 'add' ? '+' : '-'} ${line.text}</div
+          >`
+      )}
+      `;
+    })
+    .filter(Boolean);
+
+  if (renderedFromBlocks.length > 0) {
+    return html`<div class="diff-view">${renderedFromBlocks}</div>`;
+  }
 
   if (!oldStr && !newStr) {
     return html``;
   }
 
-  const oldLines = oldStr.split('\n');
-  const newLines = newStr.split('\n');
+  const oldSections = parseSections(oldStr);
+  const newSections = parseSections(newStr);
 
-  return html`
-    <div class="diff-view">
-      ${oldLines.map((line: string) => html`<div class="diff-line diff-del">- ${line}</div>`)}
-      ${newLines.map((line: string) => html`<div class="diff-line diff-add">+ ${line}</div>`)}
-    </div>
-  `;
+  if (changes.length > 0 && (oldSections.size > 0 || newSections.size > 0)) {
+    const renderedByChanges = changes
+      .map((change: any) => {
+        const filePath = String(change?.path || '');
+        if (!filePath) return null;
+
+        const changed = buildChangedLines(oldSections.get(filePath) || '', newSections.get(filePath) || '');
+        if (changed.length === 0) return null;
+
+        return html`
+          <div class="diff-file-header">${toRelativePath(filePath)}</div>
+          ${changed.map((line) =>
+          html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
+              >${line.type === 'add' ? '+' : '-'} ${line.text}</div
+            >`
+        )}
+        `;
+      })
+      .filter(Boolean);
+
+    if (renderedByChanges.length > 0) {
+      return html`<div class="diff-view">${renderedByChanges}</div>`;
+    }
+  }
+
+  const changed = buildChangedLines(oldStr, newStr);
+  return html`<div class="diff-view">
+    ${changed.map((line) =>
+    html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
+        >${line.type === 'add' ? '+' : '-'} ${line.text}</div
+      >`
+  )}
+  </div>`;
 }
 
 /**
@@ -334,7 +542,16 @@ function renderToolCall(tool: ToolCall): TemplateResult {
   const isComplete = tool.isComplete;
   const hasResult = tool.result !== undefined;
   const isEdit = tool.name === 'Edit';
-  const hasEditInput = isEdit && tool.input && (tool.input.old_string || tool.input.new_string);
+  const hasEditInput = isEdit && tool.input && (
+    tool.input.old_string
+    || tool.input.new_string
+    || (Array.isArray(tool.input.diff_blocks) && tool.input.diff_blocks.length > 0)
+  );
+  const suppressResult = (
+    isCodexTool(tool)
+    && !tool.isError
+    && (tool.name === 'Bash' || tool.name === 'WebSearch')
+  );
 
   return html`
     <div class="tool-call-inline">
@@ -344,18 +561,18 @@ function renderToolCall(tool: ToolCall): TemplateResult {
         ${summary ? html`<span class="tool-summary-inline">${summary}</span>` : ''}
       </div>
       ${hasEditInput
-        ? html`<div class="tool-diff-wrapper">
+      ? html`<div class="tool-diff-wrapper">
             <span class="tool-result-bracket">⎿</span>
             ${renderEditDiff(tool)}
           </div>`
-        : hasResult
-          ? html`<div class="tool-result-inline">
+      : hasResult && !suppressResult
+        ? html`<div class="tool-result-inline">
               <span class="tool-result-bracket">⎿</span>
               <span class="tool-result-text ${tool.isError ? 'tool-error-text' : ''}"
                 >${formatToolResult(tool.result!, tool.name)}</span
               >
             </div>`
-          : ''}
+        : ''}
     </div>
   `;
 }
@@ -370,16 +587,16 @@ function renderMessageContent(msg: ChatMessage): TemplateResult {
   if (msg.blocks && msg.blocks.length > 0) {
     return html`
       ${msg.blocks.map((block) => {
-        if (block.type === 'text' && block.content) {
-          if (isAssistant) {
-            return html`<div class="chat-text-inline chat-markdown">${unsafeHTML(renderMarkdown(block.content))}</div>`;
-          }
-          return html`<div class="chat-text-inline">${block.content}</div>`;
-        } else if (block.type === 'tool' && block.tool) {
-          return renderToolCall(block.tool);
+      if (block.type === 'text' && block.content) {
+        if (isAssistant) {
+          return html`<div class="chat-text-inline chat-markdown">${unsafeHTML(renderMarkdown(block.content))}</div>`;
         }
-        return html``;
-      })}
+        return html`<div class="chat-text-inline">${block.content}</div>`;
+      } else if (block.type === 'tool' && block.tool) {
+        return renderToolCall(block.tool);
+      }
+      return html``;
+    })}
     `;
   }
 
@@ -418,14 +635,14 @@ export function renderChatModal(
             <div class="chat-modal-title-row">
               <h3 class="chat-modal-title">AI Assistant</h3>
               ${state.chatModel
-                ? html`<span class="chat-model-badge">${state.chatModel}</span>`
-                : ''}
+      ? html`<span class="chat-model-badge">${state.chatModel}</span>`
+      : ''}
             </div>
             ${state.chatContext
-              ? html`<span class="chat-context-info"
+      ? html`<span class="chat-context-info"
                   >&lt;${state.chatContext.name}&gt; ${state.chatContext.file}#${state.chatContext.line}</span
                 >`
-              : ''}
+      : ''}
           </div>
           <div class="chat-modal-actions">
             <button
@@ -434,11 +651,11 @@ export function renderChatModal(
               title="${state.chatTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}"
             >
               ${state.chatTheme === 'dark'
-                ? html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      ? html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="5" />
                     <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
                   </svg>`
-                : html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      : html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                   </svg>`}
             </button>
@@ -474,52 +691,52 @@ export function renderChatModal(
         </div>
         <div class="chat-modal-content">
           ${state.chatMessages.length === 0
-            ? html`<div class="chat-empty">
+      ? html`<div class="chat-empty">
                 <span class="chat-empty-prompt">❯</span>
                 <span class="chat-empty-text">Ask me anything about this code...</span>
               </div>`
-            : state.chatMessages.map(
-                (msg) => html`
+      : state.chatMessages.map(
+        (msg) => html`
                   <div class="chat-line chat-line-${msg.role}">
                     ${msg.role === 'user'
-                      ? html`<span class="chat-prompt">❯</span>`
-                      : html`<span class="chat-indent"></span>`}
+            ? html`<span class="chat-prompt">❯</span>`
+            : html`<span class="chat-indent"></span>`}
                     <div class="chat-message-content">
                       ${renderMessageContent(msg)}
                     </div>
                   </div>
                 `
-              )}
+      )}
           ${state.chatLoading &&
-          (!state.chatMessages.length ||
-            state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
-            ? html`<div class="chat-loading">
+      (!state.chatMessages.length ||
+        state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
+      ? html`<div class="chat-loading">
                 <span class="chat-indent"></span>
                 <span class="chat-cursor"></span>
               </div>`
-            : ''}
+      : ''}
         </div>
         ${state.turnStatus !== 'idle'
-          ? html`<div class="chat-status-bar">
+      ? html`<div class="chat-status-bar">
               <div class="chat-status-info">
                 <span class="chat-status-icon ${state.turnStatus}">
                   ${state.turnStatus === 'running'
-                    ? '●'
-                    : state.turnStatus === 'done'
-                      ? '✓'
-                      : '■'}
+          ? '●'
+          : state.turnStatus === 'done'
+            ? '✓'
+            : '■'}
                 </span>
                 <span class="chat-status-text">
                   ${state.turnStatus === 'running'
-                    ? 'Running'
-                    : state.turnStatus === 'done'
-                      ? 'Done'
-                      : 'Interrupt'}
+          ? 'Running'
+          : state.turnStatus === 'done'
+            ? 'Done'
+            : 'Interrupt'}
                 </span>
                 <span class="chat-status-duration">· ${formatDuration(state.turnDuration)}</span>
               </div>
               ${state.turnStatus === 'running'
-                ? html`<button
+          ? html`<button
                     class="chat-interrupt-btn"
                     @click="${handlers.interruptChat}"
                     title="Interrupt"
@@ -528,9 +745,9 @@ export function renderChatModal(
                       <rect x="6" y="6" width="12" height="12" rx="1" />
                     </svg>
                   </button>`
-                : ''}
-            </div>`
           : ''}
+            </div>`
+      : ''}
         <div class="chat-modal-footer">
           <span class="chat-input-prompt">❯</span>
           <textarea
@@ -549,7 +766,7 @@ export function renderChatModal(
             title="Send (Enter)"
           >
             ${state.chatLoading
-              ? html`<svg
+      ? html`<svg
                   class="chat-send-loading"
                   width="16"
                   height="16"
@@ -566,7 +783,7 @@ export function renderChatModal(
                     stroke-linecap="round"
                   />
                 </svg>`
-              : html`<svg
+      : html`<svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -1347,6 +1564,18 @@ export const chatStyles = css`
     overflow: hidden;
   }
 
+  .diff-file-header {
+    padding: 4px 8px 2px;
+    color: var(--chat-text-muted);
+    background: var(--chat-tool-bg);
+    border-top: 1px solid var(--chat-border);
+    font-size: 11px;
+  }
+
+  .diff-file-header:first-child {
+    border-top: none;
+  }
+
   .diff-line {
     padding: 1px 8px;
     white-space: pre-wrap;
@@ -1388,7 +1617,7 @@ export const chatStyles = css`
 export interface StreamHandlers {
   onText: (content: string) => void;
   onToolStart: (toolId: string, toolName: string, index: number) => void;
-  onToolInput: (index: number, input: Record<string, any>) => void;
+  onToolInput: (index: number, input: Record<string, any>, toolUseId?: string) => void;
   onToolResult: (toolUseId: string, content: string, isError?: boolean) => void;
   onError: (error: Error) => void;
   onSessionId?: (sessionId: string) => void;
@@ -1474,7 +1703,7 @@ export async function sendChatToServer(
                 handlers.onToolStart(parsed.toolId, parsed.toolName, parsed.index);
                 break;
               case 'tool_input':
-                handlers.onToolInput(parsed.index, parsed.input);
+                handlers.onToolInput(parsed.index, parsed.input, parsed.toolUseId);
                 break;
               case 'tool_result':
                 handlers.onToolResult(parsed.toolUseId, parsed.content, parsed.isError);
