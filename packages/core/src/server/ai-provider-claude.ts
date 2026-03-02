@@ -179,7 +179,7 @@ export function handleClaudeRequest(
   const { sendSSE, onEnd } = callbacks;
 
   const agentType = aiOptions?.agent || 'cli';
-  const cliPath = agentType === 'cli' ? findClaudeCodeCli() : null;
+  const cliPath = findClaudeCodeCli();
 
   let childProcess: ChildProcess | null = null;
   let aborted = false;
@@ -226,7 +226,7 @@ export function handleClaudeRequest(
 
         const sdkPrompt = sessionId ? message : buildPrompt(message, context, history, cwd);
 
-        await queryViaSdk(
+        const sdkRunState = await queryViaSdk(
           sdkPrompt,
           cwd,
           aiOptions,
@@ -234,6 +234,39 @@ export function handleClaudeRequest(
           sendSSE,
           () => aborted
         );
+
+        if (sdkRunState.timedOut && cliPath) {
+          sendSSE({
+            type: 'info',
+            message: 'Claude SDK timed out without response. Falling back to local Claude CLI.',
+          });
+          childProcess = queryViaCli(
+            cliPath,
+            sdkPrompt,
+            cwd,
+            aiOptions,
+            (jsonData) => {
+              try {
+                const data = JSON.parse(jsonData);
+                sendSSE(data);
+              } catch {
+                sendSSE({ type: 'text', content: jsonData });
+              }
+            },
+            (error) => {
+              sendSSE({ error });
+            },
+            () => {
+              sendSSE('[DONE]');
+              onEnd();
+            },
+            sessionId,
+            (newSessionId) => {
+              sendSSE({ type: 'session', sessionId: newSessionId });
+            }
+          );
+          return;
+        }
 
         sendSSE('[DONE]');
         onEnd();
@@ -613,7 +646,7 @@ async function queryViaSdk(
   sessionId: string | undefined,
   sendSSE: (data: object | string) => void,
   isAborted: () => boolean
-): Promise<void> {
+): Promise<{ timedOut: boolean }> {
   setupSdkEnvironment(aiOptions);
 
   const query = await getClaudeQuery();
@@ -634,7 +667,7 @@ async function queryViaSdk(
         '```\n\n' +
         "Or use CLI mode by setting `agent: 'cli'` in your config.",
     });
-    return;
+    return { timedOut: false };
   }
 
   const queryOptions = buildSdkQueryOptions(aiOptions, cwd, sessionId);
@@ -652,9 +685,23 @@ async function queryViaSdk(
   });
 
   let hasStreamContent = false;
+  let hasBusinessEvent = false;
+  let timedOut = false;
   let emittedSessionId = '';
   const toolInputBuffers: Map<number, string> = new Map();
   const assistantTextBuffers: Map<string, string> = new Map();
+  const sdkIdleTimeoutMs = 100000;
+  const idleTimer = setTimeout(() => {
+    if (!hasBusinessEvent && !isAborted()) {
+      timedOut = true;
+      sendSSE({
+        error:
+          `Claude SDK timeout: no response after ${Math.floor(sdkIdleTimeoutMs / 1000)}s. ` +
+          'This is usually caused by gateway/network issues.',
+      });
+      conversation.interrupt();
+    }
+  }, sdkIdleTimeoutMs);
 
   const emitSessionId = (msg: any) => {
     const sid = msg?.session_id;
@@ -664,14 +711,16 @@ async function queryViaSdk(
     }
   };
 
-  for await (const sdkMessage of conversation) {
-    if (isAborted()) {
-      conversation.interrupt();
-      break;
-    }
-    emitSessionId(sdkMessage);
+  try {
+    for await (const sdkMessage of conversation) {
+      if (isAborted()) {
+        conversation.interrupt();
+        break;
+      }
+      emitSessionId(sdkMessage);
 
       if (sdkMessage.type === 'stream_event') {
+        hasBusinessEvent = true;
         const event = sdkMessage.event as any;
 
         if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
@@ -714,6 +763,7 @@ async function queryViaSdk(
         }
 
       } else if (sdkMessage.type === 'assistant') {
+        hasBusinessEvent = true;
         const message = sdkMessage as any;
         if (message.message?.content) {
           let combinedText = '';
@@ -760,6 +810,7 @@ async function queryViaSdk(
         }
 
       } else if (sdkMessage.type === 'user') {
+        hasBusinessEvent = true;
         const message = sdkMessage as any;
         if (message.message?.content) {
           for (const block of message.message.content) {
@@ -792,15 +843,20 @@ async function queryViaSdk(
           sendSSE({ error: `Claude auth error: ${authStatus.error}` });
         }
 
-    } else if (sdkMessage.type === 'result') {
-      if (!hasStreamContent && sdkMessage.subtype === 'success' && (sdkMessage as any).result) {
-        sendSSE({ type: 'text', content: (sdkMessage as any).result });
-      } else if (sdkMessage.subtype !== 'success') {
-        const errorDetails = Array.isArray((sdkMessage as any).errors)
-          ? (sdkMessage as any).errors.filter(Boolean).join('\n')
-          : '';
-        sendSSE({ error: errorDetails || `Claude SDK request failed: ${sdkMessage.subtype}` });
+      } else if (sdkMessage.type === 'result') {
+        hasBusinessEvent = true;
+        if (!hasStreamContent && sdkMessage.subtype === 'success' && (sdkMessage as any).result) {
+          sendSSE({ type: 'text', content: (sdkMessage as any).result });
+        } else if (sdkMessage.subtype !== 'success') {
+          const errorDetails = Array.isArray((sdkMessage as any).errors)
+            ? (sdkMessage as any).errors.filter(Boolean).join('\n')
+            : '';
+          sendSSE({ error: errorDetails || `Claude SDK request failed: ${sdkMessage.subtype}` });
+        }
       }
     }
+  } finally {
+    clearTimeout(idleTimer);
   }
+  return { timedOut };
 }

@@ -98,7 +98,6 @@ export interface StreamHandlers {
     onToolInput: (index: number, input: Record<string, any>) => void;
     onToolResult: (toolUseId: string, content: string, isError?: boolean) => void;
     onError: (error: Error) => void;
-    onInfo?: (message: string) => void;
     onSessionId?: (sessionId: string) => void;
     onProjectRoot?: (cwd: string) => void;
     onModel?: (model: string) => void;
