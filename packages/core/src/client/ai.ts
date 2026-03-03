@@ -57,6 +57,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   blocks?: ContentBlock[];
+  context?: ChatContext | null;
 }
 
 /**
@@ -74,6 +75,7 @@ export interface ChatContext {
  */
 export interface ChatState {
   showChatModal: boolean;
+  showCloseConfirm: boolean;
   chatMessages: ChatMessage[];
   chatInput: string;
   chatLoading: boolean;
@@ -91,6 +93,9 @@ export interface ChatState {
  */
 export interface ChatHandlers {
   closeChatModal: () => void;
+  confirmCloseChatModal: () => void;
+  cancelCloseChatModal: () => void;
+  terminateAndCloseChatModal: () => void;
   clearChatMessages: () => void;
   handleChatInput: (e: Event) => void;
   handleChatKeyDown: (e: KeyboardEvent) => void;
@@ -607,6 +612,20 @@ function renderMessageContent(msg: ChatMessage): TemplateResult {
   return html`<div class="chat-text-inline">${msg.content}</div>`;
 }
 
+function renderMessageContext(msg: ChatMessage): TemplateResult {
+  const context = msg.context;
+  if (!context || msg.role !== 'user') {
+    return html``;
+  }
+
+  return html`<div class="chat-message-context">
+    <span class="chat-message-context-tag">Context</span>
+    <span class="chat-message-context-text"
+      >&lt;${context.name}&gt; ${toRelativePath(context.file)}#${context.line}</span
+    >
+  </div>`;
+}
+
 /**
  * 渲染聊天框模板
  */
@@ -702,6 +721,7 @@ export function renderChatModal(
             ? html`<span class="chat-prompt">❯</span>`
             : html`<span class="chat-indent"></span>`}
                     <div class="chat-message-content">
+                      ${renderMessageContext(msg)}
                       ${renderMessageContent(msg)}
                     </div>
                   </div>
@@ -796,6 +816,28 @@ export function renderChatModal(
                 </svg>`}
           </button>
         </div>
+
+        ${state.showCloseConfirm
+      ? html`<div class="chat-close-confirm-overlay" @click="${(e: MouseEvent) => e.stopPropagation()}">
+              <div class="chat-close-confirm">
+                <div class="chat-close-confirm-title">Task is still running</div>
+                <div class="chat-close-confirm-desc">
+                  Closing this dialog will keep the task running in the background.
+                </div>
+                <div class="chat-close-confirm-actions">
+                  <button class="chat-confirm-btn chat-confirm-btn-danger" @click="${handlers.terminateAndCloseChatModal}">
+                    Terminate
+                  </button>
+                  <button class="chat-confirm-btn chat-confirm-btn-primary" @click="${handlers.confirmCloseChatModal}">
+                    Confirm
+                  </button>
+                  <button class="chat-confirm-btn" @click="${handlers.cancelCloseChatModal}">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>`
+      : ''}
       </div>
     </div>
   `;
@@ -912,6 +954,7 @@ export const chatStyles = css`
   }
 
   .chat-modal {
+    position: relative;
     background: var(--chat-bg);
     border-radius: 8px;
     box-shadow: 0 8px 32px var(--chat-shadow);
@@ -1072,6 +1115,82 @@ export const chatStyles = css`
     color: var(--chat-text-secondary);
   }
 
+  .chat-close-confirm-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 20;
+    padding: 16px;
+  }
+
+  .chat-close-confirm {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-bg);
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 12px 28px var(--chat-shadow);
+  }
+
+  .chat-close-confirm-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--chat-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .chat-close-confirm-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--chat-text-muted);
+    margin-bottom: 12px;
+  }
+
+  .chat-close-confirm-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .chat-confirm-btn {
+    border: 1px solid var(--chat-border);
+    background: transparent;
+    color: var(--chat-text-secondary);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .chat-confirm-btn:hover {
+    background: var(--chat-hover-bg);
+  }
+
+  .chat-confirm-btn-primary {
+    background: var(--chat-accent);
+    border-color: var(--chat-accent);
+    color: var(--chat-btn-text);
+  }
+
+  .chat-confirm-btn-primary:hover {
+    background: var(--chat-accent-hover);
+    border-color: var(--chat-accent-hover);
+  }
+
+  .chat-confirm-btn-danger {
+    border-color: var(--chat-tool-error);
+    color: var(--chat-tool-error);
+  }
+
+  .chat-confirm-btn-danger:hover {
+    background: rgba(207, 34, 46, 0.12);
+  }
+
   .chat-modal-content {
     flex: 1;
     overflow-y: auto;
@@ -1146,6 +1265,33 @@ export const chatStyles = css`
     display: flex;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .chat-message-context {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--chat-text-muted);
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  .chat-message-context-tag {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-tool-bg);
+    color: var(--chat-text-secondary);
+  }
+
+  .chat-message-context-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .chat-text-inline {

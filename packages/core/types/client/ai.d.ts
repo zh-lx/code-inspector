@@ -32,6 +32,7 @@ export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
     blocks?: ContentBlock[];
+    context?: ChatContext | null;
 }
 /**
  * 聊天上下文信息（当前选中的元素）
@@ -47,6 +48,7 @@ export interface ChatContext {
  */
 export interface ChatState {
     showChatModal: boolean;
+    showCloseConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
     chatLoading: boolean;
@@ -63,6 +65,9 @@ export interface ChatState {
  */
 export interface ChatHandlers {
     closeChatModal: () => void;
+    confirmCloseChatModal: () => void;
+    cancelCloseChatModal: () => void;
+    terminateAndCloseChatModal: () => void;
     clearChatMessages: () => void;
     handleChatInput: (e: Event) => void;
     handleChatKeyDown: (e: KeyboardEvent) => void;

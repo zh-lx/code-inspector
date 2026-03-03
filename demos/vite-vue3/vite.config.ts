@@ -11,7 +11,7 @@ export default defineConfig({
       bundler: 'vite',
       behavior: {
         ai: {
-          // claudeCode: true,
+          claudeCode: true,
           // claudeCode: {
           //   agent: 'sdk',
           //   options: {
@@ -19,12 +19,12 @@ export default defineConfig({
           //     maxTurns: 50,
           //   },
           // },
-          codex: {
-            agent: 'sdk',
-            options: {
-              model: 'gpt-5.3-codex'
-            }
-          }
+          // codex: {
+          //   agent: 'sdk',
+          //   options: {
+          //     model: 'gpt-5.3-codex'
+          //   }
+          // }
         },
         defaultAction: 'ai'
       }
