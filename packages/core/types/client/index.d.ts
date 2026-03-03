@@ -106,6 +106,7 @@ export declare class CodeInspectorComponent extends LitElement {
     internalTarget: boolean;
     internalAI: boolean;
     showChatModal: boolean;
+    showCloseConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
     chatLoading: boolean;
@@ -218,7 +219,12 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleAICode: () => void;
     private persistAIState;
     openChatModal: () => void;
+    private performCloseChatModal;
+    private isTurnRunning;
     closeChatModal: () => void;
+    confirmCloseChatModal: () => void;
+    cancelCloseChatModal: () => void;
+    terminateAndCloseChatModal: () => void;
     clearChatMessages: () => void;
     toggleTheme: () => void;
     handleChatInput: (e: Event) => void;

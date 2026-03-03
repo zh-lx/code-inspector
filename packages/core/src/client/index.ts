@@ -192,6 +192,8 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   showChatModal = false; // 聊天框显示状态
   @state()
+  showCloseConfirm = false; // 关闭运行中会话的二次确认弹层
+  @state()
   chatMessages: ChatMessage[] = []; // 聊天消息列表
   @state()
   chatInput = ''; // 聊天输入内容
@@ -1229,6 +1231,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 打开聊天框
   openChatModal = () => {
+    this.showCloseConfirm = false;
     // 有选中元素时提供上下文，否则全局模式（无 DOM 上下文）
     if (this.element.path) {
       this.chatContext = {
@@ -1283,13 +1286,14 @@ export class CodeInspectorComponent extends LitElement {
     });
   };
 
-  // 关闭聊天框
-  closeChatModal = () => {
+  // 执行关闭聊天框
+  private performCloseChatModal = () => {
     // 清理 floating-ui autoUpdate
     if (this.chatPositionCleanup) {
       this.chatPositionCleanup();
       this.chatPositionCleanup = null;
     }
+    this.showCloseConfirm = false;
     this.showChatModal = false;
 
     // 恢复背景滚动
@@ -1297,6 +1301,35 @@ export class CodeInspectorComponent extends LitElement {
 
     // 关闭弹窗时清除持久化状态
     clearAIState();
+  };
+
+  private isTurnRunning = (): boolean => {
+    return this.chatLoading || this.turnStatus === 'running';
+  };
+
+  // 关闭聊天框
+  closeChatModal = () => {
+    if (this.isTurnRunning()) {
+      this.showCloseConfirm = true;
+      return;
+    }
+    this.performCloseChatModal();
+  };
+
+  // 二次确认：仅关闭对话框（任务继续后台运行）
+  confirmCloseChatModal = () => {
+    this.performCloseChatModal();
+  };
+
+  // 二次确认：取消关闭
+  cancelCloseChatModal = () => {
+    this.showCloseConfirm = false;
+  };
+
+  // 二次确认：终止任务并关闭
+  terminateAndCloseChatModal = () => {
+    this.interruptChat();
+    this.performCloseChatModal();
   };
 
   // 清空聊天记录
@@ -1447,8 +1480,14 @@ export class CodeInspectorComponent extends LitElement {
     if (!this.chatInput.trim() || this.chatLoading) return;
 
     const userMessage = this.chatInput.trim();
+    const messageContext = this.chatContext
+      ? { ...this.chatContext }
+      : null;
     this.chatInput = '';
-    this.chatMessages = [...this.chatMessages, { role: 'user', content: userMessage }];
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'user', content: userMessage, context: messageContext },
+    ];
     this.chatLoading = true;
     this.scrollChatToBottom();
 
@@ -2170,6 +2209,7 @@ export class CodeInspectorComponent extends LitElement {
       ${renderChatModal(
           {
             showChatModal: this.showChatModal,
+            showCloseConfirm: this.showCloseConfirm,
             chatMessages: this.chatMessages,
             chatInput: this.chatInput,
             chatLoading: this.chatLoading,
@@ -2183,6 +2223,9 @@ export class CodeInspectorComponent extends LitElement {
           },
           {
             closeChatModal: this.closeChatModal,
+            confirmCloseChatModal: this.confirmCloseChatModal,
+            cancelCloseChatModal: this.cancelCloseChatModal,
+            terminateAndCloseChatModal: this.terminateAndCloseChatModal,
             clearChatMessages: this.clearChatMessages,
             handleChatInput: this.handleChatInput,
             handleChatKeyDown: this.handleChatKeyDown,
