@@ -31,8 +31,14 @@ export interface ContentBlock {
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
+    modelContent?: string;
     blocks?: ContentBlock[];
     context?: ChatContext | null;
+    images?: ChatImageAttachment[];
+}
+export interface ChatHistoryMessage {
+    role: 'user' | 'assistant';
+    content: string;
 }
 /**
  * 聊天上下文信息（当前选中的元素）
@@ -43,6 +49,13 @@ export interface ChatContext {
     column: number;
     name: string;
 }
+export interface ChatImageAttachment {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    previewUrl: string;
+}
 /**
  * 聊天状态接口
  */
@@ -51,6 +64,8 @@ export interface ChatState {
     showCloseConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
+    chatPastedImages: ChatImageAttachment[];
+    chatImageProcessing: boolean;
     chatLoading: boolean;
     chatContext: ChatContext | null;
     currentTools: Map<string, ToolCall>;
@@ -71,6 +86,8 @@ export interface ChatHandlers {
     clearChatMessages: () => void;
     handleChatInput: (e: Event) => void;
     handleChatKeyDown: (e: KeyboardEvent) => void;
+    handleChatPaste: (e: ClipboardEvent) => void;
+    removePastedImage: (id: string) => void;
     sendChatMessage: () => void;
     toggleTheme: () => void;
     interruptChat: () => void;
@@ -114,4 +131,4 @@ export declare function fetchModelInfo(ip: string, port: number): Promise<string
 /**
  * 发送聊天消息到服务器
  */
-export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatMessage[], handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null): Promise<void>;
+export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[], handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null): Promise<void>;

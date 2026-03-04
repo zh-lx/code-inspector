@@ -7,6 +7,8 @@ import { browserChalk } from '../shared/browser-chalk';
 import {
   ChatMessage,
   ChatContext,
+  ChatImageAttachment,
+  ChatHistoryMessage,
   ContentBlock,
   ToolCall,
   renderChatModal,
@@ -79,6 +81,10 @@ interface ActiveNode {
   content?: string;
   visibility?: 'visible' | 'hidden';
   class?: 'tooltip-top' | 'tooltip-bottom';
+}
+
+interface PendingChatImageAttachment extends ChatImageAttachment {
+  dataUrl: string;
 }
 
 const PopperWidth = 300;
@@ -197,6 +203,10 @@ export class CodeInspectorComponent extends LitElement {
   chatMessages: ChatMessage[] = []; // 聊天消息列表
   @state()
   chatInput = ''; // 聊天输入内容
+  @state()
+  chatPastedImages: PendingChatImageAttachment[] = []; // 输入框待发送图片
+  @state()
+  chatImageProcessing = false; // 粘贴图片处理中
   @state()
   chatLoading = false; // 聊天加载状态
   @state()
@@ -1210,6 +1220,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 持久化 AI 对话状态到 sessionStorage
   private persistAIState = () => {
+    const persistedMessages: ChatMessage[] = this.chatMessages.map(({ modelContent, ...rest }) => rest);
     let modalPosition: { left: string; top: string } | null = null;
     if (this.showChatModal) {
       const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
@@ -1219,7 +1230,7 @@ export class CodeInspectorComponent extends LitElement {
     }
     saveAIState({
       showChatModal: this.showChatModal,
-      chatMessages: this.chatMessages,
+      chatMessages: persistedMessages,
       chatContext: this.chatContext,
       chatSessionId: this.chatSessionId,
       chatTheme: this.chatTheme,
@@ -1227,6 +1238,71 @@ export class CodeInspectorComponent extends LitElement {
       modalPosition,
       turnStatus: this.turnStatus,
     });
+  };
+
+  private revokeObjectUrl = (url?: string) => {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  private revokeMessageImageUrls = (messages: ChatMessage[]) => {
+    for (const msg of messages) {
+      if (!Array.isArray(msg.images)) continue;
+      for (const image of msg.images) {
+        this.revokeObjectUrl(image.previewUrl);
+      }
+    }
+  };
+
+  private clearPendingPastedImages = (revoke = true) => {
+    if (revoke) {
+      for (const image of this.chatPastedImages) {
+        this.revokeObjectUrl(image.previewUrl);
+      }
+    }
+    this.chatPastedImages = [];
+    this.chatImageProcessing = false;
+  };
+
+  private readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed to read image'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  private formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  };
+
+  private buildMessageWithPastedImages = (message: string, images: PendingChatImageAttachment[]): string => {
+    if (images.length === 0) {
+      return message;
+    }
+
+    const imageBlocks = images.map((image, index) => {
+      const name = image.name || `pasted-image-${index + 1}`;
+      const type = image.type || 'image';
+      return `[Pasted Image ${index + 1}] ${name} (${type}, ${this.formatBytes(image.size)})\n${image.dataUrl}`;
+    });
+
+    const baseMessage = message.trim();
+    if (!baseMessage) {
+      return imageBlocks.join('\n\n');
+    }
+    return `${baseMessage}\n\n${imageBlocks.join('\n\n')}`;
+  };
+
+  private buildChatHistoryForModel = (messages: ChatMessage[]): ChatHistoryMessage[] => {
+    return messages.map((msg) => ({
+      role: msg.role,
+      content: msg.modelContent || msg.content,
+    }));
   };
 
   // 打开聊天框
@@ -1298,6 +1374,8 @@ export class CodeInspectorComponent extends LitElement {
 
     // 恢复背景滚动
     document.body.style.overflow = '';
+    // 关闭时清理未发送的粘贴图片
+    this.clearPendingPastedImages(true);
 
     // 关闭弹窗时清除持久化状态
     clearAIState();
@@ -1334,6 +1412,8 @@ export class CodeInspectorComponent extends LitElement {
 
   // 清空聊天记录
   clearChatMessages = () => {
+    this.revokeMessageImageUrls(this.chatMessages);
+    this.clearPendingPastedImages(true);
     this.chatMessages = [];
     this.chatSessionId = null;
     this.turnStatus = 'idle';
@@ -1363,6 +1443,57 @@ export class CodeInspectorComponent extends LitElement {
       e.preventDefault();
       this.sendChatMessage();
     }
+  };
+
+  handleChatPaste = async (e: ClipboardEvent) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const imageItems = items.filter((item) => item.type.startsWith('image/'));
+    if (imageItems.length === 0) {
+      return;
+    }
+
+    e.preventDefault();
+    this.chatImageProcessing = true;
+
+    const maxImageSize = 5 * 1024 * 1024; // 5MB per image
+    const addedImages: PendingChatImageAttachment[] = [];
+
+    for (let i = 0; i < imageItems.length; i++) {
+      const file = imageItems[i].getAsFile();
+      if (!file) continue;
+
+      if (file.size > maxImageSize) {
+        this.showNotification(`Image too large (${this.formatBytes(file.size)}). Max 5MB.`, 'error');
+        continue;
+      }
+
+      try {
+        const dataUrl = await this.readFileAsDataUrl(file);
+        const previewUrl = URL.createObjectURL(file);
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}-${i}`;
+        addedImages.push({
+          id,
+          name: file.name || `pasted-image-${i + 1}.png`,
+          type: file.type || 'image/png',
+          size: file.size,
+          previewUrl,
+          dataUrl,
+        });
+      } catch {
+        this.showNotification('Failed to read pasted image', 'error');
+      }
+    }
+
+    this.chatPastedImages = [...this.chatPastedImages, ...addedImages];
+    this.chatImageProcessing = false;
+  };
+
+  removePastedImage = (id: string) => {
+    const target = this.chatPastedImages.find((item) => item.id === id);
+    if (target) {
+      this.revokeObjectUrl(target.previewUrl);
+    }
+    this.chatPastedImages = this.chatPastedImages.filter((item) => item.id !== id);
   };
 
   // 滚动聊天内容到底部（去重，避免高频调用）
@@ -1477,16 +1608,30 @@ export class CodeInspectorComponent extends LitElement {
 
   // 发送聊天消息
   sendChatMessage = async () => {
-    if (!this.chatInput.trim() || this.chatLoading) return;
+    if (this.chatLoading || this.chatImageProcessing) return;
 
-    const userMessage = this.chatInput.trim();
+    const historyForRequest = this.buildChatHistoryForModel(this.chatMessages);
+    const rawMessage = this.chatInput.trim();
+    const pendingImages = this.chatPastedImages;
+    if (!rawMessage && pendingImages.length === 0) return;
+
+    const outgoingMessage = this.buildMessageWithPastedImages(rawMessage, pendingImages);
+    const userMessage = rawMessage || `[Pasted ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}]`;
+    const userImages: ChatImageAttachment[] = pendingImages.map((image) => ({
+      id: image.id,
+      name: image.name,
+      type: image.type,
+      size: image.size,
+      previewUrl: image.previewUrl,
+    }));
     const messageContext = this.chatContext
       ? { ...this.chatContext }
       : null;
     this.chatInput = '';
+    this.chatPastedImages = [];
     this.chatMessages = [
       ...this.chatMessages,
-      { role: 'user', content: userMessage, context: messageContext },
+      { role: 'user', content: userMessage, modelContent: outgoingMessage, context: messageContext, images: userImages },
     ];
     this.chatLoading = true;
     this.scrollChatToBottom();
@@ -1536,9 +1681,9 @@ export class CodeInspectorComponent extends LitElement {
       await sendChatToServer(
         this.ip,
         this.port,
-        userMessage,
+        outgoingMessage,
         this.chatContext,
-        this.chatMessages.slice(0, -1), // 不包含空的 assistant 消息
+        historyForRequest,
         {
           onText: (content) => {
             assistantContent += content;
@@ -1644,6 +1789,7 @@ export class CodeInspectorComponent extends LitElement {
   private resumeAITask = async () => {
     if (!this.chatSessionId || this.chatLoading) return;
 
+    const historyForRequest = this.buildChatHistoryForModel(this.chatMessages);
     this.chatLoading = true;
     this.startTurnTimer();
     this.chatAbortController = new AbortController();
@@ -1687,7 +1833,7 @@ export class CodeInspectorComponent extends LitElement {
         this.port,
         'The previous task was interrupted by a page refresh. Please continue from where you left off.',
         this.chatContext,
-        this.chatMessages.slice(0, -1),
+        historyForRequest,
         {
           onText: (content) => {
             assistantContent += content;
@@ -1915,8 +2061,11 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   disconnectedCallback(): void {
+    this.revokeMessageImageUrls(this.chatMessages);
+    this.clearPendingPastedImages(true);
     // Detach all event listeners
     this.detachEventListeners();
+    super.disconnectedCallback();
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`
@@ -2212,6 +2361,8 @@ export class CodeInspectorComponent extends LitElement {
             showCloseConfirm: this.showCloseConfirm,
             chatMessages: this.chatMessages,
             chatInput: this.chatInput,
+            chatPastedImages: this.chatPastedImages,
+            chatImageProcessing: this.chatImageProcessing,
             chatLoading: this.chatLoading,
             chatContext: this.chatContext,
             currentTools: this.currentTools,
@@ -2229,6 +2380,8 @@ export class CodeInspectorComponent extends LitElement {
             clearChatMessages: this.clearChatMessages,
             handleChatInput: this.handleChatInput,
             handleChatKeyDown: this.handleChatKeyDown,
+            handleChatPaste: this.handleChatPaste,
+            removePastedImage: this.removePastedImage,
             sendChatMessage: this.sendChatMessage,
             toggleTheme: this.toggleTheme,
             interruptChat: this.interruptChat,

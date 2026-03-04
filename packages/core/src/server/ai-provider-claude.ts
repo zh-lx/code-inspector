@@ -27,6 +27,68 @@ export interface ProviderResult {
   abort: () => void;
 }
 
+interface InlineImagePayload {
+  mediaType: string;
+  data: string;
+}
+
+interface ClaudeCliInputMessage {
+  type: 'user';
+  session_id: string;
+  parent_tool_use_id: null;
+  message: {
+    role: 'user';
+    content: Array<
+      | { type: 'text'; text: string }
+      | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
+    >;
+  };
+}
+
+const INLINE_IMAGE_DATA_URL_REGEX = /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
+
+function stripInlineImageDataUrls(text: string): string {
+  return text.replace(INLINE_IMAGE_DATA_URL_REGEX, '[Inline image data omitted]');
+}
+
+function extractInlineImages(text: string): { text: string; images: InlineImagePayload[] } {
+  const images: InlineImagePayload[] = [];
+  let imageIndex = 0;
+  const rewritten = text.replace(INLINE_IMAGE_DATA_URL_REGEX, (_match, mediaType: string, data: string) => {
+    imageIndex += 1;
+    images.push({ mediaType, data });
+    return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
+  });
+
+  return { text: rewritten, images };
+}
+
+function buildClaudeCliInputMessage(
+  promptText: string,
+  images: InlineImagePayload[],
+  sessionId?: string
+): ClaudeCliInputMessage {
+  return {
+    type: 'user',
+    session_id: sessionId || '',
+    parent_tool_use_id: null,
+    message: {
+      role: 'user',
+      content: [
+        { type: 'text', text: promptText },
+        ...images.map((image) => ({
+          type: 'image' as const,
+          source: {
+            type: 'base64' as const,
+            media_type: image.mediaType,
+            data: image.data,
+          },
+        })),
+      ],
+    },
+  };
+}
+
 /**
  * 构建完整的提示信息
  */
@@ -61,6 +123,20 @@ function buildPrompt(
   parts.push(`[Current question] ${message}`);
 
   return parts.join('\n\n');
+}
+
+/**
+ * 构建续会话单轮提示：
+ * - 保留当前轮 context，避免模型长期锚定首轮 context
+ * - 不重复拼接历史（由 session/resume 自身维护）
+ */
+function buildResumeTurnPrompt(
+  message: string,
+  context: AIContext | null,
+  projectRootPath: string
+): string {
+  return buildPrompt(message, context, [], projectRootPath) +
+    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
 }
 
 /**
@@ -187,15 +263,32 @@ export function handleClaudeRequest(
 
   if (agentType === 'cli' && cliPath) {
     // 使用本地 CLI
-    // 有 sessionId 时使用 --resume 恢复会话，prompt 只需当前消息
+    // 有 sessionId 时使用 --resume 恢复会话，同时注入本轮 context，避免首轮 context 锚定
     // 无 sessionId 时为首次对话，构建包含 context 的完整 prompt
-    const prompt = sessionId ? message : buildPrompt(message, context, history, cwd);
+    const cliHistory: AIMessage[] = history.map((msg) => ({
+      role: msg.role,
+      content: stripInlineImageDataUrls(msg.content),
+    }));
+    const extracted = extractInlineImages(message);
+    const prompt = sessionId
+      ? buildResumeTurnPrompt(extracted.text, context, cwd)
+      : buildPrompt(extracted.text, context, cliHistory, cwd);
+    const cliInputMessage = extracted.images.length > 0
+      ? buildClaudeCliInputMessage(prompt, extracted.images, sessionId)
+      : undefined;
 
     sendSSE({ type: 'info', message: 'Using local Claude Code CLI', cwd, model });
+    if (extracted.images.length > 0) {
+      sendSSE({
+        type: 'info',
+        message: `Detected ${extracted.images.length} image(s). Sending via Claude CLI stream-json input.`,
+      });
+    }
 
     childProcess = queryViaCli(
       cliPath,
       prompt,
+      cliInputMessage,
       cwd,
       aiOptions,
       (jsonData) => {
@@ -224,10 +317,61 @@ export function handleClaudeRequest(
       try {
         sendSSE({ type: 'info', message: 'Using Claude Agent SDK', cwd, model });
 
-        const sdkPrompt = sessionId ? message : buildPrompt(message, context, history, cwd);
+        const sdkHistory: AIMessage[] = history.map((msg) => ({
+          role: msg.role,
+          content: stripInlineImageDataUrls(msg.content),
+        }));
+        const extracted = extractInlineImages(message);
+        const sdkPromptText = sessionId
+          ? buildResumeTurnPrompt(extracted.text, context, cwd)
+          : buildPrompt(extracted.text, context, sdkHistory, cwd);
+        const sdkPromptInput: string | AsyncIterable<any> = extracted.images.length > 0
+          ? {
+              [Symbol.asyncIterator]() {
+                let emitted = false;
+                return {
+                  next: async () => {
+                    if (emitted) {
+                      return { value: undefined, done: true };
+                    }
+                    emitted = true;
+                    return {
+                      value: {
+                        type: 'user',
+                        session_id: sessionId || '',
+                        parent_tool_use_id: null,
+                        message: {
+                          role: 'user',
+                          content: [
+                            { type: 'text', text: sdkPromptText },
+                            ...extracted.images.map((image) => ({
+                              type: 'image',
+                              source: {
+                                type: 'base64',
+                                media_type: image.mediaType,
+                                data: image.data,
+                              },
+                            })),
+                          ],
+                        },
+                      },
+                      done: false,
+                    };
+                  },
+                };
+              },
+            }
+          : sdkPromptText;
+
+        if (extracted.images.length > 0) {
+          sendSSE({
+            type: 'info',
+            message: `Detected ${extracted.images.length} image(s). Sending as multimodal input.`,
+          });
+        }
 
         const sdkRunState = await queryViaSdk(
-          sdkPrompt,
+          sdkPromptInput,
           cwd,
           aiOptions,
           sessionId,
@@ -240,9 +384,27 @@ export function handleClaudeRequest(
             type: 'info',
             message: 'Claude SDK timed out without response. Falling back to local Claude CLI.',
           });
+          const fallbackHistory: AIMessage[] = history.map((msg) => ({
+            role: msg.role,
+            content: stripInlineImageDataUrls(msg.content),
+          }));
+          const fallbackExtracted = extractInlineImages(message);
+          const fallbackPrompt = sessionId
+            ? buildResumeTurnPrompt(fallbackExtracted.text, context, cwd)
+            : buildPrompt(fallbackExtracted.text, context, fallbackHistory, cwd);
+          const fallbackCliInputMessage = fallbackExtracted.images.length > 0
+            ? buildClaudeCliInputMessage(fallbackPrompt, fallbackExtracted.images, sessionId)
+            : undefined;
+          if (fallbackExtracted.images.length > 0) {
+            sendSSE({
+              type: 'info',
+              message: `Detected ${fallbackExtracted.images.length} image(s). Sending via Claude CLI stream-json input.`,
+            });
+          }
           childProcess = queryViaCli(
             cliPath,
-            sdkPrompt,
+            fallbackPrompt,
+            fallbackCliInputMessage,
             cwd,
             aiOptions,
             (jsonData) => {
@@ -343,6 +505,7 @@ function findClaudeCodeCli(): string | null {
 function queryViaCli(
   cliPath: string,
   prompt: string,
+  inputMessage: ClaudeCliInputMessage | undefined,
   cwd: string,
   aiOptions: ClaudeCodeOptions | undefined,
   onData: (data: string) => void,
@@ -352,12 +515,20 @@ function queryViaCli(
   onSessionId?: (id: string) => void
 ): ChildProcess {
   const opts = getClaudeCliOptions(aiOptions);
-  const args = [
-    '-p', prompt,
-    '--output-format', 'stream-json',
-    '--verbose',
-    '--permission-mode', opts?.permissionMode || 'bypassPermissions',
-  ];
+  const args = inputMessage
+    ? [
+        '-p',
+        '--output-format', 'stream-json',
+        '--input-format', 'stream-json',
+        '--verbose',
+        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+      ]
+    : [
+        '-p', prompt,
+        '--output-format', 'stream-json',
+        '--verbose',
+        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+      ];
 
   if (sessionId) {
     args.push('--resume', sessionId);
@@ -402,6 +573,9 @@ function queryViaCli(
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
+  if (inputMessage) {
+    child.stdin?.write(`${JSON.stringify(inputMessage)}\n`);
+  }
   child.stdin?.end();
 
   let buffer = '';
@@ -640,7 +814,7 @@ function buildSdkQueryOptions(
 }
 
 async function queryViaSdk(
-  prompt: string,
+  prompt: string | AsyncIterable<any>,
   cwd: string,
   aiOptions: ClaudeCodeOptions | undefined,
   sessionId: string | undefined,

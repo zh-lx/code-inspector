@@ -48,6 +48,112 @@ function buildPrompt(
 }
 
 /**
+ * 构建续会话单轮提示：
+ * - 保留当前轮 context，避免模型长期锚定首轮 context
+ * - 不重复拼接历史（由 session/resume 自身维护）
+ */
+function buildResumeTurnPrompt(
+  message: string,
+  context: AIContext | null,
+  projectRootPath: string
+): string {
+  return buildPrompt(message, context, [], projectRootPath) +
+    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
+}
+
+interface InlineImagePayload {
+  mediaType: string;
+  data: string;
+}
+
+type TempImageWriteResult = {
+  imagePaths: string[];
+  failedCount: number;
+};
+
+type CodexRunInputItem =
+  | { type: 'text'; text: string }
+  | { type: 'local_image'; path: string };
+
+const INLINE_IMAGE_DATA_URL_REGEX = /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
+
+function stripInlineImageDataUrls(text: string): string {
+  return text.replace(INLINE_IMAGE_DATA_URL_REGEX, '[Inline image data omitted]');
+}
+
+function extractInlineImages(text: string): { text: string; images: InlineImagePayload[] } {
+  const images: InlineImagePayload[] = [];
+  let imageIndex = 0;
+  const rewritten = text.replace(INLINE_IMAGE_DATA_URL_REGEX, (_match, mediaType: string, data: string) => {
+    imageIndex += 1;
+    images.push({ mediaType, data });
+    return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
+  });
+
+  return { text: rewritten, images };
+}
+
+function mediaTypeToExtension(mediaType: string): string {
+  const normalized = mediaType.toLowerCase();
+  if (normalized === 'image/jpeg') return 'jpg';
+  if (normalized === 'image/svg+xml') return 'svg';
+  if (normalized === 'image/x-icon') return 'ico';
+  const subtype = normalized.split('/')[1] || 'png';
+  return subtype.split('+')[0] || 'png';
+}
+
+function persistInlineImagesToTempFiles(images: InlineImagePayload[]): TempImageWriteResult {
+  const imagePaths: string[] = [];
+  let failedCount = 0;
+
+  for (const image of images) {
+    try {
+      const ext = mediaTypeToExtension(image.mediaType);
+      const filename = `code-inspector-codex-image-${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
+      const filePath = path.join(os.tmpdir(), filename);
+      const bytes = Buffer.from(image.data, 'base64');
+      fs.writeFileSync(filePath, bytes);
+      imagePaths.push(filePath);
+    } catch {
+      failedCount += 1;
+    }
+  }
+
+  return { imagePaths, failedCount };
+}
+
+function cleanupTempFiles(filePaths: string[]): void {
+  for (const filePath of filePaths) {
+    try {
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch {
+      // ignore cleanup errors
+    }
+  }
+}
+
+function buildCodexSdkRunInput(promptText: string, imagePaths: string[]): string | CodexRunInputItem[] {
+  if (imagePaths.length === 0) {
+    return promptText;
+  }
+  return [
+    { type: 'text', text: promptText },
+    ...imagePaths.map((filePath) => ({ type: 'local_image' as const, path: filePath })),
+  ];
+}
+
+export const __TEST_ONLY__ = {
+  stripInlineImageDataUrls,
+  extractInlineImages,
+  persistInlineImagesToTempFiles,
+  cleanupTempFiles,
+  buildCodexSdkRunInput,
+  buildCodexExecArgs,
+};
+
+/**
  * 缓存 CLI 检测到的模型名
  */
 let cachedCliModel: string | undefined;
@@ -108,7 +214,7 @@ export function handleCodexRequest(
   const { sendSSE, onEnd } = callbacks;
   const agentType = codexOptions?.agent || 'cli';
   const options = getCodexAgentOptions(codexOptions);
-  const cliPath = agentType === 'cli' ? findCodexCli() : null;
+  const cliPath = findCodexCli();
   const model = options.model || '';
 
   let childProcess: ChildProcess | null = null;
@@ -116,19 +222,40 @@ export function handleCodexRequest(
   let aborted = false;
 
   if (agentType === 'cli' && cliPath) {
-    // 有 sessionId 时使用 resume 恢复会话，prompt 只需当前消息
+    // 有 sessionId 时使用 resume 恢复会话，同时注入本轮 context，避免首轮 context 锚定
     // 无 sessionId 时为首次对话，构建包含 context 的完整 prompt
-    const prompt = sessionId ? message : buildPrompt(message, context, history, cwd);
+    const cliHistory: AIMessage[] = history.map((msg) => ({
+      role: msg.role,
+      content: stripInlineImageDataUrls(msg.content),
+    }));
+    const extracted = extractInlineImages(message);
+    const prompt = sessionId
+      ? buildResumeTurnPrompt(extracted.text, context, cwd)
+      : buildPrompt(extracted.text, context, cliHistory, cwd);
 
     sendSSE({ type: 'info', message: 'Using local Codex CLI', cwd, model });
 
     const cliOptions = getCodexCliOptions(codexOptions);
+    const cliImageFiles = persistInlineImagesToTempFiles(extracted.images);
+    if (cliImageFiles.imagePaths.length > 0) {
+      sendSSE({
+        type: 'info',
+        message: `Detected ${cliImageFiles.imagePaths.length} image(s). Sending via Codex CLI --image.`,
+      });
+    }
+    if (cliImageFiles.failedCount > 0) {
+      sendSSE({
+        type: 'info',
+        message: `Failed to process ${cliImageFiles.failedCount} inline image(s).`,
+      });
+    }
 
     childProcess = queryViaCli(
       cliPath,
       prompt,
       cwd,
       cliOptions,
+      cliImageFiles.imagePaths,
       (jsonData) => {
         try {
           const data = JSON.parse(jsonData);
@@ -158,31 +285,134 @@ export function handleCodexRequest(
   } else {
     // 使用 SDK（agent='sdk' 或 agent='cli' 但 CLI 未找到时回退）
     (async () => {
+      const sdkHistory: AIMessage[] = history.map((msg) => ({
+        role: msg.role,
+        content: stripInlineImageDataUrls(msg.content),
+      }));
+      const extracted = extractInlineImages(message);
+      const sdkPrompt = sessionId
+        ? buildResumeTurnPrompt(extracted.text, context, cwd)
+        : buildPrompt(extracted.text, context, sdkHistory, cwd);
+      const sdkOptions = getCodexSdkOptions(codexOptions);
+      const sdkImageFiles = persistInlineImagesToTempFiles(extracted.images);
+      const sdkInput = buildCodexSdkRunInput(sdkPrompt, sdkImageFiles.imagePaths);
+
+      if (sdkImageFiles.imagePaths.length > 0) {
+        sendSSE({
+          type: 'info',
+          message: `Detected ${sdkImageFiles.imagePaths.length} image(s). Sending as Codex SDK multimodal input.`,
+        });
+      }
+      if (sdkImageFiles.failedCount > 0) {
+        sendSSE({
+          type: 'info',
+          message: `Failed to process ${sdkImageFiles.failedCount} inline image(s).`,
+        });
+      }
+
       try {
         if (agentType === 'cli' && !cliPath) {
           sendSSE({ type: 'info', message: 'Codex CLI not found. Falling back to Codex SDK', cwd });
         }
         sendSSE({ type: 'info', message: 'Using Codex SDK', cwd, model });
 
-        const sdkPrompt = sessionId ? message : buildPrompt(message, context, history, cwd);
-        const sdkOptions = getCodexSdkOptions(codexOptions);
-
         activeThread = await queryViaSdk(
-          sdkPrompt,
+          sdkInput,
           cwd,
           sdkOptions,
           sessionId,
           sendSSE,
-          () => aborted
+          () => aborted,
+          sdkImageFiles.imagePaths
         );
 
         sendSSE('[DONE]');
         onEnd();
       } catch (error: any) {
-        if (!aborted) {
-          console.log(chalk.red('[code-inspector-plugin] Codex AI error:') + error.message);
+        let finalError = error;
+        if (!aborted && extracted.images.length > 0 && cliPath) {
           sendSSE({
-            error: `Failed to communicate with Codex: ${error.message}. Install Codex CLI or configure Codex SDK.`,
+            type: 'info',
+            message: `Codex SDK image input failed. Falling back to local Codex CLI. (${error.message})`,
+          });
+          const cliOptions = getCodexCliOptions(codexOptions);
+          const fallbackImageFiles = persistInlineImagesToTempFiles(extracted.images);
+          if (fallbackImageFiles.imagePaths.length > 0) {
+            sendSSE({
+              type: 'info',
+              message: `Detected ${fallbackImageFiles.imagePaths.length} image(s). Sending via Codex CLI --image.`,
+            });
+          }
+          if (fallbackImageFiles.failedCount > 0) {
+            sendSSE({
+              type: 'info',
+              message: `Failed to process ${fallbackImageFiles.failedCount} inline image(s).`,
+            });
+          }
+          childProcess = queryViaCli(
+            cliPath,
+            sdkPrompt,
+            cwd,
+            cliOptions,
+            fallbackImageFiles.imagePaths,
+            (jsonData) => {
+              try {
+                const data = JSON.parse(jsonData);
+                sendSSE(data);
+              } catch {
+                sendSSE({ type: 'text', content: jsonData });
+              }
+            },
+            (sdkFallbackError) => {
+              sendSSE({ error: sdkFallbackError });
+            },
+            () => {
+              sendSSE('[DONE]');
+              onEnd();
+            },
+            sessionId,
+            (newSessionId) => {
+              sendSSE({ type: 'session', sessionId: newSessionId });
+            },
+            (newModel) => {
+              if (newModel) {
+                sendSSE({ type: 'info', model: newModel });
+              }
+            },
+            () => aborted
+          );
+          return;
+        }
+        if (!aborted && extracted.images.length > 0 && !cliPath) {
+          sendSSE({
+            type: 'info',
+            message:
+              `Codex SDK image input failed and local Codex CLI is unavailable. ` +
+              `Retrying with text-only prompt. (${error.message})`,
+          });
+          try {
+            activeThread = await queryViaSdk(
+              sdkPrompt,
+              cwd,
+              sdkOptions,
+              sessionId,
+              sendSSE,
+              () => aborted,
+              []
+            );
+            sendSSE('[DONE]');
+            onEnd();
+            return;
+          } catch (retryError: any) {
+            finalError = retryError;
+          }
+        }
+        if (!aborted) {
+          console.log(chalk.red('[code-inspector-plugin] Codex AI error:') + finalError.message);
+          sendSSE({
+            error:
+              `Failed to communicate with Codex: ${finalError.message}. ` +
+              'Install Codex CLI or configure Codex SDK.',
           });
           sendSSE('[DONE]');
           onEnd();
@@ -292,6 +522,23 @@ function buildCommonArgs(
   return args;
 }
 
+function buildCodexExecArgs(
+  codexOptions: CodexCliOptions,
+  outputFile: string,
+  imagePaths: string[],
+  prompt: string,
+  sessionId?: string
+): string[] {
+  const commonArgs = buildCommonArgs(codexOptions, outputFile);
+  const imageArgs = imagePaths.flatMap((filePath) => ['--image', filePath]);
+  const separatorArgs = imageArgs.length > 0 ? ['--'] : [];
+
+  if (sessionId) {
+    return ['exec', 'resume', ...commonArgs, ...imageArgs, ...separatorArgs, sessionId, prompt];
+  }
+  return ['exec', ...commonArgs, ...imageArgs, ...separatorArgs, prompt];
+}
+
 function extractTextFromContent(content: any): string {
   if (!content) return '';
   if (typeof content === 'string') return content;
@@ -370,6 +617,7 @@ function queryViaCli(
   prompt: string,
   cwd: string,
   codexOptions: CodexCliOptions,
+  imagePaths: string[],
   onData: (data: string) => void,
   onError: (error: string) => void,
   onEnd: () => void,
@@ -382,10 +630,7 @@ function queryViaCli(
     os.tmpdir(),
     `code-inspector-codex-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`
   );
-  const commonArgs = buildCommonArgs(codexOptions, outputFile);
-  const args = sessionId
-    ? ['exec', 'resume', ...commonArgs, sessionId, prompt]
-    : ['exec', ...commonArgs, prompt];
+  const args = buildCodexExecArgs(codexOptions, outputFile, imagePaths, prompt, sessionId);
   const env = { ...getEnvVars(), ...codexOptions?.env };
 
   const child = spawn(cliPath, args, {
@@ -412,6 +657,20 @@ function queryViaCli(
     if (ended) return;
     ended = true;
     onEnd();
+  };
+
+  let cleanedArtifacts = false;
+  const cleanupArtifacts = () => {
+    if (cleanedArtifacts) return;
+    cleanedArtifacts = true;
+    try {
+      if (fs.existsSync(outputFile)) {
+        fs.unlinkSync(outputFile);
+      }
+    } catch {
+      // 忽略清理错误
+    }
+    cleanupTempFiles(imagePaths);
   };
 
   const emitToolFromItem = (item: any, done = false) => {
@@ -634,6 +893,7 @@ function queryViaCli(
     hasError = true;
     console.log(chalk.red('[codex-cli error] ') + err.message);
     onError(err.message);
+    cleanupArtifacts();
     finish();
   });
 
@@ -656,14 +916,7 @@ function queryViaCli(
       onError(`Codex CLI exited with code ${code}`);
     }
 
-    try {
-      if (fs.existsSync(outputFile)) {
-        fs.unlinkSync(outputFile);
-      }
-    } catch {
-      // 忽略清理错误
-    }
-
+    cleanupArtifacts();
     finish();
   });
 
@@ -979,12 +1232,13 @@ function buildSDKErrorMessage(event: any): string {
 }
 
 async function queryViaSdk(
-  prompt: string,
+  input: string | CodexRunInputItem[],
   cwd: string,
   codexOptions: CodexSdkOptions,
   sessionId: string | undefined,
   sendSSE: (data: object | string) => void,
-  isAborted: () => boolean
+  isAborted: () => boolean,
+  tempImagePaths: string[]
 ): Promise<{ interrupt?: () => Promise<void> | void } | null> {
   const CodexSDK = await getCodexSDKCtor();
   if (!CodexSDK) {
@@ -1025,7 +1279,7 @@ async function queryViaSdk(
     sendSSE({ type: 'info', model: threadOptions.model });
   }
 
-  const runResult = await thread.runStreamed(prompt);
+  const runResult = await thread.runStreamed(input as any);
   const events = runResult?.events || runResult;
   const toolIndexMap = new Map<string, number>();
   const messageTextMap = new Map<string, string>();
@@ -1086,65 +1340,69 @@ async function queryViaSdk(
     }
   };
 
-  for await (const event of events) {
-    if (isAborted()) {
-      await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
-      break;
-    }
+  try {
+    for await (const event of events) {
+      if (isAborted()) {
+        await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
+        break;
+      }
 
-    if (event?.type === 'error' || event?.type === 'turn.failed') {
-      sendSSE({ error: buildSDKErrorMessage(event) });
-      continue;
-    }
+      if (event?.type === 'error' || event?.type === 'turn.failed') {
+        sendSSE({ error: buildSDKErrorMessage(event) });
+        continue;
+      }
 
-    if (event?.type === 'item.started') {
-      emitToolFromItem(event.item, false);
-      continue;
-    }
+      if (event?.type === 'item.started') {
+        emitToolFromItem(event.item, false);
+        continue;
+      }
 
-    if (event?.type === 'item.updated') {
-      const item = event.item;
-      if (item?.type === 'agent_message' && item?.id) {
-        const current = getItemText(item);
-        const previous = messageTextMap.get(item.id) || '';
-        const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
-        if (delta) {
-          hasAnyText = true;
-          sendSSE({ type: 'text', content: delta });
+      if (event?.type === 'item.updated') {
+        const item = event.item;
+        if (item?.type === 'agent_message' && item?.id) {
+          const current = getItemText(item);
+          const previous = messageTextMap.get(item.id) || '';
+          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          if (delta) {
+            hasAnyText = true;
+            sendSSE({ type: 'text', content: delta });
+          }
+          messageTextMap.set(item.id, current);
+        } else {
+          emitToolFromItem(item, false);
         }
-        messageTextMap.set(item.id, current);
-      } else {
-        emitToolFromItem(item, false);
+        continue;
       }
-      continue;
-    }
 
-    if (event?.type === 'item.completed') {
-      const item = event.item;
-      if (item?.type === 'agent_message' && item?.id) {
-        const current = getItemText(item);
-        const previous = messageTextMap.get(item.id) || '';
-        const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
-        if (delta) {
-          hasAnyText = true;
-          sendSSE({ type: 'text', content: delta });
+      if (event?.type === 'item.completed') {
+        const item = event.item;
+        if (item?.type === 'agent_message' && item?.id) {
+          const current = getItemText(item);
+          const previous = messageTextMap.get(item.id) || '';
+          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          if (delta) {
+            hasAnyText = true;
+            sendSSE({ type: 'text', content: delta });
+          }
+          messageTextMap.delete(item.id);
+        } else {
+          emitToolFromItem(item, true);
         }
-        messageTextMap.delete(item.id);
-      } else {
-        emitToolFromItem(item, true);
+        continue;
       }
-      continue;
-    }
 
-    if (event?.type === 'task_complete') {
-      if (!hasAnyText && typeof event.last_agent_message === 'string' && event.last_agent_message) {
-        hasAnyText = true;
-        sendSSE({ type: 'text', content: event.last_agent_message });
-      } else if (!hasAnyText && typeof event.result === 'string' && event.result) {
-        hasAnyText = true;
-        sendSSE({ type: 'text', content: event.result });
+      if (event?.type === 'task_complete') {
+        if (!hasAnyText && typeof event.last_agent_message === 'string' && event.last_agent_message) {
+          hasAnyText = true;
+          sendSSE({ type: 'text', content: event.last_agent_message });
+        } else if (!hasAnyText && typeof event.result === 'string' && event.result) {
+          hasAnyText = true;
+          sendSSE({ type: 'text', content: event.result });
+        }
       }
     }
+  } finally {
+    cleanupTempFiles(tempImagePaths);
   }
 
   return thread;
