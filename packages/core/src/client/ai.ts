@@ -1922,7 +1922,7 @@ export async function sendChatToServer(
   port: number,
   message: string,
   context: ChatContext | null,
-  history: ChatHistoryMessage[],
+  history: ChatHistoryMessage[] | undefined,
   handlers: StreamHandlers,
   signal?: AbortSignal,
   sessionId?: string | null
@@ -1935,7 +1935,7 @@ export async function sendChatToServer(
     body: JSON.stringify({
       message,
       context,
-      history,
+      ...(history && history.length > 0 ? { history } : {}),
       ...(sessionId && { sessionId }),
     }),
     signal,

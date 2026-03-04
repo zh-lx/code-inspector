@@ -36,7 +36,7 @@ export interface AIMessage {
 export interface AIRequest {
   message: string;
   context: AIContext | null;
-  history: AIMessage[];
+  history?: AIMessage[];
   sessionId?: string;
 }
 
@@ -115,7 +115,8 @@ export async function handleAIRequest(
     return;
   }
 
-  const { message, context, history, sessionId } = aiRequest;
+  const { message, context, sessionId } = aiRequest;
+  const history = Array.isArray(aiRequest.history) ? aiRequest.history : [];
 
   // 设置 SSE 响应头
   res.writeHead(200, {
