@@ -56,8 +56,15 @@ export interface ContentBlock {
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  modelContent?: string;
   blocks?: ContentBlock[];
   context?: ChatContext | null;
+  images?: ChatImageAttachment[];
+}
+
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 /**
@@ -70,6 +77,14 @@ export interface ChatContext {
   name: string;
 }
 
+export interface ChatImageAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  previewUrl: string;
+}
+
 /**
  * 聊天状态接口
  */
@@ -78,6 +93,8 @@ export interface ChatState {
   showCloseConfirm: boolean;
   chatMessages: ChatMessage[];
   chatInput: string;
+  chatPastedImages: ChatImageAttachment[];
+  chatImageProcessing: boolean;
   chatLoading: boolean;
   chatContext: ChatContext | null;
   currentTools: Map<string, ToolCall>;
@@ -99,6 +116,8 @@ export interface ChatHandlers {
   clearChatMessages: () => void;
   handleChatInput: (e: Event) => void;
   handleChatKeyDown: (e: KeyboardEvent) => void;
+  handleChatPaste: (e: ClipboardEvent) => void;
+  removePastedImage: (id: string) => void;
   sendChatMessage: () => void;
   toggleTheme: () => void;
   interruptChat: () => void;
@@ -605,6 +624,20 @@ function renderMessageContent(msg: ChatMessage): TemplateResult {
     `;
   }
 
+  if (msg.role === 'user' && Array.isArray(msg.images) && msg.images.length > 0) {
+    return html`
+      <div class="chat-image-grid">
+        ${msg.images.map((image) => html`
+          <div class="chat-image-item">
+            <img class="chat-image-preview" src="${image.previewUrl}" alt="${image.name || 'pasted-image'}" />
+            <div class="chat-image-meta">${image.name || 'pasted-image'}</div>
+          </div>
+        `)}
+      </div>
+      ${msg.content ? html`<div class="chat-text-inline">${msg.content}</div>` : ''}
+    `;
+  }
+
   // 否则只渲染文本内容
   if (isAssistant && msg.content) {
     return html`<div class="chat-text-inline chat-markdown">${unsafeHTML(renderMarkdown(msg.content))}</div>`;
@@ -769,23 +802,41 @@ export function renderChatModal(
             </div>`
       : ''}
         <div class="chat-modal-footer">
+          ${state.chatPastedImages.length > 0
+      ? html`<div class="chat-paste-preview">
+                ${state.chatPastedImages.map((image) => html`
+                  <div class="chat-paste-preview-item">
+                    <img class="chat-paste-preview-img" src="${image.previewUrl}" alt="${image.name || 'pasted-image'}" />
+                    <button
+                      class="chat-paste-remove"
+                      title="Remove image"
+                      @click="${() => handlers.removePastedImage(image.id)}"
+                      ?disabled="${state.chatLoading || state.chatImageProcessing}"
+                    >
+                      ×
+                    </button>
+                  </div>
+                `)}
+              </div>`
+      : ''}
           <span class="chat-input-prompt">❯</span>
           <textarea
             class="chat-input"
-            placeholder="Enter your message..."
+            placeholder="Enter your message... (supports paste image)"
             .value="${state.chatInput}"
             @input="${handlers.handleChatInput}"
             @keydown="${handlers.handleChatKeyDown}"
-            ?disabled="${state.chatLoading}"
+            @paste="${handlers.handleChatPaste}"
+            ?disabled="${state.chatLoading || state.chatImageProcessing}"
             rows="2"
           ></textarea>
           <button
             class="chat-send-btn"
             @click="${handlers.sendChatMessage}"
-            ?disabled="${state.chatLoading || !state.chatInput.trim()}"
+            ?disabled="${state.chatLoading || state.chatImageProcessing || (!state.chatInput.trim() && state.chatPastedImages.length === 0)}"
             title="Send (Enter)"
           >
-            ${state.chatLoading
+            ${state.chatLoading || state.chatImageProcessing
       ? html`<svg
                   class="chat-send-loading"
                   width="16"
@@ -1294,6 +1345,36 @@ export const chatStyles = css`
     white-space: nowrap;
   }
 
+  .chat-image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .chat-image-item {
+    border: 1px solid var(--chat-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--chat-tool-bg);
+  }
+
+  .chat-image-preview {
+    width: 100%;
+    height: 84px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .chat-image-meta {
+    padding: 4px 6px;
+    font-size: 10px;
+    color: var(--chat-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .chat-text-inline {
     white-space: pre-wrap;
     word-break: break-word;
@@ -1542,6 +1623,54 @@ export const chatStyles = css`
     padding: 10px 14px;
     border-top: 1px solid var(--chat-border);
     background: var(--chat-header-bg);
+    flex-wrap: wrap;
+  }
+
+  .chat-paste-preview {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .chat-paste-preview-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-tool-bg);
+  }
+
+  .chat-paste-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .chat-paste-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0;
+  }
+
+  .chat-paste-remove:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .chat-input-prompt {
@@ -1793,7 +1922,7 @@ export async function sendChatToServer(
   port: number,
   message: string,
   context: ChatContext | null,
-  history: ChatMessage[],
+  history: ChatHistoryMessage[],
   handlers: StreamHandlers,
   signal?: AbortSignal,
   sessionId?: string | null

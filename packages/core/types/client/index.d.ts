@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
-import { ChatMessage, ChatContext, ToolCall } from './ai';
+import { ChatMessage, ChatContext, ChatImageAttachment, ToolCall } from './ai';
 interface Position {
     left?: string;
     right?: string;
@@ -35,6 +35,9 @@ interface ActiveNode {
     content?: string;
     visibility?: 'visible' | 'hidden';
     class?: 'tooltip-top' | 'tooltip-bottom';
+}
+interface PendingChatImageAttachment extends ChatImageAttachment {
+    dataUrl: string;
 }
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
@@ -109,6 +112,8 @@ export declare class CodeInspectorComponent extends LitElement {
     showCloseConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
+    chatPastedImages: PendingChatImageAttachment[];
+    chatImageProcessing: boolean;
     chatLoading: boolean;
     chatContext: ChatContext | null;
     currentTools: Map<string, ToolCall>;
@@ -218,6 +223,13 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleTarget: () => void;
     toggleAICode: () => void;
     private persistAIState;
+    private revokeObjectUrl;
+    private revokeMessageImageUrls;
+    private clearPendingPastedImages;
+    private readFileAsDataUrl;
+    private formatBytes;
+    private buildMessageWithPastedImages;
+    private buildChatHistoryForModel;
     openChatModal: () => void;
     private performCloseChatModal;
     private isTurnRunning;
@@ -229,6 +241,8 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleTheme: () => void;
     handleChatInput: (e: Event) => void;
     handleChatKeyDown: (e: KeyboardEvent) => void;
+    handleChatPaste: (e: ClipboardEvent) => Promise<void>;
+    removePastedImage: (id: string) => void;
     private scrollPending;
     private scrollChatToBottom;
     private startTurnTimer;
