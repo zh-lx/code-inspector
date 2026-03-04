@@ -27,7 +27,7 @@ export interface AIMessage {
 export interface AIRequest {
     message: string;
     context: AIContext | null;
-    history: AIMessage[];
+    history?: AIMessage[];
     sessionId?: string;
 }
 export type AIProviderType = 'claudeCode' | 'codex';

@@ -1610,7 +1610,9 @@ export class CodeInspectorComponent extends LitElement {
   sendChatMessage = async () => {
     if (this.chatLoading || this.chatImageProcessing) return;
 
-    const historyForRequest = this.buildChatHistoryForModel(this.chatMessages);
+    const historyForRequest = this.chatSessionId
+      ? undefined
+      : this.buildChatHistoryForModel(this.chatMessages);
     const rawMessage = this.chatInput.trim();
     const pendingImages = this.chatPastedImages;
     if (!rawMessage && pendingImages.length === 0) return;
@@ -1789,7 +1791,6 @@ export class CodeInspectorComponent extends LitElement {
   private resumeAITask = async () => {
     if (!this.chatSessionId || this.chatLoading) return;
 
-    const historyForRequest = this.buildChatHistoryForModel(this.chatMessages);
     this.chatLoading = true;
     this.startTurnTimer();
     this.chatAbortController = new AbortController();
@@ -1833,7 +1834,7 @@ export class CodeInspectorComponent extends LitElement {
         this.port,
         'The previous task was interrupted by a page refresh. Please continue from where you left off.',
         this.chatContext,
-        historyForRequest,
+        undefined,
         {
           onText: (content) => {
             assistantContent += content;

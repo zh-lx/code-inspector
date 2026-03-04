@@ -131,4 +131,4 @@ export declare function fetchModelInfo(ip: string, port: number): Promise<string
 /**
  * 发送聊天消息到服务器
  */
-export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[], handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null): Promise<void>;
+export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null): Promise<void>;
