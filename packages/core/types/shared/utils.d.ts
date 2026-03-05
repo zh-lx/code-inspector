@@ -133,6 +133,6 @@ export declare function hasWritePermission(filePath: string): boolean;
  */
 export declare function isIgnoredFile({ content, fileType, }: {
     content: string;
-    fileType: 'vue' | 'jsx' | 'svelte' | unknown;
+    fileType: 'vue' | 'vue-html' | 'jsx' | 'svelte' | unknown;
 }): boolean;
 export {};

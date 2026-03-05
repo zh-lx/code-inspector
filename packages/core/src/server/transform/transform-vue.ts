@@ -106,3 +106,27 @@ function transformVueTemplate(
     ],
   });
 }
+
+/**
+ * Transform standalone HTML template files used as Vue templates.
+ * These are .html files that contain Vue template syntax and are loaded via
+ * require('./xxx.html') rather than through vue-loader's SFC mechanism.
+ *
+ * Unlike transformVue which handles full .vue SFC files, this function
+ * directly parses the HTML content as a Vue template fragment.
+ */
+export function transformVueHtml(
+  content: string,
+  filePath: string,
+  escapeTags: EscapeTags
+) {
+  const s = new MagicString(content);
+
+  const ast = parse(content, {
+    comments: true,
+  });
+
+  transformVueTemplate(ast, filePath, escapeTags, s);
+
+  return s.toString();
+}

@@ -76,11 +76,19 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     filePath.endsWith('.html') &&
     params.get('type') === 'template' &&
     params.has('vue');
-  if (isVue || isHtmlVue) {
+  // Standalone HTML template files (used as Vue templates via require('./xxx.html'))
+  // These are HTML files that contain Vue template syntax but are not loaded through
+  // vue-loader's ?vue query mechanism
+  const isStandaloneHtmlTemplate =
+    filePath.endsWith('.html') &&
+    !params.has('vue') &&
+    options.match instanceof RegExp &&
+    options.match.test('.html');
+  if (isVue || isHtmlVue || isStandaloneHtmlTemplate) {
     return transformCode({
       content,
       filePath,
-      fileType: 'vue',
+      fileType: isStandaloneHtmlTemplate ? 'vue-html' : 'vue',
       escapeTags,
       pathType: options.pathType,
     });

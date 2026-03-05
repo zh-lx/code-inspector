@@ -1,11 +1,11 @@
 import fs from 'fs';
 import { transformJsx } from './transform-jsx';
 import { transformSvelte } from './transform-svelte';
-import { transformVue } from './transform-vue';
+import { transformVue, transformVueHtml } from './transform-vue';
 import { EscapeTags, PathType, isIgnoredFile } from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
 
-type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
+type FileType = 'vue' | 'vue-html' | 'jsx' | 'svelte' | unknown;
 
 type TransformCodeParams = {
   content: string;
@@ -49,6 +49,8 @@ export function transformCode(params: TransformCodeParams) {
   try {
     if (fileType === 'vue') {
       return transformVue(content, filePath, finalEscapeTags);
+    } else if (fileType === 'vue-html') {
+      return transformVueHtml(content, filePath, finalEscapeTags);
     } else if (fileType === 'jsx') {
       return transformJsx(content, filePath, finalEscapeTags);
     } else if (fileType === 'svelte') {
