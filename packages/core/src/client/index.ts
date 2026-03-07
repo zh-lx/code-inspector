@@ -733,7 +733,11 @@ export class CodeInspectorComponent extends LitElement {
       const targetKeyCode = 48 + feature.key; // key code of number1 is 49
       if ((code === targetDigitCode || code === targetNumCode || keyCode === targetKeyCode) && feature.available()) {
         if (feature.action === 'ai' || (this.targetNode && this.element.path)) {
-          feature.fn();
+          if (feature.action === 'ai') {
+            this.openChatModal(true);
+          } else {
+            feature.fn();
+          }
           e.preventDefault();
           e.stopPropagation();
           this.dispatchCustomEvent(feature.action);
@@ -1305,19 +1309,32 @@ export class CodeInspectorComponent extends LitElement {
     }));
   };
 
+  private resolveActiveChatContext = (): ChatContext | null => {
+    if (!this.targetNode) {
+      return null;
+    }
+    const source = this.getSourceInfo(this.targetNode);
+    if (!source) {
+      return null;
+    }
+    return {
+      file: source.path,
+      line: source.line,
+      column: source.column,
+      name: source.name,
+    };
+  };
+
   // 打开聊天框
-  openChatModal = () => {
+  openChatModal = (forceGlobal = false) => {
     this.showCloseConfirm = false;
-    // 有选中元素时提供上下文，否则全局模式（无 DOM 上下文）
-    if (this.element.path) {
-      this.chatContext = {
-        file: this.element.path,
-        line: this.element.line,
-        column: this.element.column,
-        name: this.element.name,
-      };
-    } else {
+    // 组合键直达 AI 时使用全局模式，避免沿用陈旧 DOM context
+    if (forceGlobal) {
+      this.removeCover(true);
       this.chatContext = null;
+    } else {
+      // 仅在当前存在选中元素时附带上下文，避免沿用历史陈旧 context
+      this.chatContext = this.resolveActiveChatContext();
     }
 
     // 同步保存 targetNode 引用，因为 removeCover 会将其清空
@@ -1684,7 +1701,7 @@ export class CodeInspectorComponent extends LitElement {
         this.ip,
         this.port,
         outgoingMessage,
-        this.chatContext,
+        messageContext,
         historyForRequest,
         {
           onText: (content) => {

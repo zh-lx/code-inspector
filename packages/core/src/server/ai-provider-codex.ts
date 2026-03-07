@@ -57,8 +57,10 @@ function buildResumeTurnPrompt(
   context: AIContext | null,
   projectRootPath: string
 ): string {
-  return buildPrompt(message, context, [], projectRootPath) +
-    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
+  const scopeNote = context
+    ? '[Note] Context above applies to this turn only. Prior turn context may be outdated.'
+    : '[Note] This turn is in Global mode with no selected DOM element. Ignore any element-specific context from prior turns.';
+  return buildPrompt(message, context, [], projectRootPath) + `\n\n${scopeNote}`;
 }
 
 interface InlineImagePayload {

@@ -135,8 +135,10 @@ function buildResumeTurnPrompt(
   context: AIContext | null,
   projectRootPath: string
 ): string {
-  return buildPrompt(message, context, [], projectRootPath) +
-    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
+  const scopeNote = context
+    ? '[Note] Context above applies to this turn only. Prior turn context may be outdated.'
+    : '[Note] This turn is in Global mode with no selected DOM element. Ignore any element-specific context from prior turns.';
+  return buildPrompt(message, context, [], projectRootPath) + `\n\n${scopeNote}`;
 }
 
 /**
@@ -327,40 +329,40 @@ export function handleClaudeRequest(
           : buildPrompt(extracted.text, context, sdkHistory, cwd);
         const sdkPromptInput: string | AsyncIterable<any> = extracted.images.length > 0
           ? {
-              [Symbol.asyncIterator]() {
-                let emitted = false;
-                return {
-                  next: async () => {
-                    if (emitted) {
-                      return { value: undefined, done: true };
-                    }
-                    emitted = true;
-                    return {
-                      value: {
-                        type: 'user',
-                        session_id: sessionId || '',
-                        parent_tool_use_id: null,
-                        message: {
-                          role: 'user',
-                          content: [
-                            { type: 'text', text: sdkPromptText },
-                            ...extracted.images.map((image) => ({
-                              type: 'image',
-                              source: {
-                                type: 'base64',
-                                media_type: image.mediaType,
-                                data: image.data,
-                              },
-                            })),
-                          ],
-                        },
+            [Symbol.asyncIterator]() {
+              let emitted = false;
+              return {
+                next: async () => {
+                  if (emitted) {
+                    return { value: undefined, done: true };
+                  }
+                  emitted = true;
+                  return {
+                    value: {
+                      type: 'user',
+                      session_id: sessionId || '',
+                      parent_tool_use_id: null,
+                      message: {
+                        role: 'user',
+                        content: [
+                          { type: 'text', text: sdkPromptText },
+                          ...extracted.images.map((image) => ({
+                            type: 'image',
+                            source: {
+                              type: 'base64',
+                              media_type: image.mediaType,
+                              data: image.data,
+                            },
+                          })),
+                        ],
                       },
-                      done: false,
-                    };
-                  },
-                };
-              },
-            }
+                    },
+                    done: false,
+                  };
+                },
+              };
+            },
+          }
           : sdkPromptText;
 
         if (extracted.images.length > 0) {
@@ -517,18 +519,18 @@ function queryViaCli(
   const opts = getClaudeCliOptions(aiOptions);
   const args = inputMessage
     ? [
-        '-p',
-        '--output-format', 'stream-json',
-        '--input-format', 'stream-json',
-        '--verbose',
-        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
-      ]
+      '-p',
+      '--output-format', 'stream-json',
+      '--input-format', 'stream-json',
+      '--verbose',
+      '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+    ]
     : [
-        '-p', prompt,
-        '--output-format', 'stream-json',
-        '--verbose',
-        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
-      ];
+      '-p', prompt,
+      '--output-format', 'stream-json',
+      '--verbose',
+      '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+    ];
 
   if (sessionId) {
     args.push('--resume', sessionId);

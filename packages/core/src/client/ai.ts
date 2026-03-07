@@ -690,11 +690,11 @@ export function renderChatModal(
       ? html`<span class="chat-model-badge">${state.chatModel}</span>`
       : ''}
             </div>
-            ${state.chatContext
-      ? html`<span class="chat-context-info"
-                  >&lt;${state.chatContext.name}&gt; ${state.chatContext.file}#${state.chatContext.line}</span
-                >`
-      : ''}
+            <span class="chat-context-info">
+              ${state.chatContext
+      ? html`&lt;${state.chatContext.name}&gt; ${state.chatContext.file}#${state.chatContext.line}`
+      : 'Global'}
+            </span>
           </div>
           <div class="chat-modal-actions">
             <button

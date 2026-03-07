@@ -230,7 +230,8 @@ export declare class CodeInspectorComponent extends LitElement {
     private formatBytes;
     private buildMessageWithPastedImages;
     private buildChatHistoryForModel;
-    openChatModal: () => void;
+    private resolveActiveChatContext;
+    openChatModal: (forceGlobal?: boolean) => void;
     private performCloseChatModal;
     private isTurnRunning;
     closeChatModal: () => void;
