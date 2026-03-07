@@ -186,7 +186,7 @@ importers:
     dependencies:
       nuxt:
         specifier: ^3.12.2
-        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
+        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       vue:
         specifier: ^3.4.29
         version: 3.4.30(typescript@5.9.3)
@@ -957,8 +957,8 @@ importers:
         specifier: ^16.1.4
         version: 16.1.4
       launch-ide:
-        specifier: 1.4.0
-        version: 1.4.0
+        specifier: 1.4.3
+        version: 1.4.3
       portfinder:
         specifier: ^1.0.28
         version: 1.0.32(supports-color@6.1.0)
@@ -11542,25 +11542,28 @@ packages:
   glob@10.3.10:
     resolution: {integrity: sha512-fa46+tv1Ak0UPK1TOy/pZrIybNNt4HCv7SDzwyfiOZkvZLEbjsZkJBPtDHVshZjbecAoAGSC20MjLDG/qr679g==}
     engines: {node: '>=16 || 14 >=14.17'}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@10.3.12:
     resolution: {integrity: sha512-TCNv8vJ+xz4QiqTpfOJA7HvYv+tNIRHKfUWw/q+v2jdgN4ebz+KY9tGx5J4rHP0o84mNP+ApH66HRX8us3Khqg==}
     engines: {node: '>=16 || 14 >=14.17'}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -13255,6 +13258,9 @@ packages:
   launch-ide@1.4.0:
     resolution: {integrity: sha512-c2mcqZy7mNhzXiWoBFV0lDsEOfpSFGqqxKubPffhqcnv3GV0xpeGcHWLxYFm+jz1/5VAKp796QkyVV4++07eiw==}
 
+  launch-ide@1.4.3:
+    resolution: {integrity: sha512-v2xMAarJOFy51kuesYEIIx5r4WHvsV+VLMU49K24bdiRZGUpo1ZulO1DRrLozM5BMbXUfRfrUTM2PbBfYCeA4Q==}
+
   lazy-cache@1.0.4:
     resolution: {integrity: sha512-RE2g0b5VGZsOCFOCgP7omTRYFqydmZkBwl5oNnQ1lDYC57uyO9KqNnNVxT7COSHTxrRCWVcAVOcbjk+tvh/rgQ==}
     engines: {node: '>=0.10.0'}
@@ -14229,6 +14235,7 @@ packages:
   next@14.2.4:
     resolution: {integrity: sha512-R8/V7vugY+822rsQGQCjoLhMuC9oFj9SOi4Cl4b2wjDrseD0LRZ10W7R6Czo4w9ZznVSshKjuIomsRjvm9EKJQ==}
     engines: {node: '>=18.17.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -14247,6 +14254,7 @@ packages:
   next@15.1.9:
     resolution: {integrity: sha512-OoQpDPV2i3o5Hnn46nz2x6fzdFxFO+JsU4ZES12z65/feMjPHKKHLDVQ2NuEvTaXTRisix/G5+6hyTkwK329kA==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -14268,6 +14276,7 @@ packages:
   next@16.0.7:
     resolution: {integrity: sha512-3mBRJyPxT4LOxAJI6IsXeFtKfiJUbjCLgvXO02fV8Wy/lIhPvP94Fe7dGhUgHXcQy4sSuYwQNcOLhIfOm0rL0A==}
     engines: {node: '>=20.9.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -24760,7 +24769,7 @@ snapshots:
       sirv: 2.0.4
       unimport: 3.7.2(rollup@4.16.4)
       vite: 5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)
-      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
+      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       vite-plugin-vue-inspector: 5.1.2(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       which: 3.0.1
       ws: 8.17.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
@@ -24775,33 +24784,6 @@ snapshots:
     dependencies:
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
       c12: 1.11.1(magicast@0.3.4)
-      consola: 3.2.3
-      defu: 6.1.4
-      destr: 2.0.3
-      globby: 14.0.1
-      hash-sum: 2.0.0
-      ignore: 5.3.1
-      jiti: 1.21.6
-      klona: 2.0.6
-      knitwork: 1.1.0
-      mlly: 1.7.1
-      pathe: 1.1.2
-      pkg-types: 1.1.1
-      scule: 1.3.0
-      semver: 7.6.2
-      ufo: 1.5.3
-      unctx: 2.3.1
-      unimport: 3.7.2(rollup@4.16.4)
-      untyped: 1.4.2
-    transitivePeerDependencies:
-      - magicast
-      - rollup
-      - supports-color
-
-  '@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4)':
-    dependencies:
-      '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      c12: 1.11.1(magicast@0.3.5)
       consola: 3.2.3
       defu: 6.1.4
       destr: 2.0.3
@@ -24843,9 +24825,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/telemetry@2.5.4(magicast@0.3.5)(rollup@4.16.4)':
+  '@nuxt/telemetry@2.5.4(magicast@0.3.4)(rollup@4.16.4)':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       ci-info: 4.0.0
       consola: 3.2.3
       create-require: 1.1.1
@@ -24867,9 +24849,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/vite-builder@3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))':
+  '@nuxt/vite-builder@3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@rollup/plugin-replace': 5.0.7(rollup@4.16.4)
       '@vitejs/plugin-vue': 5.0.5(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))(vue@3.4.30(typescript@5.9.3))
       '@vitejs/plugin-vue-jsx': 4.0.0(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))(vue@3.4.30(typescript@5.9.3))
@@ -30703,23 +30685,6 @@ snapshots:
     optionalDependencies:
       magicast: 0.3.4
 
-  c12@1.11.1(magicast@0.3.5):
-    dependencies:
-      chokidar: 3.6.0
-      confbox: 0.1.7
-      defu: 6.1.4
-      dotenv: 16.4.5
-      giget: 1.2.3
-      jiti: 1.21.6
-      mlly: 1.7.1
-      ohash: 1.1.3
-      pathe: 1.1.2
-      perfect-debounce: 1.0.0
-      pkg-types: 1.1.1
-      rc9: 2.1.2
-    optionalDependencies:
-      magicast: 0.3.5
-
   cac@6.7.14: {}
 
   cacache@12.0.4:
@@ -33034,8 +32999,8 @@ snapshots:
       '@typescript-eslint/parser': 5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3)
       eslint: 9.18.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
-      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0)(eslint@9.18.0(jiti@2.6.1))
+      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.18.0(jiti@2.6.1))
       eslint-plugin-react: 7.37.4(eslint@9.18.0(jiti@2.6.1))
       eslint-plugin-react-hooks: 5.1.0(eslint@9.18.0(jiti@2.6.1))
@@ -33051,7 +33016,7 @@ snapshots:
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.4(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.1(jiti@2.6.1))
@@ -33128,13 +33093,13 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0)(eslint@9.18.0(jiti@2.6.1)):
     dependencies:
       debug: 4.3.7(supports-color@6.1.0)
       enhanced-resolve: 5.18.2
       eslint: 9.18.0(jiti@2.6.1)
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
-      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1))
+      eslint-plugin-import: 2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1))
       fast-glob: 3.3.2
       get-tsconfig: 4.7.5
       is-core-module: 2.16.1
@@ -33151,7 +33116,7 @@ snapshots:
       enhanced-resolve: 5.18.2
       eslint: 9.39.1(jiti@2.6.1)
       eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.39.1(jiti@2.6.1))
       fast-glob: 3.3.2
       get-tsconfig: 4.7.5
       is-core-module: 2.16.1
@@ -33183,14 +33148,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7(supports-color@6.1.0)
     optionalDependencies:
       '@typescript-eslint/parser': 5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3)
       eslint: 9.18.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0)(eslint@9.18.0(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -33297,7 +33262,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)):
+  eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.8
@@ -33308,7 +33273,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.18.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1)))(eslint@9.18.0(jiti@2.6.1))
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@5.44.0(eslint@9.18.0(jiti@2.6.1))(typescript@5.5.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@9.18.0(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -33326,7 +33291,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -37077,6 +37042,11 @@ snapshots:
       chalk: 4.1.1
       dotenv: 16.4.5
 
+  launch-ide@1.4.3:
+    dependencies:
+      chalk: 4.1.1
+      dotenv: 16.4.5
+
   lazy-cache@1.0.4: {}
 
   lazystream@1.0.1:
@@ -38391,7 +38361,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5):
+  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.3
       '@netlify/functions': 2.8.0(@opentelemetry/api@1.9.0)
@@ -38406,7 +38376,7 @@ snapshots:
       '@types/http-proxy': 1.17.14
       '@vercel/nft': 0.26.5(encoding@0.1.13)
       archiver: 7.0.1
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chalk: 5.3.0
       chokidar: 3.6.0
       citty: 0.1.6
@@ -38760,20 +38730,20 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
+  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
     dependencies:
       '@nuxt/devalue': 2.0.2
       '@nuxt/devtools': 1.3.6(bufferutil@4.0.8)(rollup@4.16.4)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      '@nuxt/telemetry': 2.5.4(magicast@0.3.5)(rollup@4.16.4)
-      '@nuxt/vite-builder': 3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))
+      '@nuxt/telemetry': 2.5.4(magicast@0.3.4)(rollup@4.16.4)
+      '@nuxt/vite-builder': 3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))
       '@unhead/dom': 1.9.14
       '@unhead/ssr': 1.9.14
       '@unhead/vue': 1.9.14(vue@3.4.30(typescript@5.9.3))
       '@vue/shared': 3.4.30
       acorn: 8.12.0
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chokidar: 3.6.0
       cookie-es: 1.1.0
       defu: 6.1.4
@@ -38792,7 +38762,7 @@ snapshots:
       knitwork: 1.1.0
       magic-string: 0.30.10
       mlly: 1.7.1
-      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5)
+      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4)
       nuxi: 3.12.0
       nypm: 0.3.8
       ofetch: 1.3.4
@@ -45010,7 +44980,7 @@ snapshots:
       stylelint: 14.16.1
       typescript: 5.9.3
 
-  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
+  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
     dependencies:
       '@antfu/utils': 0.7.8
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
@@ -45023,7 +44993,7 @@ snapshots:
       sirv: 2.0.4
       vite: 5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)
     optionalDependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
     transitivePeerDependencies:
       - rollup
       - supports-color
