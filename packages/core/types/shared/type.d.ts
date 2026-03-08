@@ -86,7 +86,7 @@ export type ClaudeCodeOptions = {
      * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI。默认为 'cli'
      * @en Specify the agent type to use. 'cli' uses local Claude Code CLI. Defaults to 'cli'
      */
-    agent?: 'cli';
+    type?: 'cli';
     /**
      * @zh CLI 模式参数
      * @en CLI options
@@ -97,7 +97,7 @@ export type ClaudeCodeOptions = {
      * @zh 指定使用的 Agent 类型。'sdk' 使用 Claude Agent SDK
      * @en Specify the agent type to use. 'sdk' uses Claude Agent SDK
      */
-    agent: 'sdk';
+    type: 'sdk';
     /**
      * @zh SDK 模式参数
      * @en SDK options
@@ -189,7 +189,7 @@ export type CodexOptions = {
      * @zh 指定使用的 Agent 类型。'cli' 使用本地 Codex CLI。默认为 'cli'
      * @en Specify the agent type to use. 'cli' uses local Codex CLI. Defaults to 'cli'
      */
-    agent?: 'cli';
+    type?: 'cli';
     /**
      * @zh CLI 模式参数
      * @en CLI options
@@ -200,7 +200,7 @@ export type CodexOptions = {
      * @zh 指定使用的 Agent 类型。'sdk' 使用 Codex SDK
      * @en Specify the agent type to use. 'sdk' uses Codex SDK
      */
-    agent: 'sdk';
+    type: 'sdk';
     /**
      * @zh SDK 模式参数
      * @en SDK options

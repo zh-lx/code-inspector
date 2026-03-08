@@ -26,7 +26,9 @@ export type ClaudeCliOptions = {
    */
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   /** 系统提示 */
-  systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
+  systemPrompt?:
+    | string
+    | { type: 'preset'; preset: 'claude_code'; append?: string };
   /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
   env?: Record<string, string | undefined>;
   /** MCP 服务器配置 */
@@ -58,7 +60,9 @@ export type ClaudeSdkOptions = {
    */
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   /** 系统提示 */
-  systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
+  systemPrompt?:
+    | string
+    | { type: 'preset'; preset: 'claude_code'; append?: string };
   /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
   env?: Record<string, string | undefined>;
   /** MCP 服务器配置 */
@@ -79,29 +83,29 @@ export type ClaudeAgentOptions = ClaudeCliOptions | ClaudeSdkOptions;
 
 export type ClaudeCodeOptions =
   | {
-    /**
-     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI。默认为 'cli'
-     * @en Specify the agent type to use. 'cli' uses local Claude Code CLI. Defaults to 'cli'
-     */
-    agent?: 'cli';
-    /**
-     * @zh CLI 模式参数
-     * @en CLI options
-     */
-    options?: ClaudeCliOptions;
-  }
+      /**
+       * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI。默认为 'cli'
+       * @en Specify the agent type to use. 'cli' uses local Claude Code CLI. Defaults to 'cli'
+       */
+      type?: 'cli';
+      /**
+       * @zh CLI 模式参数
+       * @en CLI options
+       */
+      options?: ClaudeCliOptions;
+    }
   | {
-    /**
-     * @zh 指定使用的 Agent 类型。'sdk' 使用 Claude Agent SDK
-     * @en Specify the agent type to use. 'sdk' uses Claude Agent SDK
-     */
-    agent: 'sdk';
-    /**
-     * @zh SDK 模式参数
-     * @en SDK options
-     */
-    options?: ClaudeSdkOptions;
-  };
+      /**
+       * @zh 指定使用的 Agent 类型。'sdk' 使用 Claude Agent SDK
+       * @en Specify the agent type to use. 'sdk' uses Claude Agent SDK
+       */
+      type: 'sdk';
+      /**
+       * @zh SDK 模式参数
+       * @en SDK options
+       */
+      options?: ClaudeSdkOptions;
+    };
 
 /**
  * @zh Codex CLI 配置项
@@ -157,16 +161,16 @@ export type CodexSdkOptions = {
     | 'workspace-write'
     | 'danger-full-access'
     | {
-      type: 'workspace-write';
-      writableRoots: string[];
-      networkAccess?: boolean;
-      excludeTmpdirEnvVar?: boolean;
-    }
+        type: 'workspace-write';
+        writableRoots: string[];
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+      }
     | {
-      type: 'danger-full-access';
-      networkAccess?: boolean;
-      excludeTmpdirEnvVar?: boolean;
-    };
+        type: 'danger-full-access';
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+      };
   /** SDK 线程工作目录（cwd），默认使用当前项目根目录 */
   cwd?: string;
   /** SDK 推理强度 */
@@ -193,29 +197,29 @@ export type CodexAgentOptions = CodexCliOptions | CodexSdkOptions;
 
 export type CodexOptions =
   | {
-    /**
-     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Codex CLI。默认为 'cli'
-     * @en Specify the agent type to use. 'cli' uses local Codex CLI. Defaults to 'cli'
-     */
-    agent?: 'cli';
-    /**
-     * @zh CLI 模式参数
-     * @en CLI options
-     */
-    options?: CodexCliOptions;
-  }
+      /**
+       * @zh 指定使用的 Agent 类型。'cli' 使用本地 Codex CLI。默认为 'cli'
+       * @en Specify the agent type to use. 'cli' uses local Codex CLI. Defaults to 'cli'
+       */
+      type?: 'cli';
+      /**
+       * @zh CLI 模式参数
+       * @en CLI options
+       */
+      options?: CodexCliOptions;
+    }
   | {
-    /**
-     * @zh 指定使用的 Agent 类型。'sdk' 使用 Codex SDK
-     * @en Specify the agent type to use. 'sdk' uses Codex SDK
-     */
-    agent: 'sdk';
-    /**
-     * @zh SDK 模式参数
-     * @en SDK options
-     */
-    options?: CodexSdkOptions;
-  };
+      /**
+       * @zh 指定使用的 Agent 类型。'sdk' 使用 Codex SDK
+       * @en Specify the agent type to use. 'sdk' uses Codex SDK
+       */
+      type: 'sdk';
+      /**
+       * @zh SDK 模式参数
+       * @en SDK options
+       */
+      options?: CodexSdkOptions;
+    };
 
 export type Behavior = {
   locate?: boolean;
@@ -368,8 +372,8 @@ export type CodeOptions = {
    * @en Used to map file paths, often used to map the file path in `node_modules` to the file path in the project
    */
   mappings?:
-  | Record<string, string>
-  | Array<{ find: string | RegExp; replacement: string }>;
+    | Record<string, string>
+    | Array<{ find: string | RegExp; replacement: string }>;
   /**
    * @zh 支持从指定端口开始寻找可用端口（默认从 5678 开始）
    * @en Supports finding available ports starting from a specified port (default starts from 5678).

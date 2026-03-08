@@ -42,8 +42,8 @@ This method works even when the AI switch is off.
 
 ## Codex Configuration
 
-- `agent: 'cli'`: use local Codex CLI (default), best when your local Codex setup is ready.
-- `agent: 'sdk'`: use Codex SDK, best when you need explicit `apiKey/baseUrl` control.
+- `type: 'cli'`: use local Codex CLI (default), best when your local Codex setup is ready.
+- `type: 'sdk'`: use Codex SDK, best when you need explicit `apiKey/baseUrl` control.
 
 ### Use Codex CLI
 
@@ -66,7 +66,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'gpt-5-codex',
           profile: 'default',
@@ -97,7 +97,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'gpt-5-codex',
           approvalPolicy: 'on-request',
@@ -127,7 +127,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           apiKey: process.env.OPENAI_API_KEY,
           baseUrl: process.env.OPENAI_BASE_URL,
@@ -144,11 +144,11 @@ codeInspectorPlugin({
 ```ts
 type CodexOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: CodexCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: CodexSdkOptions;
     };
 
@@ -210,8 +210,8 @@ type CodexSdkOptions = {
 
 ### Choose A Mode First
 
-- `agent: 'cli'`: use local Claude Code CLI (default), best when your local Claude Code setup is ready.
-- `agent: 'sdk'`: use Claude Agent SDK, best when you need explicit `apiKey/baseUrl` control.
+- `type: 'cli'`: use local Claude Code CLI (default), best when your local Claude Code setup is ready.
+- `type: 'sdk'`: use Claude Agent SDK, best when you need explicit `apiKey/baseUrl` control.
 
 ### Use Claude Code CLI
 
@@ -236,7 +236,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'claude-sonnet-4.5',
           maxTurns: 20,
@@ -269,7 +269,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'claude-sonnet-4.5',
           maxTurns: 20,
@@ -298,7 +298,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           env: {
             ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -316,11 +316,11 @@ codeInspectorPlugin({
 ```ts
 type ClaudeCodeOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: ClaudeCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: ClaudeSdkOptions;
     };
 

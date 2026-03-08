@@ -42,8 +42,8 @@ codeInspectorPlugin({
 
 ## Codex 配置
 
-- `agent: 'cli'`：使用本地 Codex CLI（默认），更适合已在本机配置好 Codex 的场景。
-- `agent: 'sdk'`：使用 Codex SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'cli'`：使用本地 Codex CLI（默认），更适合已在本机配置好 Codex 的场景。
+- `type: 'sdk'`：使用 Codex SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
 
 ### 使用 Codex CLI
 
@@ -66,7 +66,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'gpt-5-codex',
           profile: 'default',
@@ -97,7 +97,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'gpt-5-codex',
           approvalPolicy: 'on-request',
@@ -127,7 +127,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           apiKey: process.env.OPENAI_API_KEY,
           baseUrl: process.env.OPENAI_BASE_URL,
@@ -144,11 +144,11 @@ codeInspectorPlugin({
 ```ts
 type CodexOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: CodexCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: CodexSdkOptions;
     };
 
@@ -210,8 +210,8 @@ type CodexSdkOptions = {
 
 ### 先选模式
 
-- `agent: 'cli'`：使用本地 Claude Code CLI（默认），更适合已在本机配置好 Claude Code 的场景。
-- `agent: 'sdk'`：使用 Claude Agent SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'cli'`：使用本地 Claude Code CLI（默认），更适合已在本机配置好 Claude Code 的场景。
+- `type: 'sdk'`：使用 Claude Agent SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
 
 ### 使用 Claude Code CLI
 
@@ -236,7 +236,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'claude-sonnet-4.5',
           maxTurns: 20,
@@ -269,7 +269,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'claude-sonnet-4.5',
           maxTurns: 20,
@@ -298,7 +298,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           env: {
             ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -316,11 +316,11 @@ codeInspectorPlugin({
 ```ts
 type ClaudeCodeOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: ClaudeCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: ClaudeSdkOptions;
     };
 

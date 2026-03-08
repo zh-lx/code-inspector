@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getAIOptions, getAvailableAIProviders, resolveAIOptions } from '@/core/src/server/ai';
+import {
+  getAIOptions,
+  getAvailableAIProviders,
+  resolveAIOptions,
+} from '@/core/src/server/ai';
 
 describe('getAIOptions', () => {
   it('should return undefined when AI is not configured', () => {
@@ -25,7 +29,7 @@ describe('getAIOptions', () => {
             },
           },
         },
-      })
+      }),
     ).toEqual({
       codex: {
         options: {
@@ -41,17 +45,17 @@ describe('getAIOptions', () => {
       getAIOptions({
         ai: {
           codex: {
-            agent: 'sdk',
+            type: 'sdk',
             options: {
               model: 'gpt-5-codex',
               approvalPolicy: 'full-auto',
             },
           },
         },
-      })
+      }),
     ).toEqual({
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'gpt-5-codex',
           approvalPolicy: 'full-auto',
@@ -71,17 +75,17 @@ describe('getAIOptions', () => {
       getAIOptions({
         ai: {
           claudeCode: {
-            agent: 'sdk',
+            type: 'sdk',
             options: {
               model: 'claude-sonnet-4-5',
               maxTurns: 20,
             },
           },
         },
-      })
+      }),
     ).toEqual({
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'claude-sonnet-4-5',
           maxTurns: 20,
@@ -97,7 +101,7 @@ describe('getAIOptions', () => {
           codex: true,
           claudeCode: true,
         },
-      })
+      }),
     ).toEqual({
       codex: {},
       claudeCode: {},
@@ -111,7 +115,7 @@ describe('getAvailableAIProviders', () => {
       getAvailableAIProviders({
         claudeCode: {},
         codex: {},
-      })
+      }),
     ).toEqual(['codex', 'claudeCode']);
   });
 });
