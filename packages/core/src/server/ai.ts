@@ -39,6 +39,7 @@ export interface AIRequest {
   history?: AIMessage[];
   sessionId?: string;
   provider?: AIProviderType;
+  model?: string;
 }
 
 export type AIProviderType = 'claudeCode' | 'codex';
@@ -85,6 +86,70 @@ function normalizeAIProviderType(provider?: string | null): AIProviderType | und
     return provider;
   }
   return undefined;
+}
+
+function normalizeModelName(model?: string | null): string | undefined {
+  if (typeof model !== 'string') {
+    return undefined;
+  }
+  const trimmed = model.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function dedupeModels(models: string[]): string[] {
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const item of models) {
+    const normalized = normalizeModelName(item);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    deduped.push(normalized);
+  }
+  return deduped;
+}
+
+function getConfiguredModels(aiOption?: ActiveAIOptions): string[] {
+  if (!aiOption) return [];
+  const options = (aiOption.options as { options?: { model?: string; models?: string[] } })?.options || {};
+  return dedupeModels([
+    ...(Array.isArray(options.models) ? options.models : []),
+    ...(options.model ? [options.model] : []),
+  ]);
+}
+
+function resolveRequestedModel(aiOption: ActiveAIOptions, requestedModel?: string): string | undefined {
+  const normalizedRequestedModel = normalizeModelName(requestedModel);
+  if (!normalizedRequestedModel) {
+    return undefined;
+  }
+  const configuredModels = getConfiguredModels(aiOption);
+  if (configuredModels.length === 0 || configuredModels.includes(normalizedRequestedModel)) {
+    return normalizedRequestedModel;
+  }
+  return undefined;
+}
+
+function withModelOverride<T extends AIProviderType>(
+  aiOption: ActiveAIOptions<T>,
+  model?: string
+): ActiveAIOptions<T> {
+  const normalizedModel = normalizeModelName(model);
+  if (!normalizedModel) {
+    return aiOption;
+  }
+
+  const nextOptions = {
+    ...(aiOption.options as Record<string, unknown>),
+    options: {
+      ...(((aiOption.options as { options?: Record<string, unknown> })?.options) || {}),
+      model: normalizedModel,
+    },
+  } as AIProviderOptionsMap[T];
+
+  return {
+    provider: aiOption.provider,
+    options: nextOptions,
+  };
 }
 
 export function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[] {
@@ -158,6 +223,7 @@ export async function handleAIRequest(
 
   const { message, context, sessionId } = aiRequest;
   const requestedProvider = normalizeAIProviderType(aiRequest.provider);
+  const requestedModel = normalizeModelName(aiRequest.model);
   const history = Array.isArray(aiRequest.history) ? aiRequest.history : [];
 
   // 设置 SSE 响应头
@@ -179,15 +245,18 @@ export async function handleAIRequest(
     return;
   }
 
+  const selectedModel = resolveRequestedModel(activeAIOptions, requestedModel);
+  const effectiveAIOptions = withModelOverride(activeAIOptions, selectedModel);
+
   let provider: ProviderResult;
-  if (activeAIOptions.provider === 'codex') {
+  if (effectiveAIOptions.provider === 'codex') {
     provider = handleCodexRequest(
       message,
       context,
       history,
       sessionId,
       cwd,
-      activeAIOptions.options as CodexOptions,
+      effectiveAIOptions.options as CodexOptions,
       {
         sendSSE,
         onEnd: () => res.end(),
@@ -200,7 +269,7 @@ export async function handleAIRequest(
       history,
       sessionId,
       cwd,
-      activeAIOptions.options as ClaudeCodeOptions,
+      effectiveAIOptions.options as ClaudeCodeOptions,
       {
         sendSSE,
         onEnd: () => res.end(),
@@ -232,12 +301,30 @@ export async function handleAIModelRequest(
   const normalizedProvider = normalizeAIProviderType(requestedProvider);
   const activeAIOptions = resolveAIOptions(aiOptions, normalizedProvider);
   const availableProviders = getAvailableAIProviders(aiOptions);
-  const model = activeAIOptions?.provider === 'codex'
+  if (!activeAIOptions) {
+    res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      model: '',
+      models: [],
+      provider: null,
+      providers: availableProviders,
+    }));
+    return;
+  }
+
+  const configuredModels = getConfiguredModels(activeAIOptions);
+  const detectedModel = activeAIOptions.provider === 'codex'
     ? await getCodexModelInfo(activeAIOptions.options as CodexOptions)
-    : await getClaudeModelInfo(activeAIOptions?.options as ClaudeCodeOptions | undefined);
+    : await getClaudeModelInfo(activeAIOptions.options as ClaudeCodeOptions | undefined);
+  const model = normalizeModelName(detectedModel) || configuredModels[0] || '';
+  const models = dedupeModels([
+    ...configuredModels,
+    ...(model ? [model] : []),
+  ]);
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
   res.end(JSON.stringify({
     model,
+    models,
     provider: activeAIOptions?.provider || null,
     providers: availableProviders,
   }));

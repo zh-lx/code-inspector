@@ -12,6 +12,7 @@ export interface PersistedAIState {
     chatSessionId: string | null;
     chatTheme: 'light' | 'dark';
     chatModel: string;
+    availableAIModels: string[];
     chatProvider: ChatProvider | null;
     availableAIProviders: ChatProvider[];
     modalPosition: {

@@ -224,11 +224,15 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   chatModel: string = ''; // 当前使用的模型名称
   @state()
+  availableAIModels: string[] = []; // 当前 provider 可选模型
+  @state()
   chatProvider: ChatProvider | null = null; // 当前使用的 AI provider
   @state()
   availableAIProviders: ChatProvider[] = []; // 当前可用的 AI providers
   @state()
   showProviderMenu = false; // provider 下拉是否展开
+  @state()
+  showModelMenu = false; // model 下拉是否展开
 
   // 中断控制器和计时器
   private chatAbortController: AbortController | null = null;
@@ -1246,6 +1250,7 @@ export class CodeInspectorComponent extends LitElement {
       chatSessionId: this.chatSessionId,
       chatTheme: this.chatTheme,
       chatModel: this.chatModel,
+      availableAIModels: this.availableAIModels,
       chatProvider: this.chatProvider,
       availableAIProviders: this.availableAIProviders,
       modalPosition,
@@ -1334,13 +1339,21 @@ export class CodeInspectorComponent extends LitElement {
     };
   };
 
-  private refreshChatProviderAndModel = async (preferredProvider?: ChatProvider | null) => {
-    const modelInfo = await fetchModelInfo(this.ip, this.port, preferredProvider || this.chatProvider);
+  private refreshChatProviderAndModel = async (
+    preferredProvider?: ChatProvider | null,
+    preferredModel?: string | null,
+  ) => {
+    const modelInfo = await fetchModelInfo(
+      this.ip,
+      this.port,
+      preferredProvider || this.chatProvider,
+    );
     if (!this.isConnected) return;
 
     if (modelInfo.providers.length > 0) {
       this.availableAIProviders = modelInfo.providers;
     }
+    this.availableAIModels = modelInfo.models;
 
     const candidates: Array<ChatProvider | null | undefined> = [
       preferredProvider,
@@ -1356,13 +1369,24 @@ export class CodeInspectorComponent extends LitElement {
       this.chatProvider = nextProvider;
     }
 
-    if (modelInfo.model) {
-      this.chatModel = modelInfo.model;
+    const modelCandidates: Array<string | null | undefined> = [
+      preferredModel,
+      modelInfo.model,
+      this.chatModel,
+      modelInfo.models[0],
+    ];
+    const nextModel = modelCandidates.find((model) => {
+      if (!model || !model.trim()) return false;
+      return modelInfo.models.length === 0 || modelInfo.models.includes(model);
+    });
+    if (nextModel) {
+      this.chatModel = nextModel;
     }
   };
 
   switchChatProvider = (provider: ChatProvider) => {
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     if (this.isTurnRunning()) return;
     if (provider === this.chatProvider) return;
     if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
@@ -1372,6 +1396,7 @@ export class CodeInspectorComponent extends LitElement {
     this.turnStatus = 'idle';
     this.turnDuration = 0;
     this.chatProvider = provider;
+    this.availableAIModels = [];
     this.chatModel = '';
     this.persistAIState();
     this.refreshChatProviderAndModel(provider).then(() => this.persistAIState());
@@ -1380,12 +1405,40 @@ export class CodeInspectorComponent extends LitElement {
   toggleProviderMenu = () => {
     if (this.isTurnRunning()) return;
     if (this.availableAIProviders.length <= 1) return;
+    if (this.showModelMenu) {
+      this.showModelMenu = false;
+    }
     this.showProviderMenu = !this.showProviderMenu;
+  };
+
+  switchChatModel = (model: string) => {
+    this.showModelMenu = false;
+    if (this.isTurnRunning()) return;
+    if (!model || !model.trim()) return;
+    if (model === this.chatModel) return;
+    if (this.availableAIModels.length > 0 && !this.availableAIModels.includes(model)) return;
+
+    // 切换 model 时保留当前对话上下文，仅重置会话 ID 以避免跨 model 复用会话
+    this.chatSessionId = null;
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    this.chatModel = model;
+    this.persistAIState();
+  };
+
+  toggleModelMenu = () => {
+    if (this.isTurnRunning()) return;
+    if (this.availableAIModels.length <= 1) return;
+    if (this.showProviderMenu) {
+      this.showProviderMenu = false;
+    }
+    this.showModelMenu = !this.showModelMenu;
   };
 
   // 打开聊天框
   openChatModal = (forceGlobal = false) => {
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     this.showCloseConfirm = false;
     // 组合键直达 AI 时使用全局模式，避免沿用陈旧 DOM context
     if (forceGlobal) {
@@ -1402,7 +1455,7 @@ export class CodeInspectorComponent extends LitElement {
     this.showChatModal = true;
 
     // 获取 provider/模型信息
-    if (!this.chatModel || this.availableAIProviders.length === 0 || !this.chatProvider) {
+    if (!this.chatModel || this.availableAIModels.length === 0 || this.availableAIProviders.length === 0 || !this.chatProvider) {
       this.refreshChatProviderAndModel();
     }
 
@@ -1445,6 +1498,7 @@ export class CodeInspectorComponent extends LitElement {
     }
     this.showCloseConfirm = false;
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     this.showChatModal = false;
 
     // 恢复背景滚动
@@ -1488,6 +1542,7 @@ export class CodeInspectorComponent extends LitElement {
   // 清空聊天记录
   clearChatMessages = () => {
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     this.revokeMessageImageUrls(this.chatMessages);
     this.clearPendingPastedImages(true);
     this.chatMessages = [];
@@ -1621,10 +1676,11 @@ export class CodeInspectorComponent extends LitElement {
     // 只响应鼠标左键
     if (e.button !== 0) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest('button, input, textarea, select, .chat-provider-switcher')) {
+    if (target?.closest('button, input, textarea, select, .chat-provider-switcher, .chat-model-switcher')) {
       return;
     }
     this.showProviderMenu = false;
+    this.showModelMenu = false;
 
     const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
     if (!chatModal) return;
@@ -1683,6 +1739,7 @@ export class CodeInspectorComponent extends LitElement {
   // 处理点击遮罩层关闭弹窗
   handleOverlayClick = () => {
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     // 如果刚刚拖拽结束，不关闭弹窗
     if (this.wasDragging) return;
     this.closeChatModal();
@@ -1691,15 +1748,19 @@ export class CodeInspectorComponent extends LitElement {
   handleChatModalClick = (e: MouseEvent) => {
     e.stopPropagation();
     const target = e.target as HTMLElement | null;
-    if (target?.closest('.chat-provider-switcher')) return;
+    if (target?.closest('.chat-provider-switcher, .chat-model-switcher')) return;
     if (this.showProviderMenu) {
       this.showProviderMenu = false;
+    }
+    if (this.showModelMenu) {
+      this.showModelMenu = false;
     }
   };
 
   // 发送聊天消息
   sendChatMessage = async () => {
     this.showProviderMenu = false;
+    this.showModelMenu = false;
     if (this.chatLoading || this.chatImageProcessing) return;
 
     const historyForRequest = this.chatSessionId
@@ -1859,7 +1920,8 @@ export class CodeInspectorComponent extends LitElement {
         },
         this.chatAbortController.signal,
         this.chatSessionId,
-        this.chatProvider
+        this.chatProvider,
+        this.chatModel
       );
       // 正常完成：最终刷新确保所有内容显示
       flushUpdate();
@@ -2007,7 +2069,8 @@ export class CodeInspectorComponent extends LitElement {
         },
         this.chatAbortController.signal,
         this.chatSessionId,
-        this.chatProvider
+        this.chatProvider,
+        this.chatModel
       );
       flushUpdate();
       this.stopTurnTimer('done');
@@ -2099,6 +2162,7 @@ export class CodeInspectorComponent extends LitElement {
       this.chatSessionId = persisted.chatSessionId;
       this.chatTheme = persisted.chatTheme;
       this.chatModel = persisted.chatModel;
+      this.availableAIModels = persisted.availableAIModels || [];
       this.chatProvider = persisted.chatProvider || null;
       this.availableAIProviders = persisted.availableAIProviders || [];
       this.showChatModal = true;
@@ -2469,9 +2533,11 @@ export class CodeInspectorComponent extends LitElement {
             turnDuration: this.turnDuration,
             isDragging: this.isDragging,
             chatModel: this.chatModel,
+            availableModels: this.availableAIModels,
             chatProvider: this.chatProvider,
             availableProviders: this.availableAIProviders,
             showProviderMenu: this.showProviderMenu,
+            showModelMenu: this.showModelMenu,
           },
           {
             closeChatModal: this.closeChatModal,
@@ -2486,6 +2552,8 @@ export class CodeInspectorComponent extends LitElement {
             sendChatMessage: this.sendChatMessage,
             toggleTheme: this.toggleTheme,
             interruptChat: this.interruptChat,
+            toggleModelMenu: this.toggleModelMenu,
+            switchModel: this.switchChatModel,
             toggleProviderMenu: this.toggleProviderMenu,
             switchProvider: this.switchChatProvider,
             handleDragStart: this.handleChatDragStart,

@@ -122,9 +122,11 @@ export declare class CodeInspectorComponent extends LitElement {
     turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
     turnDuration: number;
     chatModel: string;
+    availableAIModels: string[];
     chatProvider: ChatProvider | null;
     availableAIProviders: ChatProvider[];
     showProviderMenu: boolean;
+    showModelMenu: boolean;
     private chatAbortController;
     private turnTimerInterval;
     private turnStartTime;
@@ -237,6 +239,8 @@ export declare class CodeInspectorComponent extends LitElement {
     private refreshChatProviderAndModel;
     switchChatProvider: (provider: ChatProvider) => void;
     toggleProviderMenu: () => void;
+    switchChatModel: (model: string) => void;
+    toggleModelMenu: () => void;
     openChatModal: (forceGlobal?: boolean) => void;
     private performCloseChatModal;
     private isTurnRunning;

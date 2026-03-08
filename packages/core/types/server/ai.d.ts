@@ -30,6 +30,7 @@ export interface AIRequest {
     history?: AIMessage[];
     sessionId?: string;
     provider?: AIProviderType;
+    model?: string;
 }
 export type AIProviderType = 'claudeCode' | 'codex';
 type AIProviderOptionsMap = {

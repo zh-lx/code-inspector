@@ -59,6 +59,7 @@ export interface ChatImageAttachment {
 export type ChatProvider = 'claudeCode' | 'codex';
 export interface AIModelInfo {
     model: string;
+    models: string[];
     provider: ChatProvider | null;
     providers: ChatProvider[];
 }
@@ -80,9 +81,11 @@ export interface ChatState {
     turnDuration: number;
     isDragging: boolean;
     chatModel: string;
+    availableModels: string[];
     chatProvider: ChatProvider | null;
     availableProviders: ChatProvider[];
     showProviderMenu: boolean;
+    showModelMenu: boolean;
 }
 /**
  * 聊天功能处理器接口
@@ -100,6 +103,8 @@ export interface ChatHandlers {
     sendChatMessage: () => void;
     toggleTheme: () => void;
     interruptChat: () => void;
+    toggleModelMenu: () => void;
+    switchModel: (model: string) => void;
     toggleProviderMenu: () => void;
     switchProvider: (provider: ChatProvider) => void;
     handleDragStart: (e: MouseEvent) => void;
@@ -143,4 +148,4 @@ export declare function fetchModelInfo(ip: string, port: number, provider?: Chat
 /**
  * 发送聊天消息到服务器
  */
-export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null): Promise<void>;
+export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null, model?: string | null): Promise<void>;

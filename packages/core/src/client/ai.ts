@@ -95,6 +95,7 @@ export type ChatProvider = 'claudeCode' | 'codex';
 
 export interface AIModelInfo {
   model: string;
+  models: string[];
   provider: ChatProvider | null;
   providers: ChatProvider[];
 }
@@ -117,9 +118,11 @@ export interface ChatState {
   turnDuration: number; // 持续时间（秒）
   isDragging: boolean;
   chatModel: string; // 当前使用的模型名称
+  availableModels: string[];
   chatProvider: ChatProvider | null;
   availableProviders: ChatProvider[];
   showProviderMenu: boolean;
+  showModelMenu: boolean;
 }
 
 /**
@@ -138,6 +141,8 @@ export interface ChatHandlers {
   sendChatMessage: () => void;
   toggleTheme: () => void;
   interruptChat: () => void;
+  toggleModelMenu: () => void;
+  switchModel: (model: string) => void;
   toggleProviderMenu: () => void;
   switchProvider: (provider: ChatProvider) => void;
   handleDragStart: (e: MouseEvent) => void;
@@ -830,9 +835,52 @@ export function renderChatModal(
                       >${formatProviderName(state.chatProvider)}</span
                     >`
                   : ''}
-              ${state.chatModel
-                ? html`<span class="chat-model-badge">${state.chatModel}</span>`
-                : ''}
+              ${state.availableModels.length > 1
+                ? html`<div
+                    class="chat-model-switcher"
+                    @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                    @click="${(e: MouseEvent) => e.stopPropagation()}"
+                  >
+                    <button
+                      class="chat-model-badge chat-model-trigger ${state.showModelMenu
+                        ? 'open'
+                        : ''}"
+                      title="Switch model"
+                      ?disabled="${state.chatLoading ||
+                      state.turnStatus === 'running'}"
+                      @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                      @click="${handlers.toggleModelMenu}"
+                    >
+                      <span class="chat-model-label"
+                        >${state.chatModel || state.availableModels[0]}</span
+                      >
+                    </button>
+                    ${state.showModelMenu
+                      ? html`<div
+                          class="chat-model-menu"
+                          @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                        >
+                          ${state.availableModels.map(
+                            (model) => html`
+                              <button
+                                class="chat-model-option ${model ===
+                                state.chatModel
+                                  ? 'active'
+                                  : ''}"
+                                @mousedown="${(e: MouseEvent) =>
+                                  e.stopPropagation()}"
+                                @click="${() => handlers.switchModel(model)}"
+                              >
+                                ${model}
+                              </button>
+                            `,
+                          )}
+                        </div>`
+                      : ''}
+                  </div>`
+                : state.chatModel
+                  ? html`<span class="chat-model-badge">${state.chatModel}</span>`
+                  : ''}
             </div>
             <span class="chat-context-info">
               ${state.chatContext
@@ -1339,6 +1387,86 @@ export const chatStyles = css`
     max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .chat-model-switcher {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  .chat-model-trigger {
+    border: 1px solid var(--chat-border);
+    background: var(--chat-border);
+    font-size: 12px;
+    color: var(--chat-text-secondary);
+    padding: 1px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    max-width: 180px;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .chat-model-trigger:hover:not(:disabled),
+  .chat-model-trigger.open {
+    background: transparent;
+    border-color: var(--chat-text-muted);
+  }
+
+  .chat-model-trigger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chat-model-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-model-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 180px;
+    max-width: 280px;
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-bg);
+    border-radius: 6px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+    padding: 6px;
+    z-index: 999;
+  }
+
+  .chat-model-option {
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--chat-text-secondary);
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 11px;
+    text-align: left;
+    padding: 5px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-model-option:hover {
+    background: var(--chat-hover-bg);
+  }
+
+  .chat-model-option.active {
+    background: var(--chat-bg-secondary);
+    color: var(--chat-accent);
+    font-weight: 600;
   }
 
   .chat-provider-badge {
@@ -2273,6 +2401,7 @@ export async function fetchModelInfo(
     if (!response.ok) {
       return {
         model: '',
+        models: [],
         provider: provider || null,
         providers: provider ? [provider] : [],
       };
@@ -2286,15 +2415,29 @@ export async function fetchModelInfo(
             (item: ChatProvider | null): item is ChatProvider => item !== null,
           )
       : [];
+    const models = Array.isArray(data?.models)
+      ? data.models.filter(
+          (item: unknown): item is string =>
+            typeof item === 'string' && item.trim().length > 0,
+        )
+      : [];
+    const model = typeof data?.model === 'string' ? data.model : '';
+    const normalizedModels = models.length > 0
+      ? models
+      : model
+        ? [model]
+        : [];
 
     return {
-      model: typeof data?.model === 'string' ? data.model : '',
+      model,
+      models: normalizedModels,
       provider: resolvedProvider,
       providers: providers.length > 0 ? providers : provider ? [provider] : [],
     };
   } catch {
     return {
       model: '',
+      models: [],
       provider: provider || null,
       providers: provider ? [provider] : [],
     };
@@ -2314,6 +2457,7 @@ export async function sendChatToServer(
   signal?: AbortSignal,
   sessionId?: string | null,
   provider?: ChatProvider | null,
+  model?: string | null,
 ): Promise<void> {
   const response = await fetch(`http://${ip}:${port}/ai`, {
     method: 'POST',
@@ -2326,6 +2470,7 @@ export async function sendChatToServer(
       ...(history && history.length > 0 ? { history } : {}),
       ...(sessionId && { sessionId }),
       ...(provider && { provider }),
+      ...(model && { model }),
     }),
     signal,
   });

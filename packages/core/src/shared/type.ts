@@ -14,6 +14,8 @@ export type ClaudeCliOptions = {
   disallowedTools?: string[];
   /** 使用的模型 */
   model?: string;
+  /** 可切换模型列表（用于前端对话框切换） */
+  models?: string[];
   /** 最大执行轮数，默认为 20 */
   maxTurns?: number;
   /**
@@ -44,6 +46,8 @@ export type ClaudeSdkOptions = {
   disallowedTools?: string[];
   /** 使用的模型 */
   model?: string;
+  /** 可切换模型列表（用于前端对话框切换） */
+  models?: string[];
   /** 最大执行轮数，默认为 20 */
   maxTurns?: number;
   /**
@@ -106,6 +110,8 @@ export type ClaudeCodeOptions =
 export type CodexCliOptions = {
   /** 指定 Codex 模型，等价于 `codex exec -m` */
   model?: string;
+  /** 可切换模型列表（用于前端对话框切换） */
+  models?: string[];
   /** 指定 Codex profile，等价于 `codex exec -p` */
   profile?: string;
   /** 指定 sandbox 模式，等价于 `codex exec -s` */
@@ -129,6 +135,8 @@ export type CodexCliOptions = {
 export type CodexSdkOptions = {
   /** 指定 Codex 模型 */
   model?: string;
+  /** 可切换模型列表（用于前端对话框切换） */
+  models?: string[];
   /** 指定 Codex profile */
   profile?: string;
   /** 透传 Codex 配置 */

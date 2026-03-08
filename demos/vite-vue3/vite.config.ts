@@ -11,23 +11,22 @@ export default defineConfig({
       bundler: 'vite',
       behavior: {
         ai: {
-          claudeCode: true,
-          // claudeCode: {
-          //   agent: 'sdk',
-          //   options: {
-          //     model: 'claude-opus-4-6',
-          //     maxTurns: 50,
-          //   },
-          // },
-          // codex: {
-          //   agent: 'sdk',
-          //   options: {
-          //     model: 'gpt-5.3-codex'
-          //   }
-          // }
+          claudeCode: {
+            agent: 'cli',
+            options: {
+              models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
+              maxTurns: 50,
+            },
+          },
+          codex: {
+            agent: 'cli',
+            options: {
+              models: ['gpt-5.3-codex', 'gpt-5.4'],
+            },
+          },
         },
-        defaultAction: 'ai'
-      }
+        defaultAction: 'ai',
+      },
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),
     vueJsx(),
