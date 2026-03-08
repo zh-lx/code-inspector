@@ -12,14 +12,14 @@ export default defineConfig({
       behavior: {
         ai: {
           claudeCode: {
-            agent: 'cli',
+            type: 'cli',
             options: {
               models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
               maxTurns: 50,
             },
           },
           codex: {
-            agent: 'cli',
+            type: 'cli',
             options: {
               models: ['gpt-5.3-codex', 'gpt-5.4'],
             },
