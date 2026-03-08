@@ -174,12 +174,49 @@ function buildCodexSdkRunInput(
 }
 
 export const __TEST_ONLY__ = {
+  buildPrompt,
+  buildResumeTurnPrompt,
   stripInlineImageDataUrls,
   extractInlineImages,
+  mediaTypeToExtension,
   persistInlineImagesToTempFiles,
   cleanupTempFiles,
   buildCodexSdkRunInput,
   buildCodexExecArgs,
+  getCodexAgentOptions,
+  getCodexCliOptions,
+  getCodexSdkOptions,
+  formatConfigValue,
+  buildCommonArgs,
+  extractTextFromContent,
+  extractModelFromEvent,
+  extractTextEvent,
+  shouldIgnorePlainLine,
+  findCodexCli,
+  queryViaCli,
+  getCodexSDKCtor,
+  buildCodexSDKClientOptions,
+  buildCodexSDKThreadOptions,
+  stringifyUnknown,
+  truncateDiffText,
+  readFileText,
+  resolveChangePath,
+  ensureFileSnapshot,
+  getFileSnapshot,
+  getItemText,
+  buildToolEventFromItem,
+  buildSDKErrorMessage,
+  queryViaSdk,
+  setCodexSDKCtor: (ctor: any, pkg = '') => {
+    CodexSDKCtor = ctor;
+    loadedCodexSdkPackage = pkg;
+  },
+  resetCaches: () => {
+    cachedCliModel = undefined;
+    cachedCliPath = undefined;
+    CodexSDKCtor = null;
+    loadedCodexSdkPackage = '';
+  },
 };
 
 /**

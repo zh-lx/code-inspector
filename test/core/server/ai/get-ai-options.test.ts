@@ -146,4 +146,8 @@ describe('resolveAIOptions', () => {
       options: {},
     });
   });
+
+  it('should return undefined when no configured provider entry is available', () => {
+    expect(resolveAIOptions({} as any)).toBeUndefined();
+  });
 });

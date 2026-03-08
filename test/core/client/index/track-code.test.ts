@@ -104,6 +104,9 @@ describe('trackCode', () => {
 
   describe('Custom Event', () => {
     it('should dispatch code-inspector:trackCode custom event', () => {
+      component.internalLocate = true;
+      component.sendType = 'xhr';
+      vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
       const eventHandler = vi.fn();
       window.addEventListener('code-inspector:trackCode', eventHandler);
 
@@ -112,12 +115,18 @@ describe('trackCode', () => {
       expect(eventHandler).toHaveBeenCalled();
       const event = eventHandler.mock.calls[0][0] as CustomEvent;
       expect(event.type).toBe('code-inspector:trackCode');
-      expect(event.detail).toEqual(component.element);
+      expect(event.detail).toEqual({
+        action: 'locate',
+        element: component.element,
+      });
 
       window.removeEventListener('code-inspector:trackCode', eventHandler);
     });
 
     it('should include element info in custom event detail', () => {
+      component.internalLocate = true;
+      component.sendType = 'xhr';
+      vi.spyOn(component, 'sendXHR').mockImplementation(() => {});
       component.element = {
         name: 'span',
         path: '/custom/path.tsx',
@@ -131,10 +140,11 @@ describe('trackCode', () => {
       component.trackCode();
 
       const event = eventHandler.mock.calls[0][0] as CustomEvent;
-      expect(event.detail.name).toBe('span');
-      expect(event.detail.path).toBe('/custom/path.tsx');
-      expect(event.detail.line).toBe(42);
-      expect(event.detail.column).toBe(15);
+      expect(event.detail.action).toBe('locate');
+      expect(event.detail.element.name).toBe('span');
+      expect(event.detail.element.path).toBe('/custom/path.tsx');
+      expect(event.detail.element.line).toBe(42);
+      expect(event.detail.element.column).toBe(15);
 
       window.removeEventListener('code-inspector:trackCode', eventHandler);
     });
@@ -165,7 +175,7 @@ describe('trackCode', () => {
       window.removeEventListener('code-inspector:trackCode', eventHandler);
     });
 
-    it('should handle all features disabled except custom event', () => {
+    it('should not dispatch custom event when all features are disabled', () => {
       component.internalLocate = false;
       component.internalCopy = false;
       component.internalTarget = false;
@@ -183,8 +193,7 @@ describe('trackCode', () => {
       expect(sendImgSpy).not.toHaveBeenCalled();
       expect(copyToClipboardSpy).not.toHaveBeenCalled();
       expect(windowOpenSpy).not.toHaveBeenCalled();
-      // Custom event should still be dispatched
-      expect(eventHandler).toHaveBeenCalled();
+      expect(eventHandler).not.toHaveBeenCalled();
 
       window.removeEventListener('code-inspector:trackCode', eventHandler);
     });

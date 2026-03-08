@@ -5,6 +5,15 @@ import os from 'os';
 import http from 'http';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
 
+const mockHttpCreateServer = vi.hoisted(() => vi.fn());
+const mockNetCreateServer = vi.hoisted(() => vi.fn());
+const mockPortfinderGetPort = vi.hoisted(() =>
+  vi.fn((options: any, callback: any) => {
+    callback(null, options?.port || 5678);
+  })
+);
+const mockStartServer = vi.hoisted(() => vi.fn(async () => {}));
+
 // Mock fs.readFileSync to handle missing client files first (before imports)
 vi.mock('fs', async () => {
   const actual = await vi.importActual('fs') as typeof fs;
@@ -43,14 +52,29 @@ vi.mock('fs', async () => {
   };
 });
 
-vi.mock('http');
+vi.mock('http', () => ({
+  default: {
+    createServer: mockHttpCreateServer,
+  },
+  createServer: mockHttpCreateServer,
+}));
+vi.mock('net', () => ({
+  default: {
+    createServer: mockNetCreateServer,
+  },
+  createServer: mockNetCreateServer,
+}));
 vi.mock('portfinder', () => ({
-  getPort: vi.fn((options: any, callback: any) => {
-    callback(null, options?.port || 5678);
-  }),
+  default: {
+    getPort: mockPortfinderGetPort,
+  },
+  getPort: mockPortfinderGetPort,
 }));
 vi.mock('launch-ide', () => ({
   launchIDE: vi.fn(),
+}));
+vi.mock('@/core/src/server/server', () => ({
+  startServer: mockStartServer,
 }));
 
 import { getCodeWithWebComponent } from '@/core/src/server/use-client';
@@ -72,6 +96,19 @@ describe('getCodeWithWebComponent', () => {
       listen: vi.fn((port: number, callback: Function) => callback()),
     };
     vi.mocked(http.createServer).mockReturnValue(mockServer as any);
+
+    const mockNetServer: any = {
+      unref: vi.fn(),
+      close: vi.fn(),
+      listen: vi.fn(),
+      on: vi.fn((event: string, callback: Function) => {
+        if (event === 'listening') {
+          setTimeout(() => callback(), 0);
+        }
+        return mockNetServer;
+      }),
+    };
+    mockNetCreateServer.mockReturnValue(mockNetServer);
   });
 
   afterEach(() => {
@@ -133,7 +170,7 @@ describe('getCodeWithWebComponent', () => {
         server: true,
       });
 
-      expect(http.createServer).toHaveBeenCalled();
+      expect(mockStartServer).toHaveBeenCalled();
     });
   });
 
@@ -160,7 +197,7 @@ describe('getCodeWithWebComponent', () => {
         code: 'const x = 1;',
       });
 
-      expect(http.createServer).toHaveBeenCalled();
+      expect(mockStartServer).toHaveBeenCalled();
     });
 
     it('should not start server when server option is "close"', async () => {
@@ -180,7 +217,7 @@ describe('getCodeWithWebComponent', () => {
       };
 
       // Reset mocks to track new calls
-      vi.mocked(http.createServer).mockClear();
+      mockStartServer.mockClear();
 
       await getCodeWithWebComponent({
         options,
@@ -190,7 +227,7 @@ describe('getCodeWithWebComponent', () => {
       });
 
       // Server should not be created when server is 'close'
-      expect(http.createServer).not.toHaveBeenCalled();
+      expect(mockStartServer).not.toHaveBeenCalled();
     });
   });
 
