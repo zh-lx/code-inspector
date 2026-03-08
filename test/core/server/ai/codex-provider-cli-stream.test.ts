@@ -14,7 +14,10 @@ vi.mock('child_process', () => ({
   },
 }));
 
-import { __TEST_ONLY__, handleCodexRequest } from '@/core/src/server/ai-provider-codex';
+import {
+  __TEST_ONLY__,
+  handleCodexRequest,
+} from '@/core/src/server/ai-provider-codex';
 
 function createChildProcessMock() {
   const child = new EventEmitter() as any;
@@ -129,7 +132,10 @@ describe('codex cli stream parsing', () => {
       'data',
       Buffer.from(
         [
-          JSON.stringify({ type: 'turn.failed', error: { message: 'turn failed' } }),
+          JSON.stringify({
+            type: 'turn.failed',
+            error: { message: 'turn failed' },
+          }),
           'ERROR: plain error',
         ].join('\n') + '\n',
       ),
@@ -164,7 +170,13 @@ describe('codex cli stream parsing', () => {
       },
     );
 
-    child.stdout.emit('data', Buffer.from(JSON.stringify({ type: 'response.output_text.delta', delta: 'A' }) + '\n'));
+    child.stdout.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({ type: 'response.output_text.delta', delta: 'A' }) +
+          '\n',
+      ),
+    );
     child.emit('close', 0);
 
     expect(sent.some((item) => item?.type === 'info')).toBe(true);
@@ -196,9 +208,12 @@ describe('codex cli stream parsing', () => {
     );
 
     child.emit('close', 0);
-    expect(sent.some((item) => item?.type === 'info' && item.message === 'Using local Codex CLI')).toBe(
-      true,
-    );
+    expect(
+      sent.some(
+        (item) =>
+          item?.type === 'info' && item.message === 'Using local Codex CLI',
+      ),
+    ).toBe(true);
   });
 
   it('should fallback to text-only sdk request when image input fails and cli is unavailable', async () => {
@@ -243,7 +258,13 @@ describe('codex cli stream parsing', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(runs).toBe(2);
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('text-only prompt'))).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes('text-only prompt'),
+      ),
+    ).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
 
@@ -284,8 +305,22 @@ describe('codex cli stream parsing', () => {
     );
 
     await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('Codex CLI not found. Falling back to Codex SDK'))).toBe(true);
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('Using Codex SDK'))).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes(
+            'Codex CLI not found. Falling back to Codex SDK',
+          ),
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes('Using Codex SDK'),
+      ),
+    ).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
 
@@ -329,12 +364,32 @@ describe('codex cli stream parsing', () => {
     );
 
     await new Promise((resolve) => setTimeout(resolve, 20));
-    child.stdout.emit('data', Buffer.from(JSON.stringify({ type: 'response.output_text.delta', delta: 'Z' }) + '\n'));
+    child.stdout.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({ type: 'response.output_text.delta', delta: 'Z' }) +
+          '\n',
+      ),
+    );
     child.emit('close', 0);
     await new Promise((resolve) => setTimeout(resolve, 20));
 
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('Codex SDK image input failed. Falling back to local Codex CLI'))).toBe(true);
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('Sending via Codex CLI --image'))).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes(
+            'Codex SDK image input failed. Falling back to local Codex CLI',
+          ),
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes('Sending via Codex CLI --image'),
+      ),
+    ).toBe(true);
     expect(sent.some((item) => item?.type === 'text')).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
@@ -372,7 +427,13 @@ describe('codex cli stream parsing', () => {
     child.emit('close', 0);
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    expect(sent.some((item) => typeof item?.message === 'string' && item.message.includes('Failed to process 1 inline image(s).'))).toBe(true);
+    expect(
+      sent.some(
+        (item) =>
+          typeof item?.message === 'string' &&
+          item.message.includes('Failed to process 1 inline image(s).'),
+      ),
+    ).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
 
@@ -413,16 +474,36 @@ describe('codex cli stream parsing', () => {
           JSON.stringify({ type: 'foo', response: { model: 'gpt-5.1-codex' } }),
           JSON.stringify({
             type: 'item.started',
-            item: { id: 'edit-1', type: 'file_change', changes: [{ path: 'a.ts', kind: 'edit' }] },
+            item: {
+              id: 'edit-1',
+              type: 'file_change',
+              changes: [{ path: 'a.ts', kind: 'edit' }],
+            },
           }),
           JSON.stringify({
             type: 'item.completed',
-            item: { id: 'edit-1', type: 'file_change', changes: [{ path: 'a.ts', kind: 'edit' }] },
+            item: {
+              id: 'edit-1',
+              type: 'file_change',
+              changes: [{ path: 'a.ts', kind: 'edit' }],
+            },
           }),
-          JSON.stringify({ type: 'item.updated', item: { id: 'msg-1', type: 'agent_message', text: 'hello' } }),
-          JSON.stringify({ type: 'item.updated', item: { id: 'msg-1', type: 'agent_message', text: 'changed' } }),
-          JSON.stringify({ type: 'item.completed', item: { id: 'msg-1', type: 'agent_message', text: 'final' } }),
-          JSON.stringify({ type: 'item.updated', item: { id: 'cmd-2', type: 'command_execution', command: 'pwd' } }),
+          JSON.stringify({
+            type: 'item.updated',
+            item: { id: 'msg-1', type: 'agent_message', text: 'hello' },
+          }),
+          JSON.stringify({
+            type: 'item.updated',
+            item: { id: 'msg-1', type: 'agent_message', text: 'changed' },
+          }),
+          JSON.stringify({
+            type: 'item.completed',
+            item: { id: 'msg-1', type: 'agent_message', text: 'final' },
+          }),
+          JSON.stringify({
+            type: 'item.updated',
+            item: { id: 'cmd-2', type: 'command_execution', command: 'pwd' },
+          }),
           JSON.stringify({ type: 'error', message: 'fatal error' }),
           'session id: sid-tail',
         ].join('\n'),
@@ -465,7 +546,10 @@ describe('codex cli stream parsing', () => {
       'data',
       Buffer.from(
         [
-          JSON.stringify({ type: 'item.started', item: { type: 'unknown_item' } }),
+          JSON.stringify({
+            type: 'item.started',
+            item: { type: 'unknown_item' },
+          }),
           JSON.stringify({
             type: 'item.completed',
             item: { id: 'm-fallback', type: 'agent_message', text: 'fresh' },
@@ -499,7 +583,12 @@ describe('codex cli stream parsing', () => {
     );
     childA.stdout.emit(
       'data',
-      Buffer.from(JSON.stringify({ type: 'task_complete', last_agent_message: 'from-last' }) + '\n'),
+      Buffer.from(
+        JSON.stringify({
+          type: 'task_complete',
+          last_agent_message: 'from-last',
+        }) + '\n',
+      ),
     );
     childA.emit('close', 0);
 
@@ -518,7 +607,9 @@ describe('codex cli stream parsing', () => {
     );
     childB.stdout.emit(
       'data',
-      Buffer.from(JSON.stringify({ type: 'task_complete', result: 'from-result' }) + '\n'),
+      Buffer.from(
+        JSON.stringify({ type: 'task_complete', result: 'from-result' }) + '\n',
+      ),
     );
     childB.emit('close', 0);
 
@@ -543,16 +634,14 @@ describe('codex cli stream parsing', () => {
       () => undefined,
     );
 
-    const args = mockSpawn.mock.calls[0]?.[1] as string[];
+    const args = (mockSpawn.mock.calls[0]?.[1] || []) as string[];
     const outputFileIndex = args.indexOf('-o') + 1;
     const outputFile = args[outputFileIndex];
     fs.writeFileSync(outputFile, 'output-from-file');
 
-    const unlinkSpy = vi
-      .spyOn(fs, 'unlinkSync')
-      .mockImplementationOnce(() => {
-        throw new Error('unlink-failed');
-      });
+    const unlinkSpy = vi.spyOn(fs, 'unlinkSync').mockImplementationOnce(() => {
+      throw new Error('unlink-failed');
+    });
 
     child.emit('close', 2);
     unlinkSpy.mockRestore();
@@ -581,7 +670,10 @@ describe('codex cli stream parsing', () => {
       () => true,
     );
 
-    child.stdout.emit('data', Buffer.from('plain text that should be ignored\n'));
+    child.stdout.emit(
+      'data',
+      Buffer.from('plain text that should be ignored\n'),
+    );
     child.emit('close', 0);
 
     expect(chunks).toEqual([]);
@@ -608,19 +700,26 @@ describe('codex cli stream parsing', () => {
     );
 
     const originalStringify = JSON.stringify;
-    const stringifySpy = vi
-      .spyOn(JSON, 'stringify')
-      .mockImplementation(((value: any, ...rest: any[]) => {
-        if (value?.type === 'text' && typeof value.content === 'string') {
-          stringifySpy.mockImplementation(originalStringify as any);
-          return '{bad-json';
-        }
-        return (originalStringify as any)(value, ...rest);
-      }) as any);
+    const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(((
+      value: any,
+      ...rest: any[]
+    ) => {
+      if (value?.type === 'text' && typeof value.content === 'string') {
+        stringifySpy.mockImplementation(originalStringify as any);
+        return '{bad-json';
+      }
+      return (originalStringify as any)(value, ...rest);
+    }) as any);
 
     child.stdout.emit(
       'data',
-      Buffer.from(['session id: sid-cli', 'model: gpt-5-codex', 'plain fallback line'].join('\n') + '\n'),
+      Buffer.from(
+        [
+          'session id: sid-cli',
+          'model: gpt-5-codex',
+          'plain fallback line',
+        ].join('\n') + '\n',
+      ),
     );
     child.stdout.emit(
       'data',
@@ -630,9 +729,21 @@ describe('codex cli stream parsing', () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
     stringifySpy.mockRestore();
 
-    expect(sent.some((item) => item?.type === 'session' && item.sessionId === 'sid-cli')).toBe(true);
-    expect(sent.some((item) => item?.type === 'info' && item.model === 'gpt-5-codex')).toBe(true);
-    expect(sent.some((item) => item?.type === 'text' && item.content === '{bad-json')).toBe(true);
+    expect(
+      sent.some(
+        (item) => item?.type === 'session' && item.sessionId === 'sid-cli',
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) => item?.type === 'info' && item.model === 'gpt-5-codex',
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) => item?.type === 'text' && item.content === '{bad-json',
+      ),
+    ).toBe(true);
     expect(sent.some((item) => item?.error === 'cli-bad')).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
@@ -683,7 +794,9 @@ describe('codex cli stream parsing', () => {
       sent.some(
         (item) =>
           typeof item?.error === 'string' &&
-          item.error.includes('Failed to communicate with Codex: text-retry-fail'),
+          item.error.includes(
+            'Failed to communicate with Codex: text-retry-fail',
+          ),
       ),
     ).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
@@ -794,11 +907,9 @@ describe('codex cli stream parsing', () => {
     mockSpawn.mockReturnValue(child);
     mockExecSync.mockReturnValue('/bin/codex\n');
 
-    const writeSpy = vi
-      .spyOn(fs, 'writeFileSync')
-      .mockImplementation(() => {
-        throw new Error('inline-image-fail');
-      });
+    const writeSpy = vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {
+      throw new Error('inline-image-fail');
+    });
     class FakeCodexSDK {
       async startThread() {
         return {
@@ -829,15 +940,16 @@ describe('codex cli stream parsing', () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
 
     const originalStringify = JSON.stringify;
-    const stringifySpy = vi
-      .spyOn(JSON, 'stringify')
-      .mockImplementation(((value: any, ...rest: any[]) => {
-        if (value?.type === 'text' && typeof value.content === 'string') {
-          stringifySpy.mockImplementation(originalStringify as any);
-          return '{bad-json';
-        }
-        return (originalStringify as any)(value, ...rest);
-      }) as any);
+    const stringifySpy = vi.spyOn(JSON, 'stringify').mockImplementation(((
+      value: any,
+      ...rest: any[]
+    ) => {
+      if (value?.type === 'text' && typeof value.content === 'string') {
+        stringifySpy.mockImplementation(originalStringify as any);
+        return '{bad-json';
+      }
+      return (originalStringify as any)(value, ...rest);
+    }) as any);
 
     child.stdout.emit(
       'data',
@@ -852,12 +964,24 @@ describe('codex cli stream parsing', () => {
     stringifySpy.mockRestore();
     writeSpy.mockRestore();
 
-    expect(sent.some((item) => item?.type === 'session' && item.sessionId === 'sid-fallback')).toBe(
+    expect(
+      sent.some(
+        (item) => item?.type === 'session' && item.sessionId === 'sid-fallback',
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) => item?.type === 'info' && item.model === 'gpt-5.1-codex',
+      ),
+    ).toBe(true);
+    expect(
+      sent.some(
+        (item) => item?.type === 'text' && item.content === '{bad-json',
+      ),
+    ).toBe(true);
+    expect(sent.some((item) => item?.error === 'fallback-child-error')).toBe(
       true,
     );
-    expect(sent.some((item) => item?.type === 'info' && item.model === 'gpt-5.1-codex')).toBe(true);
-    expect(sent.some((item) => item?.type === 'text' && item.content === '{bad-json')).toBe(true);
-    expect(sent.some((item) => item?.error === 'fallback-child-error')).toBe(true);
     expect(sent.some((item) => item === '[DONE]')).toBe(true);
     expect(onEnd).toHaveBeenCalled();
   });
