@@ -69,6 +69,7 @@ codeInspectorPlugin({
         type: 'cli',
         options: {
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
           profile: 'default',
           sandbox: 'workspace-write',
           fullAuto: true,
@@ -100,6 +101,7 @@ codeInspectorPlugin({
         type: 'sdk',
         options: {
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
           approvalPolicy: 'on-request',
           sandboxMode: 'workspace-write',
           cwd: process.cwd(),
@@ -132,6 +134,7 @@ codeInspectorPlugin({
           apiKey: process.env.OPENAI_API_KEY,
           baseUrl: process.env.OPENAI_BASE_URL,
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
         },
       },
     },
@@ -154,6 +157,7 @@ type CodexOptions =
 
 type CodexCliOptions = {
   model?: string;
+  models?: string[];
   profile?: string;
   sandbox?: 'read-only' | 'workspace-write' | 'danger-full-access';
   fullAuto?: boolean;
@@ -165,6 +169,7 @@ type CodexCliOptions = {
 
 type CodexSdkOptions = {
   model?: string;
+  models?: string[];
   profile?: string;
   config?: Record<string, string | number | boolean>;
   env?: Record<string, string | undefined>;
@@ -239,6 +244,7 @@ codeInspectorPlugin({
         type: 'cli',
         options: {
           model: 'claude-sonnet-4.5',
+          models: ['claude-sonnet-4.5', 'claude-opus-4.1'],
           maxTurns: 20,
           permissionMode: 'bypassPermissions',
           allowedTools: ['Read', 'Write', 'Edit', 'Bash'],
@@ -272,6 +278,7 @@ codeInspectorPlugin({
         type: 'sdk',
         options: {
           model: 'claude-sonnet-4.5',
+          models: ['claude-sonnet-4.5', 'claude-opus-4.1'],
           maxTurns: 20,
           permissionMode: 'bypassPermissions',
         },
@@ -328,6 +335,7 @@ type ClaudeCliOptions = {
   allowedTools?: string[];
   disallowedTools?: string[];
   model?: string;
+  models?: string[];
   maxTurns?: number;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
@@ -340,6 +348,7 @@ type ClaudeSdkOptions = {
   allowedTools?: string[];
   disallowedTools?: string[];
   model?: string;
+  models?: string[];
   maxTurns?: number;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
