@@ -2560,3 +2560,20 @@ export async function sendChatToServer(
     }
   }
 }
+
+export const __TEST_ONLY__ = {
+  toRelativePath,
+  formatDuration,
+  renderMarkdown,
+  isCodexTool,
+  formatProviderName,
+  getChangePath,
+  getCodexDisplayInfo,
+  getToolDisplayInfo,
+  formatToolResult,
+  renderEditDiff,
+  renderToolCall,
+  renderMessageContent,
+  renderMessageContext,
+  normalizeChatProvider,
+};

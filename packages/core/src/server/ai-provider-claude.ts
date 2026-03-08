@@ -183,6 +183,31 @@ function getClaudeSdkOptions(aiOptions?: ClaudeCodeOptions): ClaudeSdkOptions {
   return aiOptions.options || {};
 }
 
+export const __TEST_ONLY__ = {
+  stripInlineImageDataUrls,
+  extractInlineImages,
+  buildClaudeCliInputMessage,
+  buildPrompt,
+  buildResumeTurnPrompt,
+  getClaudeAgentOptions,
+  getClaudeCliOptions,
+  getClaudeSdkOptions,
+  findClaudeCodeCli,
+  queryViaCli,
+  getClaudeQuery,
+  setupSdkEnvironment,
+  buildSdkQueryOptions,
+  queryViaSdk,
+  setClaudeQuery: (queryFn: Function | null) => {
+    claudeQuery = queryFn;
+  },
+  resetCaches: () => {
+    cachedCliModel = undefined;
+    cachedCliPath = undefined;
+    claudeQuery = null;
+  },
+};
+
 /**
  * 获取模型信息
  * 优先使用用户配置，否则通过 CLI 的 system 事件获取（无 API 消耗）

@@ -108,8 +108,7 @@ function dedupeModels(models: string[]): string[] {
   return deduped;
 }
 
-function getConfiguredModels(aiOption?: ActiveAIOptions): string[] {
-  if (!aiOption) return [];
+function getConfiguredModels(aiOption: ActiveAIOptions): string[] {
   const options = (aiOption.options as { options?: { model?: string; models?: string[] } })?.options || {};
   return dedupeModels([
     ...(Array.isArray(options.models) ? options.models : []),
@@ -325,7 +324,7 @@ export async function handleAIModelRequest(
   res.end(JSON.stringify({
     model,
     models,
-    provider: activeAIOptions?.provider || null,
+    provider: activeAIOptions.provider,
     providers: availableProviders,
   }));
 }

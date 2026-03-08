@@ -224,6 +224,33 @@ describe('getWebComponentCode', () => {
       const result = getWebComponentCode(options, 5678);
       expect(result).toContain("inspector.target = 'http://custom-target.com'");
     });
+
+    it('should keep AI disabled when ai config exists but providers are false', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        behavior: {
+          ai: {
+            codex: false as any,
+            claudeCode: false as any,
+          },
+        },
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain('inspector.ai = false');
+    });
+
+    it('should enable AI when any provider is configured', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        behavior: {
+          ai: {
+            codex: true,
+          },
+        },
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain('inspector.ai = true');
+    });
   });
 
   describe('ip configuration', () => {

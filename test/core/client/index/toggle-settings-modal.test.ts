@@ -142,10 +142,10 @@ describe('toggleSettingsModal and related functions', () => {
       expect(targetFeature!.description).toBe('Open the target url');
     });
 
-    it('should have AI Chat feature', () => {
-      const chatFeature = component.features.find(f => f.label === 'AI Chat');
+    it('should have AI Assistant feature', () => {
+      const chatFeature = component.features.find(f => f.label === 'AI Assistant');
       expect(chatFeature).toBeDefined();
-      expect(chatFeature!.description).toBe('Chat with AI about this code');
+      expect(chatFeature!.description).toBe('Use AI for coding');
     });
 
     it('should have checked functions that reflect internal state', () => {

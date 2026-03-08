@@ -36,7 +36,7 @@ export function getEnvVars(): Record<string, string> {
   if (projectRoot) {
     return getEnvVariables(projectRoot);
   }
-  return (process.env || {}) as Record<string, string>;
+  return process.env as Record<string, string>;
 }
 
 /** 项目根目录 */
@@ -158,7 +158,7 @@ export function createServer(
   });
 
   // 寻找可用端口
-  portFinder.getPort(
+  __TEST_ONLY__.getPort(
     { port: options?.port ?? DefaultPort },
     (err: Error, port: number) => {
       /* v8 ignore next 3 -- error thrown in callback, tested via integration */
@@ -173,6 +173,12 @@ export function createServer(
 
   return server;
 }
+
+// For tests: allow replacing server bootstrap implementation without touching runtime behavior.
+export const __TEST_ONLY__ = {
+  createServer,
+  getPort: portFinder.getPort.bind(portFinder),
+};
 
 /**
  * 检查端口是否被占用
@@ -216,7 +222,7 @@ export async function startServer(options: CodeOptions, record: RecordInfo): Pro
 
   if (restartServer) {
     const portPromise = new Promise<number>((resolve) => {
-      createServer(
+      __TEST_ONLY__.createServer(
         (port: number) => {
           resolve(port);
           if (options.printServer) {

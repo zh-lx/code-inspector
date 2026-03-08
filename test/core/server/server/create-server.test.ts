@@ -1,23 +1,39 @@
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import http from 'http';
 
-// Store reference to portfinder mock for testing error cases
-const mockPortfinderGetPort = vi.hoisted(() => vi.fn((options: any, callback: any) => {
-  callback(null, options?.port || 5678);
-}));
+const mockHttpCreateServer = vi.hoisted(() => vi.fn());
+const mockGetAIOptions = vi.hoisted(() => vi.fn(() => ({ provider: 'codex' })));
+const mockHandleAIRequest = vi.hoisted(() => vi.fn(async () => {}));
+const mockHandleAIModelRequest = vi.hoisted(() => vi.fn(async () => {}));
 
-vi.mock('http');
-vi.mock('portfinder', () => ({
+vi.mock('http', () => ({
   default: {
-    getPort: mockPortfinderGetPort,
+    createServer: mockHttpCreateServer,
   },
-  getPort: mockPortfinderGetPort,
+  createServer: mockHttpCreateServer,
+}));
+vi.mock('node:http', () => ({
+  default: {
+    createServer: mockHttpCreateServer,
+  },
+  createServer: mockHttpCreateServer,
 }));
 vi.mock('launch-ide', () => ({
   launchIDE: vi.fn(),
 }));
+vi.mock('@/core/src/server/ai', () => ({
+  getAIOptions: mockGetAIOptions,
+  handleAIRequest: mockHandleAIRequest,
+  handleAIModelRequest: mockHandleAIModelRequest,
+}));
 
-import { createServer, ProjectRootPath, getRelativePath, getRelativeOrAbsolutePath } from '@/core/src/server/server';
+import {
+  createServer,
+  ProjectRootPath,
+  getRelativePath,
+  getRelativeOrAbsolutePath,
+  __TEST_ONLY__,
+} from '@/core/src/server/server';
 import { launchIDE } from 'launch-ide';
 
 describe('createServer', () => {
@@ -26,9 +42,7 @@ describe('createServer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Reset portfinder mock to default implementation
-    mockPortfinderGetPort.mockImplementation((options: any, callback: any) => {
+    vi.spyOn(__TEST_ONLY__, 'getPort').mockImplementation((options: any, callback: any) => {
       callback(null, options?.port || 5678);
     });
 
@@ -271,6 +285,102 @@ describe('createServer', () => {
         'Access-Control-Allow-Private-Network': 'true',
       });
       expect(mockRes.end).toHaveBeenCalled();
+    });
+
+    it('should handle /ai POST route', async () => {
+      const callback = vi.fn();
+      const options = {
+        bundler: 'vite' as const,
+        behavior: { ai: { codex: true } },
+      };
+      createServer(callback, options as any);
+
+      const mockReq = {
+        url: '/ai',
+        method: 'POST',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      await requestHandler(mockReq, mockRes);
+
+      expect(mockGetAIOptions).toHaveBeenCalledWith(options.behavior);
+      expect(mockHandleAIRequest).toHaveBeenCalledWith(
+        mockReq,
+        mockRes,
+        {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Private-Network': 'true',
+        },
+        { provider: 'codex' },
+        ProjectRootPath
+      );
+      expect(launchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle /ai/model GET route', async () => {
+      const callback = vi.fn();
+      const options = {
+        bundler: 'vite' as const,
+        behavior: { ai: { codex: true } },
+      };
+      createServer(callback, options as any);
+
+      const mockReq = {
+        url: '/ai/model?provider=codex',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      await requestHandler(mockReq, mockRes);
+
+      expect(mockGetAIOptions).toHaveBeenCalledWith(options.behavior);
+      expect(mockHandleAIModelRequest).toHaveBeenCalledWith(
+        mockRes,
+        {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Private-Network': 'true',
+        },
+        { provider: 'codex' },
+        'codex'
+      );
+      expect(launchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle request when req.url is undefined', () => {
+      const callback = vi.fn();
+      createServer(callback);
+
+      const mockReq = {
+        url: undefined,
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      expect(mockRes.writeHead).toHaveBeenCalledWith(200, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Private-Network': 'true',
+      });
+      expect(mockRes.end).toHaveBeenCalledWith('ok');
     });
   });
 });

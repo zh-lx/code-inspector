@@ -153,7 +153,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     modeKey = 'z',
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false, target = '', defaultAction = '' } = behavior;
-  const aiEnabled = Object.keys(behavior.ai || {}).length > 0;
+  const aiEnabled = Boolean(behavior.ai?.codex || behavior.ai?.claudeCode);
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -167,7 +167,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
       inspector.locate = !!${locate};
-      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : 'undefined'};
+      inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
       inspector.ai = ${aiEnabled};
       inspector.ip = '${getIP(ip)}';
