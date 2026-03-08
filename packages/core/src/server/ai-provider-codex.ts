@@ -5,7 +5,12 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { spawn, ChildProcess, execSync } from 'child_process';
-import type { CodexOptions, CodexCliOptions, CodexSdkOptions, CodexAgentOptions } from '../shared';
+import type {
+  CodexOptions,
+  CodexCliOptions,
+  CodexSdkOptions,
+  CodexAgentOptions,
+} from '../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import { getEnvVars } from './server';
@@ -18,7 +23,7 @@ function buildPrompt(
   message: string,
   context: AIContext | null,
   history: AIMessage[],
-  projectRootPath: string
+  projectRootPath: string,
 ): string {
   const parts: string[] = [];
 
@@ -32,7 +37,9 @@ function buildPrompt(
     if (fs.existsSync(absolutePath)) {
       fileRef = `@${context.file}#${context.line}`;
     }
-    parts.push(`[Context] I'm looking at a <${context.name}> component located at ${fileRef}.`);
+    parts.push(
+      `[Context] I'm looking at a <${context.name}> component located at ${fileRef}.`,
+    );
   }
 
   if (history.length > 0) {
@@ -55,10 +62,14 @@ function buildPrompt(
 function buildResumeTurnPrompt(
   message: string,
   context: AIContext | null,
-  projectRootPath: string
+  projectRootPath: string,
 ): string {
-  return buildPrompt(message, context, [], projectRootPath) +
-    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
+  const scopeNote = context
+    ? '[Note] Context above applies to this turn only. Prior turn context may be outdated.'
+    : '[Note] This turn is in Global mode with no selected DOM element. Ignore any element-specific context from prior turns.';
+  return (
+    buildPrompt(message, context, [], projectRootPath) + `\n\n${scopeNote}`
+  );
 }
 
 interface InlineImagePayload {
@@ -75,20 +86,30 @@ type CodexRunInputItem =
   | { type: 'text'; text: string }
   | { type: 'local_image'; path: string };
 
-const INLINE_IMAGE_DATA_URL_REGEX = /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
+const INLINE_IMAGE_DATA_URL_REGEX =
+  /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
 
 function stripInlineImageDataUrls(text: string): string {
-  return text.replace(INLINE_IMAGE_DATA_URL_REGEX, '[Inline image data omitted]');
+  return text.replace(
+    INLINE_IMAGE_DATA_URL_REGEX,
+    '[Inline image data omitted]',
+  );
 }
 
-function extractInlineImages(text: string): { text: string; images: InlineImagePayload[] } {
+function extractInlineImages(text: string): {
+  text: string;
+  images: InlineImagePayload[];
+} {
   const images: InlineImagePayload[] = [];
   let imageIndex = 0;
-  const rewritten = text.replace(INLINE_IMAGE_DATA_URL_REGEX, (_match, mediaType: string, data: string) => {
-    imageIndex += 1;
-    images.push({ mediaType, data });
-    return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
-  });
+  const rewritten = text.replace(
+    INLINE_IMAGE_DATA_URL_REGEX,
+    (_match, mediaType: string, data: string) => {
+      imageIndex += 1;
+      images.push({ mediaType, data });
+      return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
+    },
+  );
 
   return { text: rewritten, images };
 }
@@ -102,7 +123,9 @@ function mediaTypeToExtension(mediaType: string): string {
   return subtype.split('+')[0] || 'png';
 }
 
-function persistInlineImagesToTempFiles(images: InlineImagePayload[]): TempImageWriteResult {
+function persistInlineImagesToTempFiles(
+  images: InlineImagePayload[],
+): TempImageWriteResult {
   const imagePaths: string[] = [];
   let failedCount = 0;
 
@@ -134,13 +157,19 @@ function cleanupTempFiles(filePaths: string[]): void {
   }
 }
 
-function buildCodexSdkRunInput(promptText: string, imagePaths: string[]): string | CodexRunInputItem[] {
+function buildCodexSdkRunInput(
+  promptText: string,
+  imagePaths: string[],
+): string | CodexRunInputItem[] {
   if (imagePaths.length === 0) {
     return promptText;
   }
   return [
     { type: 'text', text: promptText },
-    ...imagePaths.map((filePath) => ({ type: 'local_image' as const, path: filePath })),
+    ...imagePaths.map((filePath) => ({
+      type: 'local_image' as const,
+      path: filePath,
+    })),
   ];
 }
 
@@ -163,14 +192,18 @@ function getCodexAgentOptions(codexOptions?: CodexOptions): CodexAgentOptions {
 }
 
 function getCodexCliOptions(codexOptions?: CodexOptions): CodexCliOptions {
-  if (codexOptions?.agent === 'sdk') {
+  if (codexOptions?.type === 'sdk') {
     return {};
   }
   return codexOptions?.options || {};
 }
 
 function getCodexSdkOptions(codexOptions?: CodexOptions): CodexSdkOptions {
-  if (!codexOptions || codexOptions.agent === 'cli' || codexOptions.agent === undefined) {
+  if (
+    !codexOptions ||
+    codexOptions.type === 'cli' ||
+    codexOptions.type === undefined
+  ) {
     return {};
   }
   return codexOptions.options || {};
@@ -180,7 +213,9 @@ function getCodexSdkOptions(codexOptions?: CodexOptions): CodexSdkOptions {
  * 获取模型信息
  * 优先使用用户配置（Codex 暂不通过额外请求探测模型）
  */
-export async function getModelInfo(codexOptions: CodexOptions | undefined): Promise<string> {
+export async function getModelInfo(
+  codexOptions: CodexOptions | undefined,
+): Promise<string> {
   const options = getCodexAgentOptions(codexOptions);
 
   if (options.model) {
@@ -212,7 +247,7 @@ export function handleCodexRequest(
   callbacks: ProviderCallbacks,
 ): ProviderResult {
   const { sendSSE, onEnd } = callbacks;
-  const agentType = codexOptions?.agent || 'cli';
+  const agentType = codexOptions?.type || 'cli';
   const options = getCodexAgentOptions(codexOptions);
   const cliPath = findCodexCli();
   const model = options.model || '';
@@ -280,10 +315,10 @@ export function handleCodexRequest(
           sendSSE({ type: 'info', model: newModel });
         }
       },
-      () => aborted
+      () => aborted,
     );
   } else {
-    // 使用 SDK（agent='sdk' 或 agent='cli' 但 CLI 未找到时回退）
+    // 使用 SDK（type='sdk' 或 type='cli' 但 CLI 未找到时回退）
     (async () => {
       const sdkHistory: AIMessage[] = history.map((msg) => ({
         role: msg.role,
@@ -295,7 +330,10 @@ export function handleCodexRequest(
         : buildPrompt(extracted.text, context, sdkHistory, cwd);
       const sdkOptions = getCodexSdkOptions(codexOptions);
       const sdkImageFiles = persistInlineImagesToTempFiles(extracted.images);
-      const sdkInput = buildCodexSdkRunInput(sdkPrompt, sdkImageFiles.imagePaths);
+      const sdkInput = buildCodexSdkRunInput(
+        sdkPrompt,
+        sdkImageFiles.imagePaths,
+      );
 
       if (sdkImageFiles.imagePaths.length > 0) {
         sendSSE({
@@ -312,7 +350,11 @@ export function handleCodexRequest(
 
       try {
         if (agentType === 'cli' && !cliPath) {
-          sendSSE({ type: 'info', message: 'Codex CLI not found. Falling back to Codex SDK', cwd });
+          sendSSE({
+            type: 'info',
+            message: 'Codex CLI not found. Falling back to Codex SDK',
+            cwd,
+          });
         }
         sendSSE({ type: 'info', message: 'Using Codex SDK', cwd, model });
 
@@ -323,7 +365,7 @@ export function handleCodexRequest(
           sessionId,
           sendSSE,
           () => aborted,
-          sdkImageFiles.imagePaths
+          sdkImageFiles.imagePaths,
         );
 
         sendSSE('[DONE]');
@@ -336,7 +378,9 @@ export function handleCodexRequest(
             message: `Codex SDK image input failed. Falling back to local Codex CLI. (${error.message})`,
           });
           const cliOptions = getCodexCliOptions(codexOptions);
-          const fallbackImageFiles = persistInlineImagesToTempFiles(extracted.images);
+          const fallbackImageFiles = persistInlineImagesToTempFiles(
+            extracted.images,
+          );
           if (fallbackImageFiles.imagePaths.length > 0) {
             sendSSE({
               type: 'info',
@@ -379,7 +423,7 @@ export function handleCodexRequest(
                 sendSSE({ type: 'info', model: newModel });
               }
             },
-            () => aborted
+            () => aborted,
           );
           return;
         }
@@ -398,7 +442,7 @@ export function handleCodexRequest(
               sessionId,
               sendSSE,
               () => aborted,
-              []
+              [],
             );
             sendSSE('[DONE]');
             onEnd();
@@ -408,7 +452,10 @@ export function handleCodexRequest(
           }
         }
         if (!aborted) {
-          console.log(chalk.red('[code-inspector-plugin] Codex AI error:') + finalError.message);
+          console.log(
+            chalk.red('[code-inspector-plugin] Codex AI error:') +
+              finalError.message,
+          );
           sendSSE({
             error:
               `Failed to communicate with Codex: ${finalError.message}. ` +
@@ -451,8 +498,12 @@ function findCodexCli(): string | null {
   }
 
   try {
-    const command = process.platform === 'win32' ? 'where codex' : 'which codex';
-    const result = execSync(command, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const command =
+      process.platform === 'win32' ? 'where codex' : 'which codex';
+    const result = execSync(command, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
     if (result) {
       cachedCliPath = result.split('\n')[0];
       return cachedCliPath;
@@ -490,7 +541,7 @@ function formatConfigValue(value: string | number | boolean): string {
 
 function buildCommonArgs(
   codexOptions: CodexCliOptions,
-  outputFile: string
+  outputFile: string,
 ): string[] {
   const args = ['--json', '-o', outputFile];
 
@@ -527,14 +578,22 @@ function buildCodexExecArgs(
   outputFile: string,
   imagePaths: string[],
   prompt: string,
-  sessionId?: string
+  sessionId?: string,
 ): string[] {
   const commonArgs = buildCommonArgs(codexOptions, outputFile);
   const imageArgs = imagePaths.flatMap((filePath) => ['--image', filePath]);
   const separatorArgs = imageArgs.length > 0 ? ['--'] : [];
 
   if (sessionId) {
-    return ['exec', 'resume', ...commonArgs, ...imageArgs, ...separatorArgs, sessionId, prompt];
+    return [
+      'exec',
+      'resume',
+      ...commonArgs,
+      ...imageArgs,
+      ...separatorArgs,
+      sessionId,
+      prompt,
+    ];
   }
   return ['exec', ...commonArgs, ...imageArgs, ...separatorArgs, prompt];
 }
@@ -544,13 +603,15 @@ function extractTextFromContent(content: any): string {
   if (typeof content === 'string') return content;
 
   if (Array.isArray(content)) {
-    return content.map((item) => {
-      if (!item) return '';
-      if (typeof item === 'string') return item;
-      if (typeof item.text === 'string') return item.text;
-      if (typeof item.content === 'string') return item.content;
-      return '';
-    }).join('');
+    return content
+      .map((item) => {
+        if (!item) return '';
+        if (typeof item === 'string') return item;
+        if (typeof item.text === 'string') return item.text;
+        if (typeof item.content === 'string') return item.content;
+        return '';
+      })
+      .join('');
   }
 
   return '';
@@ -570,10 +631,16 @@ function extractModelFromEvent(event: any): string {
 }
 
 function extractTextEvent(event: any): { text: string; delta: boolean } | null {
-  if (event?.type === 'response.output_text.delta' && typeof event.delta === 'string') {
+  if (
+    event?.type === 'response.output_text.delta' &&
+    typeof event.delta === 'string'
+  ) {
     return { text: event.delta, delta: true };
   }
-  if (event?.type === 'response.output_text.done' && typeof event.text === 'string') {
+  if (
+    event?.type === 'response.output_text.done' &&
+    typeof event.text === 'string'
+  ) {
     return { text: event.text, delta: false };
   }
   if (typeof event?.delta === 'string') {
@@ -604,7 +671,10 @@ function extractTextEvent(event: any): { text: string; delta: boolean } | null {
 
 function shouldIgnorePlainLine(line: string): boolean {
   if (!line.trim()) return true;
-  if (line.startsWith('WARNING: proceeding, even though we could not update PATH')) return true;
+  if (
+    line.startsWith('WARNING: proceeding, even though we could not update PATH')
+  )
+    return true;
   if (/^\d{4}-\d{2}-\d{2}T.*\sERROR\s/.test(line)) return true;
   return false;
 }
@@ -624,13 +694,19 @@ function queryViaCli(
   sessionId?: string,
   onSessionId?: (id: string) => void,
   onModel?: (model: string) => void,
-  isAborted?: () => boolean
+  isAborted?: () => boolean,
 ): ChildProcess {
   const outputFile = path.join(
     os.tmpdir(),
-    `code-inspector-codex-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`
+    `code-inspector-codex-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`,
   );
-  const args = buildCodexExecArgs(codexOptions, outputFile, imagePaths, prompt, sessionId);
+  const args = buildCodexExecArgs(
+    codexOptions,
+    outputFile,
+    imagePaths,
+    prompt,
+    sessionId,
+  );
   const env = { ...getEnvVars(), ...codexOptions?.env };
 
   const child = spawn(cliPath, args, {
@@ -688,44 +764,52 @@ function queryViaCli(
       isNewTool = true;
       toolIndexMap.set(toolEvent.toolId, index);
       hasAnyContent = true;
-      onData(JSON.stringify({
-        type: 'tool_start',
-        toolId: toolEvent.toolId,
-        toolName: toolEvent.toolName,
-        index,
-      }));
-      if (toolEvent.input) {
-        onData(JSON.stringify({
-          type: 'tool_input',
-          toolUseId: toolEvent.toolId,
+      onData(
+        JSON.stringify({
+          type: 'tool_start',
+          toolId: toolEvent.toolId,
+          toolName: toolEvent.toolName,
           index,
-          input: toolEvent.input,
-        }));
+        }),
+      );
+      if (toolEvent.input) {
+        onData(
+          JSON.stringify({
+            type: 'tool_input',
+            toolUseId: toolEvent.toolId,
+            index,
+            input: toolEvent.input,
+          }),
+        );
       }
     }
 
     if (done && toolEvent.result !== undefined) {
       if (
-        !isNewTool
-        && index !== undefined
-        && toolEvent.toolName === 'Edit'
-        && toolEvent.input
+        !isNewTool &&
+        index !== undefined &&
+        toolEvent.toolName === 'Edit' &&
+        toolEvent.input
       ) {
         hasAnyContent = true;
-        onData(JSON.stringify({
-          type: 'tool_input',
-          toolUseId: toolEvent.toolId,
-          index,
-          input: toolEvent.input,
-        }));
+        onData(
+          JSON.stringify({
+            type: 'tool_input',
+            toolUseId: toolEvent.toolId,
+            index,
+            input: toolEvent.input,
+          }),
+        );
       }
       hasAnyContent = true;
-      onData(JSON.stringify({
-        type: 'tool_result',
-        toolUseId: toolEvent.toolId,
-        content: toolEvent.result,
-        isError: toolEvent.isError,
-      }));
+      onData(
+        JSON.stringify({
+          type: 'tool_result',
+          toolUseId: toolEvent.toolId,
+          content: toolEvent.result,
+          isError: toolEvent.isError,
+        }),
+      );
     }
   };
 
@@ -792,7 +876,9 @@ function queryViaCli(
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
           const previous = messageTextMap.get(item.id) || '';
-          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          const delta = current.startsWith(previous)
+            ? current.slice(previous.length)
+            : current;
           if (delta) {
             hasAnyContent = true;
             onData(JSON.stringify({ type: 'text', content: delta }));
@@ -809,7 +895,9 @@ function queryViaCli(
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
           const previous = messageTextMap.get(item.id) || '';
-          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          const delta = current.startsWith(previous)
+            ? current.slice(previous.length)
+            : current;
           if (delta) {
             hasAnyContent = true;
             onData(JSON.stringify({ type: 'text', content: delta }));
@@ -822,10 +910,20 @@ function queryViaCli(
       }
 
       if (event.type === 'task_complete') {
-        if (!hasAnyContent && typeof event.last_agent_message === 'string' && event.last_agent_message) {
+        if (
+          !hasAnyContent &&
+          typeof event.last_agent_message === 'string' &&
+          event.last_agent_message
+        ) {
           hasAnyContent = true;
-          onData(JSON.stringify({ type: 'text', content: event.last_agent_message }));
-        } else if (!hasAnyContent && typeof event.result === 'string' && event.result) {
+          onData(
+            JSON.stringify({ type: 'text', content: event.last_agent_message }),
+          );
+        } else if (
+          !hasAnyContent &&
+          typeof event.result === 'string' &&
+          event.result
+        ) {
           hasAnyContent = true;
           onData(JSON.stringify({ type: 'text', content: event.result }));
         }
@@ -858,10 +956,7 @@ function queryViaCli(
     onData(JSON.stringify({ type: 'text', content: line + '\n' }));
   };
 
-  const handleChunk = (
-    chunk: Buffer,
-    source: 'stdout' | 'stderr',
-  ) => {
+  const handleChunk = (chunk: Buffer, source: 'stdout' | 'stderr') => {
     const text = chunk.toString();
     if (source === 'stdout') {
       stdoutBuffer += text;
@@ -934,7 +1029,7 @@ async function getCodexSDKCtor(): Promise<any | null> {
   if (!CodexSDKCtor) {
     const pkg = '@openai/codex-sdk';
     try {
-      const sdk: any = await (Function(`return import("${pkg}")`)());
+      const sdk: any = await Function(`return import("${pkg}")`)();
       const ctor = sdk.Codex || sdk.default?.Codex || sdk.default;
       if (ctor) {
         CodexSDKCtor = ctor;
@@ -948,11 +1043,12 @@ async function getCodexSDKCtor(): Promise<any | null> {
 }
 
 function buildCodexSDKClientOptions(
-  options: CodexSdkOptions
+  options: CodexSdkOptions,
 ): Record<string, any> {
   const clientOptions: Record<string, any> = {};
 
-  if (options.codexPathOverride) clientOptions.codexPathOverride = options.codexPathOverride;
+  if (options.codexPathOverride)
+    clientOptions.codexPathOverride = options.codexPathOverride;
   if (options.baseUrl) clientOptions.baseUrl = options.baseUrl;
   if (options.apiKey) clientOptions.apiKey = options.apiKey;
   if (options.config) clientOptions.config = options.config;
@@ -963,7 +1059,7 @@ function buildCodexSDKClientOptions(
 
 function buildCodexSDKThreadOptions(
   options: CodexSdkOptions,
-  cwd: string
+  cwd: string,
 ): Record<string, any> {
   const threadOptions: Record<string, any> = {
     cwd: options.cwd || cwd,
@@ -1018,10 +1114,16 @@ function truncateDiffText(text: string): string {
   if (text.length <= MAX_DIFF_CHARS_PER_FILE) {
     return text;
   }
-  return text.slice(0, MAX_DIFF_CHARS_PER_FILE) + `\n...[truncated ${text.length - MAX_DIFF_CHARS_PER_FILE} chars]`;
+  return (
+    text.slice(0, MAX_DIFF_CHARS_PER_FILE) +
+    `\n...[truncated ${text.length - MAX_DIFF_CHARS_PER_FILE} chars]`
+  );
 }
 
-function readFileText(absolutePath: string): { exists: boolean; content: string } {
+function readFileText(absolutePath: string): {
+  exists: boolean;
+  content: string;
+} {
   try {
     if (!fs.existsSync(absolutePath)) {
       return { exists: false, content: '' };
@@ -1032,22 +1134,31 @@ function readFileText(absolutePath: string): { exists: boolean; content: string 
     }
     return { exists: true, content: fs.readFileSync(absolutePath, 'utf-8') };
   } catch {
-    return { exists: fs.existsSync(absolutePath), content: '[unable to read file content]' };
+    return {
+      exists: fs.existsSync(absolutePath),
+      content: '[unable to read file content]',
+    };
   }
 }
 
-function resolveChangePath(changePath: string, cwd: string): { absolutePath: string; displayPath: string } {
+function resolveChangePath(
+  changePath: string,
+  cwd: string,
+): { absolutePath: string; displayPath: string } {
   if (path.isAbsolute(changePath)) {
     return { absolutePath: changePath, displayPath: changePath };
   }
-  return { absolutePath: path.resolve(cwd, changePath), displayPath: changePath };
+  return {
+    absolutePath: path.resolve(cwd, changePath),
+    displayPath: changePath,
+  };
 }
 
 function ensureFileSnapshot(
   toolId: string,
   displayPath: string,
   absolutePath: string,
-  store: Map<string, Map<string, FileSnapshot>>
+  store: Map<string, Map<string, FileSnapshot>>,
 ): FileSnapshot {
   let toolSnapshots = store.get(toolId);
   if (!toolSnapshots) {
@@ -1072,7 +1183,7 @@ function ensureFileSnapshot(
 function getFileSnapshot(
   toolId: string,
   absolutePath: string,
-  store: Map<string, Map<string, FileSnapshot>>
+  store: Map<string, Map<string, FileSnapshot>>,
 ): FileSnapshot | null {
   return store.get(toolId)?.get(absolutePath) || null;
 }
@@ -1093,7 +1204,7 @@ function buildToolEventFromItem(
     cwd?: string;
     fileSnapshots?: Map<string, Map<string, FileSnapshot>>;
     done?: boolean;
-  }
+  },
 ): {
   toolId: string;
   toolName: string;
@@ -1108,9 +1219,11 @@ function buildToolEventFromItem(
   if (item.type === 'command_execution') {
     const command = typeof item.command === 'string' ? item.command : '';
     const output = item.aggregated_output || item.output || '';
-    const exitCode = typeof item.exit_code === 'number' ? item.exit_code : undefined;
+    const exitCode =
+      typeof item.exit_code === 'number' ? item.exit_code : undefined;
     const status = String(item.status || '');
-    const isError = status === 'failed' || (exitCode !== undefined && exitCode !== 0);
+    const isError =
+      status === 'failed' || (exitCode !== undefined && exitCode !== 0);
 
     return {
       toolId: String(item.id),
@@ -1123,27 +1236,48 @@ function buildToolEventFromItem(
 
   if (item.type === 'file_change') {
     const changes = Array.isArray(item.changes) ? item.changes : [];
-    const firstPath = typeof changes[0]?.path === 'string' ? changes[0].path : '';
-    let input: Record<string, any> = { _provider: 'codex', file_path: firstPath, changes };
+    const firstPath =
+      typeof changes[0]?.path === 'string' ? changes[0].path : '';
+    let input: Record<string, any> = {
+      _provider: 'codex',
+      file_path: firstPath,
+      changes,
+    };
 
     // Codex file_change 仅包含文件级元信息，这里通过快照补齐前后文本，用于前端红绿 diff
     if (context?.cwd && context.fileSnapshots && changes.length > 0) {
       const toolId = String(item.id);
       const oldSections: string[] = [];
       const newSections: string[] = [];
-      const diffBlocks: Array<{ file_path: string; old_string: string; new_string: string }> = [];
+      const diffBlocks: Array<{
+        file_path: string;
+        old_string: string;
+        new_string: string;
+      }> = [];
 
       for (const change of changes) {
         const changePath = typeof change?.path === 'string' ? change.path : '';
         if (!changePath) continue;
 
-        const { absolutePath, displayPath } = resolveChangePath(changePath, context.cwd);
+        const { absolutePath, displayPath } = resolveChangePath(
+          changePath,
+          context.cwd,
+        );
         if (!context.done) {
-          ensureFileSnapshot(toolId, displayPath, absolutePath, context.fileSnapshots);
+          ensureFileSnapshot(
+            toolId,
+            displayPath,
+            absolutePath,
+            context.fileSnapshots,
+          );
           continue;
         }
 
-        const snapshot = getFileSnapshot(toolId, absolutePath, context.fileSnapshots);
+        const snapshot = getFileSnapshot(
+          toolId,
+          absolutePath,
+          context.fileSnapshots,
+        );
         const after = readFileText(absolutePath);
         const kind = String(change?.kind || '');
         if (kind !== 'add' && !snapshot) {
@@ -1151,7 +1285,7 @@ function buildToolEventFromItem(
           continue;
         }
 
-        const beforeText = kind === 'add' ? '' : (snapshot?.beforeContent || '');
+        const beforeText = kind === 'add' ? '' : snapshot?.beforeContent || '';
         const afterText = kind === 'delete' ? '' : after.content;
         let oldString = truncateDiffText(beforeText);
         let newString = truncateDiffText(afterText);
@@ -1191,7 +1325,10 @@ function buildToolEventFromItem(
       toolId: String(item.id),
       toolName: 'Edit',
       input,
-      result: changes.length > 0 ? `Applied ${changes.length} file changes` : 'Applied file changes',
+      result:
+        changes.length > 0
+          ? `Applied ${changes.length} file changes`
+          : 'Applied file changes',
       isError: item.status === 'failed',
     };
   }
@@ -1200,7 +1337,9 @@ function buildToolEventFromItem(
     return {
       toolId: String(item.id),
       toolName: 'WebSearch',
-      input: item.query ? { _provider: 'codex', query: item.query } : { _provider: 'codex' },
+      input: item.query
+        ? { _provider: 'codex', query: item.query }
+        : { _provider: 'codex' },
       result: stringifyUnknown(item.result || item.output),
       isError: item.status === 'failed',
     };
@@ -1238,7 +1377,7 @@ async function queryViaSdk(
   sessionId: string | undefined,
   sendSSE: (data: object | string) => void,
   isAborted: () => boolean,
-  tempImagePaths: string[]
+  tempImagePaths: string[],
 ): Promise<{ interrupt?: () => Promise<void> | void } | null> {
   const CodexSDK = await getCodexSDKCtor();
   if (!CodexSDK) {
@@ -1256,13 +1395,16 @@ async function queryViaSdk(
         '```bash\n' +
         'npm install @openai/codex-sdk\n' +
         '```\n\n' +
-        "Or use CLI mode by setting `agent: 'cli'` in your config.",
+        "Or use CLI mode by setting `type: 'cli'` in your config.",
     });
     return null;
   }
 
   if (loadedCodexSdkPackage) {
-    sendSSE({ type: 'info', message: `Using Codex SDK package: ${loadedCodexSdkPackage}` });
+    sendSSE({
+      type: 'info',
+      message: `Using Codex SDK package: ${loadedCodexSdkPackage}`,
+    });
   }
 
   const codex = new CodexSDK(buildCodexSDKClientOptions(codexOptions));
@@ -1319,10 +1461,10 @@ async function queryViaSdk(
 
     if (done && toolEvent.result !== undefined) {
       if (
-        !isNewTool
-        && index !== undefined
-        && toolEvent.toolName === 'Edit'
-        && toolEvent.input
+        !isNewTool &&
+        index !== undefined &&
+        toolEvent.toolName === 'Edit' &&
+        toolEvent.input
       ) {
         sendSSE({
           type: 'tool_input',
@@ -1362,7 +1504,9 @@ async function queryViaSdk(
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
           const previous = messageTextMap.get(item.id) || '';
-          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          const delta = current.startsWith(previous)
+            ? current.slice(previous.length)
+            : current;
           if (delta) {
             hasAnyText = true;
             sendSSE({ type: 'text', content: delta });
@@ -1379,7 +1523,9 @@ async function queryViaSdk(
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
           const previous = messageTextMap.get(item.id) || '';
-          const delta = current.startsWith(previous) ? current.slice(previous.length) : current;
+          const delta = current.startsWith(previous)
+            ? current.slice(previous.length)
+            : current;
           if (delta) {
             hasAnyText = true;
             sendSSE({ type: 'text', content: delta });
@@ -1392,10 +1538,18 @@ async function queryViaSdk(
       }
 
       if (event?.type === 'task_complete') {
-        if (!hasAnyText && typeof event.last_agent_message === 'string' && event.last_agent_message) {
+        if (
+          !hasAnyText &&
+          typeof event.last_agent_message === 'string' &&
+          event.last_agent_message
+        ) {
           hasAnyText = true;
           sendSSE({ type: 'text', content: event.last_agent_message });
-        } else if (!hasAnyText && typeof event.result === 'string' && event.result) {
+        } else if (
+          !hasAnyText &&
+          typeof event.result === 'string' &&
+          event.result
+        ) {
           hasAnyText = true;
           sendSSE({ type: 'text', content: event.result });
         }

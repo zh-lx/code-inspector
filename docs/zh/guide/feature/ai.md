@@ -42,8 +42,8 @@ codeInspectorPlugin({
 
 ## Codex 配置
 
-- `agent: 'cli'`：使用本地 Codex CLI（默认），更适合已在本机配置好 Codex 的场景。
-- `agent: 'sdk'`：使用 Codex SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'cli'`：使用本地 Codex CLI（默认），更适合已在本机配置好 Codex 的场景。
+- `type: 'sdk'`：使用 Codex SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
 
 ### 使用 Codex CLI
 
@@ -66,9 +66,10 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
           profile: 'default',
           sandbox: 'workspace-write',
           fullAuto: true,
@@ -97,9 +98,10 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
           approvalPolicy: 'on-request',
           sandboxMode: 'workspace-write',
           cwd: process.cwd(),
@@ -127,11 +129,12 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       codex: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           apiKey: process.env.OPENAI_API_KEY,
           baseUrl: process.env.OPENAI_BASE_URL,
           model: 'gpt-5-codex',
+          models: ['gpt-5-codex', 'gpt-5.1-codex'],
         },
       },
     },
@@ -144,16 +147,17 @@ codeInspectorPlugin({
 ```ts
 type CodexOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: CodexCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: CodexSdkOptions;
     };
 
 type CodexCliOptions = {
   model?: string;
+  models?: string[];
   profile?: string;
   sandbox?: 'read-only' | 'workspace-write' | 'danger-full-access';
   fullAuto?: boolean;
@@ -165,6 +169,7 @@ type CodexCliOptions = {
 
 type CodexSdkOptions = {
   model?: string;
+  models?: string[];
   profile?: string;
   config?: Record<string, string | number | boolean>;
   env?: Record<string, string | undefined>;
@@ -210,8 +215,8 @@ type CodexSdkOptions = {
 
 ### 先选模式
 
-- `agent: 'cli'`：使用本地 Claude Code CLI（默认），更适合已在本机配置好 Claude Code 的场景。
-- `agent: 'sdk'`：使用 Claude Agent SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'cli'`：使用本地 Claude Code CLI（默认），更适合已在本机配置好 Claude Code 的场景。
+- `type: 'sdk'`：使用 Claude Agent SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
 
 ### 使用 Claude Code CLI
 
@@ -236,9 +241,10 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'cli',
+        type: 'cli',
         options: {
           model: 'claude-sonnet-4.5',
+          models: ['claude-sonnet-4.5', 'claude-opus-4.1'],
           maxTurns: 20,
           permissionMode: 'bypassPermissions',
           allowedTools: ['Read', 'Write', 'Edit', 'Bash'],
@@ -269,9 +275,10 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           model: 'claude-sonnet-4.5',
+          models: ['claude-sonnet-4.5', 'claude-opus-4.1'],
           maxTurns: 20,
           permissionMode: 'bypassPermissions',
         },
@@ -298,7 +305,7 @@ codeInspectorPlugin({
   behavior: {
     ai: {
       claudeCode: {
-        agent: 'sdk',
+        type: 'sdk',
         options: {
           env: {
             ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -316,11 +323,11 @@ codeInspectorPlugin({
 ```ts
 type ClaudeCodeOptions =
   | {
-      agent?: 'cli';
+      type?: 'cli';
       options?: ClaudeCliOptions;
     }
   | {
-      agent: 'sdk';
+      type: 'sdk';
       options?: ClaudeSdkOptions;
     };
 
@@ -328,6 +335,7 @@ type ClaudeCliOptions = {
   allowedTools?: string[];
   disallowedTools?: string[];
   model?: string;
+  models?: string[];
   maxTurns?: number;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };
@@ -340,6 +348,7 @@ type ClaudeSdkOptions = {
   allowedTools?: string[];
   disallowedTools?: string[];
   model?: string;
+  models?: string[];
   maxTurns?: number;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
   systemPrompt?: string | { type: 'preset'; preset: 'claude_code'; append?: string };

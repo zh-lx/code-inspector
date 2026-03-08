@@ -1,8 +1,12 @@
 # 更新日志
 
+## 1.4.3
+
+- 【fix】修复 vscode `1.110.0+` 版本无法识别的问题 [#493](https://github.com/zh-lx/code-inspector/pull/493)
+
 ## 1.4.2
 
-- 【fix】修复了通过滚轮滚动切换父子元素时，会触发页面滚动的问题 [#465](https://github.com/zh-lx/code-inspector/pull/480)
+- 【fix】修复了通过滚轮滚动切换父子元素时，会触发页面滚动的问题 [#480](https://github.com/zh-lx/code-inspector/pull/480)
 
 ## 1.4.1
 

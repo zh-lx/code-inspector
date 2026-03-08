@@ -40,25 +40,38 @@ interface ClaudeCliInputMessage {
     role: 'user';
     content: Array<
       | { type: 'text'; text: string }
-      | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
+      | {
+          type: 'image';
+          source: { type: 'base64'; media_type: string; data: string };
+        }
     >;
   };
 }
 
-const INLINE_IMAGE_DATA_URL_REGEX = /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
+const INLINE_IMAGE_DATA_URL_REGEX =
+  /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
 
 function stripInlineImageDataUrls(text: string): string {
-  return text.replace(INLINE_IMAGE_DATA_URL_REGEX, '[Inline image data omitted]');
+  return text.replace(
+    INLINE_IMAGE_DATA_URL_REGEX,
+    '[Inline image data omitted]',
+  );
 }
 
-function extractInlineImages(text: string): { text: string; images: InlineImagePayload[] } {
+function extractInlineImages(text: string): {
+  text: string;
+  images: InlineImagePayload[];
+} {
   const images: InlineImagePayload[] = [];
   let imageIndex = 0;
-  const rewritten = text.replace(INLINE_IMAGE_DATA_URL_REGEX, (_match, mediaType: string, data: string) => {
-    imageIndex += 1;
-    images.push({ mediaType, data });
-    return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
-  });
+  const rewritten = text.replace(
+    INLINE_IMAGE_DATA_URL_REGEX,
+    (_match, mediaType: string, data: string) => {
+      imageIndex += 1;
+      images.push({ mediaType, data });
+      return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
+    },
+  );
 
   return { text: rewritten, images };
 }
@@ -66,7 +79,7 @@ function extractInlineImages(text: string): { text: string; images: InlineImageP
 function buildClaudeCliInputMessage(
   promptText: string,
   images: InlineImagePayload[],
-  sessionId?: string
+  sessionId?: string,
 ): ClaudeCliInputMessage {
   return {
     type: 'user',
@@ -96,7 +109,7 @@ function buildPrompt(
   message: string,
   context: AIContext | null,
   history: AIMessage[],
-  projectRootPath: string
+  projectRootPath: string,
 ): string {
   const parts: string[] = [];
 
@@ -110,7 +123,9 @@ function buildPrompt(
     if (fs.existsSync(absolutePath)) {
       fileRef = `@${context.file}#${context.line}`;
     }
-    parts.push(`[Context] I'm looking at a <${context.name}> component located at ${fileRef}.`);
+    parts.push(
+      `[Context] I'm looking at a <${context.name}> component located at ${fileRef}.`,
+    );
   }
 
   if (history.length > 0) {
@@ -133,10 +148,14 @@ function buildPrompt(
 function buildResumeTurnPrompt(
   message: string,
   context: AIContext | null,
-  projectRootPath: string
+  projectRootPath: string,
 ): string {
-  return buildPrompt(message, context, [], projectRootPath) +
-    '\n\n[Note] Context above applies to this turn only. Prior turn context may be outdated.';
+  const scopeNote = context
+    ? '[Note] Context above applies to this turn only. Prior turn context may be outdated.'
+    : '[Note] This turn is in Global mode with no selected DOM element. Ignore any element-specific context from prior turns.';
+  return (
+    buildPrompt(message, context, [], projectRootPath) + `\n\n${scopeNote}`
+  );
 }
 
 /**
@@ -144,19 +163,21 @@ function buildResumeTurnPrompt(
  */
 let cachedCliModel: string | undefined;
 
-function getClaudeAgentOptions(aiOptions?: ClaudeCodeOptions): ClaudeAgentOptions {
+function getClaudeAgentOptions(
+  aiOptions?: ClaudeCodeOptions,
+): ClaudeAgentOptions {
   return aiOptions?.options || {};
 }
 
 function getClaudeCliOptions(aiOptions?: ClaudeCodeOptions): ClaudeCliOptions {
-  if (aiOptions?.agent === 'sdk') {
+  if (aiOptions?.type === 'sdk') {
     return {};
   }
   return aiOptions?.options || {};
 }
 
 function getClaudeSdkOptions(aiOptions?: ClaudeCodeOptions): ClaudeSdkOptions {
-  if (!aiOptions || aiOptions.agent === 'cli' || aiOptions.agent === undefined) {
+  if (!aiOptions || aiOptions.type === 'cli' || aiOptions.type === undefined) {
     return {};
   }
   return aiOptions.options || {};
@@ -166,7 +187,9 @@ function getClaudeSdkOptions(aiOptions?: ClaudeCodeOptions): ClaudeSdkOptions {
  * 获取模型信息
  * 优先使用用户配置，否则通过 CLI 的 system 事件获取（无 API 消耗）
  */
-export async function getModelInfo(aiOptions: ClaudeCodeOptions | undefined): Promise<string> {
+export async function getModelInfo(
+  aiOptions: ClaudeCodeOptions | undefined,
+): Promise<string> {
   const options = getClaudeAgentOptions(aiOptions);
   if (options.model) {
     return options.model;
@@ -187,10 +210,14 @@ export async function getModelInfo(aiOptions: ClaudeCodeOptions | undefined): Pr
 
   try {
     const model = await new Promise<string>((resolve) => {
-      const child = spawn(cliPath, ['-p', 'hi', '--output-format', 'stream-json', '--verbose'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: getEnvVars(),
-      });
+      const child = spawn(
+        cliPath,
+        ['-p', 'hi', '--output-format', 'stream-json', '--verbose'],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: getEnvVars(),
+        },
+      );
       child.stdin?.end();
 
       let buffer = '';
@@ -254,7 +281,7 @@ export function handleClaudeRequest(
 ): ProviderResult {
   const { sendSSE, onEnd } = callbacks;
 
-  const agentType = aiOptions?.agent || 'cli';
+  const agentType = aiOptions?.type || 'cli';
   const cliPath = findClaudeCodeCli();
 
   let childProcess: ChildProcess | null = null;
@@ -273,11 +300,17 @@ export function handleClaudeRequest(
     const prompt = sessionId
       ? buildResumeTurnPrompt(extracted.text, context, cwd)
       : buildPrompt(extracted.text, context, cliHistory, cwd);
-    const cliInputMessage = extracted.images.length > 0
-      ? buildClaudeCliInputMessage(prompt, extracted.images, sessionId)
-      : undefined;
+    const cliInputMessage =
+      extracted.images.length > 0
+        ? buildClaudeCliInputMessage(prompt, extracted.images, sessionId)
+        : undefined;
 
-    sendSSE({ type: 'info', message: 'Using local Claude Code CLI', cwd, model });
+    sendSSE({
+      type: 'info',
+      message: 'Using local Claude Code CLI',
+      cwd,
+      model,
+    });
     if (extracted.images.length > 0) {
       sendSSE({
         type: 'info',
@@ -309,13 +342,18 @@ export function handleClaudeRequest(
       sessionId,
       (newSessionId) => {
         sendSSE({ type: 'session', sessionId: newSessionId });
-      }
+      },
     );
   } else {
-    // 使用 SDK（agent='sdk' 或 agent='cli' 但 CLI 未找到时回退）
+    // 使用 SDK（type='sdk' 或 type='cli' 但 CLI 未找到时回退）
     (async () => {
       try {
-        sendSSE({ type: 'info', message: 'Using Claude Agent SDK', cwd, model });
+        sendSSE({
+          type: 'info',
+          message: 'Using Claude Agent SDK',
+          cwd,
+          model,
+        });
 
         const sdkHistory: AIMessage[] = history.map((msg) => ({
           role: msg.role,
@@ -325,43 +363,44 @@ export function handleClaudeRequest(
         const sdkPromptText = sessionId
           ? buildResumeTurnPrompt(extracted.text, context, cwd)
           : buildPrompt(extracted.text, context, sdkHistory, cwd);
-        const sdkPromptInput: string | AsyncIterable<any> = extracted.images.length > 0
-          ? {
-              [Symbol.asyncIterator]() {
-                let emitted = false;
-                return {
-                  next: async () => {
-                    if (emitted) {
-                      return { value: undefined, done: true };
-                    }
-                    emitted = true;
-                    return {
-                      value: {
-                        type: 'user',
-                        session_id: sessionId || '',
-                        parent_tool_use_id: null,
-                        message: {
-                          role: 'user',
-                          content: [
-                            { type: 'text', text: sdkPromptText },
-                            ...extracted.images.map((image) => ({
-                              type: 'image',
-                              source: {
-                                type: 'base64',
-                                media_type: image.mediaType,
-                                data: image.data,
-                              },
-                            })),
-                          ],
+        const sdkPromptInput: string | AsyncIterable<any> =
+          extracted.images.length > 0
+            ? {
+                [Symbol.asyncIterator]() {
+                  let emitted = false;
+                  return {
+                    next: async () => {
+                      if (emitted) {
+                        return { value: undefined, done: true };
+                      }
+                      emitted = true;
+                      return {
+                        value: {
+                          type: 'user',
+                          session_id: sessionId || '',
+                          parent_tool_use_id: null,
+                          message: {
+                            role: 'user',
+                            content: [
+                              { type: 'text', text: sdkPromptText },
+                              ...extracted.images.map((image) => ({
+                                type: 'image',
+                                source: {
+                                  type: 'base64',
+                                  media_type: image.mediaType,
+                                  data: image.data,
+                                },
+                              })),
+                            ],
+                          },
                         },
-                      },
-                      done: false,
-                    };
-                  },
-                };
-              },
-            }
-          : sdkPromptText;
+                        done: false,
+                      };
+                    },
+                  };
+                },
+              }
+            : sdkPromptText;
 
         if (extracted.images.length > 0) {
           sendSSE({
@@ -376,13 +415,14 @@ export function handleClaudeRequest(
           aiOptions,
           sessionId,
           sendSSE,
-          () => aborted
+          () => aborted,
         );
 
         if (sdkRunState.timedOut && cliPath) {
           sendSSE({
             type: 'info',
-            message: 'Claude SDK timed out without response. Falling back to local Claude CLI.',
+            message:
+              'Claude SDK timed out without response. Falling back to local Claude CLI.',
           });
           const fallbackHistory: AIMessage[] = history.map((msg) => ({
             role: msg.role,
@@ -391,10 +431,20 @@ export function handleClaudeRequest(
           const fallbackExtracted = extractInlineImages(message);
           const fallbackPrompt = sessionId
             ? buildResumeTurnPrompt(fallbackExtracted.text, context, cwd)
-            : buildPrompt(fallbackExtracted.text, context, fallbackHistory, cwd);
-          const fallbackCliInputMessage = fallbackExtracted.images.length > 0
-            ? buildClaudeCliInputMessage(fallbackPrompt, fallbackExtracted.images, sessionId)
-            : undefined;
+            : buildPrompt(
+                fallbackExtracted.text,
+                context,
+                fallbackHistory,
+                cwd,
+              );
+          const fallbackCliInputMessage =
+            fallbackExtracted.images.length > 0
+              ? buildClaudeCliInputMessage(
+                  fallbackPrompt,
+                  fallbackExtracted.images,
+                  sessionId,
+                )
+              : undefined;
           if (fallbackExtracted.images.length > 0) {
             sendSSE({
               type: 'info',
@@ -425,7 +475,7 @@ export function handleClaudeRequest(
             sessionId,
             (newSessionId) => {
               sendSSE({ type: 'session', sessionId: newSessionId });
-            }
+            },
           );
           return;
         }
@@ -433,7 +483,9 @@ export function handleClaudeRequest(
         sendSSE('[DONE]');
         onEnd();
       } catch (error: any) {
-        console.log(chalk.red('[code-inspector-plugin] AI error:') + error.message);
+        console.log(
+          chalk.red('[code-inspector-plugin] AI error:') + error.message,
+        );
         sendSSE({
           error: `Failed to communicate with Claude: ${error.message}. Install Claude Code CLI or configure apiKey.`,
         });
@@ -469,8 +521,12 @@ function findClaudeCodeCli(): string | null {
   }
 
   try {
-    const command = process.platform === 'win32' ? 'where claude' : 'which claude';
-    const result = execSync(command, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const command =
+      process.platform === 'win32' ? 'where claude' : 'which claude';
+    const result = execSync(command, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
     if (result) {
       cachedCliPath = result.split('\n')[0];
       return cachedCliPath;
@@ -512,22 +568,28 @@ function queryViaCli(
   onError: (error: string) => void,
   onEnd: () => void,
   sessionId?: string,
-  onSessionId?: (id: string) => void
+  onSessionId?: (id: string) => void,
 ): ChildProcess {
   const opts = getClaudeCliOptions(aiOptions);
   const args = inputMessage
     ? [
         '-p',
-        '--output-format', 'stream-json',
-        '--input-format', 'stream-json',
+        '--output-format',
+        'stream-json',
+        '--input-format',
+        'stream-json',
         '--verbose',
-        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+        '--permission-mode',
+        opts?.permissionMode || 'bypassPermissions',
       ]
     : [
-        '-p', prompt,
-        '--output-format', 'stream-json',
+        '-p',
+        prompt,
+        '--output-format',
+        'stream-json',
         '--verbose',
-        '--permission-mode', opts?.permissionMode || 'bypassPermissions',
+        '--permission-mode',
+        opts?.permissionMode || 'bypassPermissions',
       ];
 
   if (sessionId) {
@@ -543,10 +605,18 @@ function queryViaCli(
   if (opts?.disallowedTools && opts.disallowedTools.length > 0) {
     args.push('--disallowedTools', opts.disallowedTools.join(','));
   }
-  if (typeof opts?.maxTurns === 'number' && Number.isFinite(opts.maxTurns) && opts.maxTurns > 0) {
+  if (
+    typeof opts?.maxTurns === 'number' &&
+    Number.isFinite(opts.maxTurns) &&
+    opts.maxTurns > 0
+  ) {
     args.push('--max-turns', String(opts.maxTurns));
   }
-  if (typeof opts?.maxCost === 'number' && Number.isFinite(opts.maxCost) && opts.maxCost > 0) {
+  if (
+    typeof opts?.maxCost === 'number' &&
+    Number.isFinite(opts.maxCost) &&
+    opts.maxCost > 0
+  ) {
     args.push('--max-cost', String(opts.maxCost));
   }
   const systemPrompt = opts?.systemPrompt;
@@ -581,7 +651,10 @@ function queryViaCli(
   let buffer = '';
   let hasDeltaStreaming = false;
   let hasAnyContent = false;
-  const toolInputBuffers: Map<number, { id: string; name: string; json: string }> = new Map();
+  const toolInputBuffers: Map<
+    number,
+    { id: string; name: string; json: string }
+  > = new Map();
 
   child.stdout?.on('data', (chunk: Buffer) => {
     buffer += chunk.toString();
@@ -602,42 +675,59 @@ function queryViaCli(
           if (event.model) {
             onData(JSON.stringify({ type: 'info', model: event.model }));
           }
-
-        } else if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
+        } else if (
+          event.type === 'content_block_start' &&
+          event.content_block?.type === 'tool_use'
+        ) {
           hasDeltaStreaming = true;
           hasAnyContent = true;
           const toolUse = event.content_block;
-          toolInputBuffers.set(event.index, { id: toolUse.id, name: toolUse.name, json: '' });
-          onData(JSON.stringify({
-            type: 'tool_start',
-            toolId: toolUse.id,
-            toolName: toolUse.name,
-            index: event.index,
-          }));
-
-        } else if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+          toolInputBuffers.set(event.index, {
+            id: toolUse.id,
+            name: toolUse.name,
+            json: '',
+          });
+          onData(
+            JSON.stringify({
+              type: 'tool_start',
+              toolId: toolUse.id,
+              toolName: toolUse.name,
+              index: event.index,
+            }),
+          );
+        } else if (
+          event.type === 'content_block_delta' &&
+          event.delta?.type === 'text_delta'
+        ) {
           hasDeltaStreaming = true;
           hasAnyContent = true;
           onData(JSON.stringify({ type: 'text', content: event.delta.text }));
-
-        } else if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
+        } else if (
+          event.type === 'content_block_delta' &&
+          event.delta?.type === 'input_json_delta'
+        ) {
           const buf = toolInputBuffers.get(event.index);
           if (buf) {
             buf.json += event.delta.partial_json || '';
           }
-
         } else if (event.type === 'content_block_stop') {
           const buf = toolInputBuffers.get(event.index);
           if (buf) {
             try {
               const input = JSON.parse(buf.json);
-              onData(JSON.stringify({ type: 'tool_input', toolId: buf.id, index: event.index, input }));
+              onData(
+                JSON.stringify({
+                  type: 'tool_input',
+                  toolId: buf.id,
+                  index: event.index,
+                  input,
+                }),
+              );
             } catch {
               // 忽略解析错误
             }
             toolInputBuffers.delete(event.index);
           }
-
         } else if (event.type === 'assistant') {
           if (!hasDeltaStreaming && event.message?.content) {
             for (const block of event.message.content) {
@@ -646,16 +736,20 @@ function queryViaCli(
                 onData(JSON.stringify({ type: 'text', content: block.text }));
               } else if (block.type === 'tool_use') {
                 hasAnyContent = true;
-                onData(JSON.stringify({
-                  type: 'tool_start',
-                  toolId: block.id,
-                  toolName: block.name,
-                }));
-                onData(JSON.stringify({
-                  type: 'tool_input',
-                  toolId: block.id,
-                  input: block.input,
-                }));
+                onData(
+                  JSON.stringify({
+                    type: 'tool_start',
+                    toolId: block.id,
+                    toolName: block.name,
+                  }),
+                );
+                onData(
+                  JSON.stringify({
+                    type: 'tool_input',
+                    toolId: block.id,
+                    input: block.input,
+                  }),
+                );
               }
             }
           }
@@ -663,12 +757,17 @@ function queryViaCli(
           if (event.message?.content) {
             for (const block of event.message.content) {
               if (block.type === 'tool_result') {
-                onData(JSON.stringify({
-                  type: 'tool_result',
-                  toolUseId: block.tool_use_id,
-                  content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
-                  isError: block.is_error,
-                }));
+                onData(
+                  JSON.stringify({
+                    type: 'tool_result',
+                    toolUseId: block.tool_use_id,
+                    content:
+                      typeof block.content === 'string'
+                        ? block.content
+                        : JSON.stringify(block.content),
+                    isError: block.is_error,
+                  }),
+                );
               }
             }
           }
@@ -730,7 +829,9 @@ let claudeQuery: Function | null = null;
 async function getClaudeQuery(): Promise<Function | null> {
   if (!claudeQuery) {
     try {
-      const sdk: any = await (Function('return import("@anthropic-ai/claude-agent-sdk")')());
+      const sdk: any = await Function(
+        'return import("@anthropic-ai/claude-agent-sdk")',
+      )();
       claudeQuery = sdk.query || sdk.default?.query;
     } catch {
       // SDK 未安装或加载失败
@@ -751,9 +852,10 @@ const DEFAULT_ALLOWED_TOOLS = [
 ];
 
 function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
-  const rawOptions = aiOptions?.agent === 'sdk'
-    ? getClaudeSdkOptions(aiOptions)
-    : getClaudeAgentOptions(aiOptions);
+  const rawOptions =
+    aiOptions?.type === 'sdk'
+      ? getClaudeSdkOptions(aiOptions)
+      : getClaudeAgentOptions(aiOptions);
   const env = { ...getEnvVars(), ...rawOptions.env };
   if (!process.env) {
     process.env = {};
@@ -770,11 +872,12 @@ function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
 function buildSdkQueryOptions(
   aiOptions: ClaudeCodeOptions | undefined,
   cwd: string,
-  sessionId?: string
+  sessionId?: string,
 ): Record<string, any> {
-  const rawOptions = aiOptions?.agent === 'sdk'
-    ? getClaudeSdkOptions(aiOptions)
-    : getClaudeAgentOptions(aiOptions);
+  const rawOptions =
+    aiOptions?.type === 'sdk'
+      ? getClaudeSdkOptions(aiOptions)
+      : getClaudeAgentOptions(aiOptions);
   const { env, ...queryOpts } = rawOptions;
   const options: Record<string, any> = {
     maxTurns: 20,
@@ -795,18 +898,30 @@ function buildSdkQueryOptions(
   }
 
   // Claude SDK requires this flag when bypassPermissions is enabled.
-  if (options.permissionMode === 'bypassPermissions' && options.allowDangerouslySkipPermissions === undefined) {
+  if (
+    options.permissionMode === 'bypassPermissions' &&
+    options.allowDangerouslySkipPermissions === undefined
+  ) {
     options.allowDangerouslySkipPermissions = true;
   }
 
-  if (sessionId && options.resume === undefined && options.continue === undefined) {
+  if (
+    sessionId &&
+    options.resume === undefined &&
+    options.continue === undefined
+  ) {
     options.resume = sessionId;
   }
 
   if (!options.extraArgs || typeof options.extraArgs !== 'object') {
     options.extraArgs = {};
   }
-  if (!Object.prototype.hasOwnProperty.call(options.extraArgs, 'enable-auth-status')) {
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      options.extraArgs,
+      'enable-auth-status',
+    )
+  ) {
     options.extraArgs['enable-auth-status'] = null;
   }
 
@@ -819,7 +934,7 @@ async function queryViaSdk(
   aiOptions: ClaudeCodeOptions | undefined,
   sessionId: string | undefined,
   sendSSE: (data: object | string) => void,
-  isAborted: () => boolean
+  isAborted: () => boolean,
 ): Promise<{ timedOut: boolean }> {
   setupSdkEnvironment(aiOptions);
 
@@ -839,7 +954,7 @@ async function queryViaSdk(
         '```bash\n' +
         'npm install @anthropic-ai/claude-agent-sdk\n' +
         '```\n\n' +
-        "Or use CLI mode by setting `agent: 'cli'` in your config.",
+        "Or use CLI mode by setting `type: 'cli'` in your config.",
     });
     return { timedOut: false };
   }
@@ -897,12 +1012,18 @@ async function queryViaSdk(
         hasBusinessEvent = true;
         const event = sdkMessage.event as any;
 
-        if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+        if (
+          event.type === 'content_block_delta' &&
+          event.delta?.type === 'text_delta'
+        ) {
           hasStreamContent = true;
           sendSSE({ type: 'text', content: event.delta.text });
         }
 
-        if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
+        if (
+          event.type === 'content_block_start' &&
+          event.content_block?.type === 'tool_use'
+        ) {
           const toolUse = event.content_block;
           toolInputBuffers.set(event.index, '');
           sendSSE({
@@ -913,7 +1034,10 @@ async function queryViaSdk(
           });
         }
 
-        if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta') {
+        if (
+          event.type === 'content_block_delta' &&
+          event.delta?.type === 'input_json_delta'
+        ) {
           const partial = event.delta.partial_json || '';
           const current = toolInputBuffers.get(event.index) || '';
           toolInputBuffers.set(event.index, current + partial);
@@ -935,7 +1059,6 @@ async function queryViaSdk(
             toolInputBuffers.delete(event.index);
           }
         }
-
       } else if (sdkMessage.type === 'assistant') {
         hasBusinessEvent = true;
         const message = sdkMessage as any;
@@ -963,7 +1086,10 @@ async function queryViaSdk(
               sendSSE({
                 type: 'tool_result',
                 toolUseId: block.tool_use_id,
-                content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
+                content:
+                  typeof block.content === 'string'
+                    ? block.content
+                    : JSON.stringify(block.content),
                 isError: block.is_error,
               });
             }
@@ -972,7 +1098,9 @@ async function queryViaSdk(
           if (combinedText) {
             const messageId = String(message.uuid || '');
             const previous = assistantTextBuffers.get(messageId) || '';
-            const delta = combinedText.startsWith(previous) ? combinedText.slice(previous.length) : combinedText;
+            const delta = combinedText.startsWith(previous)
+              ? combinedText.slice(previous.length)
+              : combinedText;
             if (delta) {
               hasStreamContent = true;
               sendSSE({ type: 'text', content: delta });
@@ -982,7 +1110,6 @@ async function queryViaSdk(
             }
           }
         }
-
       } else if (sdkMessage.type === 'user') {
         hasBusinessEvent = true;
         const message = sdkMessage as any;
@@ -992,22 +1119,29 @@ async function queryViaSdk(
               sendSSE({
                 type: 'tool_result',
                 toolUseId: block.tool_use_id,
-                content: typeof block.content === 'string' ? block.content : JSON.stringify(block.content),
+                content:
+                  typeof block.content === 'string'
+                    ? block.content
+                    : JSON.stringify(block.content),
                 isError: block.is_error,
               });
             }
           }
         }
-
       } else if (sdkMessage.type === 'system') {
         const systemMessage = sdkMessage as any;
-        if (systemMessage.subtype === 'init' && typeof systemMessage.model === 'string') {
+        if (
+          systemMessage.subtype === 'init' &&
+          typeof systemMessage.model === 'string'
+        ) {
           sendSSE({ type: 'info', model: systemMessage.model });
           if (typeof systemMessage.apiKeySource === 'string') {
-            sendSSE({ type: 'info', message: `Claude auth source: ${systemMessage.apiKeySource}` });
+            sendSSE({
+              type: 'info',
+              message: `Claude auth source: ${systemMessage.apiKeySource}`,
+            });
           }
         }
-
       } else if (sdkMessage.type === 'auth_status') {
         const authStatus = sdkMessage as any;
         if (Array.isArray(authStatus.output) && authStatus.output.length > 0) {
@@ -1016,16 +1150,23 @@ async function queryViaSdk(
         if (authStatus.error) {
           sendSSE({ error: `Claude auth error: ${authStatus.error}` });
         }
-
       } else if (sdkMessage.type === 'result') {
         hasBusinessEvent = true;
-        if (!hasStreamContent && sdkMessage.subtype === 'success' && (sdkMessage as any).result) {
+        if (
+          !hasStreamContent &&
+          sdkMessage.subtype === 'success' &&
+          (sdkMessage as any).result
+        ) {
           sendSSE({ type: 'text', content: (sdkMessage as any).result });
         } else if (sdkMessage.subtype !== 'success') {
           const errorDetails = Array.isArray((sdkMessage as any).errors)
             ? (sdkMessage as any).errors.filter(Boolean).join('\n')
             : '';
-          sendSSE({ error: errorDetails || `Claude SDK request failed: ${sdkMessage.subtype}` });
+          sendSSE({
+            error:
+              errorDetails ||
+              `Claude SDK request failed: ${sdkMessage.subtype}`,
+          });
         }
       }
     }
