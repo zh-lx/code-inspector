@@ -29,14 +29,17 @@ export interface AIRequest {
     context: AIContext | null;
     history?: AIMessage[];
     sessionId?: string;
+    provider?: AIProviderType;
 }
 export type AIProviderType = 'claudeCode' | 'codex';
-export type ActiveAIOptions = {
-    provider: 'claudeCode';
-    options: ClaudeCodeOptions;
-} | {
-    provider: 'codex';
-    options: CodexOptions;
+type AIProviderOptionsMap = {
+    claudeCode: ClaudeCodeOptions;
+    codex: CodexOptions;
+};
+export type ResolvedAIOptions = Partial<AIProviderOptionsMap>;
+export type ActiveAIOptions<T extends AIProviderType = AIProviderType> = {
+    provider: T;
+    options: AIProviderOptionsMap[T];
 };
 /**
  * 从 behavior 配置中提取 AI 选项
@@ -46,12 +49,15 @@ export declare function getAIOptions(behavior?: {
         claudeCode?: boolean | ClaudeCodeOptions;
         codex?: boolean | CodexOptions;
     };
-}): ActiveAIOptions | undefined;
+}): ResolvedAIOptions | undefined;
+export declare function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[];
+export declare function resolveAIOptions(aiOptions: ResolvedAIOptions | undefined, requestedProvider?: AIProviderType): ActiveAIOptions | undefined;
 /**
  * 处理 AI 请求
  */
-export declare function handleAIRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ActiveAIOptions | undefined, projectRootPath: string): Promise<void>;
+export declare function handleAIRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ResolvedAIOptions | undefined, projectRootPath: string): Promise<void>;
 /**
  * 处理 AI 模型信息请求
  */
-export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ActiveAIOptions | undefined): Promise<void>;
+export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ResolvedAIOptions | undefined, requestedProvider?: string | null): Promise<void>;
+export {};

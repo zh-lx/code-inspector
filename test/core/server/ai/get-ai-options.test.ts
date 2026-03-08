@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getAIOptions } from '@/core/src/server/ai';
+import { getAIOptions, getAvailableAIProviders, resolveAIOptions } from '@/core/src/server/ai';
 
 describe('getAIOptions', () => {
   it('should return undefined when AI is not configured', () => {
@@ -10,8 +10,7 @@ describe('getAIOptions', () => {
 
   it('should parse codex boolean config', () => {
     expect(getAIOptions({ ai: { codex: true } })).toEqual({
-      provider: 'codex',
-      options: {},
+      codex: {},
     });
   });
 
@@ -28,8 +27,7 @@ describe('getAIOptions', () => {
         },
       })
     ).toEqual({
-      provider: 'codex',
-      options: {
+      codex: {
         options: {
           model: 'gpt-5.3-codex',
           sandbox: 'workspace-write',
@@ -52,8 +50,7 @@ describe('getAIOptions', () => {
         },
       })
     ).toEqual({
-      provider: 'codex',
-      options: {
+      codex: {
         agent: 'sdk',
         options: {
           model: 'gpt-5-codex',
@@ -65,8 +62,7 @@ describe('getAIOptions', () => {
 
   it('should parse claudeCode config', () => {
     expect(getAIOptions({ ai: { claudeCode: true } })).toEqual({
-      provider: 'claudeCode',
-      options: {},
+      claudeCode: {},
     });
   });
 
@@ -84,8 +80,7 @@ describe('getAIOptions', () => {
         },
       })
     ).toEqual({
-      provider: 'claudeCode',
-      options: {
+      claudeCode: {
         agent: 'sdk',
         options: {
           model: 'claude-sonnet-4-5',
@@ -95,7 +90,7 @@ describe('getAIOptions', () => {
     });
   });
 
-  it('should prefer codex when both codex and claudeCode are configured', () => {
+  it('should keep both codex and claudeCode when both are configured', () => {
     expect(
       getAIOptions({
         ai: {
@@ -104,6 +99,45 @@ describe('getAIOptions', () => {
         },
       })
     ).toEqual({
+      codex: {},
+      claudeCode: {},
+    });
+  });
+});
+
+describe('getAvailableAIProviders', () => {
+  it('should return providers in stable priority order', () => {
+    expect(
+      getAvailableAIProviders({
+        claudeCode: {},
+        codex: {},
+      })
+    ).toEqual(['codex', 'claudeCode']);
+  });
+});
+
+describe('resolveAIOptions', () => {
+  it('should honor requested provider when configured', () => {
+    const aiOptions = getAIOptions({
+      ai: {
+        claudeCode: true,
+        codex: true,
+      },
+    });
+    expect(resolveAIOptions(aiOptions, 'claudeCode')).toEqual({
+      provider: 'claudeCode',
+      options: {},
+    });
+  });
+
+  it('should fallback to default priority provider when request provider is missing', () => {
+    const aiOptions = getAIOptions({
+      ai: {
+        claudeCode: true,
+        codex: true,
+      },
+    });
+    expect(resolveAIOptions(aiOptions)).toEqual({
       provider: 'codex',
       options: {},
     });

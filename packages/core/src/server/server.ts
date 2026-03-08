@@ -149,7 +149,7 @@ export function createServer(
     // 处理 /ai/model 路由
     if (pathname === '/ai/model' && req.method === 'GET') {
       const aiOptions = getAIOptions(options?.behavior);
-      await handleAIModelRequest(res, CORS_HEADERS, aiOptions);
+      await handleAIModelRequest(res, CORS_HEADERS, aiOptions, url.searchParams.get('provider'));
       return;
     }
 

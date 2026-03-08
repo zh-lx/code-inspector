@@ -8,6 +8,7 @@ import {
   ChatMessage,
   ChatContext,
   ChatImageAttachment,
+  ChatProvider,
   ChatHistoryMessage,
   ContentBlock,
   ToolCall,
@@ -222,6 +223,12 @@ export class CodeInspectorComponent extends LitElement {
   turnDuration: number = 0; // 当前轮持续时间（秒）
   @state()
   chatModel: string = ''; // 当前使用的模型名称
+  @state()
+  chatProvider: ChatProvider | null = null; // 当前使用的 AI provider
+  @state()
+  availableAIProviders: ChatProvider[] = []; // 当前可用的 AI providers
+  @state()
+  showProviderMenu = false; // provider 下拉是否展开
 
   // 中断控制器和计时器
   private chatAbortController: AbortController | null = null;
@@ -1239,6 +1246,8 @@ export class CodeInspectorComponent extends LitElement {
       chatSessionId: this.chatSessionId,
       chatTheme: this.chatTheme,
       chatModel: this.chatModel,
+      chatProvider: this.chatProvider,
+      availableAIProviders: this.availableAIProviders,
       modalPosition,
       turnStatus: this.turnStatus,
     });
@@ -1325,8 +1334,58 @@ export class CodeInspectorComponent extends LitElement {
     };
   };
 
+  private refreshChatProviderAndModel = async (preferredProvider?: ChatProvider | null) => {
+    const modelInfo = await fetchModelInfo(this.ip, this.port, preferredProvider || this.chatProvider);
+    if (!this.isConnected) return;
+
+    if (modelInfo.providers.length > 0) {
+      this.availableAIProviders = modelInfo.providers;
+    }
+
+    const candidates: Array<ChatProvider | null | undefined> = [
+      preferredProvider,
+      modelInfo.provider,
+      modelInfo.providers[0],
+      this.chatProvider,
+    ];
+    const nextProvider = candidates.find((provider): provider is ChatProvider => {
+      return !!provider && (modelInfo.providers.length === 0 || modelInfo.providers.includes(provider));
+    });
+
+    if (nextProvider) {
+      this.chatProvider = nextProvider;
+    }
+
+    if (modelInfo.model) {
+      this.chatModel = modelInfo.model;
+    }
+  };
+
+  switchChatProvider = (provider: ChatProvider) => {
+    this.showProviderMenu = false;
+    if (this.isTurnRunning()) return;
+    if (provider === this.chatProvider) return;
+    if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
+
+    // 切换 provider 时保留当前对话上下文，仅重置会话 ID 以避免跨 provider 复用会话
+    this.chatSessionId = null;
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    this.chatProvider = provider;
+    this.chatModel = '';
+    this.persistAIState();
+    this.refreshChatProviderAndModel(provider).then(() => this.persistAIState());
+  };
+
+  toggleProviderMenu = () => {
+    if (this.isTurnRunning()) return;
+    if (this.availableAIProviders.length <= 1) return;
+    this.showProviderMenu = !this.showProviderMenu;
+  };
+
   // 打开聊天框
   openChatModal = (forceGlobal = false) => {
+    this.showProviderMenu = false;
     this.showCloseConfirm = false;
     // 组合键直达 AI 时使用全局模式，避免沿用陈旧 DOM context
     if (forceGlobal) {
@@ -1342,11 +1401,9 @@ export class CodeInspectorComponent extends LitElement {
 
     this.showChatModal = true;
 
-    // 获取模型信息
-    if (!this.chatModel) {
-      fetchModelInfo(this.ip, this.port).then((model) => {
-        if (model && this.isConnected) this.chatModel = model;
-      });
+    // 获取 provider/模型信息
+    if (!this.chatModel || this.availableAIProviders.length === 0 || !this.chatProvider) {
+      this.refreshChatProviderAndModel();
     }
 
     // 阻止背景滚动
@@ -1387,6 +1444,7 @@ export class CodeInspectorComponent extends LitElement {
       this.chatPositionCleanup = null;
     }
     this.showCloseConfirm = false;
+    this.showProviderMenu = false;
     this.showChatModal = false;
 
     // 恢复背景滚动
@@ -1429,6 +1487,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 清空聊天记录
   clearChatMessages = () => {
+    this.showProviderMenu = false;
     this.revokeMessageImageUrls(this.chatMessages);
     this.clearPendingPastedImages(true);
     this.chatMessages = [];
@@ -1561,6 +1620,11 @@ export class CodeInspectorComponent extends LitElement {
   handleChatDragStart = (e: MouseEvent) => {
     // 只响应鼠标左键
     if (e.button !== 0) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('button, input, textarea, select, .chat-provider-switcher')) {
+      return;
+    }
+    this.showProviderMenu = false;
 
     const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
     if (!chatModal) return;
@@ -1618,13 +1682,24 @@ export class CodeInspectorComponent extends LitElement {
 
   // 处理点击遮罩层关闭弹窗
   handleOverlayClick = () => {
+    this.showProviderMenu = false;
     // 如果刚刚拖拽结束，不关闭弹窗
     if (this.wasDragging) return;
     this.closeChatModal();
   };
 
+  handleChatModalClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('.chat-provider-switcher')) return;
+    if (this.showProviderMenu) {
+      this.showProviderMenu = false;
+    }
+  };
+
   // 发送聊天消息
   sendChatMessage = async () => {
+    this.showProviderMenu = false;
     if (this.chatLoading || this.chatImageProcessing) return;
 
     const historyForRequest = this.chatSessionId
@@ -1783,7 +1858,8 @@ export class CodeInspectorComponent extends LitElement {
           },
         },
         this.chatAbortController.signal,
-        this.chatSessionId
+        this.chatSessionId,
+        this.chatProvider
       );
       // 正常完成：最终刷新确保所有内容显示
       flushUpdate();
@@ -1930,7 +2006,8 @@ export class CodeInspectorComponent extends LitElement {
           },
         },
         this.chatAbortController.signal,
-        this.chatSessionId
+        this.chatSessionId,
+        this.chatProvider
       );
       flushUpdate();
       this.stopTurnTimer('done');
@@ -2022,6 +2099,8 @@ export class CodeInspectorComponent extends LitElement {
       this.chatSessionId = persisted.chatSessionId;
       this.chatTheme = persisted.chatTheme;
       this.chatModel = persisted.chatModel;
+      this.chatProvider = persisted.chatProvider || null;
+      this.availableAIProviders = persisted.availableAIProviders || [];
       this.showChatModal = true;
 
       if (this.chatTheme === 'light') {
@@ -2038,6 +2117,7 @@ export class CodeInspectorComponent extends LitElement {
             chatModal.style.left = persisted.modalPosition.left;
             chatModal.style.top = persisted.modalPosition.top;
           }
+          this.refreshChatProviderAndModel(this.chatProvider).then(() => this.persistAIState());
           // 如果刷新前任务正在执行，自动恢复
           if (persisted.turnStatus === 'running' && persisted.chatSessionId) {
             this.resumeAITask();
@@ -2389,6 +2469,9 @@ export class CodeInspectorComponent extends LitElement {
             turnDuration: this.turnDuration,
             isDragging: this.isDragging,
             chatModel: this.chatModel,
+            chatProvider: this.chatProvider,
+            availableProviders: this.availableAIProviders,
+            showProviderMenu: this.showProviderMenu,
           },
           {
             closeChatModal: this.closeChatModal,
@@ -2403,9 +2486,12 @@ export class CodeInspectorComponent extends LitElement {
             sendChatMessage: this.sendChatMessage,
             toggleTheme: this.toggleTheme,
             interruptChat: this.interruptChat,
+            toggleProviderMenu: this.toggleProviderMenu,
+            switchProvider: this.switchChatProvider,
             handleDragStart: this.handleChatDragStart,
             handleDragMove: this.handleChatDragMove,
             handleDragEnd: this.handleChatDragEnd,
+            handleModalClick: this.handleChatModalClick,
             handleOverlayClick: this.handleOverlayClick,
           }
         )}

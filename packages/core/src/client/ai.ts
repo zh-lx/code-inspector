@@ -3,7 +3,13 @@
  */
 import { html, css, TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { computePosition, flip, shift, offset, Placement } from '@floating-ui/dom';
+import {
+  computePosition,
+  flip,
+  shift,
+  offset,
+  Placement,
+} from '@floating-ui/dom';
 import { marked } from 'marked';
 
 /** 项目根路径，由服务端 SSE info 事件传入 */
@@ -85,6 +91,14 @@ export interface ChatImageAttachment {
   previewUrl: string;
 }
 
+export type ChatProvider = 'claudeCode' | 'codex';
+
+export interface AIModelInfo {
+  model: string;
+  provider: ChatProvider | null;
+  providers: ChatProvider[];
+}
+
 /**
  * 聊天状态接口
  */
@@ -103,6 +117,9 @@ export interface ChatState {
   turnDuration: number; // 持续时间（秒）
   isDragging: boolean;
   chatModel: string; // 当前使用的模型名称
+  chatProvider: ChatProvider | null;
+  availableProviders: ChatProvider[];
+  showProviderMenu: boolean;
 }
 
 /**
@@ -121,9 +138,12 @@ export interface ChatHandlers {
   sendChatMessage: () => void;
   toggleTheme: () => void;
   interruptChat: () => void;
+  toggleProviderMenu: () => void;
+  switchProvider: (provider: ChatProvider) => void;
   handleDragStart: (e: MouseEvent) => void;
   handleDragMove: (e: MouseEvent) => void;
   handleDragEnd: () => void;
+  handleModalClick: (e: MouseEvent) => void;
   handleOverlayClick: () => void;
 }
 
@@ -132,18 +152,18 @@ export interface ChatHandlers {
  * right-top > left-top > right-bottom > left-bottom > bottom-right > top-right > bottom-left > top-left > right-center > left-center > bottom-center > top-center
  */
 const FALLBACK_PLACEMENTS: Placement[] = [
-  'right-start',   // right-top
-  'left-start',    // left-top
-  'right-end',     // right-bottom
-  'left-end',      // left-bottom
-  'bottom-end',    // bottom-right
-  'top-end',       // top-right
-  'bottom-start',  // bottom-left
-  'top-start',     // top-left
-  'right',         // right-center
-  'left',          // left-center
-  'bottom',        // bottom-center
-  'top',           // top-center
+  'right-start', // right-top
+  'left-start', // left-top
+  'right-end', // right-bottom
+  'left-end', // left-bottom
+  'bottom-end', // bottom-right
+  'top-end', // top-right
+  'bottom-start', // bottom-left
+  'top-start', // top-left
+  'right', // right-center
+  'left', // left-center
+  'bottom', // bottom-center
+  'top', // top-center
 ];
 
 /** 边距 */
@@ -157,7 +177,7 @@ const MARGIN = 16;
  */
 export function updateChatModalPosition(
   referenceEl: HTMLElement | null,
-  floatingEl: HTMLElement | null
+  floatingEl: HTMLElement | null,
 ): (() => void) | null {
   if (!referenceEl || !floatingEl) {
     return null;
@@ -274,17 +294,27 @@ function isCodexTool(tool: ToolCall): boolean {
   return tool.input?._provider === 'codex';
 }
 
+function formatProviderName(provider: ChatProvider): string {
+  return provider === 'codex' ? 'Codex' : 'Claude';
+}
+
 function getChangePath(input: Record<string, any>): string {
   if (typeof input.file_path === 'string' && input.file_path) {
     return input.file_path;
   }
-  if (Array.isArray(input.changes) && typeof input.changes[0]?.path === 'string') {
+  if (
+    Array.isArray(input.changes) &&
+    typeof input.changes[0]?.path === 'string'
+  ) {
     return input.changes[0].path;
   }
   return '';
 }
 
-function getCodexDisplayInfo(tool: ToolCall): { name: string; summary: string } {
+function getCodexDisplayInfo(tool: ToolCall): {
+  name: string;
+  summary: string;
+} {
   const input = tool.input || {};
   const done = Boolean(tool.isComplete);
 
@@ -293,13 +323,17 @@ function getCodexDisplayInfo(tool: ToolCall): { name: string; summary: string } 
   }
   if (tool.name === 'Edit') {
     const filePath = toRelativePath(getChangePath(input));
-    const fallback = Array.isArray(input.changes) && input.changes.length > 0
-      ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
-      : '';
+    const fallback =
+      Array.isArray(input.changes) && input.changes.length > 0
+        ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
+        : '';
     return { name: done ? 'Edited' : 'Editing', summary: filePath || fallback };
   }
   if (tool.name === 'WebSearch') {
-    return { name: done ? 'Explored' : 'Exploring', summary: input.query || '' };
+    return {
+      name: done ? 'Explored' : 'Exploring',
+      summary: input.query || '',
+    };
   }
 
   return { name: tool.name, summary: '' };
@@ -373,9 +407,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   const input = tool.input || {};
   const oldStr = String(input.old_string || '');
   const newStr = String(input.new_string || '');
-  const diffBlocks = Array.isArray(input.diff_blocks)
-    ? input.diff_blocks
-    : [];
+  const diffBlocks = Array.isArray(input.diff_blocks) ? input.diff_blocks : [];
 
   const splitLines = (text: string): string[] => {
     const normalized = text.replace(/\r\n/g, '\n');
@@ -386,17 +418,25 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
     return lines;
   };
 
-  const fallbackChangedLines = (oldLines: string[], newLines: string[]): Array<{ type: 'add' | 'del'; text: string }> => {
+  const fallbackChangedLines = (
+    oldLines: string[],
+    newLines: string[],
+  ): Array<{ type: 'add' | 'del'; text: string }> => {
     let prefix = 0;
-    while (prefix < oldLines.length && prefix < newLines.length && oldLines[prefix] === newLines[prefix]) {
+    while (
+      prefix < oldLines.length &&
+      prefix < newLines.length &&
+      oldLines[prefix] === newLines[prefix]
+    ) {
       prefix++;
     }
 
     let suffix = 0;
     while (
-      suffix < oldLines.length - prefix
-      && suffix < newLines.length - prefix
-      && oldLines[oldLines.length - 1 - suffix] === newLines[newLines.length - 1 - suffix]
+      suffix < oldLines.length - prefix &&
+      suffix < newLines.length - prefix &&
+      oldLines[oldLines.length - 1 - suffix] ===
+        newLines[newLines.length - 1 - suffix]
     ) {
       suffix++;
     }
@@ -411,20 +451,27 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
     return changed;
   };
 
-  const buildChangedLines = (oldText: string, newText: string): Array<{ type: 'add' | 'del'; text: string }> => {
+  const buildChangedLines = (
+    oldText: string,
+    newText: string,
+  ): Array<{ type: 'add' | 'del'; text: string }> => {
     const oldLines = splitLines(oldText);
     const newLines = splitLines(newText);
 
     if (oldLines.length === 0 && newLines.length === 0) return [];
-    if (oldLines.length === 0) return newLines.map((text) => ({ type: 'add', text }));
-    if (newLines.length === 0) return oldLines.map((text) => ({ type: 'del', text }));
+    if (oldLines.length === 0)
+      return newLines.map((text) => ({ type: 'add', text }));
+    if (newLines.length === 0)
+      return oldLines.map((text) => ({ type: 'del', text }));
 
     const maxCells = 200000;
     if (oldLines.length * newLines.length > maxCells) {
       return fallbackChangedLines(oldLines, newLines);
     }
 
-    const dp = Array.from({ length: oldLines.length + 1 }, () => Array<number>(newLines.length + 1).fill(0));
+    const dp = Array.from({ length: oldLines.length + 1 }, () =>
+      Array<number>(newLines.length + 1).fill(0),
+    );
     for (let i = oldLines.length - 1; i >= 0; i--) {
       for (let j = newLines.length - 1; j >= 0; j--) {
         if (oldLines[i] === newLines[j]) {
@@ -489,9 +536,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
     return sections;
   };
 
-  const changes = Array.isArray(input.changes)
-    ? input.changes
-    : [];
+  const changes = Array.isArray(input.changes) ? input.changes : [];
 
   const renderedFromBlocks = diffBlocks
     .map((block: any) => {
@@ -502,12 +547,19 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
       if (changed.length === 0) return null;
 
       return html`
-        ${filePath ? html`<div class="diff-file-header">${toRelativePath(filePath)}</div>` : ''}
-        ${changed.map((line) =>
-        html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-            >${line.type === 'add' ? '+' : '-'} ${line.text}</div
-          >`
-      )}
+        ${filePath
+          ? html`<div class="diff-file-header">
+              ${toRelativePath(filePath)}
+            </div>`
+          : ''}
+        ${changed.map(
+          (line) =>
+            html`<div
+              class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
+            >
+              ${line.type === 'add' ? '+' : '-'} ${line.text}
+            </div>`,
+        )}
       `;
     })
     .filter(Boolean);
@@ -529,16 +581,24 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
         const filePath = String(change?.path || '');
         if (!filePath) return null;
 
-        const changed = buildChangedLines(oldSections.get(filePath) || '', newSections.get(filePath) || '');
+        const changed = buildChangedLines(
+          oldSections.get(filePath) || '',
+          newSections.get(filePath) || '',
+        );
         if (changed.length === 0) return null;
 
         return html`
           <div class="diff-file-header">${toRelativePath(filePath)}</div>
-          ${changed.map((line) =>
-          html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-              >${line.type === 'add' ? '+' : '-'} ${line.text}</div
-            >`
-        )}
+          ${changed.map(
+            (line) =>
+              html`<div
+                class="diff-line ${line.type === 'add'
+                  ? 'diff-add'
+                  : 'diff-del'}"
+              >
+                ${line.type === 'add' ? '+' : '-'} ${line.text}
+              </div>`,
+          )}
         `;
       })
       .filter(Boolean);
@@ -550,11 +610,14 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
 
   const changed = buildChangedLines(oldStr, newStr);
   return html`<div class="diff-view">
-    ${changed.map((line) =>
-    html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-        >${line.type === 'add' ? '+' : '-'} ${line.text}</div
-      >`
-  )}
+    ${changed.map(
+      (line) =>
+        html`<div
+          class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
+        >
+          ${line.type === 'add' ? '+' : '-'} ${line.text}
+        </div>`,
+    )}
   </div>`;
 }
 
@@ -566,37 +629,48 @@ function renderToolCall(tool: ToolCall): TemplateResult {
   const isComplete = tool.isComplete;
   const hasResult = tool.result !== undefined;
   const isEdit = tool.name === 'Edit';
-  const hasEditInput = isEdit && tool.input && (
-    tool.input.old_string
-    || tool.input.new_string
-    || (Array.isArray(tool.input.diff_blocks) && tool.input.diff_blocks.length > 0)
-  );
-  const suppressResult = (
-    isCodexTool(tool)
-    && !tool.isError
-    && (tool.name === 'Bash' || tool.name === 'WebSearch')
-  );
+  const hasEditInput =
+    isEdit &&
+    tool.input &&
+    (tool.input.old_string ||
+      tool.input.new_string ||
+      (Array.isArray(tool.input.diff_blocks) &&
+        tool.input.diff_blocks.length > 0));
+  const suppressResult =
+    isCodexTool(tool) &&
+    !tool.isError &&
+    (tool.name === 'Bash' || tool.name === 'WebSearch');
 
   return html`
     <div class="tool-call-inline">
       <div class="tool-header-inline">
-        <span class="tool-bullet ${isComplete ? 'tool-bullet-complete' : 'tool-bullet-running'}">●</span>
+        <span
+          class="tool-bullet ${isComplete
+            ? 'tool-bullet-complete'
+            : 'tool-bullet-running'}"
+          >●</span
+        >
         <span class="tool-name-inline">${name}</span>
-        ${summary ? html`<span class="tool-summary-inline">${summary}</span>` : ''}
+        ${summary
+          ? html`<span class="tool-summary-inline">${summary}</span>`
+          : ''}
       </div>
       ${hasEditInput
-      ? html`<div class="tool-diff-wrapper">
+        ? html`<div class="tool-diff-wrapper">
             <span class="tool-result-bracket">⎿</span>
             ${renderEditDiff(tool)}
           </div>`
-      : hasResult && !suppressResult
-        ? html`<div class="tool-result-inline">
+        : hasResult && !suppressResult
+          ? html`<div class="tool-result-inline">
               <span class="tool-result-bracket">⎿</span>
-              <span class="tool-result-text ${tool.isError ? 'tool-error-text' : ''}"
+              <span
+                class="tool-result-text ${tool.isError
+                  ? 'tool-error-text'
+                  : ''}"
                 >${formatToolResult(tool.result!, tool.name)}</span
               >
             </div>`
-        : ''}
+          : ''}
     </div>
   `;
 }
@@ -611,36 +685,52 @@ function renderMessageContent(msg: ChatMessage): TemplateResult {
   if (msg.blocks && msg.blocks.length > 0) {
     return html`
       ${msg.blocks.map((block) => {
-      if (block.type === 'text' && block.content) {
-        if (isAssistant) {
-          return html`<div class="chat-text-inline chat-markdown">${unsafeHTML(renderMarkdown(block.content))}</div>`;
+        if (block.type === 'text' && block.content) {
+          if (isAssistant) {
+            return html`<div class="chat-text-inline chat-markdown">
+              ${unsafeHTML(renderMarkdown(block.content))}
+            </div>`;
+          }
+          return html`<div class="chat-text-inline">${block.content}</div>`;
+        } else if (block.type === 'tool' && block.tool) {
+          return renderToolCall(block.tool);
         }
-        return html`<div class="chat-text-inline">${block.content}</div>`;
-      } else if (block.type === 'tool' && block.tool) {
-        return renderToolCall(block.tool);
-      }
-      return html``;
-    })}
+        return html``;
+      })}
     `;
   }
 
-  if (msg.role === 'user' && Array.isArray(msg.images) && msg.images.length > 0) {
+  if (
+    msg.role === 'user' &&
+    Array.isArray(msg.images) &&
+    msg.images.length > 0
+  ) {
     return html`
       <div class="chat-image-grid">
-        ${msg.images.map((image) => html`
-          <div class="chat-image-item">
-            <img class="chat-image-preview" src="${image.previewUrl}" alt="${image.name || 'pasted-image'}" />
-            <div class="chat-image-meta">${image.name || 'pasted-image'}</div>
-          </div>
-        `)}
+        ${msg.images.map(
+          (image) => html`
+            <div class="chat-image-item">
+              <img
+                class="chat-image-preview"
+                src="${image.previewUrl}"
+                alt="${image.name || 'pasted-image'}"
+              />
+              <div class="chat-image-meta">${image.name || 'pasted-image'}</div>
+            </div>
+          `,
+        )}
       </div>
-      ${msg.content ? html`<div class="chat-text-inline">${msg.content}</div>` : ''}
+      ${msg.content
+        ? html`<div class="chat-text-inline">${msg.content}</div>`
+        : ''}
     `;
   }
 
   // 否则只渲染文本内容
   if (isAssistant && msg.content) {
-    return html`<div class="chat-text-inline chat-markdown">${unsafeHTML(renderMarkdown(msg.content))}</div>`;
+    return html`<div class="chat-text-inline chat-markdown">
+      ${unsafeHTML(renderMarkdown(msg.content))}
+    </div>`;
   }
   return html`<div class="chat-text-inline">${msg.content}</div>`;
 }
@@ -654,7 +744,8 @@ function renderMessageContext(msg: ChatMessage): TemplateResult {
   return html`<div class="chat-message-context">
     <span class="chat-message-context-tag">Context</span>
     <span class="chat-message-context-text"
-      >&lt;${context.name}&gt; ${toRelativePath(context.file)}#${context.line}</span
+      >&lt;${context.name}&gt;
+      ${toRelativePath(context.file)}#${context.line}</span
     >
   </div>`;
 }
@@ -664,7 +755,7 @@ function renderMessageContext(msg: ChatMessage): TemplateResult {
  */
 export function renderChatModal(
   state: ChatState,
-  handlers: ChatHandlers
+  handlers: ChatHandlers,
 ): TemplateResult {
   if (!state.showChatModal) {
     return html``;
@@ -678,36 +769,108 @@ export function renderChatModal(
       @mouseup="${handlers.handleDragEnd}"
     >
       <div
-        class="chat-modal chat-modal-floating ${state.isDragging ? 'dragging' : ''}"
+        class="chat-modal chat-modal-floating ${state.isDragging
+          ? 'dragging'
+          : ''}"
         id="chat-modal-floating"
-        @click="${(e: MouseEvent) => e.stopPropagation()}"
+        @click="${handlers.handleModalClick}"
       >
         <div class="chat-modal-header" @mousedown="${handlers.handleDragStart}">
           <div class="chat-modal-title-wrapper">
             <div class="chat-modal-title-row">
               <h3 class="chat-modal-title">AI Assistant</h3>
+              ${state.availableProviders.length > 1
+                ? html`<div
+                    class="chat-provider-switcher"
+                    @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                    @click="${(e: MouseEvent) => e.stopPropagation()}"
+                  >
+                    <button
+                      class="chat-provider-badge chat-provider-trigger ${state.showProviderMenu
+                        ? 'open'
+                        : ''}"
+                      title="Switch AI provider"
+                      ?disabled="${state.chatLoading ||
+                      state.turnStatus === 'running'}"
+                      @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                      @click="${handlers.toggleProviderMenu}"
+                    >
+                      <span class="chat-provider-label"
+                        >${formatProviderName(
+                          state.chatProvider || state.availableProviders[0],
+                        )}</span
+                      >
+                    </button>
+                    ${state.showProviderMenu
+                      ? html`<div
+                          class="chat-provider-menu"
+                          @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                        >
+                          ${state.availableProviders.map(
+                            (provider) => html`
+                              <button
+                                class="chat-provider-option ${provider ===
+                                state.chatProvider
+                                  ? 'active'
+                                  : ''}"
+                                @mousedown="${(e: MouseEvent) =>
+                                  e.stopPropagation()}"
+                                @click="${() =>
+                                  handlers.switchProvider(provider)}"
+                              >
+                                ${formatProviderName(provider)}
+                              </button>
+                            `,
+                          )}
+                        </div>`
+                      : ''}
+                  </div>`
+                : state.chatProvider
+                  ? html`<span class="chat-provider-badge"
+                      >${formatProviderName(state.chatProvider)}</span
+                    >`
+                  : ''}
               ${state.chatModel
-      ? html`<span class="chat-model-badge">${state.chatModel}</span>`
-      : ''}
+                ? html`<span class="chat-model-badge">${state.chatModel}</span>`
+                : ''}
             </div>
             <span class="chat-context-info">
               ${state.chatContext
-      ? html`&lt;${state.chatContext.name}&gt; ${state.chatContext.file}#${state.chatContext.line}`
-      : 'Global'}
+                ? html`&lt;${state.chatContext.name}&gt;
+                  ${state.chatContext.file}#${state.chatContext.line}`
+                : 'Global'}
             </span>
           </div>
           <div class="chat-modal-actions">
             <button
               class="chat-modal-theme"
               @click="${handlers.toggleTheme}"
-              title="${state.chatTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}"
+              title="${state.chatTheme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'}"
             >
               ${state.chatTheme === 'dark'
-      ? html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                ? html`<svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <circle cx="12" cy="12" r="5" />
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    <path
+                      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                    />
                   </svg>`
-      : html`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                : html`<svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                   </svg>`}
             </button>
@@ -734,7 +897,16 @@ export function renderChatModal(
               @click="${handlers.closeChatModal}"
               title="Close"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M18 6 6 18" />
                 <path d="m6 6 12 12" />
               </svg>
@@ -743,82 +915,97 @@ export function renderChatModal(
         </div>
         <div class="chat-modal-content">
           ${state.chatMessages.length === 0
-      ? html`<div class="chat-empty">
+            ? html`<div class="chat-empty">
                 <span class="chat-empty-prompt">❯</span>
-                <span class="chat-empty-text">Ask me anything about this code...</span>
+                <span class="chat-empty-text"
+                  >Ask me anything about this code...</span
+                >
               </div>`
-      : state.chatMessages.map(
-        (msg) => html`
+            : state.chatMessages.map(
+                (msg) => html`
                   <div class="chat-line chat-line-${msg.role}">
                     ${msg.role === 'user'
-            ? html`<span class="chat-prompt">❯</span>`
-            : html`<span class="chat-indent"></span>`}
+                      ? html`<span class="chat-prompt">❯</span>`
+                      : html`<span class="chat-indent"></span>`}
                     <div class="chat-message-content">
-                      ${renderMessageContext(msg)}
-                      ${renderMessageContent(msg)}
+                      ${renderMessageContext(msg)} ${renderMessageContent(msg)}
                     </div>
                   </div>
-                `
-      )}
+                `,
+              )}
           ${state.chatLoading &&
-      (!state.chatMessages.length ||
-        state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
-      ? html`<div class="chat-loading">
+          (!state.chatMessages.length ||
+            state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
+            ? html`<div class="chat-loading">
                 <span class="chat-indent"></span>
                 <span class="chat-cursor"></span>
               </div>`
-      : ''}
+            : ''}
         </div>
         ${state.turnStatus !== 'idle'
-      ? html`<div class="chat-status-bar">
+          ? html`<div class="chat-status-bar">
               <div class="chat-status-info">
                 <span class="chat-status-icon ${state.turnStatus}">
                   ${state.turnStatus === 'running'
-          ? '●'
-          : state.turnStatus === 'done'
-            ? '✓'
-            : '■'}
+                    ? '●'
+                    : state.turnStatus === 'done'
+                      ? '✓'
+                      : '■'}
                 </span>
                 <span class="chat-status-text">
                   ${state.turnStatus === 'running'
-          ? 'Running'
-          : state.turnStatus === 'done'
-            ? 'Done'
-            : 'Interrupt'}
+                    ? 'Running'
+                    : state.turnStatus === 'done'
+                      ? 'Done'
+                      : 'Interrupt'}
                 </span>
-                <span class="chat-status-duration">· ${formatDuration(state.turnDuration)}</span>
+                <span class="chat-status-duration"
+                  >· ${formatDuration(state.turnDuration)}</span
+                >
               </div>
               ${state.turnStatus === 'running'
-          ? html`<button
+                ? html`<button
                     class="chat-interrupt-btn"
                     @click="${handlers.interruptChat}"
                     title="Interrupt"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <rect x="6" y="6" width="12" height="12" rx="1" />
                     </svg>
                   </button>`
-          : ''}
+                : ''}
             </div>`
-      : ''}
+          : ''}
         <div class="chat-modal-footer">
           ${state.chatPastedImages.length > 0
-      ? html`<div class="chat-paste-preview">
-                ${state.chatPastedImages.map((image) => html`
-                  <div class="chat-paste-preview-item">
-                    <img class="chat-paste-preview-img" src="${image.previewUrl}" alt="${image.name || 'pasted-image'}" />
-                    <button
-                      class="chat-paste-remove"
-                      title="Remove image"
-                      @click="${() => handlers.removePastedImage(image.id)}"
-                      ?disabled="${state.chatLoading || state.chatImageProcessing}"
-                    >
-                      ×
-                    </button>
-                  </div>
-                `)}
+            ? html`<div class="chat-paste-preview">
+                ${state.chatPastedImages.map(
+                  (image) => html`
+                    <div class="chat-paste-preview-item">
+                      <img
+                        class="chat-paste-preview-img"
+                        src="${image.previewUrl}"
+                        alt="${image.name || 'pasted-image'}"
+                      />
+                      <button
+                        class="chat-paste-remove"
+                        title="Remove image"
+                        @click="${() => handlers.removePastedImage(image.id)}"
+                        ?disabled="${state.chatLoading ||
+                        state.chatImageProcessing}"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  `,
+                )}
               </div>`
-      : ''}
+            : ''}
           <span class="chat-input-prompt">❯</span>
           <textarea
             class="chat-input"
@@ -833,11 +1020,13 @@ export function renderChatModal(
           <button
             class="chat-send-btn"
             @click="${handlers.sendChatMessage}"
-            ?disabled="${state.chatLoading || state.chatImageProcessing || (!state.chatInput.trim() && state.chatPastedImages.length === 0)}"
+            ?disabled="${state.chatLoading ||
+            state.chatImageProcessing ||
+            (!state.chatInput.trim() && state.chatPastedImages.length === 0)}"
             title="Send (Enter)"
           >
             ${state.chatLoading || state.chatImageProcessing
-      ? html`<svg
+              ? html`<svg
                   class="chat-send-loading"
                   width="16"
                   height="16"
@@ -854,7 +1043,7 @@ export function renderChatModal(
                     stroke-linecap="round"
                   />
                 </svg>`
-      : html`<svg
+              : html`<svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -869,26 +1058,41 @@ export function renderChatModal(
         </div>
 
         ${state.showCloseConfirm
-      ? html`<div class="chat-close-confirm-overlay" @click="${(e: MouseEvent) => e.stopPropagation()}">
+          ? html`<div
+              class="chat-close-confirm-overlay"
+              @click="${(e: MouseEvent) => e.stopPropagation()}"
+            >
               <div class="chat-close-confirm">
-                <div class="chat-close-confirm-title">Task is still running</div>
+                <div class="chat-close-confirm-title">
+                  Task is still running
+                </div>
                 <div class="chat-close-confirm-desc">
-                  Closing this dialog will keep the task running in the background.
+                  Closing this dialog will keep the task running in the
+                  background.
                 </div>
                 <div class="chat-close-confirm-actions">
-                  <button class="chat-confirm-btn chat-confirm-btn-danger" @click="${handlers.terminateAndCloseChatModal}">
+                  <button
+                    class="chat-confirm-btn chat-confirm-btn-danger"
+                    @click="${handlers.terminateAndCloseChatModal}"
+                  >
                     Terminate
                   </button>
-                  <button class="chat-confirm-btn chat-confirm-btn-primary" @click="${handlers.confirmCloseChatModal}">
+                  <button
+                    class="chat-confirm-btn chat-confirm-btn-primary"
+                    @click="${handlers.confirmCloseChatModal}"
+                  >
                     Confirm
                   </button>
-                  <button class="chat-confirm-btn" @click="${handlers.cancelCloseChatModal}">
+                  <button
+                    class="chat-confirm-btn"
+                    @click="${handlers.cancelCloseChatModal}"
+                  >
                     Cancel
                   </button>
                 </div>
               </div>
             </div>`
-      : ''}
+          : ''}
       </div>
     </div>
   `;
@@ -904,6 +1108,7 @@ export const chatStyles = css`
     --chat-header-bg: #252526;
     --chat-border: #333;
     --chat-text: #d4d4d4;
+    --chat-text-primary: #d4d4d4;
     --chat-text-secondary: #ccc;
     --chat-text-muted: #aaa;
     --chat-text-placeholder: #888;
@@ -939,6 +1144,7 @@ export const chatStyles = css`
     --chat-ai-text: #9cdcfe;
     --chat-user-text: #d4d4d4;
     --chat-hover-bg: #333;
+    --chat-bg-secondary: #2a2a2a;
     --chat-diff-add-bg: rgba(35, 134, 54, 0.15);
     --chat-diff-add-text: #4ec9b0;
     --chat-diff-del-bg: rgba(218, 54, 51, 0.15);
@@ -951,6 +1157,7 @@ export const chatStyles = css`
     --chat-header-bg: #f5f5f5;
     --chat-border: #e0e0e0;
     --chat-text: #333333;
+    --chat-text-primary: #333333;
     --chat-text-secondary: #555555;
     --chat-text-muted: #666;
     --chat-text-placeholder: #aaaaaa;
@@ -986,6 +1193,7 @@ export const chatStyles = css`
     --chat-ai-text: #0550ae;
     --chat-user-text: #333333;
     --chat-hover-bg: #e8e8e8;
+    --chat-bg-secondary: #f0f2f5;
     --chat-diff-add-bg: rgba(35, 134, 54, 0.1);
     --chat-diff-add-text: #1a7f37;
     --chat-diff-del-bg: rgba(218, 54, 51, 0.1);
@@ -1035,23 +1243,45 @@ export const chatStyles = css`
   }
 
   @keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   @keyframes slideIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   .chat-modal-header {
@@ -1088,7 +1318,8 @@ export const chatStyles = css`
     font-size: 13px;
     font-weight: 500;
     color: var(--chat-text-secondary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .chat-modal-title-row {
@@ -1098,8 +1329,8 @@ export const chatStyles = css`
   }
 
   .chat-model-badge {
-    font-size: 10px;
-    color: var(--chat-text-muted);
+    font-size: 12px;
+    color: var(--chat-text-secondary);
     background: var(--chat-border);
     padding: 1px 6px;
     border-radius: 3px;
@@ -1110,6 +1341,24 @@ export const chatStyles = css`
     text-overflow: ellipsis;
   }
 
+  .chat-provider-badge {
+    font-size: 10px;
+    color: var(--chat-text-secondary);
+    background: var(--chat-hover-bg);
+    border: 1px solid var(--chat-border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .chat-provider-switcher {
+    position: relative;
+    display: inline-flex;
+  }
+
   .chat-context-info {
     font-size: 11px;
     color: var(--chat-text-muted);
@@ -1117,6 +1366,78 @@ export const chatStyles = css`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .chat-provider-trigger {
+    border: 1px solid var(--chat-border);
+    background: var(--chat-border);
+    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    max-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chat-provider-trigger:hover:not(:disabled),
+  .chat-provider-trigger.open {
+    background: transparent;
+    border-color: var(--chat-text-muted);
+  }
+
+  .chat-provider-trigger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chat-provider-label {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-provider-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 112px;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-bg);
+    border-radius: 6px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+    padding: 6px;
+    z-index: 999;
+  }
+
+  .chat-provider-option {
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--chat-text-secondary);
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 11px;
+    text-align: left;
+    padding: 5px 8px;
+    cursor: pointer;
+  }
+
+  .chat-provider-option:hover {
+    background: var(--chat-hover-bg);
+  }
+
+  .chat-provider-option.active {
+    background: var(--chat-bg-secondary);
+    color: var(--chat-accent);
+    font-weight: 600;
+  }
+
+  .chat-provider-chevron {
+    font-size: 9px;
+    color: var(--chat-text-muted);
+    flex-shrink: 0;
   }
 
   .chat-modal-actions {
@@ -1405,12 +1726,20 @@ export const chatStyles = css`
     color: var(--chat-heading);
   }
 
-  .chat-markdown h1 { font-size: 1.4em; }
-  .chat-markdown h2 { font-size: 1.25em; }
-  .chat-markdown h3 { font-size: 1.1em; }
+  .chat-markdown h1 {
+    font-size: 1.4em;
+  }
+  .chat-markdown h2 {
+    font-size: 1.25em;
+  }
+  .chat-markdown h3 {
+    font-size: 1.1em;
+  }
   .chat-markdown h4,
   .chat-markdown h5,
-  .chat-markdown h6 { font-size: 1em; }
+  .chat-markdown h6 {
+    font-size: 1em;
+  }
 
   .chat-markdown code {
     background: var(--chat-code-bg);
@@ -1541,8 +1870,13 @@ export const chatStyles = css`
   }
 
   @keyframes cursorBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
 
   /* 状态栏 */
@@ -1582,8 +1916,13 @@ export const chatStyles = css`
   }
 
   @keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
   .chat-status-text {
@@ -1738,8 +2077,12 @@ export const chatStyles = css`
   }
 
   @keyframes chatSendSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* CLI 扁平内联工具调用 */
@@ -1771,8 +2114,13 @@ export const chatStyles = css`
   }
 
   @keyframes toolPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
   }
 
   .tool-name-inline {
@@ -1892,7 +2240,11 @@ export const chatStyles = css`
 export interface StreamHandlers {
   onText: (content: string) => void;
   onToolStart: (toolId: string, toolName: string, index: number) => void;
-  onToolInput: (index: number, input: Record<string, any>, toolUseId?: string) => void;
+  onToolInput: (
+    index: number,
+    input: Record<string, any>,
+    toolUseId?: string,
+  ) => void;
   onToolResult: (toolUseId: string, content: string, isError?: boolean) => void;
   onError: (error: Error) => void;
   onSessionId?: (sessionId: string) => void;
@@ -1900,17 +2252,52 @@ export interface StreamHandlers {
   onModel?: (model: string) => void;
 }
 
+function normalizeChatProvider(provider: unknown): ChatProvider | null {
+  if (provider === 'codex' || provider === 'claudeCode') {
+    return provider;
+  }
+  return null;
+}
+
 /**
  * 获取 AI 模型信息
  */
-export async function fetchModelInfo(ip: string, port: number): Promise<string> {
+export async function fetchModelInfo(
+  ip: string,
+  port: number,
+  provider?: ChatProvider | null,
+): Promise<AIModelInfo> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/model`);
-    if (!response.ok) return '';
+    const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
+    const response = await fetch(`http://${ip}:${port}/ai/model${query}`);
+    if (!response.ok) {
+      return {
+        model: '',
+        provider: provider || null,
+        providers: provider ? [provider] : [],
+      };
+    }
     const data = await response.json();
-    return data.model || '';
+    const resolvedProvider = normalizeChatProvider(data?.provider);
+    const providers = Array.isArray(data?.providers)
+      ? data.providers
+          .map((item: unknown) => normalizeChatProvider(item))
+          .filter(
+            (item: ChatProvider | null): item is ChatProvider => item !== null,
+          )
+      : [];
+
+    return {
+      model: typeof data?.model === 'string' ? data.model : '',
+      provider: resolvedProvider,
+      providers: providers.length > 0 ? providers : provider ? [provider] : [],
+    };
   } catch {
-    return '';
+    return {
+      model: '',
+      provider: provider || null,
+      providers: provider ? [provider] : [],
+    };
   }
 }
 
@@ -1925,7 +2312,8 @@ export async function sendChatToServer(
   history: ChatHistoryMessage[] | undefined,
   handlers: StreamHandlers,
   signal?: AbortSignal,
-  sessionId?: string | null
+  sessionId?: string | null,
+  provider?: ChatProvider | null,
 ): Promise<void> {
   const response = await fetch(`http://${ip}:${port}/ai`, {
     method: 'POST',
@@ -1937,6 +2325,7 @@ export async function sendChatToServer(
       context,
       ...(history && history.length > 0 ? { history } : {}),
       ...(sessionId && { sessionId }),
+      ...(provider && { provider }),
     }),
     signal,
   });
@@ -1975,13 +2364,25 @@ export async function sendChatToServer(
                 }
                 break;
               case 'tool_start':
-                handlers.onToolStart(parsed.toolId, parsed.toolName, parsed.index);
+                handlers.onToolStart(
+                  parsed.toolId,
+                  parsed.toolName,
+                  parsed.index,
+                );
                 break;
               case 'tool_input':
-                handlers.onToolInput(parsed.index, parsed.input, parsed.toolUseId);
+                handlers.onToolInput(
+                  parsed.index,
+                  parsed.input,
+                  parsed.toolUseId,
+                );
                 break;
               case 'tool_result':
-                handlers.onToolResult(parsed.toolUseId, parsed.content, parsed.isError);
+                handlers.onToolResult(
+                  parsed.toolUseId,
+                  parsed.content,
+                  parsed.isError,
+                );
                 break;
               case 'session':
                 if (parsed.sessionId) {

@@ -1,7 +1,7 @@
 /**
  * AI 对话状态持久化 - 使用 sessionStorage 在页面刷新后恢复弹窗
  */
-import type { ChatMessage, ChatContext } from './ai';
+import type { ChatMessage, ChatContext, ChatProvider } from './ai';
 /**
  * 持久化的 AI 状态
  */
@@ -12,6 +12,8 @@ export interface PersistedAIState {
     chatSessionId: string | null;
     chatTheme: 'light' | 'dark';
     chatModel: string;
+    chatProvider: ChatProvider | null;
+    availableAIProviders: ChatProvider[];
     modalPosition: {
         left: string;
         top: string;

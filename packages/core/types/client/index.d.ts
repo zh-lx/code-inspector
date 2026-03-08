@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
-import { ChatMessage, ChatContext, ChatImageAttachment, ToolCall } from './ai';
+import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall } from './ai';
 interface Position {
     left?: string;
     right?: string;
@@ -122,6 +122,9 @@ export declare class CodeInspectorComponent extends LitElement {
     turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
     turnDuration: number;
     chatModel: string;
+    chatProvider: ChatProvider | null;
+    availableAIProviders: ChatProvider[];
+    showProviderMenu: boolean;
     private chatAbortController;
     private turnTimerInterval;
     private turnStartTime;
@@ -231,6 +234,9 @@ export declare class CodeInspectorComponent extends LitElement {
     private buildMessageWithPastedImages;
     private buildChatHistoryForModel;
     private resolveActiveChatContext;
+    private refreshChatProviderAndModel;
+    switchChatProvider: (provider: ChatProvider) => void;
+    toggleProviderMenu: () => void;
     openChatModal: (forceGlobal?: boolean) => void;
     private performCloseChatModal;
     private isTurnRunning;
@@ -253,6 +259,7 @@ export declare class CodeInspectorComponent extends LitElement {
     handleChatDragMove: (e: MouseEvent) => void;
     handleChatDragEnd: () => void;
     handleOverlayClick: () => void;
+    handleChatModalClick: (e: MouseEvent) => void;
     sendChatMessage: () => Promise<void>;
     private resumeAITask;
     /**

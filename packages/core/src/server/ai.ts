@@ -38,19 +38,24 @@ export interface AIRequest {
   context: AIContext | null;
   history?: AIMessage[];
   sessionId?: string;
+  provider?: AIProviderType;
 }
 
 export type AIProviderType = 'claudeCode' | 'codex';
 
-export type ActiveAIOptions =
-  | {
-    provider: 'claudeCode';
-    options: ClaudeCodeOptions;
-  }
-  | {
-    provider: 'codex';
-    options: CodexOptions;
-  };
+type AIProviderOptionsMap = {
+  claudeCode: ClaudeCodeOptions;
+  codex: CodexOptions;
+};
+
+export type ResolvedAIOptions = Partial<AIProviderOptionsMap>;
+
+export type ActiveAIOptions<T extends AIProviderType = AIProviderType> = {
+  provider: T;
+  options: AIProviderOptionsMap[T];
+};
+
+const PROVIDER_PRIORITY: AIProviderType[] = ['codex', 'claudeCode'];
 
 // ============================================================================
 // 公共 API
@@ -61,19 +66,55 @@ export type ActiveAIOptions =
  */
 export function getAIOptions(
   behavior?: { ai?: { claudeCode?: boolean | ClaudeCodeOptions; codex?: boolean | CodexOptions } }
-): ActiveAIOptions | undefined {
+): ResolvedAIOptions | undefined {
+  const resolved: ResolvedAIOptions = {};
+
   if (behavior?.ai?.codex) {
-    return {
-      provider: 'codex',
-      options: typeof behavior.ai.codex === 'boolean' ? {} : behavior.ai.codex,
-    };
+    resolved.codex = typeof behavior.ai.codex === 'boolean' ? {} : behavior.ai.codex;
   }
 
   if (behavior?.ai?.claudeCode) {
+    resolved.claudeCode = typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode;
+  }
+
+  return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
+
+function normalizeAIProviderType(provider?: string | null): AIProviderType | undefined {
+  if (provider === 'codex' || provider === 'claudeCode') {
+    return provider;
+  }
+  return undefined;
+}
+
+export function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[] {
+  if (!aiOptions) return [];
+  return PROVIDER_PRIORITY.filter((provider) => Boolean(aiOptions[provider]));
+}
+
+export function resolveAIOptions(
+  aiOptions: ResolvedAIOptions | undefined,
+  requestedProvider?: AIProviderType
+): ActiveAIOptions | undefined {
+  if (!aiOptions) {
+    return undefined;
+  }
+
+  if (requestedProvider && aiOptions[requestedProvider]) {
     return {
-      provider: 'claudeCode',
-      options: typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode,
+      provider: requestedProvider,
+      options: aiOptions[requestedProvider] as AIProviderOptionsMap[AIProviderType],
     };
+  }
+
+  for (const provider of PROVIDER_PRIORITY) {
+    const options = aiOptions[provider];
+    if (options) {
+      return {
+        provider,
+        options: options as AIProviderOptionsMap[AIProviderType],
+      };
+    }
   }
 
   return undefined;
@@ -96,7 +137,7 @@ export async function handleAIRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
-  aiOptions: ActiveAIOptions | undefined,
+  aiOptions: ResolvedAIOptions | undefined,
   projectRootPath: string
 ): Promise<void> {
   // 读取请求体
@@ -116,6 +157,7 @@ export async function handleAIRequest(
   }
 
   const { message, context, sessionId } = aiRequest;
+  const requestedProvider = normalizeAIProviderType(aiRequest.provider);
   const history = Array.isArray(aiRequest.history) ? aiRequest.history : [];
 
   // 设置 SSE 响应头
@@ -129,7 +171,8 @@ export async function handleAIRequest(
   const sendSSE = createSSESender(res);
   const cwd = projectRootPath || process.cwd();
 
-  if (!aiOptions) {
+  const activeAIOptions = resolveAIOptions(aiOptions, requestedProvider);
+  if (!activeAIOptions) {
     sendSSE({ error: 'AI provider is not configured. Please set behavior.ai.claudeCode or behavior.ai.codex.' });
     sendSSE('[DONE]');
     res.end();
@@ -137,14 +180,14 @@ export async function handleAIRequest(
   }
 
   let provider: ProviderResult;
-  if (aiOptions.provider === 'codex') {
+  if (activeAIOptions.provider === 'codex') {
     provider = handleCodexRequest(
       message,
       context,
       history,
       sessionId,
       cwd,
-      aiOptions.options,
+      activeAIOptions.options as CodexOptions,
       {
         sendSSE,
         onEnd: () => res.end(),
@@ -157,7 +200,7 @@ export async function handleAIRequest(
       history,
       sessionId,
       cwd,
-      aiOptions.options,
+      activeAIOptions.options as ClaudeCodeOptions,
       {
         sendSSE,
         onEnd: () => res.end(),
@@ -183,11 +226,19 @@ export async function handleAIRequest(
 export async function handleAIModelRequest(
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
-  aiOptions: ActiveAIOptions | undefined,
+  aiOptions: ResolvedAIOptions | undefined,
+  requestedProvider?: string | null,
 ): Promise<void> {
-  const model = aiOptions?.provider === 'codex'
-    ? await getCodexModelInfo(aiOptions.options)
-    : await getClaudeModelInfo(aiOptions?.options);
+  const normalizedProvider = normalizeAIProviderType(requestedProvider);
+  const activeAIOptions = resolveAIOptions(aiOptions, normalizedProvider);
+  const availableProviders = getAvailableAIProviders(aiOptions);
+  const model = activeAIOptions?.provider === 'codex'
+    ? await getCodexModelInfo(activeAIOptions.options as CodexOptions)
+    : await getClaudeModelInfo(activeAIOptions?.options as ClaudeCodeOptions | undefined);
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ model }));
+  res.end(JSON.stringify({
+    model,
+    provider: activeAIOptions?.provider || null,
+    providers: availableProviders,
+  }));
 }
