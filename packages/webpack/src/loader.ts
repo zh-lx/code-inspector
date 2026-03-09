@@ -29,7 +29,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     (filePath.endsWith('.vue') &&
       jsxParamList.some((param) => params.get(param) !== null));
   if (isJSX) {
-    return transformCode({
+    return await transformCode({
       content,
       filePath,
       fileType: 'jsx',
@@ -54,7 +54,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     ];
     for (const script of scripts) {
       if (!script) continue;
-      const newScript = transformCode({
+      const newScript = await transformCode({
         content: script,
         filePath,
         fileType: 'jsx',
@@ -77,7 +77,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
     params.get('type') === 'template' &&
     params.has('vue');
   if (isVue || isHtmlVue) {
-    return transformCode({
+    return await transformCode({
       content,
       filePath,
       fileType: 'vue',
@@ -89,7 +89,7 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   // svelte
   const isSvelte = filePath.endsWith('.svelte');
   if (isSvelte) {
-    return transformCode({
+    return await transformCode({
       content,
       filePath,
       fileType: 'svelte',
