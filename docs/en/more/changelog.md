@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.4.4
+
+- 【fix】Asynchronously load `@vue/compiler-dom` to fix startup failures in some projects due to dependency issues [#498](https://github.com/zh-lx/code-inspector/pull/498)
+
 ## 1.4.3
 
-- 【fix】Fixed the issue where vscode `1.110.0+` version could not be recognized [#493](https://github.com/zh-lx/code-inspector/pull/493)
+- 【fix】Fixed the issue where vscode `1.110.0+` version could not be recognized [#494](https://github.com/zh-lx/code-inspector/pull/494)
 
 ## 1.4.2
 - 【fix】Fixed the issue where the page would scroll when switching parent/child elements by scrolling with the mouse wheel [#480](https://github.com/zh-lx/code-inspector/pull/480)
