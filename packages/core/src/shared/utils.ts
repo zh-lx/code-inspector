@@ -366,7 +366,7 @@ export function isIgnoredFile({
   fileType,
 }: {
   content: string;
-  fileType: 'vue' | 'jsx' | 'svelte' | unknown;
+  fileType: 'vue' | 'vue-html' | 'jsx' | 'svelte' | unknown;
 }): boolean {
   if (!content) {
     return false;
@@ -374,8 +374,8 @@ export function isIgnoredFile({
   const trimmed = content.trimStart();
   const directives = ['code-inspector-disable', 'code-inspector-ignore'];
 
-  // Vue / Svelte - check HTML comments
-  if (fileType === 'vue' || fileType === 'svelte') {
+  // Vue / Vue HTML / Svelte - check HTML comments
+  if (fileType === 'vue' || fileType === 'vue-html' || fileType === 'svelte') {
     if (trimmed.startsWith('<!--')) {
       const endIndex = trimmed.indexOf('-->');
       if (endIndex !== -1) {

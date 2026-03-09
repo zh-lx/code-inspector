@@ -37,6 +37,11 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
   const module = _compiler?.options?.module;
   /* v8 ignore next -- fallback for legacy webpack versions with module.loaders */
   const rules = module?.rules || module?.loaders || [];
+  // Determine the file match pattern, supporting both default and user-configured patterns
+  const matchPattern = options.match ?? /\.(vue|jsx|tsx|js|ts|mjs|mts|svelte)$/;
+  // Check if user's match pattern includes .html
+  const matchIncludesHtml = matchPattern instanceof RegExp && matchPattern.test('.html');
+
   rules.push(
     {
       test: options.match ?? /\.html$/,
@@ -49,8 +54,26 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       ],
       ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
     },
+    // If user's match pattern includes .html, add a separate rule for standalone .html files
+    // These are HTML template files used as Vue templates via require('./xxx.html')
+    ...(matchIncludesHtml
+      ? [
+          {
+            test: /\.html$/,
+            use: [
+              {
+                loader: path.resolve(compatibleDirname, `./loader.js`),
+                options,
+              },
+            ],
+            ...(options.enforcePre === false ? {} : { enforce: 'pre' }),
+          },
+        ]
+      : []),
     {
-      test: /\.(vue|jsx|tsx|js|ts|mjs|mts|svelte)$/,
+      test: matchIncludesHtml
+        ? /\.(vue|jsx|tsx|js|ts|mjs|mts|svelte)$/
+        : matchPattern,
       use: [
         {
           loader: path.resolve(compatibleDirname, `./loader.js`),
