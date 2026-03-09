@@ -7,5 +7,5 @@ type TransformCodeParams = {
     escapeTags: EscapeTags;
     pathType: PathType;
 };
-export declare function transformCode(params: TransformCodeParams): string;
+export declare function transformCode(params: TransformCodeParams): Promise<string>;
 export {};

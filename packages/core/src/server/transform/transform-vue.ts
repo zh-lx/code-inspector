@@ -5,7 +5,6 @@ import type {
   NodeTransform,
   ElementNode,
 } from '@vue/compiler-dom';
-import { parse, transform } from '@vue/compiler-dom';
 import { ProjectRootPath } from '../server';
 import path from 'path';
 import fs from 'fs';
@@ -17,8 +16,21 @@ import {
 } from './transform-vue-pug';
 
 const VueElementType = 1;
+type VueCompilerDom = Pick<typeof import('@vue/compiler-dom'), 'parse' | 'transform'>;
+const VUE_COMPILER_DOM = '@vue/compiler-dom';
+let vueCompilerDomPromise: Promise<VueCompilerDom> | undefined;
 
-export function transformVue(
+async function getVueCompilerDom(): Promise<VueCompilerDom> {
+  if (!vueCompilerDomPromise) {
+    vueCompilerDomPromise = import(
+      /* @vite-ignore */
+      VUE_COMPILER_DOM
+    ).then(({ parse, transform }) => ({ parse, transform }));
+  }
+  return vueCompilerDomPromise;
+}
+
+export async function transformVue(
   content: string,
   filePath: string,
   escapeTags: EscapeTags
@@ -44,6 +56,7 @@ export function transformVue(
   }
 
   const s = new MagicString(content);
+  const { parse, transform } = await getVueCompilerDom();
 
   const ast = parse(content, {
     comments: true,
@@ -65,7 +78,7 @@ export function transformVue(
   if (pugMap.has(filePath) && templateNode) {
     transformPugTemplate(content, filePath, templateNode, escapeTags, s);
   } else {
-    transformVueTemplate(ast, filePath, escapeTags, s);
+    transformVueTemplate(ast, filePath, escapeTags, s, transform);
   }
 
   let result = s.toString();
@@ -83,7 +96,8 @@ function transformVueTemplate(
   ast: any,
   filePath: string,
   escapeTags: EscapeTags,
-  s: MagicString
+  s: MagicString,
+  transform: VueCompilerDom['transform']
 ): void {
   transform(ast, {
     nodeTransforms: [

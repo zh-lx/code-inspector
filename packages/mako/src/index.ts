@@ -59,7 +59,7 @@ export function MakoCodeInspectorPlugin(options: Options): Record<string, any> {
         const ext = path.extname(id).slice(1);
         let filePath = normalizePath(id);
         filePath = getMappingFilePath(filePath, mappings);
-        const result = transformCode({
+        const result = await transformCode({
           content: code,
           filePath,
           fileType: 'jsx',

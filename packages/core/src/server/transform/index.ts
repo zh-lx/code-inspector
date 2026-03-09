@@ -31,7 +31,7 @@ const CodeInspectorEscapeTags = [
   'fragment',
 ];
 
-export function transformCode(params: TransformCodeParams) {
+export async function transformCode(params: TransformCodeParams) {
   let {
     content,
     filePath,
@@ -48,7 +48,7 @@ export function transformCode(params: TransformCodeParams) {
 
   try {
     if (fileType === 'vue') {
-      return transformVue(content, filePath, finalEscapeTags);
+      return await transformVue(content, filePath, finalEscapeTags);
     } else if (fileType === 'jsx') {
       return transformJsx(content, filePath, finalEscapeTags);
     } else if (fileType === 'svelte') {

@@ -38,11 +38,11 @@ describe('transformCode', () => {
   });
 
   describe('basic functionality', () => {
-    it('should return original content when file does not exist', () => {
+    it('should return original content when file does not exist', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
       const content = '<div>Hello</div>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/non/existent/file.vue',
         fileType: 'vue',
@@ -53,9 +53,9 @@ describe('transformCode', () => {
       expect(result).toBe(content);
     });
 
-    it('should return original content for unknown fileType', () => {
+    it('should return original content for unknown fileType', async () => {
       const content = '<div>Hello</div>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.html',
         fileType: 'html',
@@ -66,9 +66,9 @@ describe('transformCode', () => {
       expect(result).toBe(content);
     });
 
-    it('should use default escapeTags and pathType when not provided', () => {
+    it('should use default escapeTags and pathType when not provided', async () => {
       const content = '<template><div>Hello</div></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -81,9 +81,9 @@ describe('transformCode', () => {
   });
 
   describe('vue transformation', () => {
-    it('should transform vue content', () => {
+    it('should transform vue content', async () => {
       const content = '<template><div>Hello</div></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -94,9 +94,9 @@ describe('transformCode', () => {
       expect(result).toContain('data-insp-path');
     });
 
-    it('should not transform escaped tags in vue', () => {
+    it('should not transform escaped tags in vue', async () => {
       const content = '<template><script>console.log("test")</script></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -108,9 +108,9 @@ describe('transformCode', () => {
       expect(result).not.toContain('data-insp-path="file.vue:1:12:script"');
     });
 
-    it('should merge custom escapeTags with default ones', () => {
+    it('should merge custom escapeTags with default ones', async () => {
       const content = '<template><custom-tag>Hello</custom-tag></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -123,9 +123,9 @@ describe('transformCode', () => {
   });
 
   describe('jsx transformation', () => {
-    it('should transform jsx content', () => {
+    it('should transform jsx content', async () => {
       const content = 'function App() { return <div>Hello</div>; }';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.jsx',
         fileType: 'jsx',
@@ -136,9 +136,9 @@ describe('transformCode', () => {
       expect(result).toContain('data-insp-path');
     });
 
-    it('should transform tsx content with TypeScript', () => {
+    it('should transform tsx content with TypeScript', async () => {
       const content = 'function App(): JSX.Element { return <div>Hello</div>; }';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.tsx',
         fileType: 'jsx',
@@ -151,9 +151,9 @@ describe('transformCode', () => {
   });
 
   describe('svelte transformation', () => {
-    it('should transform svelte content', () => {
+    it('should transform svelte content', async () => {
       const content = '<div>Hello</div>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.svelte',
         fileType: 'svelte',
@@ -167,9 +167,9 @@ describe('transformCode', () => {
 
   describe('isIgnoredFile', () => {
     describe('vue/svelte files', () => {
-      it('should ignore vue file with code-inspector-disable comment', () => {
+      it('should ignore vue file with code-inspector-disable comment', async () => {
         const content = '<!-- code-inspector-disable -->\n<template><div>Hello</div></template>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.vue',
           fileType: 'vue',
@@ -180,9 +180,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should ignore vue file with code-inspector-ignore comment', () => {
+      it('should ignore vue file with code-inspector-ignore comment', async () => {
         const content = '<!-- code-inspector-ignore -->\n<template><div>Hello</div></template>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.vue',
           fileType: 'vue',
@@ -193,9 +193,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should ignore svelte file with code-inspector-disable comment', () => {
+      it('should ignore svelte file with code-inspector-disable comment', async () => {
         const content = '<!-- code-inspector-disable -->\n<div>Hello</div>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.svelte',
           fileType: 'svelte',
@@ -206,9 +206,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should not ignore vue file without proper comment ending', () => {
+      it('should not ignore vue file without proper comment ending', async () => {
         const content = '<!-- code-inspector-disable\n<template><div>Hello</div></template>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.vue',
           fileType: 'vue',
@@ -224,9 +224,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should not ignore vue file when comment is not at the start', () => {
+      it('should not ignore vue file when comment is not at the start', async () => {
         const content = '<template><!-- code-inspector-disable --><div>Hello</div></template>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.vue',
           fileType: 'vue',
@@ -237,9 +237,9 @@ describe('transformCode', () => {
         expect(result).toContain('data-insp-path');
       });
 
-      it('should handle case insensitive directives in vue files', () => {
+      it('should handle case insensitive directives in vue files', async () => {
         const content = '<!-- CODE-INSPECTOR-DISABLE -->\n<template><div>Hello</div></template>';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.vue',
           fileType: 'vue',
@@ -252,9 +252,9 @@ describe('transformCode', () => {
     });
 
     describe('jsx/tsx files', () => {
-      it('should ignore jsx file with single line comment code-inspector-disable', () => {
+      it('should ignore jsx file with single line comment code-inspector-disable', async () => {
         const content = '// code-inspector-disable\nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -265,9 +265,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should ignore jsx file with single line comment code-inspector-ignore', () => {
+      it('should ignore jsx file with single line comment code-inspector-ignore', async () => {
         const content = '// code-inspector-ignore\nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -278,9 +278,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should ignore jsx file with block comment', () => {
+      it('should ignore jsx file with block comment', async () => {
         const content = '/* code-inspector-disable */\nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -291,9 +291,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should ignore jsx file with multi-line block comment', () => {
+      it('should ignore jsx file with multi-line block comment', async () => {
         const content = '/**\n * code-inspector-disable\n */\nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -304,9 +304,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should not ignore jsx file with block comment without proper ending', () => {
+      it('should not ignore jsx file with block comment without proper ending', async () => {
         const content = '/* code-inspector-disable \nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -319,9 +319,9 @@ describe('transformCode', () => {
         expect(result).toBe(content);
       });
 
-      it('should not ignore jsx file when comment is not at the start', () => {
+      it('should not ignore jsx file when comment is not at the start', async () => {
         const content = 'import React from "react";\n// code-inspector-disable\nfunction App() { return <div>Hello</div>; }';
-        const result = transformCode({
+        const result = await transformCode({
           content,
           filePath: '/test/file.jsx',
           fileType: 'jsx',
@@ -333,9 +333,9 @@ describe('transformCode', () => {
       });
     });
 
-    it('should not ignore file with empty content', () => {
+    it('should not ignore file with empty content', async () => {
       const content = '';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -347,9 +347,9 @@ describe('transformCode', () => {
       expect(result).toBe(content);
     });
 
-    it('should handle whitespace before comment', () => {
+    it('should handle whitespace before comment', async () => {
       const content = '   <!-- code-inspector-disable -->\n<template><div>Hello</div></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.vue',
         fileType: 'vue',
@@ -362,10 +362,10 @@ describe('transformCode', () => {
   });
 
   describe('error handling', () => {
-    it('should return original content when transformation throws error', () => {
+    it('should return original content when transformation throws error', async () => {
       // Use invalid jsx that will cause parsing error
       const content = 'function App() { return <div>>>invalid<<<</div>; }';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/test/file.jsx',
         fileType: 'jsx',
@@ -379,9 +379,9 @@ describe('transformCode', () => {
   });
 
   describe('pathType', () => {
-    it('should use relative path when pathType is relative', () => {
+    it('should use relative path when pathType is relative', async () => {
       const content = '<template><div>Hello</div></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/full/path/to/file.vue',
         fileType: 'vue',
@@ -392,9 +392,9 @@ describe('transformCode', () => {
       expect(result).toContain('data-insp-path="file.vue');
     });
 
-    it('should use absolute path when pathType is absolute', () => {
+    it('should use absolute path when pathType is absolute', async () => {
       const content = '<template><div>Hello</div></template>';
-      const result = transformCode({
+      const result = await transformCode({
         content,
         filePath: '/full/path/to/file.vue',
         fileType: 'vue',
