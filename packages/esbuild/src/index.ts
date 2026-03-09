@@ -71,7 +71,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
             }
 
             if (fileType) {
-              code = transformCode({
+              code = await transformCode({
                 content: code,
                 filePath,
                 fileType,
@@ -84,7 +84,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
               const { descriptor } = parseSFC(code, {
                 sourceMap: false,
               });
-              const templateContent = transformCode({
+              const templateContent = await transformCode({
                 content: descriptor.template.content,
                 filePath,
                 fileType,

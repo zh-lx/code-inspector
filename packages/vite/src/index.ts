@@ -147,7 +147,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
       }
 
       if (fileType) {
-        return transformCode({
+        return await transformCode({
           content: code,
           filePath,
           fileType,
