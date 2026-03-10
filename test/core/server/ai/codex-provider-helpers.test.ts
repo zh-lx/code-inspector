@@ -123,6 +123,22 @@ describe('codex provider helpers', () => {
       ),
     ).toBe(true);
     expect(__TEST_ONLY__.shouldIgnorePlainLine('2025-01-01T00:00:00 ERROR bad')).toBe(true);
+    expect(
+      __TEST_ONLY__.shouldIgnorePlainLine(
+        'ERROR 2026-03-10T00:12:26 +88ms service=models.dev error=Unable to connect',
+      ),
+    ).toBe(true);
+    expect(
+      __TEST_ONLY__.shouldIgnorePlainLine(
+        'Performing one time database migration, may take a few minutes...',
+      ),
+    ).toBe(true);
+    expect(__TEST_ONLY__.shouldIgnorePlainLine('sqlite-migration:done')).toBe(
+      true,
+    );
+    expect(__TEST_ONLY__.shouldIgnorePlainLine('Database migration complete.')).toBe(
+      true,
+    );
     expect(__TEST_ONLY__.shouldIgnorePlainLine('normal line')).toBe(false);
   });
 
@@ -898,5 +914,44 @@ describe('codex provider helpers', () => {
 
   it('should cover getItemText null branch', () => {
     expect(__TEST_ONLY__.getItemText(null as any)).toBe('');
+  });
+
+  it('should report incompatible opencode sdk exports instead of pretending sdk is missing', async () => {
+    const OriginalFunction = globalThis.Function;
+    const sent: any[] = [];
+    try {
+      __TEST_ONLY__.resetCaches();
+      (globalThis as any).Function = vi.fn(() => {
+        return async () => ({
+          OpencodeClient: function OpencodeClient() {},
+          createOpencodeClient: vi.fn(),
+        });
+      });
+
+      const result = await __TEST_ONLY__.queryViaSdk(
+        'prompt',
+        process.cwd(),
+        {} as any,
+        undefined,
+        (data: any) => sent.push(data),
+        () => false,
+        [],
+        {
+          providerId: 'opencode',
+          displayName: 'OpenCode',
+          cliBinaryName: 'opencode',
+          sdkPackages: ['@opencode-ai/sdk'],
+          sdkInstallCommand: 'npm install @opencode-ai/sdk',
+        },
+      );
+
+      expect(result).toBeNull();
+      const message = sent.find((item) => item?.type === 'text')?.content || '';
+      expect(message).toContain('SDK is installed');
+      expect(message).toContain('incompatible');
+      expect(message).toContain("type: 'cli'");
+    } finally {
+      (globalThis as any).Function = OriginalFunction;
+    }
   });
 });

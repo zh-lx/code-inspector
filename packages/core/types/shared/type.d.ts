@@ -207,6 +207,45 @@ export type CodexOptions = {
      */
     options?: CodexSdkOptions;
 };
+/**
+ * @zh OpenCode CLI 配置项
+ * @en OpenCode CLI options
+ */
+export type OpenCodeCliOptions = CodexCliOptions;
+/**
+ * @zh OpenCode SDK 配置项
+ * @en OpenCode SDK options
+ */
+export type OpenCodeSdkOptions = Omit<CodexSdkOptions, 'config'> & {
+    /** 透传 OpenCode SDK/server 配置 */
+    config?: Record<string, any>;
+    /** OpenCode SDK 可执行路径覆盖 */
+    opencodePathOverride?: string;
+};
+export type OpenCodeAgentOptions = OpenCodeCliOptions | OpenCodeSdkOptions;
+export type OpenCodeOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 OpenCode CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local OpenCode CLI. Defaults to 'cli'
+     */
+    type?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: OpenCodeCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 OpenCode SDK
+     * @en Specify the agent type to use. 'sdk' uses OpenCode SDK
+     */
+    type: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: OpenCodeSdkOptions;
+};
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
@@ -214,6 +253,7 @@ export type Behavior = {
     ai?: {
         claudeCode?: boolean | ClaudeCodeOptions;
         codex?: boolean | CodexOptions;
+        opencode?: boolean | OpenCodeOptions;
     };
     defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };

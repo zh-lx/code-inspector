@@ -3,6 +3,7 @@
  * 本地服务器模块 - 处理 IDE 打开和 AI 请求
  */
 import http from 'http';
+import portFinder from 'portfinder';
 import type { CodeOptions, RecordInfo } from '../shared';
 export declare function getEnvVars(): Record<string, string>;
 /** 项目根目录 */
@@ -19,6 +20,10 @@ export declare function getRelativeOrAbsolutePath(filePath: string, pathType?: '
  * 创建 HTTP 服务器
  */
 export declare function createServer(callback: (port: number) => void, options?: CodeOptions, record?: RecordInfo): http.Server;
+export declare const __TEST_ONLY__: {
+    createServer: typeof createServer;
+    getPort: typeof portFinder.getPort;
+};
 /**
  * 启动服务器
  */

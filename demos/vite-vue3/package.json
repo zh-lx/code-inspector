@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@openai/codex-sdk": "^0.106.0",
+    "@opencode-ai/sdk": "^1.2.24",
     "@vitejs/plugin-vue": "^4.1.0",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "code-inspector-plugin": "workspace:*",

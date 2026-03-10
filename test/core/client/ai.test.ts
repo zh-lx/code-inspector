@@ -592,7 +592,7 @@ describe('client ai module', () => {
         model: 'gpt-5-codex',
         models: ['gpt-5-codex', '', 'gpt-5.1-codex'],
         provider: 'codex',
-        providers: ['codex', 'invalid', 'claudeCode'],
+        providers: ['codex', 'invalid', 'claudeCode', 'opencode'],
       }),
     })));
 
@@ -601,7 +601,7 @@ describe('client ai module', () => {
       model: 'gpt-5-codex',
       models: ['gpt-5-codex', 'gpt-5.1-codex'],
       provider: 'codex',
-      providers: ['codex', 'claudeCode'],
+      providers: ['codex', 'claudeCode', 'opencode'],
     });
   });
 

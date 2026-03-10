@@ -6,7 +6,7 @@ The AI Assistant lets you chat with AI directly in the browser and modify code w
 
 ## Quick Start
 
-Enable AI via `behavior.ai`. Supported providers: `claudeCode` and `codex`.
+Enable AI via `behavior.ai`. Supported providers: `claudeCode`, `codex`, and `opencode`.
 
 ```js
 codeInspectorPlugin({
@@ -210,6 +210,74 @@ type CodexSdkOptions = {
 ```
 
 :::
+
+## OpenCode Configuration
+
+- `type: 'cli'`: use local OpenCode CLI (default).
+- `type: 'sdk'`: use OpenCode SDK.
+
+### Use OpenCode CLI
+
+Minimal setup:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      opencode: true,
+    },
+  },
+}),
+```
+
+Custom CLI options (same shape as Codex CLI options):
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      opencode: {
+        type: 'cli',
+        options: {
+          model: 'open-code-model',
+          models: ['open-code-model', 'open-code-model-next'],
+          sandbox: 'workspace-write',
+          fullAuto: true,
+        },
+      },
+    },
+  },
+}),
+```
+
+### Use OpenCode SDK
+
+Install:
+
+```bash
+npm i @opencode-ai/sdk
+```
+
+Configure:
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      opencode: {
+        type: 'sdk',
+        options: {
+          model: 'open-code-model',
+          models: ['open-code-model', 'open-code-model-next'],
+          approvalPolicy: 'on-request',
+          sandboxMode: 'workspace-write',
+          cwd: process.cwd(),
+        },
+      },
+    },
+  },
+}),
+```
 
 ## Claude Code Configuration
 
