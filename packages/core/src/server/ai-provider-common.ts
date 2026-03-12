@@ -24,6 +24,46 @@ export type CodexProviderRuntime = {
   sdkInstallCommand: string;
 };
 
+/** Parsed JSON event from Codex/OpenCode CLI or SDK stream */
+interface CliStreamEvent {
+  type: string;
+  sessionID?: string;
+  sessionId?: string;
+  thread_id?: string;
+  info?: {
+    id?: string;
+    modelID?: string;
+    model?: { modelID?: string };
+    error?: { message?: string; data?: { message?: string } };
+  };
+  part?: {
+    type?: string;
+    id?: string;
+    callID?: string;
+    tool?: string;
+    name?: string;
+    text?: string;
+    state?: any;
+    files?: any[];
+  };
+  properties?: Record<string, any>;
+  item?: any;
+  field?: string;
+  delta?: any;
+  text?: string;
+  output_text?: string;
+  partID?: string;
+  message?: any;
+  error?: any;
+  model?: string;
+  modelID?: string;
+  response?: { model?: string };
+  metadata?: { model?: string };
+  last_agent_message?: string;
+  result?: string;
+  content?: any;
+}
+
 export const CODEX_PROVIDER_RUNTIME: CodexProviderRuntime = {
   providerId: 'codex',
   displayName: 'Codex',
@@ -763,52 +803,52 @@ function extractTextFromContent(content: any): string {
   return '';
 }
 
-function extractModelFromEvent(event: any): string {
-  if (typeof event?.model === 'string') {
+function extractModelFromEvent(event: CliStreamEvent): string {
+  if (typeof event.model === 'string') {
     return event.model;
   }
-  if (typeof event?.modelID === 'string') {
+  if (typeof event.modelID === 'string') {
     return event.modelID;
   }
-  if (typeof event?.response?.model === 'string') {
+  if (typeof event.response?.model === 'string') {
     return event.response.model;
   }
-  if (typeof event?.metadata?.model === 'string') {
+  if (typeof event.metadata?.model === 'string') {
     return event.metadata.model;
   }
-  if (typeof event?.info?.modelID === 'string') {
+  if (typeof event.info?.modelID === 'string') {
     return event.info.modelID;
   }
-  if (typeof event?.info?.model?.modelID === 'string') {
+  if (typeof event.info?.model?.modelID === 'string') {
     return event.info.model.modelID;
   }
   return '';
 }
 
-function extractEventErrorMessage(event: any): string {
-  if (typeof event?.message === 'string' && event.message) {
+function extractEventErrorMessage(event: CliStreamEvent): string {
+  if (typeof event.message === 'string' && event.message) {
     return event.message;
   }
-  if (typeof event?.error === 'string' && event.error) {
+  if (typeof event.error === 'string' && event.error) {
     return event.error;
   }
-  if (typeof event?.error?.message === 'string' && event.error.message) {
+  if (typeof event.error?.message === 'string' && event.error.message) {
     return event.error.message;
   }
   if (
-    typeof event?.error?.data?.message === 'string' &&
+    typeof event.error?.data?.message === 'string' &&
     event.error.data.message
   ) {
     return event.error.data.message;
   }
   if (
-    typeof event?.info?.error?.message === 'string' &&
+    typeof event.info?.error?.message === 'string' &&
     event.info.error.message
   ) {
     return event.info.error.message;
   }
   if (
-    typeof event?.info?.error?.data?.message === 'string' &&
+    typeof event.info?.error?.data?.message === 'string' &&
     event.info.error.data.message
   ) {
     return event.info.error.data.message;
@@ -816,44 +856,46 @@ function extractEventErrorMessage(event: any): string {
   return '';
 }
 
-function extractTextEvent(event: any): { text: string; delta: boolean } | null {
-  if (event?.type === 'text' && typeof event?.part?.text === 'string') {
+function extractTextEvent(
+  event: CliStreamEvent,
+): { text: string; delta: boolean } | null {
+  if (event.type === 'text' && typeof event.part?.text === 'string') {
     return { text: event.part.text, delta: false };
   }
-  if (event?.type === 'reasoning' && typeof event?.part?.text === 'string') {
+  if (event.type === 'reasoning' && typeof event.part?.text === 'string') {
     return { text: event.part.text, delta: false };
   }
   if (
-    event?.type === 'response.output_text.delta' &&
+    event.type === 'response.output_text.delta' &&
     typeof event.delta === 'string'
   ) {
     return { text: event.delta, delta: true };
   }
   if (
-    event?.type === 'response.output_text.done' &&
+    event.type === 'response.output_text.done' &&
     typeof event.text === 'string'
   ) {
     return { text: event.text, delta: false };
   }
-  if (typeof event?.delta === 'string') {
+  if (typeof event.delta === 'string') {
     return { text: event.delta, delta: true };
   }
-  if (typeof event?.delta?.text === 'string') {
+  if (typeof event.delta?.text === 'string') {
     return { text: event.delta.text, delta: true };
   }
-  if (typeof event?.text === 'string') {
+  if (typeof event.text === 'string') {
     return { text: event.text, delta: false };
   }
-  if (typeof event?.output_text === 'string') {
+  if (typeof event.output_text === 'string') {
     return { text: event.output_text, delta: false };
   }
 
-  const messageText = extractTextFromContent(event?.message?.content);
+  const messageText = extractTextFromContent(event.message?.content);
   if (messageText) {
     return { text: messageText, delta: false };
   }
 
-  const contentText = extractTextFromContent(event?.content);
+  const contentText = extractTextFromContent(event.content);
   if (contentText) {
     return { text: contentText, delta: false };
   }
@@ -1049,22 +1091,25 @@ function queryViaCli(
     }
 
     try {
-      let event = JSON.parse(normalizedLine);
+      let parsed = JSON.parse(normalizedLine);
 
       // Unwrap GlobalEvent format: { directory, payload: Event }
-      if (event?.payload?.type) {
-        event = event.payload;
+      if (parsed?.payload?.type) {
+        parsed = parsed.payload;
       }
 
-      if (event?.sessionID && onSessionId) {
+      if (!parsed || typeof parsed.type !== 'string') return;
+      const event: CliStreamEvent = parsed;
+
+      if (event.sessionID && onSessionId) {
         onSessionId(String(event.sessionID));
-      } else if (event?.sessionId && onSessionId) {
+      } else if (event.sessionId && onSessionId) {
         onSessionId(String(event.sessionId));
-      } else if (event?.info?.id && onSessionId) {
+      } else if (event.info?.id && onSessionId) {
         onSessionId(String(event.info.id));
       }
 
-      if (event?.type === 'thread.started' && event?.thread_id && onSessionId) {
+      if (event.type === 'thread.started' && event.thread_id && onSessionId) {
         onSessionId(event.thread_id);
         return;
       }
@@ -1075,7 +1120,7 @@ function queryViaCli(
         onModel(eventModel);
       }
 
-      if (event?.type === 'error') {
+      if (event.type === 'error') {
         const message =
           extractEventErrorMessage(event) || `${runtime.displayName} CLI error`;
         if (message.startsWith('Reconnecting...')) {
@@ -1086,7 +1131,7 @@ function queryViaCli(
         return;
       }
 
-      if (event?.type === 'turn.failed') {
+      if (event.type === 'turn.failed') {
         hasError = true;
         const message =
           extractEventErrorMessage(event) ||
@@ -1095,7 +1140,7 @@ function queryViaCli(
         return;
       }
 
-      if (event?.type === 'message.updated') {
+      if (event.type === 'message.updated') {
         const message = extractEventErrorMessage(event);
         if (message) {
           hasError = true;
@@ -1105,7 +1150,7 @@ function queryViaCli(
       }
 
       // OpenCode CLI: tool_use events (e.g. read, edit, bash)
-      if (event?.type === 'tool_use' && event?.part?.type === 'tool') {
+      if (event.type === 'tool_use' && event.part?.type === 'tool') {
         const part = event.part;
         const toolPartId =
           part.id || part.callID || `opencode-tool-${toolIndex}`;
@@ -1373,7 +1418,8 @@ function queryViaCli(
       // OpenCode CLI: session.diff carries file diffs
       if (
         event.type === 'session.diff' &&
-        Array.isArray(event.properties?.diff)
+        event.properties &&
+        Array.isArray(event.properties.diff)
       ) {
         for (const fileDiff of event.properties.diff) {
           if (!fileDiff?.file) continue;
@@ -2112,12 +2158,12 @@ function buildToolEventFromItem(
 }
 
 function buildSDKErrorMessage(
-  event: any,
+  event: CliStreamEvent,
   runtime: CodexProviderRuntime = CODEX_PROVIDER_RUNTIME,
 ): string {
-  if (typeof event?.message === 'string') return event.message;
-  if (typeof event?.error === 'string') return event.error;
-  if (typeof event?.error?.message === 'string') return event.error.message;
+  if (typeof event.message === 'string') return event.message;
+  if (typeof event.error === 'string') return event.error;
+  if (typeof event.error?.message === 'string') return event.error.message;
   return `${runtime.displayName} SDK error`;
 }
 
@@ -2252,23 +2298,26 @@ async function queryViaSdk(
   };
 
   try {
-    for await (const event of events) {
+    for await (const rawEvent of events) {
       if (isAborted()) {
         await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
         break;
       }
 
-      if (event?.type === 'error' || event?.type === 'turn.failed') {
+      if (!rawEvent || typeof rawEvent.type !== 'string') continue;
+      const event: CliStreamEvent = rawEvent;
+
+      if (event.type === 'error' || event.type === 'turn.failed') {
         sendSSE({ error: buildSDKErrorMessage(event, runtime) });
         continue;
       }
 
-      if (event?.type === 'item.started') {
+      if (event.type === 'item.started') {
         emitToolFromItem(event.item, false);
         continue;
       }
 
-      if (event?.type === 'item.updated') {
+      if (event.type === 'item.updated') {
         const item = event.item;
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
@@ -2287,7 +2336,7 @@ async function queryViaSdk(
         continue;
       }
 
-      if (event?.type === 'item.completed') {
+      if (event.type === 'item.completed') {
         const item = event.item;
         if (item?.type === 'agent_message' && item?.id) {
           const current = getItemText(item);
@@ -2315,7 +2364,7 @@ async function queryViaSdk(
         continue;
       }
 
-      if (event?.type === 'task_complete') {
+      if (event.type === 'task_complete') {
         if (
           !hasAnyText &&
           typeof event.last_agent_message === 'string' &&

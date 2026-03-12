@@ -10,6 +10,56 @@ export type CodexProviderRuntime = {
     sdkPackages: string[];
     sdkInstallCommand: string;
 };
+/** Parsed JSON event from Codex/OpenCode CLI or SDK stream */
+interface CliStreamEvent {
+    type: string;
+    sessionID?: string;
+    sessionId?: string;
+    thread_id?: string;
+    info?: {
+        id?: string;
+        modelID?: string;
+        model?: {
+            modelID?: string;
+        };
+        error?: {
+            message?: string;
+            data?: {
+                message?: string;
+            };
+        };
+    };
+    part?: {
+        type?: string;
+        id?: string;
+        callID?: string;
+        tool?: string;
+        name?: string;
+        text?: string;
+        state?: any;
+        files?: any[];
+    };
+    properties?: Record<string, any>;
+    item?: any;
+    field?: string;
+    delta?: any;
+    text?: string;
+    output_text?: string;
+    partID?: string;
+    message?: any;
+    error?: any;
+    model?: string;
+    modelID?: string;
+    response?: {
+        model?: string;
+    };
+    metadata?: {
+        model?: string;
+    };
+    last_agent_message?: string;
+    result?: string;
+    content?: any;
+}
 export declare const CODEX_PROVIDER_RUNTIME: CodexProviderRuntime;
 /**
  * 构建完整的提示信息
@@ -109,8 +159,8 @@ declare function buildOpenCodeRunArgs(codexOptions: CodexCliOptions, imagePaths:
 declare function buildCodexExecArgs(codexOptions: CodexCliOptions, outputFile: string, imagePaths: string[], prompt: string, sessionId?: string): string[];
 declare function buildCliArgs(codexOptions: CodexCliOptions, outputFile: string, imagePaths: string[], prompt: string, sessionId: string | undefined, runtime: CodexProviderRuntime): string[];
 declare function extractTextFromContent(content: any): string;
-declare function extractModelFromEvent(event: any): string;
-declare function extractTextEvent(event: any): {
+declare function extractModelFromEvent(event: CliStreamEvent): string;
+declare function extractTextEvent(event: CliStreamEvent): {
     text: string;
     delta: boolean;
 } | null;
@@ -168,7 +218,7 @@ declare function buildToolEventFromItem(item: any, context?: {
     result?: string;
     isError?: boolean;
 } | null;
-declare function buildSDKErrorMessage(event: any, runtime?: CodexProviderRuntime): string;
+declare function buildSDKErrorMessage(event: CliStreamEvent, runtime?: CodexProviderRuntime): string;
 declare function queryViaSdk(input: string | CodexRunInputItem[], cwd: string, codexOptions: CodexSdkOptions, sessionId: string | undefined, sendSSE: (data: object | string) => void, isAborted: () => boolean, tempImagePaths: string[], runtime?: CodexProviderRuntime): Promise<{
     interrupt?: () => Promise<void> | void;
 } | null>;
