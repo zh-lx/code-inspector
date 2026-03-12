@@ -1995,9 +1995,10 @@ function buildToolEventFromItem(
     return {
       toolId: String(item.id),
       toolName: 'Bash',
-      input: command
-        ? { _provider: providerId, command }
-        : { _provider: providerId },
+      input:
+        command !== ''
+          ? { _provider: providerId, command }
+          : { _provider: providerId },
       result: output || (exitCode !== undefined ? `exit code ${exitCode}` : ''),
       isError,
     };
@@ -2070,10 +2071,10 @@ function buildToolEventFromItem(
             old_string: oldString,
             new_string: newString,
           });
-          if (readBefore) {
+          if (readBefore !== '') {
             oldSections.push(`# ${displayPath}\n${oldString}`);
           }
-          if (afterText) {
+          if (afterText !== '') {
             newSections.push(`# ${displayPath}\n${newString}`);
           }
           continue;
@@ -2099,7 +2100,7 @@ function buildToolEventFromItem(
         if (beforeText) {
           oldSections.push(`# ${displayPath}\n${oldString}`);
         }
-        if (afterText) {
+        if (afterText !== '') {
           newSections.push(`# ${displayPath}\n${newString}`);
         }
       }
@@ -2233,7 +2234,7 @@ async function queryViaSdk(
     sendSSE({ type: 'info', model: threadOptions.model });
   }
 
-  const runResult = await thread.runStreamed(input as any);
+  const runResult = await thread?.runStreamed?.(input as any);
   const events = runResult?.events || runResult;
 
   const toolIndexMap = new Map<string, number>();
@@ -2300,7 +2301,7 @@ async function queryViaSdk(
   try {
     for await (const rawEvent of events) {
       if (isAborted()) {
-        await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
+        await Promise.resolve(thread?.interrupt?.()).catch(() => undefined);
         break;
       }
 
