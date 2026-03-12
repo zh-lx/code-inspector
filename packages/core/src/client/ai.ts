@@ -357,11 +357,10 @@ function getCodexDisplayInfo(tool: ToolCall): {
   summary: string;
 } {
   const input = tool.input || {};
-  const done = Boolean(tool.isComplete);
   const canonical = canonicalToolName(tool.name);
 
   if (canonical === 'Bash') {
-    return { name: done ? 'Ran' : 'Running', summary: input.command || '' };
+    return { name: 'Bash', summary: input.command || '' };
   }
   if (canonical === 'Edit') {
     const filePath = toRelativePath(getChangePath(input));
@@ -369,7 +368,7 @@ function getCodexDisplayInfo(tool: ToolCall): {
       Array.isArray(input.changes) && input.changes.length > 0
         ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
         : '';
-    return { name: done ? 'Edited' : 'Editing', summary: filePath || fallback };
+    return { name: 'Edited', summary: filePath || fallback };
   }
   if (canonical === 'Read') {
     let filePath = getChangePath(input);
@@ -379,13 +378,13 @@ function getCodexDisplayInfo(tool: ToolCall): {
       if (pathMatch) filePath = pathMatch[1].trim();
     }
     return {
-      name: done ? 'Read' : 'Reading',
+      name: 'Read',
       summary: toRelativePath(filePath),
     };
   }
   if (canonical === 'WebSearch') {
     return {
-      name: done ? 'Explored' : 'Exploring',
+      name: 'Search',
       summary: input.query || '',
     };
   }
@@ -675,11 +674,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
           : ''}
         ${changed.map(
           (line) =>
-            html`<div
-              class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-            >
-              ${line.type === 'add' ? '+' : '-'} ${line.text}
-            </div>`,
+            html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
         )}
       `;
     })
@@ -712,13 +707,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
           <div class="diff-file-header">${toRelativePath(filePath)}</div>
           ${changed.map(
             (line) =>
-              html`<div
-                class="diff-line ${line.type === 'add'
-                  ? 'diff-add'
-                  : 'diff-del'}"
-              >
-                ${line.type === 'add' ? '+' : '-'} ${line.text}
-              </div>`,
+              html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
           )}
         `;
       })
@@ -733,11 +722,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   return html`<div class="diff-view">
     ${changed.map(
       (line) =>
-        html`<div
-          class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-        >
-          ${line.type === 'add' ? '+' : '-'} ${line.text}
-        </div>`,
+        html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
     )}
   </div>`;
 }

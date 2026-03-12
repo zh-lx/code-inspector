@@ -23,7 +23,7 @@ function createChildProcessMock() {
   const child = new EventEmitter() as any;
   child.stdout = new EventEmitter();
   child.stderr = new EventEmitter();
-  child.stdin = { end: vi.fn() };
+  child.stdin = { end: vi.fn(), write: vi.fn((_data: any, cb?: () => void) => { if (cb) cb(); }) };
   child.kill = vi.fn();
   return child;
 }
@@ -137,6 +137,7 @@ describe('codex cli stream parsing', () => {
     );
 
     const args = (mockSpawn.mock.calls[0]?.[1] || []) as string[];
+    // When images are present, prompt is omitted from args and sent via stdin
     expect(args).toEqual([
       'run',
       '--format',
@@ -149,8 +150,8 @@ describe('codex cli stream parsing', () => {
       'sid-1',
       '--file',
       '/tmp/a.png',
-      'prompt',
     ]);
+    expect(child.stdin.write).toHaveBeenCalledWith('prompt', expect.any(Function));
 
     child.emit('close', 0);
   });

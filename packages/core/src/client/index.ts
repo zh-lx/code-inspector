@@ -1864,6 +1864,9 @@ export class CodeInspectorComponent extends LitElement {
             throttledUpdate();
           },
           onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
             const tool: ToolCall = {
               id: toolId,
               name: toolName,
@@ -2014,6 +2017,9 @@ export class CodeInspectorComponent extends LitElement {
             throttledUpdate();
           },
           onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
             const tool: ToolCall = {
               id: toolId,
               name: toolName,

@@ -186,6 +186,95 @@ describe('claude provider helpers', () => {
     expect(sent.some((item) => item?.error)).toBe(true);
   });
 
+  it('should not duplicate tool_start when same tool appears in stream_event and assistant message', async () => {
+    const sent: any[] = [];
+    const conversation = {
+      interrupt: vi.fn(),
+      async *[Symbol.asyncIterator]() {
+        // Tool t1 streamed via stream_event
+        yield {
+          type: 'stream_event',
+          event: { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 't1', name: 'Read' } },
+        };
+        yield {
+          type: 'stream_event',
+          event: { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: '{"file_path":"a.ts"}' } },
+        };
+        yield {
+          type: 'stream_event',
+          event: { type: 'content_block_stop', index: 0 },
+        };
+        // Assistant snapshot also contains the same tool t1
+        yield {
+          type: 'assistant',
+          message: {
+            content: [
+              { type: 'tool_use', id: 't1', name: 'Read', input: { file_path: 'a.ts' } },
+            ],
+          },
+          uuid: 'u1',
+        };
+        yield { type: 'result', subtype: 'success', result: '' };
+      },
+    };
+
+    __TEST_ONLY__.setClaudeQuery(() => conversation as any);
+
+    await __TEST_ONLY__.queryViaSdk(
+      'hello',
+      '/tmp/project',
+      { type: 'sdk', options: {} } as any,
+      undefined,
+      (data: any) => sent.push(data),
+      () => false,
+    );
+
+    const toolStarts = sent.filter((item) => item?.type === 'tool_start' && item.toolId === 't1');
+    expect(toolStarts).toHaveLength(1);
+  });
+
+  it('should not duplicate text when same content appears in stream_event and assistant message', async () => {
+    const sent: any[] = [];
+    const conversation = {
+      interrupt: vi.fn(),
+      async *[Symbol.asyncIterator]() {
+        // Text streamed via stream_event
+        yield {
+          type: 'stream_event',
+          event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'hello ' } },
+        };
+        yield {
+          type: 'stream_event',
+          event: { type: 'content_block_delta', delta: { type: 'text_delta', text: 'world' } },
+        };
+        // Assistant snapshot contains the same accumulated text
+        yield {
+          type: 'assistant',
+          message: { content: [{ type: 'text', text: 'hello world' }] },
+          uuid: 'msg-1',
+        };
+        yield { type: 'result', subtype: 'success', result: '' };
+      },
+    };
+
+    __TEST_ONLY__.setClaudeQuery(() => conversation as any);
+
+    await __TEST_ONLY__.queryViaSdk(
+      'hello',
+      '/tmp/project',
+      { type: 'sdk', options: {} } as any,
+      undefined,
+      (data: any) => sent.push(data),
+      () => false,
+    );
+
+    const textPayloads = sent
+      .filter((item) => item?.type === 'text')
+      .map((item) => item.content);
+    // Should only have the streamed deltas, not a duplicate from the assistant snapshot
+    expect(textPayloads).toEqual(['hello ', 'world']);
+  });
+
   it('should handle sdk not installed and provider sdk flow end-to-end', async () => {
     __TEST_ONLY__.setClaudeQuery(null);
     const sent: any[] = [];

@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockHandleCodexRequest = vi.hoisted(() => vi.fn(() => ({ abort: vi.fn() })));
 const mockGetCodexModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 
-vi.mock('@/core/src/server/ai-provider-common', () => ({
-  handleCodexRequest: mockHandleCodexRequest,
-  getModelInfo: mockGetCodexModelInfo,
-}));
+vi.mock('@/core/src/server/ai-provider-common', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/core/src/server/ai-provider-common')>();
+  return {
+    ...actual,
+    handleCodexRequest: mockHandleCodexRequest,
+    getModelInfo: mockGetCodexModelInfo,
+  };
+});
 
 import {
   getModelInfo,

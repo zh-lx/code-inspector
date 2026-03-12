@@ -14,14 +14,14 @@ export declare const CODEX_PROVIDER_RUNTIME: CodexProviderRuntime;
 /**
  * 构建完整的提示信息
  */
-declare function buildPrompt(message: string, context: AIContext | null, history: AIMessage[], projectRootPath: string): string;
+export declare function buildPrompt(message: string, context: AIContext | null, history: AIMessage[], projectRootPath: string): string;
 /**
  * 构建续会话单轮提示：
  * - 保留当前轮 context，避免模型长期锚定首轮 context
  * - 不重复拼接历史（由 session/resume 自身维护）
  */
-declare function buildResumeTurnPrompt(message: string, context: AIContext | null, projectRootPath: string): string;
-interface InlineImagePayload {
+export declare function buildResumeTurnPrompt(message: string, context: AIContext | null, projectRootPath: string): string;
+export interface InlineImagePayload {
     mediaType: string;
     data: string;
 }
@@ -36,12 +36,13 @@ type CodexRunInputItem = {
     type: 'local_image';
     path: string;
 };
-declare function stripInlineImageDataUrls(text: string): string;
-declare function extractInlineImages(text: string): {
+export declare const INLINE_IMAGE_DATA_URL_REGEX: RegExp;
+export declare function stripInlineImageDataUrls(text: string): string;
+export declare function extractInlineImages(text: string): {
     text: string;
     images: InlineImagePayload[];
 };
-declare function mediaTypeToExtension(mediaType: string): string;
+export declare function mediaTypeToExtension(mediaType: string): string;
 declare function persistInlineImagesToTempFiles(images: InlineImagePayload[]): TempImageWriteResult;
 declare function cleanupTempFiles(filePaths: string[]): void;
 declare function buildCodexSdkRunInput(promptText: string, imagePaths: string[]): string | CodexRunInputItem[];
@@ -79,6 +80,8 @@ export declare const __TEST_ONLY__: {
     getFileSnapshot: typeof getFileSnapshot;
     getItemText: typeof getItemText;
     buildToolEventFromItem: typeof buildToolEventFromItem;
+    detectReadCommand: typeof detectReadCommand;
+    stripNlLineNumbers: typeof stripNlLineNumbers;
     buildSDKErrorMessage: typeof buildSDKErrorMessage;
     queryViaSdk: typeof queryViaSdk;
     setCodexSDKCtor: (ctor: any, pkg?: string) => void;
@@ -125,6 +128,21 @@ type FileSnapshot = {
     displayPath: string;
     beforeContent: string;
 };
+/**
+ * 从 shell 命令中提取被读取的文件路径。
+ * 支持 nl -ba / cat / head / tail / sed -n 等常见读取命令，
+ * 也支持 `/bin/zsh -lc "cd ... && nl -ba file | sed ..."` 格式。
+ * 返回 { filePath, cdDir? }，其中 cdDir 是命令中 cd 到的目录（用于正确解析相对路径）。
+ * 未检测到时返回 null。
+ */
+declare function detectReadCommand(command: string): {
+    filePath: string;
+    cdDir?: string;
+} | null;
+/**
+ * 去除 nl -ba 输出的行号前缀（如 "     1\t..."）。
+ */
+declare function stripNlLineNumbers(output: string): string;
 declare function truncateDiffText(text: string): string;
 declare function readFileText(absolutePath: string): {
     exists: boolean;
@@ -140,6 +158,7 @@ declare function getItemText(item: any): string;
 declare function buildToolEventFromItem(item: any, context?: {
     cwd?: string;
     fileSnapshots?: Map<string, Map<string, FileSnapshot>>;
+    readOutputStore?: Map<string, string>;
     done?: boolean;
     providerId?: 'codex' | 'opencode';
 }): {

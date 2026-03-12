@@ -66,11 +66,11 @@ describe('client ai helper functions', () => {
     expect(__TEST_ONLY__.getChangePath({})).toBe('');
 
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '1', name: 'Bash', input: { command: 'ls' } } as any)).toEqual({
-      name: 'Running',
+      name: 'Bash',
       summary: 'ls',
     });
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '1-0', name: 'Bash' } as any)).toEqual({
-      name: 'Running',
+      name: 'Bash',
       summary: '',
     });
     expect(
@@ -92,7 +92,7 @@ describe('client ai helper functions', () => {
         input: { query: 'vitest' },
       } as any),
     ).toEqual({
-      name: 'Explored',
+      name: 'Search',
       summary: 'vitest',
     });
     expect(
@@ -102,7 +102,7 @@ describe('client ai helper functions', () => {
         input: {},
       } as any),
     ).toEqual({
-      name: 'Exploring',
+      name: 'Search',
       summary: '',
     });
     expect(
@@ -113,7 +113,7 @@ describe('client ai helper functions', () => {
         input: { changes: [{}] },
       } as any),
     ).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '1 file',
     });
     expect(
@@ -124,11 +124,11 @@ describe('client ai helper functions', () => {
         input: { changes: [{}, {}] },
       } as any),
     ).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '2 files',
     });
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '3-2', name: 'Edit' } as any)).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '',
     });
 
@@ -216,7 +216,7 @@ describe('client ai helper functions', () => {
     });
     // OpenCode sends lowercase tool names - should still match
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: 'oc1', name: 'bash', input: { command: 'ls' } } as any)).toEqual({
-      name: 'Running',
+      name: 'Bash',
       summary: 'ls',
     });
     expect(__TEST_ONLY__.getCodexDisplayInfo({

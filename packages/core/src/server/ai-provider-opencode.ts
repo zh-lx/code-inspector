@@ -6,7 +6,13 @@ import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import {
   handleCodexRequest,
   getModelInfo as getCodexModelInfo,
+  buildPrompt,
+  buildResumeTurnPrompt,
+  stripInlineImageDataUrls,
+  extractInlineImages,
+  mediaTypeToExtension,
   type CodexProviderRuntime,
+  type InlineImagePayload,
 } from './ai-provider-common';
 
 const OPENCODE_DEFAULT_MODEL = 'opencode/big-pickle';
@@ -19,19 +25,11 @@ const OPENCODE_PROVIDER_RUNTIME: CodexProviderRuntime = {
   sdkInstallCommand: 'npm install @opencode-ai/sdk',
 };
 
-const INLINE_IMAGE_DATA_URL_REGEX =
-  /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
-
 type OpenCodeSdkModule = {
   createOpencode?: (options?: Record<string, any>) => Promise<{
     client: any;
     server: { close: () => void };
   }>;
-};
-
-type InlineImagePayload = {
-  mediaType: string;
-  data: string;
 };
 
 function resolveModelValue(value: unknown): string | undefined {
@@ -70,84 +68,11 @@ function withOpenCodeDefaultModel(
   } as OpenCodeOptions;
 }
 
-function stripInlineImageDataUrls(text: string): string {
-  return text.replace(
-    INLINE_IMAGE_DATA_URL_REGEX,
-    '[Inline image data omitted]',
-  );
-}
-
-function extractInlineImages(text: string): {
-  text: string;
-  images: InlineImagePayload[];
-} {
-  const images: InlineImagePayload[] = [];
-  let imageIndex = 0;
-  const rewritten = text.replace(
-    INLINE_IMAGE_DATA_URL_REGEX,
-    (_match, mediaType: string, data: string) => {
-      imageIndex += 1;
-      images.push({ mediaType, data });
-      return `[Inline image ${imageIndex} attached separately (${mediaType})]`;
-    },
-  );
-
-  return { text: rewritten, images };
-}
-
-function buildPrompt(
-  message: string,
-  context: AIContext | null,
-  history: AIMessage[],
-  projectRootPath: string,
-): string {
-  const parts: string[] = [];
-
-  if (projectRootPath) {
-    parts.push(`[Project] Working in project: ${projectRootPath}`);
-  }
-
-  if (context) {
-    const absolutePath = path.resolve(projectRootPath, context.file);
-    let fileRef = context.file;
-    if (fs.existsSync(absolutePath)) {
-      fileRef = `@${context.file}#${context.line}`;
-    }
-    parts.push(
-      `[Context] I'm looking at a <${context.name}> component located at ${fileRef}.`,
-    );
-  }
-
-  if (history.length > 0) {
-    const historyLines = history.map((msg) =>
-      msg.role === 'user' ? `[Q] ${msg.content}` : `[A] ${msg.content}`,
-    );
-    parts.push(`[Previous conversation]\n${historyLines.join('\n')}`);
-  }
-
-  parts.push(`[Current question] ${message}`);
-
-  return parts.join('\n\n');
-}
-
-function buildResumeTurnPrompt(
-  message: string,
-  context: AIContext | null,
-  projectRootPath: string,
-): string {
-  const scopeNote = context
-    ? '[Note] Context above applies to this turn only. Prior turn context may be outdated.'
-    : '[Note] This turn is in Global mode with no selected DOM element. Ignore any element-specific context from prior turns.';
-  return (
-    buildPrompt(message, context, [], projectRootPath) + `\n\n${scopeNote}`
-  );
-}
-
 const EDIT_TOOL_NAMES = new Set(['edit', 'write', 'str_replace_editor']);
 
 function getEditFilePath(input: Record<string, any> | undefined): string {
   if (!input) return '';
-  for (const key of ['file_path', 'path', 'file']) {
+  for (const key of ['file_path', 'filePath', 'path', 'file']) {
     if (typeof input[key] === 'string' && input[key]) return input[key];
   }
   return '';
@@ -159,15 +84,6 @@ function readFileContent(filePath: string): string | null {
   } catch {
     return null;
   }
-}
-
-function mediaTypeToExtension(mediaType: string): string {
-  const rawSubtype = mediaType.split('/')[1] || '';
-  const subtype = rawSubtype.split('+')[0].toLowerCase();
-  if (subtype === 'jpeg') return 'jpg';
-  if (subtype === 'svg+xml') return 'svg';
-  if (subtype === 'x-icon') return 'ico';
-  return subtype || 'png';
 }
 
 function parseOpenCodeModelRef(
@@ -438,10 +354,20 @@ function handleOpenCodeSdkRequest(
               const rawInput = part.state?.input
                 ? part.state.input
                 : {};
+              // Normalize camelCase field names from OpenCode to snake_case
               let enrichedInput: Record<string, any> = {
                 _provider: 'opencode',
                 ...rawInput,
               };
+              if (rawInput.filePath && !enrichedInput.file_path) {
+                enrichedInput.file_path = rawInput.filePath;
+              }
+              if (rawInput.oldString && !enrichedInput.old_string) {
+                enrichedInput.old_string = rawInput.oldString;
+              }
+              if (rawInput.newString && !enrichedInput.new_string) {
+                enrichedInput.new_string = rawInput.newString;
+              }
 
               if (
                 !toolFinished.has(part.id) &&
@@ -449,38 +375,46 @@ function handleOpenCodeSdkRequest(
               ) {
                 toolFinished.add(part.id);
 
-                // Enrich edit tool input with before/after diff
-                if (
-                  isEditTool &&
-                  part.state?.status === 'completed' &&
-                  !enrichedInput.old_string &&
-                  !enrichedInput.new_string &&
-                  !enrichedInput.old_str &&
-                  !enrichedInput.new_str
-                ) {
-                  const editPath =
-                    getEditFilePath(rawInput) ||
-                    editSnapshots.get(part.id)?.filePath ||
-                    '';
-                  if (editPath) {
-                    const absPath = path.isAbsolute(editPath)
-                      ? editPath
-                      : path.resolve(cwd, editPath);
-                    const snapshot = editSnapshots.get(part.id);
-                    const beforeContent = snapshot?.before ?? null;
-                    const afterContent = readFileContent(absPath);
+                // Use filediff metadata for richer before/after content
+                if (isEditTool && part.state?.status === 'completed') {
+                  const filediff = part.state?.metadata?.filediff;
+                  if (
+                    filediff &&
+                    typeof filediff.before === 'string' &&
+                    typeof filediff.after === 'string'
+                  ) {
+                    enrichedInput = {
+                      ...enrichedInput,
+                      file_path: enrichedInput.file_path || filediff.file || '',
+                      old_string: filediff.before,
+                      new_string: filediff.after,
+                    };
+                  } else if (!enrichedInput.old_string && !enrichedInput.new_string) {
+                    // Fallback to snapshot-based diff
+                    const editPath =
+                      getEditFilePath(rawInput) ||
+                      editSnapshots.get(part.id)?.filePath ||
+                      '';
+                    if (editPath) {
+                      const absPath = path.isAbsolute(editPath)
+                        ? editPath
+                        : path.resolve(cwd, editPath);
+                      const snapshot = editSnapshots.get(part.id);
+                      const beforeContent = snapshot?.before ?? null;
+                      const afterContent = readFileContent(absPath);
 
-                    if (
-                      beforeContent !== null &&
-                      afterContent !== null &&
-                      beforeContent !== afterContent
-                    ) {
-                      enrichedInput = {
-                        ...enrichedInput,
-                        file_path: editPath,
-                        old_string: beforeContent,
-                        new_string: afterContent,
-                      };
+                      if (
+                        beforeContent !== null &&
+                        afterContent !== null &&
+                        beforeContent !== afterContent
+                      ) {
+                        enrichedInput = {
+                          ...enrichedInput,
+                          file_path: editPath,
+                          old_string: beforeContent,
+                          new_string: afterContent,
+                        };
+                      }
                     }
                   }
                 }

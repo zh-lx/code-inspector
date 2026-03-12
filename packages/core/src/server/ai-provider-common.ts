@@ -35,7 +35,7 @@ export const CODEX_PROVIDER_RUNTIME: CodexProviderRuntime = {
 /**
  * 构建完整的提示信息
  */
-function buildPrompt(
+export function buildPrompt(
   message: string,
   context: AIContext | null,
   history: AIMessage[],
@@ -75,7 +75,7 @@ function buildPrompt(
  * - 保留当前轮 context，避免模型长期锚定首轮 context
  * - 不重复拼接历史（由 session/resume 自身维护）
  */
-function buildResumeTurnPrompt(
+export function buildResumeTurnPrompt(
   message: string,
   context: AIContext | null,
   projectRootPath: string,
@@ -88,7 +88,7 @@ function buildResumeTurnPrompt(
   );
 }
 
-interface InlineImagePayload {
+export interface InlineImagePayload {
   mediaType: string;
   data: string;
 }
@@ -102,17 +102,17 @@ type CodexRunInputItem =
   | { type: 'text'; text: string }
   | { type: 'local_image'; path: string };
 
-const INLINE_IMAGE_DATA_URL_REGEX =
+export const INLINE_IMAGE_DATA_URL_REGEX =
   /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
 
-function stripInlineImageDataUrls(text: string): string {
+export function stripInlineImageDataUrls(text: string): string {
   return text.replace(
     INLINE_IMAGE_DATA_URL_REGEX,
     '[Inline image data omitted]',
   );
 }
 
-function extractInlineImages(text: string): {
+export function extractInlineImages(text: string): {
   text: string;
   images: InlineImagePayload[];
 } {
@@ -130,7 +130,7 @@ function extractInlineImages(text: string): {
   return { text: rewritten, images };
 }
 
-function mediaTypeToExtension(mediaType: string): string {
+export function mediaTypeToExtension(mediaType: string): string {
   const normalized = mediaType.toLowerCase();
   if (normalized === 'image/jpeg') return 'jpg';
   if (normalized === 'image/svg+xml') return 'svg';
@@ -223,6 +223,8 @@ export const __TEST_ONLY__ = {
   getFileSnapshot,
   getItemText,
   buildToolEventFromItem,
+  detectReadCommand,
+  stripNlLineNumbers,
   buildSDKErrorMessage,
   queryViaSdk,
   setCodexSDKCtor: (ctor: any, pkg = '') => {
@@ -525,8 +527,9 @@ export function handleCodexRequest(
         }
         if (!aborted) {
           console.log(
-            chalk.red(`[code-inspector-plugin] ${runtime.displayName} AI error:`) +
-              finalError.message,
+            chalk.red(
+              `[code-inspector-plugin] ${runtime.displayName} AI error:`,
+            ) + finalError.message,
           );
           sendSSE({
             error:
@@ -591,9 +594,20 @@ function findCodexCli(
   }
 
   const possiblePaths = [
-    path.join(process.env.HOME || '', '.npm-global', 'bin', runtime.cliBinaryName),
+    path.join(
+      process.env.HOME || '',
+      '.npm-global',
+      'bin',
+      runtime.cliBinaryName,
+    ),
     path.join(process.env.HOME || '', '.yarn', 'bin', runtime.cliBinaryName),
-    path.join(process.env.HOME || '', '.local', 'share', 'pnpm', runtime.cliBinaryName),
+    path.join(
+      process.env.HOME || '',
+      '.local',
+      'share',
+      'pnpm',
+      runtime.cliBinaryName,
+    ),
     `/usr/local/bin/${runtime.cliBinaryName}`,
     `/opt/homebrew/bin/${runtime.cliBinaryName}`,
     `/usr/bin/${runtime.cliBinaryName}`,
@@ -676,7 +690,12 @@ function buildOpenCodeRunArgs(
     args.push('--file', filePath);
   }
 
-  args.push(prompt);
+  // When --file is present the opencode CLI treats the positional argument as
+  // a file path, causing "File not found" errors. In that case the prompt is
+  // sent via stdin instead (see queryViaCli).
+  if (imagePaths.length === 0) {
+    args.push(prompt);
+  }
   return args;
 }
 
@@ -782,7 +801,10 @@ function extractEventErrorMessage(event: any): string {
   ) {
     return event.error.data.message;
   }
-  if (typeof event?.info?.error?.message === 'string' && event.info.error.message) {
+  if (
+    typeof event?.info?.error?.message === 'string' &&
+    event.info.error.message
+  ) {
     return event.info.error.message;
   }
   if (
@@ -795,16 +817,10 @@ function extractEventErrorMessage(event: any): string {
 }
 
 function extractTextEvent(event: any): { text: string; delta: boolean } | null {
-  if (
-    event?.type === 'text' &&
-    typeof event?.part?.text === 'string'
-  ) {
+  if (event?.type === 'text' && typeof event?.part?.text === 'string') {
     return { text: event.part.text, delta: false };
   }
-  if (
-    event?.type === 'reasoning' &&
-    typeof event?.part?.text === 'string'
-  ) {
+  if (event?.type === 'reasoning' && typeof event?.part?.text === 'string') {
     return { text: event.part.text, delta: false };
   }
   if (
@@ -901,7 +917,13 @@ function queryViaCli(
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
-  child.stdin?.end();
+  // For opencode with images the prompt is omitted from the positional args
+  // (--file causes it to be treated as a file path). Send it via stdin instead.
+  if (runtime.providerId === 'opencode' && imagePaths.length > 0) {
+    child.stdin?.write(prompt, () => child.stdin?.end());
+  } else {
+    child.stdin?.end();
+  }
 
   let stdoutBuffer = '';
   let stderrBuffer = '';
@@ -915,6 +937,7 @@ function queryViaCli(
   const messageTextMap = new Map<string, string>();
   const partTextMap = new Map<string, string>();
   const fileSnapshotStore = new Map<string, Map<string, FileSnapshot>>();
+  const readOutputStore = new Map<string, string>();
 
   const finish = () => {
     if (ended) return;
@@ -940,6 +963,7 @@ function queryViaCli(
     const toolEvent = buildToolEventFromItem(item, {
       cwd,
       fileSnapshots: fileSnapshotStore,
+      readOutputStore,
       done,
       providerId: runtime.providerId,
     });
@@ -976,7 +1000,7 @@ function queryViaCli(
       if (
         !isNewTool &&
         index !== undefined &&
-        toolEvent.toolName === 'Edit' &&
+        (toolEvent.toolName === 'Edit' || toolEvent.toolName === 'Read') &&
         toolEvent.input
       ) {
         hasAnyContent = true;
@@ -1026,7 +1050,16 @@ function queryViaCli(
     }
 
     try {
-      const event = JSON.parse(normalizedLine);
+      let event = JSON.parse(normalizedLine);
+
+      // Unwrap GlobalEvent format: { directory, payload: Event }
+      if (
+        event?.payload &&
+        typeof event.payload === 'object' &&
+        event.payload?.type
+      ) {
+        event = event.payload;
+      }
 
       if (event?.sessionID && onSessionId) {
         onSessionId(String(event.sessionID));
@@ -1049,8 +1082,7 @@ function queryViaCli(
 
       if (event.type === 'error') {
         const message =
-          extractEventErrorMessage(event) ||
-          `${runtime.displayName} CLI error`;
+          extractEventErrorMessage(event) || `${runtime.displayName} CLI error`;
         if (message.startsWith('Reconnecting...')) {
           return;
         }
@@ -1077,8 +1109,117 @@ function queryViaCli(
         return;
       }
 
+      // OpenCode CLI: tool_use events (e.g. read, edit, bash)
+      if (event.type === 'tool_use' && event.part?.type === 'tool') {
+        const part = event.part;
+        const toolPartId =
+          part.id || part.callID || `opencode-tool-${toolIndex}`;
+        const toolName = part.tool || 'Tool';
+        const stateObj = part.state || {};
+
+        if (!toolIndexMap.has(toolPartId)) {
+          const idx = toolIndex++;
+          toolIndexMap.set(toolPartId, idx);
+          hasAnyContent = true;
+          onData(
+            JSON.stringify({
+              type: 'tool_start',
+              toolId: toolPartId,
+              toolName: toolName.charAt(0).toUpperCase() + toolName.slice(1),
+              index: idx,
+            }),
+          );
+        }
+
+        const rawInput =
+          stateObj.input && typeof stateObj.input === 'object'
+            ? stateObj.input
+            : {};
+        // Normalize field names: filePath → file_path, oldString/newString
+        const normalizedInput: Record<string, any> = {
+          _provider: runtime.providerId,
+          ...rawInput,
+        };
+        if (rawInput.filePath && !normalizedInput.file_path) {
+          normalizedInput.file_path = rawInput.filePath;
+        }
+        if (rawInput.oldString && !normalizedInput.old_string) {
+          normalizedInput.old_string = rawInput.oldString;
+        }
+        if (rawInput.newString && !normalizedInput.new_string) {
+          normalizedInput.new_string = rawInput.newString;
+        }
+        // Use filediff for richer before/after when available
+        const filediff = stateObj.metadata?.filediff;
+        if (
+          filediff &&
+          typeof filediff.before === 'string' &&
+          typeof filediff.after === 'string' &&
+          !normalizedInput.old_string &&
+          !normalizedInput.new_string
+        ) {
+          normalizedInput.file_path =
+            normalizedInput.file_path || filediff.file || '';
+          normalizedInput.old_string = filediff.before;
+          normalizedInput.new_string = filediff.after;
+        }
+
+        onData(
+          JSON.stringify({
+            type: 'tool_input',
+            toolUseId: toolPartId,
+            index: toolIndexMap.get(toolPartId),
+            input: normalizedInput,
+          }),
+        );
+
+        if (stateObj.status === 'completed' || stateObj.status === 'error') {
+          hasAnyContent = true;
+          onData(
+            JSON.stringify({
+              type: 'tool_result',
+              toolUseId: toolPartId,
+              content:
+                stateObj.status === 'completed'
+                  ? stateObj.output || ''
+                  : stateObj.error || '',
+              isError: stateObj.status === 'error',
+            }),
+          );
+        }
+
+        if (event.sessionID && onSessionId) {
+          onSessionId(String(event.sessionID));
+        }
+        return;
+      }
+
+      // OpenCode CLI: text events
+      if (event.type === 'text' && event.part?.type === 'text') {
+        if (typeof event.part.text === 'string' && event.part.text) {
+          hasAnyContent = true;
+          onData(JSON.stringify({ type: 'text', content: event.part.text }));
+        }
+        if (event.sessionID && onSessionId) {
+          onSessionId(String(event.sessionID));
+        }
+        return;
+      }
+
+      // OpenCode CLI: step_start / step_finish (informational, extract session)
+      if (event.type === 'step_start' || event.type === 'step_finish') {
+        if (event.sessionID && onSessionId) {
+          onSessionId(String(event.sessionID));
+        }
+        return;
+      }
+
       if (event.type === 'message.part.delta') {
-        if (event.field === 'text' && typeof event.delta === 'string' && event.delta) {
+        if (
+          event.field === 'text' &&
+          typeof event.delta === 'string' &&
+          event.delta
+        ) {
           hasAnyContent = true;
           onData(JSON.stringify({ type: 'text', content: event.delta }));
           if (event.partID) {
@@ -1090,21 +1231,201 @@ function queryViaCli(
       }
 
       if (event.type === 'message.part.updated') {
-        const part = event.part;
-        if (part?.type === 'text' && typeof part.text === 'string') {
+        const part = event.part || event.properties?.part;
+        if (!part) return;
+
+        if (part.type === 'text' && typeof part.text === 'string') {
           const partId = typeof part.id === 'string' ? part.id : '';
-          const prev = partId ? (partTextMap.get(partId) || '') : '';
-          const curr = part.text;
-          const delta = curr.startsWith(prev) ? curr.slice(prev.length) : curr;
+          const prev = partId ? partTextMap.get(partId) || '' : '';
+          const delta =
+            typeof event.properties?.delta === 'string'
+              ? event.properties.delta
+              : typeof event.delta === 'string'
+                ? event.delta
+                : part.text.startsWith(prev)
+                  ? part.text.slice(prev.length)
+                  : part.text;
           if (delta) {
             hasAnyContent = true;
             onData(JSON.stringify({ type: 'text', content: delta }));
           }
           if (partId) {
-            partTextMap.set(partId, curr);
+            partTextMap.set(partId, part.text);
           }
+          return;
+        }
+
+        // OpenCode CLI: tool events via message.part.updated
+        if (part.type === 'tool') {
+          const toolPartId =
+            part.id || part.callID || `opencode-tool-${toolIndex}`;
+          const toolName = part.tool || part.name || 'Tool';
+          // state can be an object { status, input, output, error } or a string
+          const stateObj =
+            typeof part.state === 'object' && part.state !== null
+              ? part.state
+              : typeof part.state === 'string'
+                ? { status: part.state }
+                : {};
+
+          if (!toolIndexMap.has(toolPartId)) {
+            const idx = toolIndex++;
+            toolIndexMap.set(toolPartId, idx);
+            hasAnyContent = true;
+            onData(
+              JSON.stringify({
+                type: 'tool_start',
+                toolId: toolPartId,
+                toolName,
+                index: idx,
+              }),
+            );
+          }
+
+          onData(
+            JSON.stringify({
+              type: 'tool_input',
+              toolUseId: toolPartId,
+              index: toolIndexMap.get(toolPartId),
+              input: {
+                _provider: runtime.providerId,
+                ...(stateObj.input && typeof stateObj.input === 'object'
+                  ? stateObj.input
+                  : {}),
+              },
+            }),
+          );
+
+          if (stateObj.status === 'completed' || stateObj.status === 'error') {
+            hasAnyContent = true;
+            onData(
+              JSON.stringify({
+                type: 'tool_result',
+                toolUseId: toolPartId,
+                content:
+                  stateObj.status === 'completed'
+                    ? stateObj.output || ''
+                    : stateObj.error || '',
+                isError: stateObj.status === 'error',
+              }),
+            );
+          }
+          return;
+        }
+
+        // OpenCode CLI: patch events
+        if (part.type === 'patch' && Array.isArray(part.files)) {
+          const patchId = part.id || `patch-${Date.now()}`;
+          if (!toolIndexMap.has(patchId)) {
+            const idx = toolIndex++;
+            toolIndexMap.set(patchId, idx);
+            hasAnyContent = true;
+            onData(
+              JSON.stringify({
+                type: 'tool_start',
+                toolId: patchId,
+                toolName: 'Edit',
+                index: idx,
+              }),
+            );
+          }
+          const changes = part.files.map((f: any) => ({
+            path: f?.path || '',
+            kind: f?.status || 'edit',
+          }));
+          onData(
+            JSON.stringify({
+              type: 'tool_input',
+              toolUseId: patchId,
+              index: toolIndexMap.get(patchId),
+              input: {
+                _provider: runtime.providerId,
+                file_path: changes[0]?.path || '',
+                changes,
+              },
+            }),
+          );
+          hasAnyContent = true;
+          onData(
+            JSON.stringify({
+              type: 'tool_result',
+              toolUseId: patchId,
+              content: `Patched ${part.files.length} file(s)`,
+            }),
+          );
+          return;
+        }
+
+        return;
+      }
+
+      // OpenCode CLI: session.idle signals completion
+      if (event.type === 'session.idle') {
+        return;
+      }
+
+      // OpenCode CLI: session.error
+      if (event.type === 'session.error') {
+        const errorMessage =
+          event.properties?.error?.data?.message ||
+          event.properties?.error?.message ||
+          'OpenCode session error';
+        hasError = true;
+        onError(errorMessage);
+        return;
+      }
+
+      // OpenCode CLI: session.diff carries file diffs
+      if (
+        event.type === 'session.diff' &&
+        Array.isArray(event.properties?.diff)
+      ) {
+        for (const fileDiff of event.properties.diff) {
+          if (!fileDiff?.file) continue;
+          const diffId = `diff-${fileDiff.file}-${Date.now()}`;
+          const idx = toolIndex++;
+          toolIndexMap.set(diffId, idx);
+          hasAnyContent = true;
+          onData(
+            JSON.stringify({
+              type: 'tool_start',
+              toolId: diffId,
+              toolName: 'Edit',
+              index: idx,
+            }),
+          );
+          onData(
+            JSON.stringify({
+              type: 'tool_input',
+              toolUseId: diffId,
+              index: idx,
+              input: {
+                _provider: runtime.providerId,
+                file_path: fileDiff.file,
+                old_string: fileDiff.before || '',
+                new_string: fileDiff.after || '',
+              },
+            }),
+          );
+          const summary =
+            typeof fileDiff.additions === 'number' &&
+            typeof fileDiff.deletions === 'number'
+              ? `+${fileDiff.additions} -${fileDiff.deletions}`
+              : '';
+          onData(
+            JSON.stringify({
+              type: 'tool_result',
+              toolUseId: diffId,
+              content: summary || 'Edit applied',
+            }),
+          );
         }
         return;
+      }
+
+      // OpenCode CLI: file.edited notification
+      if (event.type === 'file.edited' && event.properties?.file) {
+        return; // Already handled via session.diff or tool part
       }
 
       if (event.type === 'item.started') {
@@ -1144,6 +1465,16 @@ function queryViaCli(
             onData(JSON.stringify({ type: 'text', content: delta }));
           }
           messageTextMap.delete(item.id);
+        } else if (item?.type === 'reasoning') {
+          // Reasoning items: internal model thinking, skip silently
+        } else if (
+          item?.type === 'error' &&
+          typeof item.message === 'string' &&
+          item.message
+        ) {
+          // Error items: emit as info message (e.g., model mismatch warnings)
+          hasAnyContent = true;
+          onData(JSON.stringify({ type: 'info', message: item.message }));
         } else {
           emitToolFromItem(item, true);
         }
@@ -1227,7 +1558,9 @@ function queryViaCli(
 
   child.on('error', (err) => {
     hasError = true;
-    console.log(chalk.red(`[${runtime.cliBinaryName}-cli error] `) + err.message);
+    console.log(
+      chalk.red(`[${runtime.cliBinaryName}-cli error] `) + err.message,
+    );
     onError(err.message);
     cleanupArtifacts();
     finish();
@@ -1299,11 +1632,11 @@ async function getCodexSDKCtor(
 
         const hasOpenCodeSdkShape = Boolean(
           sdk.OpencodeClient ||
-            sdk.createOpencode ||
-            sdk.createOpencodeClient ||
-            sdk.default?.OpencodeClient ||
-            sdk.default?.createOpencode ||
-            sdk.default?.createOpencodeClient,
+          sdk.createOpencode ||
+          sdk.createOpencodeClient ||
+          sdk.default?.OpencodeClient ||
+          sdk.default?.createOpencode ||
+          sdk.default?.createOpencodeClient,
         );
         if (runtime.providerId === 'opencode' && hasOpenCodeSdkShape) {
           lastCodexSdkLoadIssue =
@@ -1387,6 +1720,80 @@ type FileSnapshot = {
   displayPath: string;
   beforeContent: string;
 };
+
+/**
+ * 从 shell 命令中提取被读取的文件路径。
+ * 支持 nl -ba / cat / head / tail / sed -n 等常见读取命令，
+ * 也支持 `/bin/zsh -lc "cd ... && nl -ba file | sed ..."` 格式。
+ * 返回 { filePath, cdDir? }，其中 cdDir 是命令中 cd 到的目录（用于正确解析相对路径）。
+ * 未检测到时返回 null。
+ */
+function detectReadCommand(
+  command: string,
+): { filePath: string; cdDir?: string } | null {
+  // Strip shell wrapper: /bin/zsh -lc "..." or /bin/bash -lc "..." or /bin/sh -c "..."
+  let inner = command;
+  const shellWrap = command.match(/\/bin\/(?:ba|z)?sh\s+-\w*c\s+"([\s\S]+)"$/);
+  if (shellWrap) {
+    inner = shellWrap[1];
+  }
+
+  // Extract and strip cd prefix: cd /some/path && actual_command
+  let cdDir: string | undefined;
+  const cdMatch = inner.match(/^cd\s+(\S+)\s*&&\s*/);
+  if (cdMatch) {
+    cdDir = cdMatch[1];
+    inner = inner.slice(cdMatch[0].length);
+  }
+
+  const found = (filePath: string): { filePath: string; cdDir?: string } => {
+    return cdDir ? { filePath, cdDir } : { filePath };
+  };
+
+  // Match common file-reading commands
+  // nl -ba <file>, cat <file>, head <file>, tail <file>
+  // Strategy: skip all flags (starting with -) and their values, find the first non-flag argument
+  const readCmds = ['nl', 'cat', 'head', 'tail'];
+  for (const cmd of readCmds) {
+    if (!inner.startsWith(cmd + ' ') && inner !== cmd) continue;
+    const args = inner.slice(cmd.length).trim().split(/\s+/);
+    let skipNext = false;
+    for (const arg of args) {
+      if (skipNext) {
+        skipNext = false;
+        continue;
+      }
+      if (arg.startsWith('-')) {
+        // Flags that take a value argument: -n, -c, etc.
+        if (/^-[nc]$/.test(arg)) {
+          skipNext = true;
+        }
+        continue;
+      }
+      // First non-flag, non-numeric argument is the file path
+      if (!/^\d+$/.test(arg)) {
+        return found(arg);
+      }
+    }
+  }
+
+  // Match sed -n 'range' <file> (when used standalone to view file)
+  const sedMatch = inner.match(
+    /^sed\s+(?:-\S+\s+)*(?:'[^']*'\s+|"[^"]*"\s+)(\S+)/,
+  );
+  if (sedMatch && sedMatch[1] && !sedMatch[1].startsWith('-')) {
+    return found(sedMatch[1]);
+  }
+
+  return null;
+}
+
+/**
+ * 去除 nl -ba 输出的行号前缀（如 "     1\t..."）。
+ */
+function stripNlLineNumbers(output: string): string {
+  return output.replace(/^\s*\d+\t/gm, '');
+}
 
 const MAX_DIFF_CHARS_PER_FILE = 12000;
 
@@ -1483,6 +1890,7 @@ function buildToolEventFromItem(
   context?: {
     cwd?: string;
     fileSnapshots?: Map<string, Map<string, FileSnapshot>>;
+    readOutputStore?: Map<string, string>;
     done?: boolean;
     providerId?: 'codex' | 'opencode';
   },
@@ -1506,6 +1914,41 @@ function buildToolEventFromItem(
     const status = String(item.status || '');
     const isError =
       status === 'failed' || (exitCode !== undefined && exitCode !== 0);
+
+    // Detect read-like commands and map to "Read" tool
+    // Check command pattern first (even before output is available, e.g., item.started)
+    // so that tool_start always emits "Read" instead of "Bash"
+    const readInfo = detectReadCommand(command);
+    if (readInfo && !isError) {
+      const strippedContent = output
+        ? stripNlLineNumbers(output).trimEnd()
+        : '';
+      // Use cdDir from the command (e.g., cd /project/sub && sed ... file)
+      // to correctly resolve relative file paths
+      const resolveBase = readInfo.cdDir || context?.cwd || '';
+      const resolvedPath = resolveBase
+        ? path.isAbsolute(readInfo.filePath)
+          ? readInfo.filePath
+          : path.resolve(resolveBase, readInfo.filePath)
+        : readInfo.filePath;
+
+      // Store full file content (not truncated command output) as before-snapshot
+      if (context?.readOutputStore && context.done) {
+        const fullFile = readFileText(resolvedPath);
+        if (fullFile.exists && fullFile.content) {
+          context.readOutputStore.set(resolvedPath, fullFile.content);
+        }
+      }
+
+      return {
+        toolId: String(item.id),
+        toolName: 'Read',
+        input: { _provider: providerId, file_path: readInfo.filePath },
+        // Only set result when output is available (item.completed)
+        result: strippedContent || undefined,
+        isError: false,
+      };
+    }
 
     return {
       toolId: String(item.id),
@@ -1565,6 +2008,32 @@ function buildToolEventFromItem(
         const after = readFileText(absolutePath);
         const kind = String(change?.kind || '');
         if (kind !== 'add' && !snapshot) {
+          // Fallback: try readOutputStore for before-content
+          const readBefore = context.readOutputStore?.get(absolutePath);
+          if (readBefore === undefined) {
+            continue;
+          }
+          const afterText = kind === 'delete' ? '' : after.content;
+          if (readBefore === afterText) {
+            continue;
+          }
+          let oldString = truncateDiffText(readBefore);
+          let newString = truncateDiffText(afterText);
+          if (readBefore !== afterText && oldString === newString) {
+            oldString = readBefore;
+            newString = afterText;
+          }
+          diffBlocks.push({
+            file_path: displayPath,
+            old_string: oldString,
+            new_string: newString,
+          });
+          if (readBefore) {
+            oldSections.push(`# ${displayPath}\n${oldString}`);
+          }
+          if (afterText) {
+            newSections.push(`# ${displayPath}\n${newString}`);
+          }
           continue;
         }
 
@@ -1724,16 +2193,19 @@ async function queryViaSdk(
 
   const runResult = await thread.runStreamed(input as any);
   const events = runResult?.events || runResult;
+
   const toolIndexMap = new Map<string, number>();
   const messageTextMap = new Map<string, string>();
   let hasAnyText = false;
   let toolIndex = 0;
   const fileSnapshotStore = new Map<string, Map<string, FileSnapshot>>();
+  const readOutputStore = new Map<string, string>();
 
   const emitToolFromItem = (item: any, done = false) => {
     const toolEvent = buildToolEventFromItem(item, {
       cwd,
       fileSnapshots: fileSnapshotStore,
+      readOutputStore,
       done,
       providerId: runtime.providerId,
     });
@@ -1765,7 +2237,7 @@ async function queryViaSdk(
       if (
         !isNewTool &&
         index !== undefined &&
-        toolEvent.toolName === 'Edit' &&
+        (toolEvent.toolName === 'Edit' || toolEvent.toolName === 'Read') &&
         toolEvent.input
       ) {
         sendSSE({
@@ -1786,6 +2258,7 @@ async function queryViaSdk(
 
   try {
     for await (const event of events) {
+
       if (isAborted()) {
         await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
         break;
@@ -1833,6 +2306,15 @@ async function queryViaSdk(
             sendSSE({ type: 'text', content: delta });
           }
           messageTextMap.delete(item.id);
+        } else if (item?.type === 'reasoning') {
+          // Reasoning items: internal model thinking, skip silently
+        } else if (
+          item?.type === 'error' &&
+          typeof item.message === 'string' &&
+          item.message
+        ) {
+          hasAnyText = true;
+          sendSSE({ type: 'info', message: item.message });
         } else {
           emitToolFromItem(item, true);
         }
