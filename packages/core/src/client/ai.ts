@@ -499,11 +499,7 @@ function renderReadResult(tool: ToolCall): TemplateResult {
 
   const lines = cleanContent.split('\n');
   const maxPreviewLines = 5;
-  const showTruncated = lines.length > maxPreviewLines;
-  const visibleLines = showTruncated
-    ? lines.slice(0, maxPreviewLines)
-    : lines;
-  const remaining = lines.length - maxPreviewLines;
+  const showContent = lines.length <= maxPreviewLines;
 
   // If tool.input doesn't have file_path, use the extracted path for summary display
   if (extractedPath && tool.input && !tool.input.file_path) {
@@ -511,12 +507,9 @@ function renderReadResult(tool: ToolCall): TemplateResult {
   }
 
   return html`<div class="read-result-block">
-    ${visibleLines.map(
-      (line) => html`<div class="read-line">${line}</div>`,
-    )}
-    ${showTruncated
-      ? html`<div class="read-more">...+${remaining} lines</div>`
-      : ''}
+    ${showContent
+      ? lines.map((line) => html`<div class="read-line">${line}</div>`)
+      : html`<div class="read-more">${lines.length} lines</div>`}
   </div>`;
 }
 
@@ -528,6 +521,34 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   const oldStr = String(input.old_string ?? input.old_str ?? '');
   const newStr = String(input.new_string ?? input.new_str ?? '');
   const diffBlocks = Array.isArray(input.diff_blocks) ? input.diff_blocks : [];
+
+  type DiffLine =
+    | {
+        type: 'add';
+        text: string;
+        newLine: number;
+        oldLine?: number;
+      }
+    | {
+        type: 'del';
+        text: string;
+        oldLine: number;
+        newLine?: number;
+      }
+    | {
+        type: 'ctx';
+        text: string;
+        oldLine: number;
+        newLine: number;
+      }
+    | {
+        type: 'gap';
+        count: number;
+        oldLine: number;
+        newLine: number;
+        startLine: number;
+        endLine: number;
+      };
 
   const splitLines = (text: string): string[] => {
     const normalized = text.replace(/\r\n/g, '\n');
@@ -541,7 +562,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   const fallbackChangedLines = (
     oldLines: string[],
     newLines: string[],
-  ): Array<{ type: 'add' | 'del'; text: string }> => {
+  ): DiffLine[] => {
     let prefix = 0;
     while (
       prefix < oldLines.length &&
@@ -561,28 +582,48 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
       suffix++;
     }
 
-    const changed: Array<{ type: 'add' | 'del'; text: string }> = [];
-    for (const line of oldLines.slice(prefix, oldLines.length - suffix)) {
-      changed.push({ type: 'del', text: line });
+    const changed: DiffLine[] = [];
+
+    const oldStart = prefix + 1;
+    const newStart = prefix + 1;
+
+    const oldChanged = oldLines.slice(prefix, oldLines.length - suffix);
+    const newChanged = newLines.slice(prefix, newLines.length - suffix);
+
+    for (let idx = 0; idx < oldChanged.length; idx++) {
+      changed.push({
+        type: 'del',
+        text: oldChanged[idx],
+        oldLine: oldStart + idx,
+      });
     }
-    for (const line of newLines.slice(prefix, newLines.length - suffix)) {
-      changed.push({ type: 'add', text: line });
+    for (let idx = 0; idx < newChanged.length; idx++) {
+      changed.push({
+        type: 'add',
+        text: newChanged[idx],
+        newLine: newStart + idx,
+      });
     }
     return changed;
   };
 
-  const buildChangedLines = (
-    oldText: string,
-    newText: string,
-  ): Array<{ type: 'add' | 'del'; text: string }> => {
+  const buildDiffLines = (oldText: string, newText: string): DiffLine[] => {
     const oldLines = splitLines(oldText);
     const newLines = splitLines(newText);
 
     if (oldLines.length === 0 && newLines.length === 0) return [];
     if (oldLines.length === 0)
-      return newLines.map((text) => ({ type: 'add', text }));
+      return newLines.map((text, idx) => ({
+        type: 'add',
+        text,
+        newLine: idx + 1,
+      }));
     if (newLines.length === 0)
-      return oldLines.map((text) => ({ type: 'del', text }));
+      return oldLines.map((text, idx) => ({
+        type: 'del',
+        text,
+        oldLine: idx + 1,
+      }));
 
     const maxCells = 200000;
     if (oldLines.length * newLines.length > maxCells) {
@@ -602,33 +643,147 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
       }
     }
 
-    const changed: Array<{ type: 'add' | 'del'; text: string }> = [];
+    const ops: DiffLine[] = [];
     let i = 0;
     let j = 0;
     while (i < oldLines.length && j < newLines.length) {
       if (oldLines[i] === newLines[j]) {
+        ops.push({
+          type: 'ctx',
+          text: oldLines[i],
+          oldLine: i + 1,
+          newLine: j + 1,
+        });
         i++;
         j++;
         continue;
       }
       if (dp[i + 1][j] >= dp[i][j + 1]) {
-        changed.push({ type: 'del', text: oldLines[i] });
+        ops.push({ type: 'del', text: oldLines[i], oldLine: i + 1 });
         i++;
       } else {
-        changed.push({ type: 'add', text: newLines[j] });
+        ops.push({ type: 'add', text: newLines[j], newLine: j + 1 });
         j++;
       }
     }
     while (i < oldLines.length) {
-      changed.push({ type: 'del', text: oldLines[i] });
+      ops.push({ type: 'del', text: oldLines[i], oldLine: i + 1 });
       i++;
     }
     while (j < newLines.length) {
-      changed.push({ type: 'add', text: newLines[j] });
+      ops.push({ type: 'add', text: newLines[j], newLine: j + 1 });
       j++;
     }
 
-    return changed;
+    const isChange = (l: DiffLine) => l.type === 'add' || l.type === 'del';
+    const firstChange = ops.findIndex(isChange);
+    if (firstChange === -1) {
+      return oldLines.join('\n') === newLines.join('\n')
+        ? []
+        : fallbackChangedLines(oldLines, newLines);
+    }
+    let lastChange = -1;
+    for (let k = ops.length - 1; k >= 0; k--) {
+      if (isChange(ops[k])) {
+        lastChange = k;
+        break;
+      }
+    }
+    if (lastChange === -1) {
+      return fallbackChangedLines(oldLines, newLines);
+    }
+    const middle = ops.slice(firstChange, lastChange + 1);
+
+    // If there is a run of unchanged lines between two non-adjacent changes,
+    // show the actual lines when the gap is small, otherwise collapse.
+    const maxInlineContext = 5;
+    const rendered: DiffLine[] = [];
+    for (let k = 0; k < middle.length; k++) {
+      const line = middle[k];
+      if (line.type !== 'ctx') {
+        rendered.push(line);
+        continue;
+      }
+
+      let runEnd = k;
+      while (runEnd < middle.length && middle[runEnd].type === 'ctx') {
+        runEnd++;
+      }
+      const runLen = runEnd - k;
+      if (runLen <= maxInlineContext) {
+        rendered.push(...(middle.slice(k, runEnd) as DiffLine[]));
+      } else {
+        rendered.push({
+          type: 'gap',
+          count: runLen,
+          oldLine: line.oldLine,
+          newLine: line.newLine,
+          startLine: k + 1,
+          endLine: runEnd,
+        });
+      }
+      k = runEnd - 1;
+    }
+
+    return rendered.length > 0
+      ? rendered
+      : fallbackChangedLines(oldLines, newLines);
+  };
+
+  const computeLinenoWidth = (lines: DiffLine[]): string => {
+    let maxLineNo = 0;
+    for (const line of lines) {
+      if (typeof line.oldLine === 'number')
+        maxLineNo = Math.max(maxLineNo, line.oldLine);
+      if (typeof line.newLine === 'number')
+        maxLineNo = Math.max(maxLineNo, line.newLine);
+    }
+    const digits = maxLineNo > 0 ? String(maxLineNo).length : 1;
+    return `${Math.max(4, digits)}ch`;
+  };
+
+  const renderDiffLine = (line: DiffLine): TemplateResult => {
+    const cls =
+      line.type === 'add'
+        ? 'diff-add'
+        : line.type === 'del'
+          ? 'diff-del'
+          : line.type === 'ctx'
+            ? 'diff-ctx'
+            : 'diff-gap';
+    const sign =
+      line.type === 'add'
+        ? '+'
+        : line.type === 'del'
+          ? '-'
+          : line.type === 'gap'
+            ? '…'
+            : '\u00A0';
+    const text =
+      line.type === 'gap'
+        ? `lines ${line.startLine}-${line.endLine}`
+        : line.text;
+    const lineNumber =
+      line.type === 'gap' ? '...' : (line.newLine ?? line.oldLine ?? '');
+    return html`<div class="diff-line ${cls}">
+      <span class="diff-lineno diff-lineno-${line.newLine ? 'new' : 'old'}"
+        >${lineNumber}</span
+      >
+      <span class="diff-sign">${sign}</span>
+      <span class="diff-text">${text}</span>
+    </div>`;
+  };
+
+  const renderDiffView = (
+    rendered: unknown,
+    lines: DiffLine[],
+  ): TemplateResult => {
+    return html`<div
+      class="diff-view"
+      style="--diff-lineno-width: ${computeLinenoWidth(lines)}"
+    >
+      ${rendered}
+    </div>`;
   };
 
   const parseSections = (text: string): Map<string, string> => {
@@ -658,30 +813,28 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
 
   const changes = Array.isArray(input.changes) ? input.changes : [];
 
-  const renderedFromBlocks = diffBlocks
-    .map((block: any) => {
+  if (diffBlocks.length > 0) {
+    const renderedFromBlocks: TemplateResult[] = [];
+    const allLines: DiffLine[] = [];
+    for (const block of diffBlocks) {
       const filePath = String(block?.file_path || '');
       const oldString = String(block?.old_string || '');
       const newString = String(block?.new_string || '');
-      const changed = buildChangedLines(oldString, newString);
-      if (changed.length === 0) return null;
-
-      return html`
+      const lines = buildDiffLines(oldString, newString);
+      if (lines.length === 0) continue;
+      allLines.push(...lines);
+      renderedFromBlocks.push(html`
         ${filePath
           ? html`<div class="diff-file-header">
               ${toRelativePath(filePath)}
             </div>`
           : ''}
-        ${changed.map(
-          (line) =>
-            html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
-        )}
-      `;
-    })
-    .filter(Boolean);
-
-  if (renderedFromBlocks.length > 0) {
-    return html`<div class="diff-view">${renderedFromBlocks}</div>`;
+        ${lines.map((line) => renderDiffLine(line))}
+      `);
+    }
+    if (renderedFromBlocks.length > 0) {
+      return renderDiffView(renderedFromBlocks, allLines);
+    }
   }
 
   if (!oldStr && !newStr) {
@@ -692,39 +845,34 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   const newSections = parseSections(newStr);
 
   if (changes.length > 0 && (oldSections.size > 0 || newSections.size > 0)) {
-    const renderedByChanges = changes
-      .map((change: any) => {
-        const filePath = String(change?.path || '');
-        if (!filePath) return null;
+    const renderedByChanges: TemplateResult[] = [];
+    const allLines: DiffLine[] = [];
+    for (const change of changes) {
+      const filePath = String(change?.path || '');
+      if (!filePath) continue;
 
-        const changed = buildChangedLines(
-          oldSections.get(filePath) || '',
-          newSections.get(filePath) || '',
-        );
-        if (changed.length === 0) return null;
-
-        return html`
-          <div class="diff-file-header">${toRelativePath(filePath)}</div>
-          ${changed.map(
-            (line) =>
-              html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
-          )}
-        `;
-      })
-      .filter(Boolean);
+      const lines = buildDiffLines(
+        oldSections.get(filePath) || '',
+        newSections.get(filePath) || '',
+      );
+      if (lines.length === 0) continue;
+      allLines.push(...lines);
+      renderedByChanges.push(html`
+        <div class="diff-file-header">${toRelativePath(filePath)}</div>
+        ${lines.map((line) => renderDiffLine(line))}
+      `);
+    }
 
     if (renderedByChanges.length > 0) {
-      return html`<div class="diff-view">${renderedByChanges}</div>`;
+      return renderDiffView(renderedByChanges, allLines);
     }
   }
 
-  const changed = buildChangedLines(oldStr, newStr);
-  return html`<div class="diff-view">
-    ${changed.map(
-      (line) =>
-        html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
-    )}
-  </div>`;
+  const lines = buildDiffLines(oldStr, newStr);
+  return renderDiffView(
+    lines.map((line) => renderDiffLine(line)),
+    lines,
+  );
 }
 
 /**
@@ -737,25 +885,29 @@ function renderToolCall(tool: ToolCall): TemplateResult {
   const canonical = canonicalToolName(tool.name);
   const isEdit = canonical === 'Edit';
   const isRead = canonical === 'Read';
-  const hasEditInput = isEdit && tool.input && (() => {
-    const inp = tool.input!;
-    if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
-      return inp.diff_blocks.some(
-        (b: any) => String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
-      );
-    }
-    const oldStr = String(inp.old_string ?? inp.old_str ?? '');
-    const newStr = String(inp.new_string ?? inp.new_str ?? '');
-    return oldStr !== newStr;
-  })();
+  const hasEditInput =
+    isEdit &&
+    tool.input &&
+    (() => {
+      const inp = tool.input!;
+      if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
+        return inp.diff_blocks.some(
+          (b: any) =>
+            String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
+        );
+      }
+      const oldStr = String(inp.old_string ?? inp.old_str ?? '');
+      const newStr = String(inp.new_string ?? inp.new_str ?? '');
+      return oldStr !== newStr;
+    })();
   const hasReadResult = isRead && hasResult && !tool.isError;
   const suppressResult =
     isCodexTool(tool) &&
     !tool.isError &&
     (isEdit || canonical === 'Bash' || canonical === 'WebSearch');
 
-  // Skip empty Edit tool calls that have no diff and no summary
-  if (isEdit && !hasEditInput && !summary) {
+  // Skip empty Edit tool calls that have no diff, no summary and no result
+  if (isEdit && !hasEditInput && !summary && !hasResult) {
     return html``;
   }
 
@@ -770,7 +922,7 @@ function renderToolCall(tool: ToolCall): TemplateResult {
         >
         <span class="tool-name-inline">${name}</span>
         ${summary
-          ? html`<span class="tool-summary-inline">\u2066${summary}\u2069</span>`
+          ? html`<span class="tool-summary-inline">⁦${summary}⁩</span>`
           : ''}
       </div>
       ${hasEditInput
@@ -2449,7 +2601,25 @@ export const chatStyles = css`
   }
 
   .diff-line {
+    display: grid;
+    grid-template-columns: var(--diff-lineno-width, 4ch) 2ch minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
     padding: 1px 8px;
+  }
+
+  .diff-lineno {
+    color: var(--chat-text-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    user-select: none;
+  }
+
+  .diff-sign {
+    user-select: none;
+  }
+
+  .diff-text {
     white-space: pre-wrap;
     word-break: break-word;
   }
@@ -2462,6 +2632,17 @@ export const chatStyles = css`
   .diff-add {
     background: var(--chat-diff-add-bg);
     color: var(--chat-diff-add-text);
+  }
+
+  .diff-ctx {
+    color: var(--chat-tool-result);
+    background: transparent;
+  }
+
+  .diff-gap {
+    color: var(--chat-text-muted);
+    background: var(--chat-tool-bg);
+    font-style: italic;
   }
 
   /* Read 结果代码预览 */

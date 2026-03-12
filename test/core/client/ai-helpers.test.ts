@@ -4,9 +4,18 @@ import { __TEST_ONLY__, setProjectRoot } from '@/core/src/client/ai';
 function templateText(tpl: any): string {
   if (tpl == null) return '';
   if (typeof tpl === 'string') return tpl;
+  if (typeof tpl === 'number') return String(tpl);
+  if (typeof tpl === 'boolean') return String(tpl);
   if (Array.isArray(tpl)) return tpl.map((item) => templateText(item)).join('');
   if (Array.isArray(tpl?.strings) && Array.isArray(tpl?.values)) {
-    return tpl.strings.join('') + tpl.values.map((item: unknown) => templateText(item)).join('');
+    let out = '';
+    for (let i = 0; i < tpl.strings.length; i++) {
+      out += tpl.strings[i];
+      if (i < tpl.values.length) {
+        out += templateText(tpl.values[i]);
+      }
+    }
+    return out;
   }
   return '';
 }
@@ -307,7 +316,13 @@ describe('client ai helper functions', () => {
         ],
       },
     } as any);
-    expect(templateText(diffTpl)).toContain('diff-view');
+    const diffText = templateText(diffTpl);
+    expect(diffText).toContain('diff-view');
+    expect(diffText).toContain('diff-lineno-old');
+    expect(diffText).toContain('diff-lineno-new');
+    // old: line 2 deleted, new: line 2 added
+    expect(diffText).toMatch(/diff-lineno-old[\s\S]*?>\s*2[\s\S]*?<\/span[\s\S]*?>/);
+    expect(diffText).toMatch(/diff-lineno-new[\s\S]*?>\s*2[\s\S]*?<\/span[\s\S]*?>/);
 
     const sectionDiff = __TEST_ONLY__.renderEditDiff({
       id: '2',
@@ -494,6 +509,32 @@ describe('client ai helper functions', () => {
       isError: false,
     } as any);
     expect(templateText(opencodeBashTpl)).not.toContain('tool-result-inline');
+  });
+
+  it('should render context lines and collapse large gaps in diff view', () => {
+    const oldSmallGap = ['1', 'a', '3', '4', '5', '6', '7', 'b'].join('\n');
+    const newSmallGap = ['1', 'A', '3', '4', '5', '6', '7', 'B'].join('\n');
+    const smallGapTpl = __TEST_ONLY__.renderEditDiff({
+      id: 'gap-1',
+      name: 'Edit',
+      input: { old_string: oldSmallGap, new_string: newSmallGap },
+    } as any);
+    const smallGapText = templateText(smallGapTpl);
+    expect(smallGapText).toContain('diff-ctx');
+    expect(smallGapText).not.toContain('...5 lines');
+    expect(smallGapText).toMatch(/diff-text[\s\S]*?>\s*3[\s\S]*?<\/span/);
+    expect(smallGapText).toMatch(/diff-text[\s\S]*?>\s*7[\s\S]*?<\/span/);
+
+    const oldLargeGap = ['1', 'a', '3', '4', '5', '6', '7', '8', 'b', '10'].join('\n');
+    const newLargeGap = ['1', 'A', '3', '4', '5', '6', '7', '8', 'B', '10'].join('\n');
+    const largeGapTpl = __TEST_ONLY__.renderEditDiff({
+      id: 'gap-2',
+      name: 'Edit',
+      input: { old_string: oldLargeGap, new_string: newLargeGap },
+    } as any);
+    const largeGapText = templateText(largeGapTpl);
+    expect(largeGapText).toContain('diff-gap');
+    expect(largeGapText).toContain('...6 lines');
   });
 
   it('should render Read result as code preview', () => {

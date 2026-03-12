@@ -1369,10 +1369,12 @@ function queryViaCli(
               }),
             );
           }
-          const changes = part.files.map((f: any) => ({
-            path: f?.path || '',
-            kind: f?.status || 'edit',
-          }));
+          const changes = part.files.map((f: any) => {
+            if (typeof f === 'string') {
+              return { path: f, kind: 'edit' };
+            }
+            return { path: f?.path || '', kind: f?.status || 'edit' };
+          });
           onData(
             JSON.stringify({
               type: 'tool_input',
