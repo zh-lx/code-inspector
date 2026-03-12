@@ -123,6 +123,22 @@ describe('codex provider helpers', () => {
       ),
     ).toBe(true);
     expect(__TEST_ONLY__.shouldIgnorePlainLine('2025-01-01T00:00:00 ERROR bad')).toBe(true);
+    expect(
+      __TEST_ONLY__.shouldIgnorePlainLine(
+        'ERROR 2026-03-10T00:12:26 +88ms service=models.dev error=Unable to connect',
+      ),
+    ).toBe(true);
+    expect(
+      __TEST_ONLY__.shouldIgnorePlainLine(
+        'Performing one time database migration, may take a few minutes...',
+      ),
+    ).toBe(true);
+    expect(__TEST_ONLY__.shouldIgnorePlainLine('sqlite-migration:done')).toBe(
+      true,
+    );
+    expect(__TEST_ONLY__.shouldIgnorePlainLine('Database migration complete.')).toBe(
+      true,
+    );
     expect(__TEST_ONLY__.shouldIgnorePlainLine('normal line')).toBe(false);
   });
 
@@ -898,5 +914,167 @@ describe('codex provider helpers', () => {
 
   it('should cover getItemText null branch', () => {
     expect(__TEST_ONLY__.getItemText(null as any)).toBe('');
+  });
+
+  it('should report incompatible opencode sdk exports instead of pretending sdk is missing', async () => {
+    const OriginalFunction = globalThis.Function;
+    const sent: any[] = [];
+    try {
+      __TEST_ONLY__.resetCaches();
+      (globalThis as any).Function = vi.fn(() => {
+        return async () => ({
+          OpencodeClient: function OpencodeClient() {},
+          createOpencodeClient: vi.fn(),
+        });
+      });
+
+      const result = await __TEST_ONLY__.queryViaSdk(
+        'prompt',
+        process.cwd(),
+        {} as any,
+        undefined,
+        (data: any) => sent.push(data),
+        () => false,
+        [],
+        {
+          providerId: 'opencode',
+          displayName: 'OpenCode',
+          cliBinaryName: 'opencode',
+          sdkPackages: ['@opencode-ai/sdk'],
+          sdkInstallCommand: 'npm install @opencode-ai/sdk',
+        },
+      );
+
+      expect(result).toBeNull();
+      const message = sent.find((item) => item?.type === 'text')?.content || '';
+      expect(message).toContain('SDK is installed');
+      expect(message).toContain('incompatible');
+      expect(message).toContain("type: 'cli'");
+    } finally {
+      (globalThis as any).Function = OriginalFunction;
+    }
+  });
+
+  it('detectReadCommand should detect nl/cat/head/tail commands', () => {
+    expect(__TEST_ONLY__.detectReadCommand('nl -ba foo.vue | sed -n \'1,10p\'')).toEqual({ filePath: 'foo.vue' });
+    expect(__TEST_ONLY__.detectReadCommand('cat src/main.ts')).toEqual({ filePath: 'src/main.ts' });
+    expect(__TEST_ONLY__.detectReadCommand('head -n 20 README.md')).toEqual({ filePath: 'README.md' });
+    expect(__TEST_ONLY__.detectReadCommand('tail -f logs.txt')).toEqual({ filePath: 'logs.txt' });
+    expect(__TEST_ONLY__.detectReadCommand('/bin/zsh -lc "cd /project && nl -ba src/file.ts | sed -n \'1,120p\'"'))
+      .toEqual({ filePath: 'src/file.ts', cdDir: '/project' });
+    expect(__TEST_ONLY__.detectReadCommand('/bin/zsh -lc "cd /project/sub && sed -n \'1,120p\' src/foo.vue"'))
+      .toEqual({ filePath: 'src/foo.vue', cdDir: '/project/sub' });
+    expect(__TEST_ONLY__.detectReadCommand('echo hello')).toBeNull();
+    expect(__TEST_ONLY__.detectReadCommand('npm install')).toBeNull();
+  });
+
+  it('stripNlLineNumbers should strip nl -ba line number prefixes', () => {
+    const input = '     1\t<template>\n     2\t  <div>hello</div>\n     3\t</template>\n';
+    const expected = '<template>\n  <div>hello</div>\n</template>\n';
+    expect(__TEST_ONLY__.stripNlLineNumbers(input)).toBe(expected);
+
+    // Lines without nl prefix should be unchanged
+    expect(__TEST_ONLY__.stripNlLineNumbers('plain text\n')).toBe('plain text\n');
+  });
+
+  it('buildToolEventFromItem should map read-like command_execution to Read tool', () => {
+    const result = __TEST_ONLY__.buildToolEventFromItem({
+      id: 'read-1',
+      type: 'command_execution',
+      command: 'nl -ba src/main.ts',
+      aggregated_output: '     1\tconst x = 1;\n     2\tconst y = 2;\n',
+      exit_code: 0,
+      status: 'completed',
+    }, { cwd: '/project' });
+
+    expect(result?.toolName).toBe('Read');
+    expect(result?.input?.file_path).toBe('src/main.ts');
+    expect(result?.result).toBe('const x = 1;\nconst y = 2;');
+    expect(result?.isError).toBe(false);
+  });
+
+  it('buildToolEventFromItem should keep failed read-like commands as Bash', () => {
+    const result = __TEST_ONLY__.buildToolEventFromItem({
+      id: 'fail-read-1',
+      type: 'command_execution',
+      command: 'cat nonexistent.txt',
+      aggregated_output: 'No such file',
+      exit_code: 1,
+      status: 'failed',
+    });
+
+    expect(result?.toolName).toBe('Bash');
+    expect(result?.isError).toBe(true);
+  });
+
+  it('buildToolEventFromItem should fallback to readOutputStore for file_change diffs', () => {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-readstore-'));
+    const filePath = path.join(cwd, 'test.txt');
+    fs.writeFileSync(filePath, 'after-content');
+
+    const readOutputStore = new Map<string, string>();
+    readOutputStore.set(filePath, 'before-content');
+
+    const result = __TEST_ONLY__.buildToolEventFromItem(
+      {
+        id: 'fc-1',
+        type: 'file_change',
+        status: 'completed',
+        changes: [{ path: filePath, kind: 'edit' }],
+      },
+      { cwd, fileSnapshots: new Map(), readOutputStore, done: true },
+    );
+
+    expect(result?.toolName).toBe('Edit');
+    expect(result?.input?.diff_blocks).toBeDefined();
+    expect(result?.input?.diff_blocks[0].old_string).toContain('before-content');
+    expect(result?.input?.diff_blocks[0].new_string).toContain('after-content');
+  });
+
+  it('buildToolEventFromItem should store full file content in readOutputStore', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-readstore2-'));
+    const filePath = path.join(tmpDir, 'test.txt');
+    fs.writeFileSync(filePath, 'full file content on disk');
+
+    const readOutputStore = new Map<string, string>();
+    __TEST_ONLY__.buildToolEventFromItem(
+      {
+        id: 'r-store-1',
+        type: 'command_execution',
+        command: `cat ${filePath}`,
+        aggregated_output: 'partial output',
+        exit_code: 0,
+        status: 'completed',
+      },
+      { cwd: tmpDir, readOutputStore, done: true },
+    );
+
+    // Should store full file from disk, not the truncated command output
+    expect(readOutputStore.get(filePath)).toBe('full file content on disk');
+  });
+
+  it('buildToolEventFromItem should resolve read path using cdDir from command', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-cddir-'));
+    const subDir = path.join(tmpDir, 'demos', 'app', 'src');
+    fs.mkdirSync(subDir, { recursive: true });
+    const filePath = path.join(subDir, 'foo.vue');
+    fs.writeFileSync(filePath, '<template>full content</template>');
+
+    const readOutputStore = new Map<string, string>();
+    __TEST_ONLY__.buildToolEventFromItem(
+      {
+        id: 'r-cd-1',
+        type: 'command_execution',
+        command: `/bin/zsh -lc "cd ${path.join(tmpDir, 'demos', 'app')} && sed -n '1,120p' src/foo.vue"`,
+        aggregated_output: '<template>partial</template>',
+        exit_code: 0,
+        status: 'completed',
+      },
+      { cwd: tmpDir, readOutputStore, done: true },
+    );
+
+    // Should resolve against cdDir, not cwd, and store full file content
+    expect(readOutputStore.get(filePath)).toBe('<template>full content</template>');
+    expect(readOutputStore.has(path.join(tmpDir, 'src/foo.vue'))).toBe(false);
   });
 });

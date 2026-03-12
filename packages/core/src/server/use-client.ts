@@ -153,7 +153,9 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     modeKey = 'z',
   } = options || ({} as CodeOptions);
   const { locate = true, copy = false, target = '', defaultAction = '' } = behavior;
-  const aiEnabled = Boolean(behavior.ai?.codex || behavior.ai?.claudeCode);
+  const aiEnabled = Boolean(
+    behavior.ai?.codex || behavior.ai?.claudeCode || behavior.ai?.opencode,
+  );
   return `
 ;(function (){
   if (typeof window !== 'undefined') {

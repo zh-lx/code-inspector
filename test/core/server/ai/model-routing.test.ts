@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockHandleCodexRequest = vi.hoisted(() => vi.fn(() => ({ abort: vi.fn() })));
+const mockHandleOpenCodeRequest = vi.hoisted(() => vi.fn(() => ({ abort: vi.fn() })));
 const mockHandleClaudeRequest = vi.hoisted(() => vi.fn(() => ({ abort: vi.fn() })));
 const mockGetCodexModelInfo = vi.hoisted(() => vi.fn(async () => ''));
+const mockGetOpenCodeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 const mockGetClaudeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 
 vi.mock('@/core/src/server/ai-provider-codex', () => ({
   handleCodexRequest: mockHandleCodexRequest,
   getModelInfo: mockGetCodexModelInfo,
+}));
+
+vi.mock('@/core/src/server/ai-provider-opencode', () => ({
+  handleOpenCodeRequest: mockHandleOpenCodeRequest,
+  getModelInfo: mockGetOpenCodeModelInfo,
 }));
 
 vi.mock('@/core/src/server/ai-provider-claude', () => ({
@@ -135,5 +142,30 @@ describe('AI model routing', () => {
       'gpt-5.2-codex',
     ]);
   });
-});
 
+  it('should route opencode provider and override selected model', async () => {
+    const aiOptions = getAIOptions({
+      ai: {
+        opencode: {
+          options: {
+            model: 'open-code-model',
+            models: ['open-code-model', 'open-code-model-next'],
+          },
+        },
+      },
+    });
+
+    const req = createMockReq({
+      message: 'hello',
+      context: null,
+      provider: 'opencode',
+      model: 'open-code-model-next',
+    });
+    const { res } = createMockRes();
+    await handleAIRequest(req, res, {}, aiOptions, process.cwd());
+
+    expect(mockHandleOpenCodeRequest).toHaveBeenCalledTimes(1);
+    const options = mockHandleOpenCodeRequest.mock.calls[0][5];
+    expect(options.options.model).toBe('open-code-model-next');
+  });
+});

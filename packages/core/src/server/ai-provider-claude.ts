@@ -1004,6 +1004,9 @@ async function queryViaSdk(
   let emittedSessionId = '';
   const toolInputBuffers: Map<number, string> = new Map();
   const assistantTextBuffers: Map<string, string> = new Map();
+  // Track tool IDs already emitted via stream_event to avoid duplicating
+  // them when the same tools appear in the assistant snapshot message.
+  const emittedToolIds = new Set<string>();
   const sdkIdleTimeoutMs = 100000;
   const idleTimer = setTimeout(() => {
     if (!hasBusinessEvent && !isAborted()) {
@@ -1051,12 +1054,15 @@ async function queryViaSdk(
         ) {
           const toolUse = event.content_block;
           toolInputBuffers.set(event.index, '');
-          sendSSE({
-            type: 'tool_start',
-            toolId: toolUse.id,
-            toolName: toolUse.name,
-            index: event.index,
-          });
+          if (!emittedToolIds.has(toolUse.id)) {
+            emittedToolIds.add(toolUse.id);
+            sendSSE({
+              type: 'tool_start',
+              toolId: toolUse.id,
+              toolName: toolUse.name,
+              index: event.index,
+            });
+          }
         }
 
         if (
@@ -1094,6 +1100,9 @@ async function queryViaSdk(
               combinedText += block.text;
             }
             if (block.type === 'tool_use') {
+              // Skip tools already emitted via stream_event to avoid duplicates
+              if (emittedToolIds.has(block.id)) continue;
+              emittedToolIds.add(block.id);
               sendSSE({
                 type: 'tool_start',
                 toolId: block.id,
@@ -1126,7 +1135,10 @@ async function queryViaSdk(
             const delta = combinedText.startsWith(previous)
               ? combinedText.slice(previous.length)
               : combinedText;
-            if (delta) {
+            // When this is the first snapshot for a message (previous is empty)
+            // and text was already streamed via stream_event, skip emitting to
+            // avoid duplicate text on the client.
+            if (delta && (previous || !hasStreamContent)) {
               hasStreamContent = true;
               sendSSE({ type: 'text', content: delta });
             }

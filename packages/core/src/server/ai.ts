@@ -3,9 +3,10 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { ClaudeCodeOptions, CodexOptions } from '../shared';
+import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../shared';
 import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-provider-claude';
 import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
+import { handleOpenCodeRequest, getModelInfo as getOpenCodeModelInfo } from './ai-provider-opencode';
 import type { ProviderResult } from './ai-provider-claude';
 
 // ============================================================================
@@ -42,11 +43,12 @@ export interface AIRequest {
   model?: string;
 }
 
-export type AIProviderType = 'claudeCode' | 'codex';
+export type AIProviderType = 'claudeCode' | 'codex' | 'opencode';
 
 type AIProviderOptionsMap = {
   claudeCode: ClaudeCodeOptions;
   codex: CodexOptions;
+  opencode: OpenCodeOptions;
 };
 
 export type ResolvedAIOptions = Partial<AIProviderOptionsMap>;
@@ -56,7 +58,7 @@ export type ActiveAIOptions<T extends AIProviderType = AIProviderType> = {
   options: AIProviderOptionsMap[T];
 };
 
-const PROVIDER_PRIORITY: AIProviderType[] = ['codex', 'claudeCode'];
+const PROVIDER_PRIORITY: AIProviderType[] = ['codex', 'opencode', 'claudeCode'];
 
 // ============================================================================
 // 公共 API
@@ -66,7 +68,13 @@ const PROVIDER_PRIORITY: AIProviderType[] = ['codex', 'claudeCode'];
  * 从 behavior 配置中提取 AI 选项
  */
 export function getAIOptions(
-  behavior?: { ai?: { claudeCode?: boolean | ClaudeCodeOptions; codex?: boolean | CodexOptions } }
+  behavior?: {
+    ai?: {
+      claudeCode?: boolean | ClaudeCodeOptions;
+      codex?: boolean | CodexOptions;
+      opencode?: boolean | OpenCodeOptions;
+    };
+  }
 ): ResolvedAIOptions | undefined {
   const resolved: ResolvedAIOptions = {};
 
@@ -78,11 +86,15 @@ export function getAIOptions(
     resolved.claudeCode = typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode;
   }
 
+  if (behavior?.ai?.opencode) {
+    resolved.opencode = typeof behavior.ai.opencode === 'boolean' ? {} : behavior.ai.opencode;
+  }
+
   return Object.keys(resolved).length > 0 ? resolved : undefined;
 }
 
 function normalizeAIProviderType(provider?: string | null): AIProviderType | undefined {
-  if (provider === 'codex' || provider === 'claudeCode') {
+  if (provider === 'codex' || provider === 'claudeCode' || provider === 'opencode') {
     return provider;
   }
   return undefined;
@@ -238,7 +250,7 @@ export async function handleAIRequest(
 
   const activeAIOptions = resolveAIOptions(aiOptions, requestedProvider);
   if (!activeAIOptions) {
-    sendSSE({ error: 'AI provider is not configured. Please set behavior.ai.claudeCode or behavior.ai.codex.' });
+    sendSSE({ error: 'AI provider is not configured. Please set behavior.ai.claudeCode, behavior.ai.codex, or behavior.ai.opencode.' });
     sendSSE('[DONE]');
     res.end();
     return;
@@ -256,6 +268,19 @@ export async function handleAIRequest(
       sessionId,
       cwd,
       effectiveAIOptions.options as CodexOptions,
+      {
+        sendSSE,
+        onEnd: () => res.end(),
+      },
+    );
+  } else if (effectiveAIOptions.provider === 'opencode') {
+    provider = handleOpenCodeRequest(
+      message,
+      context,
+      history,
+      sessionId,
+      cwd,
+      effectiveAIOptions.options as OpenCodeOptions,
       {
         sendSSE,
         onEnd: () => res.end(),
@@ -312,9 +337,12 @@ export async function handleAIModelRequest(
   }
 
   const configuredModels = getConfiguredModels(activeAIOptions);
-  const detectedModel = activeAIOptions.provider === 'codex'
-    ? await getCodexModelInfo(activeAIOptions.options as CodexOptions)
-    : await getClaudeModelInfo(activeAIOptions.options as ClaudeCodeOptions | undefined);
+  const detectedModel =
+    activeAIOptions.provider === 'codex'
+      ? await getCodexModelInfo(activeAIOptions.options as CodexOptions)
+      : activeAIOptions.provider === 'opencode'
+        ? await getOpenCodeModelInfo(activeAIOptions.options as OpenCodeOptions)
+        : await getClaudeModelInfo(activeAIOptions.options as ClaudeCodeOptions | undefined);
   const model = normalizeModelName(detectedModel) || configuredModels[0] || '';
   const models = dedupeModels([
     ...configuredModels,

@@ -7,6 +7,10 @@ import { TemplateResult } from 'lit';
  */
 export declare function setProjectRoot(root: string): void;
 /**
+ * 将绝对路径转为相对于项目根路径的路径
+ */
+declare function toRelativePath(filePath: string): string;
+/**
  * 工具调用信息
  */
 export interface ToolCall {
@@ -56,7 +60,7 @@ export interface ChatImageAttachment {
     size: number;
     previewUrl: string;
 }
-export type ChatProvider = 'claudeCode' | 'codex';
+export type ChatProvider = 'claudeCode' | 'codex' | 'opencode';
 export interface AIModelInfo {
     model: string;
     models: string[];
@@ -121,6 +125,57 @@ export interface ChatHandlers {
  */
 export declare function updateChatModalPosition(referenceEl: HTMLElement | null, floatingEl: HTMLElement | null): (() => void) | null;
 /**
+ * 格式化持续时间为 x m xx s 格式
+ */
+declare function formatDuration(seconds: number): string;
+/**
+ * 渲染 Markdown 内容为 HTML
+ */
+declare function renderMarkdown(content: string): string;
+declare function isCodexTool(tool: ToolCall): boolean;
+/**
+ * 规范化工具名称（不同 provider 可能使用不同大小写，如 OpenCode 用小写 "read"）
+ */
+declare function canonicalToolName(name: string): string;
+declare function formatProviderName(provider: ChatProvider): string;
+declare function getChangePath(input: Record<string, any>): string;
+declare function getCodexDisplayInfo(tool: ToolCall): {
+    name: string;
+    summary: string;
+};
+/**
+ * 获取工具显示名称和参数摘要
+ */
+declare function getToolDisplayInfo(tool: ToolCall): {
+    name: string;
+    summary: string;
+};
+/**
+ * 从工具结果中提取路径和纯文本内容（处理 JSON 数组格式和 XML 包装）
+ */
+declare function extractReadContent(raw: string): {
+    path: string;
+    content: string;
+};
+declare function formatToolResult(result: string, toolName: string): string;
+/**
+ * 渲染 Read 工具的代码预览（CLI 风格）
+ */
+declare function renderReadResult(tool: ToolCall): TemplateResult;
+/**
+ * 渲染 Edit 工具的 diff 视图（红绿对比）
+ */
+declare function renderEditDiff(tool: ToolCall): TemplateResult;
+/**
+ * 渲染单个工具调用（CLI 扁平内联风格）
+ */
+declare function renderToolCall(tool: ToolCall): TemplateResult;
+/**
+ * 渲染消息内容（连续终端流式风格）
+ */
+declare function renderMessageContent(msg: ChatMessage): TemplateResult;
+declare function renderMessageContext(msg: ChatMessage): TemplateResult;
+/**
  * 渲染聊天框模板
  */
 export declare function renderChatModal(state: ChatState, handlers: ChatHandlers): TemplateResult;
@@ -141,6 +196,7 @@ export interface StreamHandlers {
     onProjectRoot?: (cwd: string) => void;
     onModel?: (model: string) => void;
 }
+declare function normalizeChatProvider(provider: unknown): ChatProvider | null;
 /**
  * 获取 AI 模型信息
  */
@@ -149,3 +205,23 @@ export declare function fetchModelInfo(ip: string, port: number, provider?: Chat
  * 发送聊天消息到服务器
  */
 export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null, model?: string | null): Promise<void>;
+export declare const __TEST_ONLY__: {
+    toRelativePath: typeof toRelativePath;
+    formatDuration: typeof formatDuration;
+    renderMarkdown: typeof renderMarkdown;
+    isCodexTool: typeof isCodexTool;
+    canonicalToolName: typeof canonicalToolName;
+    formatProviderName: typeof formatProviderName;
+    getChangePath: typeof getChangePath;
+    getCodexDisplayInfo: typeof getCodexDisplayInfo;
+    getToolDisplayInfo: typeof getToolDisplayInfo;
+    extractReadContent: typeof extractReadContent;
+    formatToolResult: typeof formatToolResult;
+    renderReadResult: typeof renderReadResult;
+    renderEditDiff: typeof renderEditDiff;
+    renderToolCall: typeof renderToolCall;
+    renderMessageContent: typeof renderMessageContent;
+    renderMessageContext: typeof renderMessageContext;
+    normalizeChatProvider: typeof normalizeChatProvider;
+};
+export {};

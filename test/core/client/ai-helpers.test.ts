@@ -47,6 +47,15 @@ describe('client ai helper functions', () => {
     parseSpy.mockRestore();
   });
 
+  it('should normalize tool names across providers', () => {
+    expect(__TEST_ONLY__.canonicalToolName('read')).toBe('Read');
+    expect(__TEST_ONLY__.canonicalToolName('Read')).toBe('Read');
+    expect(__TEST_ONLY__.canonicalToolName('edit')).toBe('Edit');
+    expect(__TEST_ONLY__.canonicalToolName('bash')).toBe('Bash');
+    expect(__TEST_ONLY__.canonicalToolName('websearch')).toBe('WebSearch');
+    expect(__TEST_ONLY__.canonicalToolName('CustomTool')).toBe('CustomTool');
+  });
+
   it('should compute tool summaries', () => {
     setProjectRoot('/project');
     expect(__TEST_ONLY__.isCodexTool({ id: '1', name: 'Read', input: { _provider: 'codex' } } as any)).toBe(
@@ -57,11 +66,11 @@ describe('client ai helper functions', () => {
     expect(__TEST_ONLY__.getChangePath({})).toBe('');
 
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '1', name: 'Bash', input: { command: 'ls' } } as any)).toEqual({
-      name: 'Running',
+      name: 'Bash',
       summary: 'ls',
     });
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '1-0', name: 'Bash' } as any)).toEqual({
-      name: 'Running',
+      name: 'Bash',
       summary: '',
     });
     expect(
@@ -83,7 +92,7 @@ describe('client ai helper functions', () => {
         input: { query: 'vitest' },
       } as any),
     ).toEqual({
-      name: 'Explored',
+      name: 'Search',
       summary: 'vitest',
     });
     expect(
@@ -93,7 +102,7 @@ describe('client ai helper functions', () => {
         input: {},
       } as any),
     ).toEqual({
-      name: 'Exploring',
+      name: 'Search',
       summary: '',
     });
     expect(
@@ -104,7 +113,7 @@ describe('client ai helper functions', () => {
         input: { changes: [{}] },
       } as any),
     ).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '1 file',
     });
     expect(
@@ -115,17 +124,27 @@ describe('client ai helper functions', () => {
         input: { changes: [{}, {}] },
       } as any),
     ).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '2 files',
     });
     expect(__TEST_ONLY__.getCodexDisplayInfo({ id: '3-2', name: 'Edit' } as any)).toEqual({
-      name: 'Editing',
+      name: 'Edited',
       summary: '',
     });
 
     expect(__TEST_ONLY__.getToolDisplayInfo({ id: '4', name: 'Read', input: { file_path: '/project/a.ts' } } as any)).toEqual({
       name: 'Read',
       summary: 'a.ts',
+    });
+    // Read with no input.file_path but result has <path> tag - fallback extraction
+    expect(__TEST_ONLY__.getToolDisplayInfo({
+      id: '4-1',
+      name: 'Read',
+      input: {},
+      result: '<path>/project/src/b.ts</path>\n<type>file</type>\n<content>code</content>',
+    } as any)).toEqual({
+      name: 'Read',
+      summary: 'src/b.ts',
     });
     expect(__TEST_ONLY__.getToolDisplayInfo({ id: '4-0', name: 'Read' } as any)).toEqual({
       name: 'Read',
@@ -195,12 +214,84 @@ describe('client ai helper functions', () => {
       name: 'Unknown',
       summary: '',
     });
+    // OpenCode sends lowercase tool names - should still match
+    expect(__TEST_ONLY__.getCodexDisplayInfo({ id: 'oc1', name: 'bash', input: { command: 'ls' } } as any)).toEqual({
+      name: 'Bash',
+      summary: 'ls',
+    });
+    expect(__TEST_ONLY__.getCodexDisplayInfo({
+      id: 'oc2',
+      name: 'read',
+      isComplete: true,
+      input: { _provider: 'opencode' },
+      result: '<path>/project/src/x.ts</path>\n<content>code</content>',
+    } as any)).toEqual({
+      name: 'Read',
+      summary: 'src/x.ts',
+    });
+  });
+
+  it('should extract path and content from Read tool results', () => {
+    // XML format with closing tag
+    const xml1 = __TEST_ONLY__.extractReadContent(
+      '<path>/a.vue</path>\n<type>file</type>\n<content>1: hello\n2: world</content>',
+    );
+    expect(xml1.path).toBe('/a.vue');
+    expect(xml1.content).toBe('1: hello\n2: world');
+
+    // XML format without closing tag (truncated)
+    const xml2 = __TEST_ONLY__.extractReadContent(
+      '<path>/a.vue</path>\n<type>file</type>\n<content>1: hello\n2: world',
+    );
+    expect(xml2.path).toBe('/a.vue');
+    expect(xml2.content).toBe('1: hello\n2: world');
+
+    // Plain text (no XML wrapper)
+    const plain = __TEST_ONLY__.extractReadContent('just plain text');
+    expect(plain.path).toBe('');
+    expect(plain.content).toBe('just plain text');
+
+    // JSON array format
+    const json1 = __TEST_ONLY__.extractReadContent(
+      '[{"type":"text","text":"<content>code here</content>"}]',
+    );
+    expect(json1.content).toBe('code here');
+
+    // JSON array without XML
+    const json2 = __TEST_ONLY__.extractReadContent(
+      '[{"type":"text","text":"plain text in json"}]',
+    );
+    expect(json2.content).toBe('plain text in json');
+
+    // Invalid JSON (not an array)
+    const invalid = __TEST_ONLY__.extractReadContent('[invalid json');
+    expect(invalid.content).toBe('[invalid json');
   });
 
   it('should format tool results and render tool blocks', () => {
     expect(__TEST_ONLY__.formatToolResult('', 'Read')).toBe('');
     expect(__TEST_ONLY__.formatToolResult('a\nb', 'Write')).toBe('Wrote 2 lines');
     expect(__TEST_ONLY__.formatToolResult('1\n2\n3\n4\n5\n6', 'Read')).toBe('6 lines');
+    // Read with XML wrapper should extract content and show line count
+    expect(__TEST_ONLY__.formatToolResult(
+      '<path>/a.vue</path>\n<type>file</type>\n<content>1: line1\n2: line2\n3: line3</content>',
+      'Read',
+    )).toBe('3 lines');
+    // Read with XML wrapper without closing tag
+    expect(__TEST_ONLY__.formatToolResult(
+      '<path>/a.vue</path>\n<type>file</type>\n<content>1: line1\n2: line2',
+      'Read',
+    )).toBe('2 lines');
+    // Short Read result (no XML) should still show line count
+    expect(__TEST_ONLY__.formatToolResult('a\nb', 'Read')).toBe('2 lines');
+    // Read with JSON array format
+    expect(__TEST_ONLY__.formatToolResult(
+      '[{"type":"text","text":"<content>1: a\\n2: b</content>"}]',
+      'Read',
+    )).toBe('2 lines');
+    // Lowercase tool names (OpenCode) should also work
+    expect(__TEST_ONLY__.formatToolResult('a\nb\nc', 'read')).toBe('3 lines');
+    expect(__TEST_ONLY__.formatToolResult('a\nb', 'write')).toBe('Wrote 2 lines');
     expect(__TEST_ONLY__.formatToolResult('x'.repeat(400), 'Bash')).toContain('...');
 
     const diffTpl = __TEST_ONLY__.renderEditDiff({
@@ -378,6 +469,83 @@ describe('client ai helper functions', () => {
       isComplete: false,
     } as any);
     expect(templateText(diffBlockTool)).toContain('tool-diff-wrapper');
+
+    // OpenCode lowercase "read" should render as read-result-block, not raw XML
+    const opencodeReadTpl = __TEST_ONLY__.renderToolCall({
+      id: 'oc-r1',
+      name: 'read',
+      input: { _provider: 'opencode' },
+      isComplete: true,
+      result: '<path>/a.vue</path>\n<type>file</type>\n<content>1: code\n2: more</content>',
+      isError: false,
+    } as any);
+    const ocReadText = templateText(opencodeReadTpl);
+    expect(ocReadText).toContain('read-result-block');
+    expect(ocReadText).not.toContain('<path>');
+    expect(ocReadText).not.toContain('<content>');
+
+    // OpenCode lowercase "bash" should be suppressed
+    const opencodeBashTpl = __TEST_ONLY__.renderToolCall({
+      id: 'oc-b1',
+      name: 'bash',
+      input: { _provider: 'opencode', command: 'ls' },
+      isComplete: true,
+      result: 'output',
+      isError: false,
+    } as any);
+    expect(templateText(opencodeBashTpl)).not.toContain('tool-result-inline');
+  });
+
+  it('should render Read result as code preview', () => {
+    // Read with XML content - renders as code block
+    const readTpl = __TEST_ONLY__.renderReadResult({
+      id: 'r1',
+      name: 'Read',
+      input: { file_path: 'a.vue' },
+      result: '<path>/a.vue</path>\n<type>file</type>\n<content>1: line1\n2: line2\n3: line3</content>',
+      isComplete: true,
+    } as any);
+    const readText = templateText(readTpl);
+    expect(readText).toContain('read-result-block');
+    expect(readText).toContain('read-line');
+    expect(readText).not.toContain('<path>');
+    expect(readText).not.toContain('<content>');
+
+    // Read with long content - shows truncated with "+N lines"
+    const longContent = Array.from({ length: 10 }, (_, i) => `${i + 1}: line${i + 1}`).join('\n');
+    const longReadTpl = __TEST_ONLY__.renderReadResult({
+      id: 'r2',
+      name: 'Read',
+      input: {},
+      result: `<path>/a.ts</path>\n<type>file</type>\n<content>${longContent}</content>`,
+      isComplete: true,
+    } as any);
+    const longText = templateText(longReadTpl);
+    expect(longText).toContain('read-result-block');
+    expect(longText).toContain('read-more');
+
+    // Read with empty result
+    const emptyReadTpl = __TEST_ONLY__.renderReadResult({
+      id: 'r3',
+      name: 'Read',
+      input: {},
+      result: '',
+      isComplete: true,
+    } as any);
+    expect(templateText(emptyReadTpl)).toBe('');
+
+    // Read result in renderToolCall uses read-result-block (not raw XML)
+    const readToolTpl = __TEST_ONLY__.renderToolCall({
+      id: 'r4',
+      name: 'Read',
+      input: { file_path: 'a.ts' },
+      result: '<path>/a.ts</path>\n<content>1: code</content>',
+      isComplete: true,
+      isError: false,
+    } as any);
+    const toolText = templateText(readToolTpl);
+    expect(toolText).toContain('read-result-block');
+    expect(toolText).not.toContain('tool-result-text');
   });
 
   it('should render message content/context for key scenarios', () => {

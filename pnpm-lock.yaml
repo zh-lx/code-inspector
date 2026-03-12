@@ -186,7 +186,7 @@ importers:
     dependencies:
       nuxt:
         specifier: ^3.12.2
-        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
+        version: 3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       vue:
         specifier: ^3.4.29
         version: 3.4.30(typescript@5.9.3)
@@ -611,6 +611,9 @@ importers:
       '@openai/codex-sdk':
         specifier: ^0.106.0
         version: 0.106.0
+      '@opencode-ai/sdk':
+        specifier: ^1.2.24
+        version: 1.2.24
       '@vitejs/plugin-vue':
         specifier: ^4.1.0
         version: 4.1.0(vite@4.3.9(@types/node@24.10.0)(less@4.2.0)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))(vue@3.5.13(typescript@4.9.5))
@@ -1030,6 +1033,9 @@ importers:
       '@openai/codex-sdk':
         specifier: ^0.106.0
         version: 0.106.0
+      '@opencode-ai/sdk':
+        specifier: ^1.2.24
+        version: 1.2.24
 
   packages/esbuild:
     dependencies:
@@ -4669,6 +4675,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@opencode-ai/sdk@1.2.24':
+    resolution: {integrity: sha512-MQamFkRl4B/3d6oIRLNpkYR2fcwet1V/ffKyOKJXWjtP/CT9PDJMtLpu6olVHjXKQi8zMNltwuMhv1QsNtRlZg==}
 
   '@opentelemetry/api-logs@0.52.1':
     resolution: {integrity: sha512-qnSqB2DQ9TPP96dl8cDubDvrUyWc0/sK81xHTK8eSUspzDM3bsewX903qclQFvVhgStjRWdC5bLb3kQqMkfV5A==}
@@ -24955,7 +24964,7 @@ snapshots:
       sirv: 2.0.4
       unimport: 3.7.2(rollup@4.16.4)
       vite: 5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)
-      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
+      vite-plugin-inspect: 0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       vite-plugin-vue-inspector: 5.1.2(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
       which: 3.0.1
       ws: 8.17.1(bufferutil@4.0.8)(utf-8-validate@6.0.4)
@@ -24970,33 +24979,6 @@ snapshots:
     dependencies:
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
       c12: 1.11.1(magicast@0.3.4)
-      consola: 3.2.3
-      defu: 6.1.4
-      destr: 2.0.3
-      globby: 14.0.1
-      hash-sum: 2.0.0
-      ignore: 5.3.1
-      jiti: 1.21.6
-      klona: 2.0.6
-      knitwork: 1.1.0
-      mlly: 1.7.1
-      pathe: 1.1.2
-      pkg-types: 1.1.1
-      scule: 1.3.0
-      semver: 7.6.2
-      ufo: 1.5.3
-      unctx: 2.3.1
-      unimport: 3.7.2(rollup@4.16.4)
-      untyped: 1.4.2
-    transitivePeerDependencies:
-      - magicast
-      - rollup
-      - supports-color
-
-  '@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4)':
-    dependencies:
-      '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      c12: 1.11.1(magicast@0.3.5)
       consola: 3.2.3
       defu: 6.1.4
       destr: 2.0.3
@@ -25038,9 +25020,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/telemetry@2.5.4(magicast@0.3.5)(rollup@4.16.4)':
+  '@nuxt/telemetry@2.5.4(magicast@0.3.4)(rollup@4.16.4)':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       ci-info: 4.0.0
       consola: 3.2.3
       create-require: 1.1.1
@@ -25062,9 +25044,9 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxt/vite-builder@3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))':
+  '@nuxt/vite-builder@3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))':
     dependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@rollup/plugin-replace': 5.0.7(rollup@4.16.4)
       '@vitejs/plugin-vue': 5.0.5(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))(vue@3.4.30(typescript@5.9.3))
       '@vitejs/plugin-vue-jsx': 4.0.0(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))(vue@3.4.30(typescript@5.9.3))
@@ -25151,6 +25133,8 @@ snapshots:
 
   '@openai/codex@0.106.0-win32-x64':
     optional: true
+
+  '@opencode-ai/sdk@1.2.24': {}
 
   '@opentelemetry/api-logs@0.52.1':
     dependencies:
@@ -30928,23 +30912,6 @@ snapshots:
       rc9: 2.1.2
     optionalDependencies:
       magicast: 0.3.4
-
-  c12@1.11.1(magicast@0.3.5):
-    dependencies:
-      chokidar: 3.6.0
-      confbox: 0.1.7
-      defu: 6.1.4
-      dotenv: 16.4.5
-      giget: 1.2.3
-      jiti: 1.21.6
-      mlly: 1.7.1
-      ohash: 1.1.3
-      pathe: 1.1.2
-      perfect-debounce: 1.0.0
-      pkg-types: 1.1.1
-      rc9: 2.1.2
-    optionalDependencies:
-      magicast: 0.3.5
 
   cac@6.7.14: {}
 
@@ -38621,7 +38588,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5):
+  nitropack@2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.3
       '@netlify/functions': 2.8.0(@opentelemetry/api@1.9.0)
@@ -38636,7 +38603,7 @@ snapshots:
       '@types/http-proxy': 1.17.14
       '@vercel/nft': 0.26.5(encoding@0.1.13)
       archiver: 7.0.1
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chalk: 5.3.0
       chokidar: 3.6.0
       citty: 0.1.6
@@ -38992,20 +38959,20 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
+  nuxt@3.12.2(@opentelemetry/api@1.9.0)(@parcel/watcher@2.4.1)(@types/node@24.10.0)(bufferutil@4.0.8)(encoding@0.1.13)(eslint@9.39.1(jiti@2.6.1))(ioredis@5.4.1)(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
     dependencies:
       '@nuxt/devalue': 2.0.2
       '@nuxt/devtools': 1.3.6(bufferutil@4.0.8)(rollup@4.16.4)(utf-8-validate@6.0.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4))
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
       '@nuxt/schema': 3.12.2(rollup@4.16.4)
-      '@nuxt/telemetry': 2.5.4(magicast@0.3.5)(rollup@4.16.4)
-      '@nuxt/vite-builder': 3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))
+      '@nuxt/telemetry': 2.5.4(magicast@0.3.4)(rollup@4.16.4)
+      '@nuxt/vite-builder': 3.12.2(@types/node@24.10.0)(eslint@9.39.1(jiti@2.6.1))(less@4.2.0)(lightningcss@1.30.2)(magicast@0.3.4)(meow@9.0.0)(optionator@0.9.4)(rollup@4.16.4)(sass-embedded@1.79.4)(sass@1.54.7)(stylelint@14.16.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)(typescript@5.9.3)(vue@3.4.30(typescript@5.9.3))
       '@unhead/dom': 1.9.14
       '@unhead/ssr': 1.9.14
       '@unhead/vue': 1.9.14(vue@3.4.30(typescript@5.9.3))
       '@vue/shared': 3.4.30
       acorn: 8.12.0
-      c12: 1.11.1(magicast@0.3.5)
+      c12: 1.11.1(magicast@0.3.4)
       chokidar: 3.6.0
       cookie-es: 1.1.0
       defu: 6.1.4
@@ -39024,7 +38991,7 @@ snapshots:
       knitwork: 1.1.0
       magic-string: 0.30.10
       mlly: 1.7.1
-      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.5)
+      nitropack: 2.9.6(@opentelemetry/api@1.9.0)(encoding@0.1.13)(magicast@0.3.4)
       nuxi: 3.12.0
       nypm: 0.3.8
       ofetch: 1.3.4
@@ -45242,7 +45209,7 @@ snapshots:
       stylelint: 14.16.1
       typescript: 5.9.3
 
-  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.5)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
+  vite-plugin-inspect@0.8.4(@nuxt/kit@3.12.2(magicast@0.3.4)(rollup@4.16.4))(rollup@4.16.4)(vite@5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)):
     dependencies:
       '@antfu/utils': 0.7.8
       '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
@@ -45255,7 +45222,7 @@ snapshots:
       sirv: 2.0.4
       vite: 5.4.1(@types/node@24.10.0)(less@4.2.0)(lightningcss@1.30.2)(sass-embedded@1.79.4)(sass@1.54.7)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.5.3))(terser@5.30.4)
     optionalDependencies:
-      '@nuxt/kit': 3.12.2(magicast@0.3.5)(rollup@4.16.4)
+      '@nuxt/kit': 3.12.2(magicast@0.3.4)(rollup@4.16.4)
     transitivePeerDependencies:
       - rollup
       - supports-color

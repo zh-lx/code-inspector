@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockHandleCodexRequest = vi.hoisted(() => vi.fn());
+const mockHandleOpenCodeRequest = vi.hoisted(() => vi.fn());
 const mockHandleClaudeRequest = vi.hoisted(() => vi.fn());
 const mockGetCodexModelInfo = vi.hoisted(() => vi.fn(async () => ''));
+const mockGetOpenCodeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 const mockGetClaudeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 
 vi.mock('@/core/src/server/ai-provider-codex', () => ({
   handleCodexRequest: mockHandleCodexRequest,
   getModelInfo: mockGetCodexModelInfo,
+}));
+
+vi.mock('@/core/src/server/ai-provider-opencode', () => ({
+  handleOpenCodeRequest: mockHandleOpenCodeRequest,
+  getModelInfo: mockGetOpenCodeModelInfo,
 }));
 
 vi.mock('@/core/src/server/ai-provider-claude', () => ({
@@ -61,6 +68,7 @@ describe('ai module branch coverage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHandleCodexRequest.mockReturnValue({ abort: vi.fn() });
+    mockHandleOpenCodeRequest.mockReturnValue({ abort: vi.fn() });
     mockHandleClaudeRequest.mockReturnValue({ abort: vi.fn() });
   });
 
@@ -116,6 +124,23 @@ describe('ai module branch coverage', () => {
 
     expect(mockHandleClaudeRequest).toHaveBeenCalledTimes(1);
     expect(mockHandleCodexRequest).toHaveBeenCalledTimes(0);
+    expect(mockHandleOpenCodeRequest).toHaveBeenCalledTimes(0);
+  });
+
+  it('should route request to opencode provider when requested', async () => {
+    const req = createMockReq(JSON.stringify({
+      message: 'hello',
+      context: null,
+      provider: 'opencode',
+    }));
+    const { res } = createMockRes();
+    const aiOptions = getAIOptions({ ai: { opencode: true, codex: true } });
+
+    await handleAIRequest(req, res, {}, aiOptions, '/project');
+
+    expect(mockHandleOpenCodeRequest).toHaveBeenCalledTimes(1);
+    expect(mockHandleCodexRequest).toHaveBeenCalledTimes(0);
+    expect(mockHandleClaudeRequest).toHaveBeenCalledTimes(0);
   });
 
   it('should normalize history/cwd and execute codex onEnd callback', async () => {
@@ -231,6 +256,29 @@ describe('ai module branch coverage', () => {
       provider: null,
       providers: [],
     });
+  });
+
+  it('should return opencode model info', async () => {
+    mockGetOpenCodeModelInfo.mockResolvedValueOnce('open-code-model');
+    const aiOptions = getAIOptions({
+      ai: {
+        opencode: {
+          options: {
+            model: 'open-code-model',
+            models: ['open-code-model', 'open-code-model-next'],
+          },
+        },
+      },
+    });
+    const { res } = createMockRes();
+
+    await handleAIModelRequest(res, {}, aiOptions, 'opencode');
+
+    const payload = JSON.parse(res.end.mock.calls[0][0]);
+    expect(payload.provider).toBe('opencode');
+    expect(payload.model).toBe('open-code-model');
+    expect(payload.models).toEqual(['open-code-model', 'open-code-model-next']);
+    expect(payload.providers).toEqual(['opencode']);
   });
 
   it('should return claude model info with deduped configured models', async () => {

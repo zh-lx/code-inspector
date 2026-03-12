@@ -1343,6 +1343,7 @@ export class CodeInspectorComponent extends LitElement {
     preferredProvider?: ChatProvider | null,
     preferredModel?: string | null,
   ) => {
+    const previousProvider = this.chatProvider;
     const modelInfo = await fetchModelInfo(
       this.ip,
       this.port,
@@ -1368,11 +1369,15 @@ export class CodeInspectorComponent extends LitElement {
     if (nextProvider) {
       this.chatProvider = nextProvider;
     }
+    const providerChanged =
+      !!nextProvider && !!previousProvider && nextProvider !== previousProvider;
+    const providerResolvedFromEmpty =
+      !previousProvider && !!nextProvider;
 
     const modelCandidates: Array<string | null | undefined> = [
       preferredModel,
       modelInfo.model,
-      this.chatModel,
+      providerChanged || providerResolvedFromEmpty ? undefined : this.chatModel,
       modelInfo.models[0],
     ];
     const nextModel = modelCandidates.find((model) => {
@@ -1381,6 +1386,13 @@ export class CodeInspectorComponent extends LitElement {
     });
     if (nextModel) {
       this.chatModel = nextModel;
+      return;
+    }
+
+    // Provider changed but target provider has no explicit model info:
+    // clear stale model from previous provider to avoid sending it back.
+    if (providerChanged || providerResolvedFromEmpty) {
+      this.chatModel = '';
     }
   };
 
@@ -1852,6 +1864,9 @@ export class CodeInspectorComponent extends LitElement {
             throttledUpdate();
           },
           onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
             const tool: ToolCall = {
               id: toolId,
               name: toolName,
@@ -2002,6 +2017,9 @@ export class CodeInspectorComponent extends LitElement {
             throttledUpdate();
           },
           onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
             const tool: ToolCall = {
               id: toolId,
               name: toolName,
@@ -2968,4 +2986,3 @@ if (!document.getElementById('code-inspector-notification-styles')) {
 if (!customElements.get('code-inspector-component')) {
   customElements.define('code-inspector-component', CodeInspectorComponent);
 }
-

@@ -139,4 +139,19 @@ describe('getInjectedCode', () => {
       expect(result).toContain('export default function CodeInspectorEmptyElement');
     });
   });
+
+  it('should enable ai in injected code when only opencode is configured', () => {
+    const options: CodeOptions = {
+      bundler: 'vite',
+      behavior: {
+        ai: {
+          opencode: true,
+        },
+        defaultAction: 'ai',
+      },
+    };
+    const result = getInjectedCode(options, 5678, false);
+    expect(result).toContain('inspector.ai = true');
+    expect(result).toContain("inspector.defaultAction = 'ai'");
+  });
 });

@@ -139,6 +139,24 @@ describe('client index ai interactions', () => {
     expect(component.chatSessionId).toBeNull();
   });
 
+  it('should clear stale chatModel when provider changes without model info', async () => {
+    component.chatProvider = 'codex';
+    component.chatModel = 'gpt-5.3-codex';
+    component.availableAIProviders = ['codex', 'opencode'];
+
+    mockFetchModelInfo.mockResolvedValueOnce({
+      model: '',
+      models: [],
+      provider: 'opencode',
+      providers: ['opencode'],
+    });
+
+    await (component as any).refreshChatProviderAndModel();
+
+    expect(component.chatProvider).toBe('opencode');
+    expect(component.chatModel).toBe('');
+  });
+
   it('should open and close chat modal in global mode', async () => {
     const removeCoverSpy = vi.spyOn(component, 'removeCover').mockImplementation(() => {});
     const persistSpy = vi.spyOn(component as any, 'persistAIState');

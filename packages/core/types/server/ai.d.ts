@@ -4,7 +4,7 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { ClaudeCodeOptions, CodexOptions } from '../shared';
+import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../shared';
 /**
  * AI 上下文信息
  */
@@ -32,10 +32,11 @@ export interface AIRequest {
     provider?: AIProviderType;
     model?: string;
 }
-export type AIProviderType = 'claudeCode' | 'codex';
+export type AIProviderType = 'claudeCode' | 'codex' | 'opencode';
 type AIProviderOptionsMap = {
     claudeCode: ClaudeCodeOptions;
     codex: CodexOptions;
+    opencode: OpenCodeOptions;
 };
 export type ResolvedAIOptions = Partial<AIProviderOptionsMap>;
 export type ActiveAIOptions<T extends AIProviderType = AIProviderType> = {
@@ -49,6 +50,7 @@ export declare function getAIOptions(behavior?: {
     ai?: {
         claudeCode?: boolean | ClaudeCodeOptions;
         codex?: boolean | CodexOptions;
+        opencode?: boolean | OpenCodeOptions;
     };
 }): ResolvedAIOptions | undefined;
 export declare function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[];

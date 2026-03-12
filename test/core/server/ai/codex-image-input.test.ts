@@ -99,4 +99,45 @@ describe('codex image input helpers', () => {
       'hello prompt',
     ]);
   });
+
+  it('should build opencode run args with session and file attachments (prompt omitted for stdin)', () => {
+    const args = __TEST_ONLY__.buildOpenCodeRunArgs(
+      { model: 'openai/gpt-4.1', profile: 'reviewer' } as any,
+      ['/tmp/a.png', '/tmp/b.jpg'],
+      'hello prompt',
+      'session-1',
+    );
+    // When images are present the prompt is sent via stdin, not as a positional arg
+    expect(args).toEqual([
+      'run',
+      '--format',
+      'json',
+      '-m',
+      'openai/gpt-4.1',
+      '--agent',
+      'reviewer',
+      '--session',
+      'session-1',
+      '--file',
+      '/tmp/a.png',
+      '--file',
+      '/tmp/b.jpg',
+    ]);
+  });
+
+  it('should include prompt as positional arg when no images are attached', () => {
+    const args = __TEST_ONLY__.buildOpenCodeRunArgs(
+      { model: 'openai/gpt-4.1' } as any,
+      [],
+      'hello prompt',
+    );
+    expect(args).toEqual([
+      'run',
+      '--format',
+      'json',
+      '-m',
+      'openai/gpt-4.1',
+      'hello prompt',
+    ]);
+  });
 });

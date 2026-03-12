@@ -91,7 +91,7 @@ export interface ChatImageAttachment {
   previewUrl: string;
 }
 
-export type ChatProvider = 'claudeCode' | 'codex';
+export type ChatProvider = 'claudeCode' | 'codex' | 'opencode';
 
 export interface AIModelInfo {
   model: string;
@@ -296,16 +296,52 @@ function renderMarkdown(content: string): string {
 }
 
 function isCodexTool(tool: ToolCall): boolean {
-  return tool.input?._provider === 'codex';
+  return (
+    tool.input?._provider === 'codex' || tool.input?._provider === 'opencode'
+  );
+}
+
+/**
+ * 规范化工具名称（不同 provider 可能使用不同大小写，如 OpenCode 用小写 "read"）
+ */
+function canonicalToolName(name: string): string {
+  switch (name.toLowerCase()) {
+    case 'read':
+      return 'Read';
+    case 'write':
+      return 'Write';
+    case 'edit':
+      return 'Edit';
+    case 'glob':
+      return 'Glob';
+    case 'grep':
+      return 'Grep';
+    case 'bash':
+      return 'Bash';
+    case 'webfetch':
+      return 'WebFetch';
+    case 'websearch':
+      return 'WebSearch';
+    default:
+      return name;
+  }
 }
 
 function formatProviderName(provider: ChatProvider): string {
-  return provider === 'codex' ? 'Codex' : 'Claude';
+  if (provider === 'codex') return 'Codex';
+  if (provider === 'opencode') return 'OpenCode';
+  return 'Claude';
 }
 
 function getChangePath(input: Record<string, any>): string {
   if (typeof input.file_path === 'string' && input.file_path) {
     return input.file_path;
+  }
+  if (typeof input.path === 'string' && input.path) {
+    return input.path;
+  }
+  if (typeof input.file === 'string' && input.file) {
+    return input.file;
   }
   if (
     Array.isArray(input.changes) &&
@@ -321,22 +357,34 @@ function getCodexDisplayInfo(tool: ToolCall): {
   summary: string;
 } {
   const input = tool.input || {};
-  const done = Boolean(tool.isComplete);
+  const canonical = canonicalToolName(tool.name);
 
-  if (tool.name === 'Bash') {
-    return { name: done ? 'Ran' : 'Running', summary: input.command || '' };
+  if (canonical === 'Bash') {
+    return { name: 'Bash', summary: input.command || '' };
   }
-  if (tool.name === 'Edit') {
+  if (canonical === 'Edit') {
     const filePath = toRelativePath(getChangePath(input));
     const fallback =
       Array.isArray(input.changes) && input.changes.length > 0
         ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
         : '';
-    return { name: done ? 'Edited' : 'Editing', summary: filePath || fallback };
+    return { name: 'Edited', summary: filePath || fallback };
   }
-  if (tool.name === 'WebSearch') {
+  if (canonical === 'Read') {
+    let filePath = getChangePath(input);
+    // Fallback: extract path from <path> tag in tool result
+    if (!filePath && tool.result) {
+      const pathMatch = tool.result.match(/<path>([\s\S]*?)<\/path>/);
+      if (pathMatch) filePath = pathMatch[1].trim();
+    }
     return {
-      name: done ? 'Explored' : 'Exploring',
+      name: 'Read',
+      summary: toRelativePath(filePath),
+    };
+  }
+  if (canonical === 'WebSearch') {
+    return {
+      name: 'Search',
       summary: input.query || '',
     };
   }
@@ -356,8 +404,15 @@ function getToolDisplayInfo(tool: ToolCall): { name: string; summary: string } {
   const input = tool.input || {};
 
   switch (name) {
-    case 'Read':
-      return { name: 'Read', summary: toRelativePath(input.file_path || '') };
+    case 'Read': {
+      let filePath = input.file_path || '';
+      // Fallback: extract path from <path> tag in tool result
+      if (!filePath && tool.result) {
+        const pathMatch = tool.result.match(/<path>([\s\S]*?)<\/path>/);
+        if (pathMatch) filePath = pathMatch[1].trim();
+      }
+      return { name: 'Read', summary: toRelativePath(filePath) };
+    }
     case 'Write':
       return { name: 'Write', summary: toRelativePath(input.file_path || '') };
     case 'Edit':
@@ -378,24 +433,51 @@ function getToolDisplayInfo(tool: ToolCall): { name: string; summary: string } {
 }
 
 /**
- * 格式化工具结果摘要
+ * 从工具结果中提取路径和纯文本内容（处理 JSON 数组格式和 XML 包装）
  */
+function extractReadContent(raw: string): { path: string; content: string } {
+  let text = raw;
+  // Handle JSON array format: [{"type":"text","text":"..."}]
+  if (text.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        text = parsed
+          .filter((b: any) => typeof b === 'object' && b.type === 'text')
+          .map((b: any) => b.text || '')
+          .join('\n');
+      }
+    } catch {
+      // Not valid JSON, continue
+    }
+  }
+  // Extract path from <path>...</path>
+  const pathMatch = text.match(/<path>([\s\S]*?)<\/path>/);
+  const filePath = pathMatch ? pathMatch[1].trim() : '';
+  // Strip XML-like wrapper: <path>...</path><type>...</type><content>...</content>
+  const contentMatch = text.match(/<content>([\s\S]*?)(<\/content>|$)/);
+  if (contentMatch) {
+    return { path: filePath, content: contentMatch[1].trim() };
+  }
+  return { path: filePath, content: text.trim() };
+}
+
 function formatToolResult(result: string, toolName: string): string {
   if (!result) return '';
 
   const maxLength = 300;
   let summary = result.trim();
+  const canonical = canonicalToolName(toolName);
 
-  if (toolName === 'Write') {
+  if (canonical === 'Write') {
     const lines = summary.split('\n').length;
     return `Wrote ${lines} lines`;
   }
 
-  if (toolName === 'Read') {
-    const lines = summary.split('\n').length;
-    if (lines > 5) {
-      return `${lines} lines`;
-    }
+  if (canonical === 'Read') {
+    const { content: cleanContent } = extractReadContent(summary);
+    const lines = cleanContent.split('\n').length;
+    return `${lines} lines`;
   }
 
   if (summary.length > maxLength) {
@@ -406,12 +488,45 @@ function formatToolResult(result: string, toolName: string): string {
 }
 
 /**
+ * 渲染 Read 工具的代码预览（CLI 风格）
+ */
+function renderReadResult(tool: ToolCall): TemplateResult {
+  const result = tool.result || '';
+  const { path: extractedPath, content: cleanContent } =
+    extractReadContent(result);
+
+  if (!cleanContent) return html``;
+
+  const lines = cleanContent.split('\n');
+  const maxPreviewLines = 5;
+  const showTruncated = lines.length > maxPreviewLines;
+  const visibleLines = showTruncated
+    ? lines.slice(0, maxPreviewLines)
+    : lines;
+  const remaining = lines.length - maxPreviewLines;
+
+  // If tool.input doesn't have file_path, use the extracted path for summary display
+  if (extractedPath && tool.input && !tool.input.file_path) {
+    tool.input.file_path = extractedPath;
+  }
+
+  return html`<div class="read-result-block">
+    ${visibleLines.map(
+      (line) => html`<div class="read-line">${line}</div>`,
+    )}
+    ${showTruncated
+      ? html`<div class="read-more">...+${remaining} lines</div>`
+      : ''}
+  </div>`;
+}
+
+/**
  * 渲染 Edit 工具的 diff 视图（红绿对比）
  */
 function renderEditDiff(tool: ToolCall): TemplateResult {
   const input = tool.input || {};
-  const oldStr = String(input.old_string || '');
-  const newStr = String(input.new_string || '');
+  const oldStr = String(input.old_string ?? input.old_str ?? '');
+  const newStr = String(input.new_string ?? input.new_str ?? '');
   const diffBlocks = Array.isArray(input.diff_blocks) ? input.diff_blocks : [];
 
   const splitLines = (text: string): string[] => {
@@ -559,11 +674,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
           : ''}
         ${changed.map(
           (line) =>
-            html`<div
-              class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-            >
-              ${line.type === 'add' ? '+' : '-'} ${line.text}
-            </div>`,
+            html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
         )}
       `;
     })
@@ -596,13 +707,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
           <div class="diff-file-header">${toRelativePath(filePath)}</div>
           ${changed.map(
             (line) =>
-              html`<div
-                class="diff-line ${line.type === 'add'
-                  ? 'diff-add'
-                  : 'diff-del'}"
-              >
-                ${line.type === 'add' ? '+' : '-'} ${line.text}
-              </div>`,
+              html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
           )}
         `;
       })
@@ -617,11 +722,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
   return html`<div class="diff-view">
     ${changed.map(
       (line) =>
-        html`<div
-          class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}"
-        >
-          ${line.type === 'add' ? '+' : '-'} ${line.text}
-        </div>`,
+        html`<div class="diff-line ${line.type === 'add' ? 'diff-add' : 'diff-del'}">${line.type === 'add' ? '+' : '-'} ${line.text}</div>`,
     )}
   </div>`;
 }
@@ -633,18 +734,30 @@ function renderToolCall(tool: ToolCall): TemplateResult {
   const { name, summary } = getToolDisplayInfo(tool);
   const isComplete = tool.isComplete;
   const hasResult = tool.result !== undefined;
-  const isEdit = tool.name === 'Edit';
-  const hasEditInput =
-    isEdit &&
-    tool.input &&
-    (tool.input.old_string ||
-      tool.input.new_string ||
-      (Array.isArray(tool.input.diff_blocks) &&
-        tool.input.diff_blocks.length > 0));
+  const canonical = canonicalToolName(tool.name);
+  const isEdit = canonical === 'Edit';
+  const isRead = canonical === 'Read';
+  const hasEditInput = isEdit && tool.input && (() => {
+    const inp = tool.input!;
+    if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
+      return inp.diff_blocks.some(
+        (b: any) => String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
+      );
+    }
+    const oldStr = String(inp.old_string ?? inp.old_str ?? '');
+    const newStr = String(inp.new_string ?? inp.new_str ?? '');
+    return oldStr !== newStr;
+  })();
+  const hasReadResult = isRead && hasResult && !tool.isError;
   const suppressResult =
     isCodexTool(tool) &&
     !tool.isError &&
-    (tool.name === 'Bash' || tool.name === 'WebSearch');
+    (isEdit || canonical === 'Bash' || canonical === 'WebSearch');
+
+  // Skip empty Edit tool calls that have no diff and no summary
+  if (isEdit && !hasEditInput && !summary) {
+    return html``;
+  }
 
   return html`
     <div class="tool-call-inline">
@@ -657,7 +770,7 @@ function renderToolCall(tool: ToolCall): TemplateResult {
         >
         <span class="tool-name-inline">${name}</span>
         ${summary
-          ? html`<span class="tool-summary-inline">${summary}</span>`
+          ? html`<span class="tool-summary-inline">\u2066${summary}\u2069</span>`
           : ''}
       </div>
       ${hasEditInput
@@ -665,17 +778,22 @@ function renderToolCall(tool: ToolCall): TemplateResult {
             <span class="tool-result-bracket">⎿</span>
             ${renderEditDiff(tool)}
           </div>`
-        : hasResult && !suppressResult
-          ? html`<div class="tool-result-inline">
+        : hasReadResult
+          ? html`<div class="tool-diff-wrapper">
               <span class="tool-result-bracket">⎿</span>
-              <span
-                class="tool-result-text ${tool.isError
-                  ? 'tool-error-text'
-                  : ''}"
-                >${formatToolResult(tool.result!, tool.name)}</span
-              >
+              ${renderReadResult(tool)}
             </div>`
-          : ''}
+          : hasResult && !suppressResult
+            ? html`<div class="tool-result-inline">
+                <span class="tool-result-bracket">⎿</span>
+                <span
+                  class="tool-result-text ${tool.isError
+                    ? 'tool-error-text'
+                    : ''}"
+                  >${formatToolResult(tool.result!, tool.name)}</span
+                >
+              </div>`
+            : ''}
     </div>
   `;
 }
@@ -879,7 +997,9 @@ export function renderChatModal(
                       : ''}
                   </div>`
                 : state.chatModel
-                  ? html`<span class="chat-model-badge">${state.chatModel}</span>`
+                  ? html`<span class="chat-model-badge"
+                      >${state.chatModel}</span
+                    >`
                   : ''}
             </div>
             <span class="chat-context-info">
@@ -2264,6 +2384,7 @@ export const chatStyles = css`
     flex: 1;
     direction: rtl;
     text-align: left;
+    unicode-bidi: isolate;
   }
 
   .tool-result-inline {
@@ -2343,6 +2464,30 @@ export const chatStyles = css`
     color: var(--chat-diff-add-text);
   }
 
+  /* Read 结果代码预览 */
+  .read-result-block {
+    flex: 1;
+    min-width: 0;
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .read-line {
+    padding: 1px 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--chat-tool-result);
+  }
+
+  .read-more {
+    padding: 1px 8px;
+    color: var(--chat-text-muted);
+    font-style: italic;
+  }
+
   /* 滚动条样式 */
   .chat-modal-content::-webkit-scrollbar {
     width: 8px;
@@ -2381,7 +2526,11 @@ export interface StreamHandlers {
 }
 
 function normalizeChatProvider(provider: unknown): ChatProvider | null {
-  if (provider === 'codex' || provider === 'claudeCode') {
+  if (
+    provider === 'codex' ||
+    provider === 'claudeCode' ||
+    provider === 'opencode'
+  ) {
     return provider;
   }
   return null;
@@ -2422,11 +2571,7 @@ export async function fetchModelInfo(
         )
       : [];
     const model = typeof data?.model === 'string' ? data.model : '';
-    const normalizedModels = models.length > 0
-      ? models
-      : model
-        ? [model]
-        : [];
+    const normalizedModels = models.length > 0 ? models : model ? [model] : [];
 
     return {
       model,
@@ -2566,11 +2711,14 @@ export const __TEST_ONLY__ = {
   formatDuration,
   renderMarkdown,
   isCodexTool,
+  canonicalToolName,
   formatProviderName,
   getChangePath,
   getCodexDisplayInfo,
   getToolDisplayInfo,
+  extractReadContent,
   formatToolResult,
+  renderReadResult,
   renderEditDiff,
   renderToolCall,
   renderMessageContent,

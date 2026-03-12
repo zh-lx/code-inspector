@@ -23,7 +23,7 @@ function createChildProcessMock() {
   const child = new EventEmitter() as any;
   child.stdout = new EventEmitter();
   child.stderr = new EventEmitter();
-  child.stdin = { end: vi.fn() };
+  child.stdin = { end: vi.fn(), write: vi.fn((_data: any, cb?: () => void) => { if (cb) cb(); }) };
   child.kill = vi.fn();
   return child;
 }
@@ -108,6 +108,157 @@ describe('codex cli stream parsing', () => {
     expect(joined).toContain('"type":"tool_start"');
     expect(joined).toContain('"type":"tool_input"');
     expect(joined).toContain('"type":"tool_result"');
+  });
+
+  it('should use opencode run/json args when runtime is opencode', () => {
+    const child = createChildProcessMock();
+    mockSpawn.mockReturnValue(child);
+
+    __TEST_ONLY__.queryViaCli(
+      '/bin/opencode',
+      'prompt',
+      process.cwd(),
+      { model: 'openai/gpt-4.1', profile: 'reviewer' } as any,
+      ['/tmp/a.png'],
+      () => undefined,
+      () => undefined,
+      () => undefined,
+      'sid-1',
+      undefined,
+      undefined,
+      () => false,
+      {
+        providerId: 'opencode',
+        displayName: 'OpenCode',
+        cliBinaryName: 'opencode',
+        sdkPackages: ['@opencode-ai/sdk'],
+        sdkInstallCommand: 'npm install @opencode-ai/sdk',
+      },
+    );
+
+    const args = (mockSpawn.mock.calls[0]?.[1] || []) as string[];
+    // When images are present, prompt is omitted from args and sent via stdin
+    expect(args).toEqual([
+      'run',
+      '--format',
+      'json',
+      '-m',
+      'openai/gpt-4.1',
+      '--agent',
+      'reviewer',
+      '--session',
+      'sid-1',
+      '--file',
+      '/tmp/a.png',
+    ]);
+    expect(child.stdin.write).toHaveBeenCalledWith('prompt', expect.any(Function));
+
+    child.emit('close', 0);
+  });
+
+  it('should parse opencode message.part events and nested error messages', () => {
+    const child = createChildProcessMock();
+    mockSpawn.mockReturnValue(child);
+
+    const chunks: string[] = [];
+    const errors: string[] = [];
+    const sessions: string[] = [];
+
+    __TEST_ONLY__.queryViaCli(
+      '/bin/opencode',
+      'prompt',
+      process.cwd(),
+      {} as any,
+      [],
+      (data: string) => chunks.push(data),
+      (error: string) => errors.push(error),
+      () => undefined,
+      undefined,
+      (id: string) => sessions.push(id),
+      undefined,
+      () => false,
+      {
+        providerId: 'opencode',
+        displayName: 'OpenCode',
+        cliBinaryName: 'opencode',
+        sdkPackages: ['@opencode-ai/sdk'],
+        sdkInstallCommand: 'npm install @opencode-ai/sdk',
+      },
+    );
+
+    const lines = [
+      JSON.stringify({
+        type: 'message.part.delta',
+        sessionID: 'ses-1',
+        messageID: 'msg-1',
+        partID: 'part-1',
+        field: 'text',
+        delta: 'hello ',
+      }),
+      JSON.stringify({
+        type: 'message.part.updated',
+        part: { id: 'part-1', type: 'text', text: 'hello world' },
+      }),
+      JSON.stringify({
+        type: 'error',
+        error: { data: { message: 'opencode nested error' } },
+      }),
+    ];
+
+    child.stdout.emit('data', Buffer.from(lines.join('\n') + '\n'));
+    child.emit('close', 0);
+
+    expect(sessions).toContain('ses-1');
+    expect(chunks.join('\n')).toContain('hello ');
+    expect(chunks.join('\n')).toContain('world');
+    expect(errors).toContain('opencode nested error');
+  });
+
+  it('should parse opencode run json text events with part payload', () => {
+    const child = createChildProcessMock();
+    mockSpawn.mockReturnValue(child);
+
+    const chunks: string[] = [];
+    __TEST_ONLY__.queryViaCli(
+      '/bin/opencode',
+      'prompt',
+      process.cwd(),
+      {} as any,
+      [],
+      (data: string) => chunks.push(data),
+      () => undefined,
+      () => undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => false,
+      {
+        providerId: 'opencode',
+        displayName: 'OpenCode',
+        cliBinaryName: 'opencode',
+        sdkPackages: ['@opencode-ai/sdk'],
+        sdkInstallCommand: 'npm install @opencode-ai/sdk',
+      },
+    );
+
+    child.stdout.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({
+          type: 'text',
+          sessionID: 'ses-2',
+          part: {
+            id: 'part-2',
+            type: 'text',
+            text: 'opencode-final-answer',
+            time: { end: Date.now() },
+          },
+        }) + '\n',
+      ),
+    );
+    child.emit('close', 0);
+
+    expect(chunks.join('\n')).toContain('opencode-final-answer');
   });
 
   it('should report process/turn errors and close non-zero exit', () => {

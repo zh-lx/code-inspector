@@ -107,16 +107,23 @@ describe('getAIOptions', () => {
       claudeCode: {},
     });
   });
+
+  it('should parse opencode config', () => {
+    expect(getAIOptions({ ai: { opencode: true } })).toEqual({
+      opencode: {},
+    });
+  });
 });
 
 describe('getAvailableAIProviders', () => {
   it('should return providers in stable priority order', () => {
     expect(
       getAvailableAIProviders({
+        opencode: {},
         claudeCode: {},
         codex: {},
       }),
-    ).toEqual(['codex', 'claudeCode']);
+    ).toEqual(['codex', 'opencode', 'claudeCode']);
   });
 });
 
