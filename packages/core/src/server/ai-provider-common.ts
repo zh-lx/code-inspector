@@ -999,7 +999,6 @@ function queryViaCli(
     if (done && toolEvent.result !== undefined) {
       if (
         !isNewTool &&
-        index !== undefined &&
         (toolEvent.toolName === 'Edit' || toolEvent.toolName === 'Read') &&
         toolEvent.input
       ) {
@@ -1053,11 +1052,7 @@ function queryViaCli(
       let event = JSON.parse(normalizedLine);
 
       // Unwrap GlobalEvent format: { directory, payload: Event }
-      if (
-        event?.payload &&
-        typeof event.payload === 'object' &&
-        event.payload?.type
-      ) {
+      if (event?.payload?.type) {
         event = event.payload;
       }
 
@@ -1069,7 +1064,7 @@ function queryViaCli(
         onSessionId(String(event.info.id));
       }
 
-      if (event.type === 'thread.started' && event.thread_id && onSessionId) {
+      if (event?.type === 'thread.started' && event?.thread_id && onSessionId) {
         onSessionId(event.thread_id);
         return;
       }
@@ -1080,7 +1075,7 @@ function queryViaCli(
         onModel(eventModel);
       }
 
-      if (event.type === 'error') {
+      if (event?.type === 'error') {
         const message =
           extractEventErrorMessage(event) || `${runtime.displayName} CLI error`;
         if (message.startsWith('Reconnecting...')) {
@@ -1091,7 +1086,7 @@ function queryViaCli(
         return;
       }
 
-      if (event.type === 'turn.failed') {
+      if (event?.type === 'turn.failed') {
         hasError = true;
         const message =
           extractEventErrorMessage(event) ||
@@ -1100,7 +1095,7 @@ function queryViaCli(
         return;
       }
 
-      if (event.type === 'message.updated') {
+      if (event?.type === 'message.updated') {
         const message = extractEventErrorMessage(event);
         if (message) {
           hasError = true;
@@ -1110,7 +1105,7 @@ function queryViaCli(
       }
 
       // OpenCode CLI: tool_use events (e.g. read, edit, bash)
-      if (event.type === 'tool_use' && event.part?.type === 'tool') {
+      if (event?.type === 'tool_use' && event?.part?.type === 'tool') {
         const part = event.part;
         const toolPartId =
           part.id || part.callID || `opencode-tool-${toolIndex}`;
@@ -1907,7 +1902,8 @@ function buildToolEventFromItem(
   const providerId = context?.providerId || 'codex';
 
   if (item.type === 'command_execution') {
-    const command = typeof item.command === 'string' ? item.command : '';
+    const command: string =
+      typeof item.command === 'string' ? item.command : '';
     const output = item.aggregated_output || item.output || '';
     const exitCode =
       typeof item.exit_code === 'number' ? item.exit_code : undefined;
@@ -2236,7 +2232,6 @@ async function queryViaSdk(
     if (done && toolEvent.result !== undefined) {
       if (
         !isNewTool &&
-        index !== undefined &&
         (toolEvent.toolName === 'Edit' || toolEvent.toolName === 'Read') &&
         toolEvent.input
       ) {
@@ -2258,7 +2253,6 @@ async function queryViaSdk(
 
   try {
     for await (const event of events) {
-
       if (isAborted()) {
         await Promise.resolve(thread.interrupt?.()).catch(() => undefined);
         break;
