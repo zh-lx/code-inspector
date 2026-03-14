@@ -11,17 +11,17 @@ export default defineConfig({
       bundler: 'vite',
       behavior: {
         ai: {
-          claudeCode: {
-            type: 'cli',
-            options: {
-              models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
-              maxTurns: 50,
-            },
-          },
+          // claudeCode: {
+          //   type: 'cli',
+          //   options: {
+          //     models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
+          //     maxTurns: 50,
+          //   },
+          // },
           codex: {
             type: 'cli',
             options: {
-              models: ['gpt-5.3-codex', 'gpt-5.4'],
+              models: ['gpt-5.2'],
             },
           },
         },

@@ -18,6 +18,8 @@ import {
   updateChatModalPosition,
   setProjectRoot,
   fetchModelInfo,
+  revertEdit,
+  collectRevertableTools,
 } from './ai';
 import { saveAIState, loadAIState, clearAIState } from './ai-persist';
 
@@ -233,6 +235,10 @@ export class CodeInspectorComponent extends LitElement {
   showProviderMenu = false; // provider 下拉是否展开
   @state()
   showModelMenu = false; // model 下拉是否展开
+  @state()
+  revertedToolIds: Set<string> = new Set();
+  @state()
+  revertingToolIds: Set<string> = new Set();
 
   // 中断控制器和计时器
   private chatAbortController: AbortController | null = null;
@@ -1255,6 +1261,10 @@ export class CodeInspectorComponent extends LitElement {
       availableAIProviders: this.availableAIProviders,
       modalPosition,
       turnStatus: this.turnStatus,
+      revertedToolIds:
+        this.revertedToolIds.size > 0
+          ? Array.from(this.revertedToolIds)
+          : undefined,
     });
   };
 
@@ -1681,6 +1691,128 @@ export class CodeInspectorComponent extends LitElement {
     }
     this.stopTurnTimer('interrupt');
     this.chatLoading = false;
+  };
+
+  handleRevertEdit = async (tool: ToolCall) => {
+    if (!tool.input || !tool.id) return;
+    if (this.revertedToolIds.has(tool.id) || this.revertingToolIds.has(tool.id))
+      return;
+
+    this.revertingToolIds = new Set(Array.from(this.revertingToolIds).concat(tool.id));
+
+    try {
+      const edits = this.extractRevertEdits(tool);
+      if (edits.length === 0) return;
+
+      const results = await revertEdit(this.ip, this.port, edits);
+      const allSuccess = results.every((r) => r.success);
+
+      if (allSuccess) {
+        this.revertedToolIds = new Set(Array.from(this.revertedToolIds).concat(tool.id));
+        this.persistAIState();
+      }
+    } catch {
+      // network error, silently ignore
+    } finally {
+      const next = new Set(this.revertingToolIds);
+      next.delete(tool.id);
+      this.revertingToolIds = next;
+    }
+  };
+
+  private extractRevertEdits(
+    tool: ToolCall,
+  ): Array<{ file_path: string; old_string: string; new_string: string }> {
+    const input = tool.input || {};
+    const oldStr = String(input.old_string ?? input.old_str ?? '');
+    const newStr = String(input.new_string ?? input.new_str ?? '');
+    const edits: Array<{
+      file_path: string;
+      old_string: string;
+      new_string: string;
+    }> = [];
+
+    if (Array.isArray(input.diff_blocks) && input.diff_blocks.length > 0) {
+      for (const block of input.diff_blocks) {
+        const filePath = String(block?.file_path || '');
+        const oldStr = String(block?.old_string ?? '');
+        const newStr = String(block?.new_string ?? '');
+        if (filePath && oldStr !== newStr) {
+          edits.push({
+            file_path: filePath,
+            old_string: oldStr,
+            new_string: newStr,
+          });
+        }
+      }
+      return edits;
+    }
+
+    const changes = Array.isArray(input.changes) ? input.changes : [];
+    if (changes.length > 0 && (oldStr || newStr)) {
+      const parseSections = (text: string): Map<string, string> => {
+        const lines = text.split('\n');
+        const sections = new Map<string, string>();
+        let currentPath = '';
+        let buffer: string[] = [];
+
+        const flush = () => {
+          if (!currentPath) return;
+          sections.set(currentPath, buffer.join('\n'));
+        };
+
+        for (const line of lines) {
+          if (line.startsWith('# ')) {
+            flush();
+            currentPath = line.slice(2).trim();
+            buffer = [];
+          } else if (currentPath) {
+            buffer.push(line);
+          }
+        }
+        flush();
+        return sections;
+      };
+
+      const oldSections = parseSections(oldStr);
+      const newSections = parseSections(newStr);
+      for (const change of changes) {
+        const filePath = String(change?.path || change?.file_path || '');
+        if (!filePath) continue;
+        const before = oldSections.get(filePath) ?? '';
+        const after = newSections.get(filePath) ?? '';
+        if (before !== after) {
+          edits.push({ file_path: filePath, old_string: before, new_string: after });
+        }
+      }
+      if (edits.length > 0) {
+        return edits;
+      }
+    }
+
+    const filePath = String(input.file_path || input.path || input.file || '');
+    if (filePath && oldStr !== newStr) {
+      edits.push({
+        file_path: filePath,
+        old_string: oldStr,
+        new_string: newStr,
+      });
+    }
+
+    return edits;
+  }
+
+  handleRevertAllEdits = async () => {
+    const state = {
+      chatMessages: this.chatMessages,
+      revertedToolIds: this.revertedToolIds,
+    };
+    const tools = collectRevertableTools(state as any);
+    if (tools.length === 0) return;
+
+    for (const tool of tools) {
+      await this.handleRevertEdit(tool);
+    }
   };
 
   // 聊天框拖拽开始
@@ -2183,6 +2315,7 @@ export class CodeInspectorComponent extends LitElement {
       this.availableAIModels = persisted.availableAIModels || [];
       this.chatProvider = persisted.chatProvider || null;
       this.availableAIProviders = persisted.availableAIProviders || [];
+      this.revertedToolIds = new Set(persisted.revertedToolIds || []);
       this.showChatModal = true;
 
       if (this.chatTheme === 'light') {
@@ -2556,6 +2689,8 @@ export class CodeInspectorComponent extends LitElement {
             availableProviders: this.availableAIProviders,
             showProviderMenu: this.showProviderMenu,
             showModelMenu: this.showModelMenu,
+            revertedToolIds: this.revertedToolIds,
+            revertingToolIds: this.revertingToolIds,
           },
           {
             closeChatModal: this.closeChatModal,
@@ -2579,6 +2714,8 @@ export class CodeInspectorComponent extends LitElement {
             handleDragEnd: this.handleChatDragEnd,
             handleModalClick: this.handleChatModalClick,
             handleOverlayClick: this.handleOverlayClick,
+            revertEdit: this.handleRevertEdit,
+            revertAllEdits: this.handleRevertAllEdits,
           }
         )}
 

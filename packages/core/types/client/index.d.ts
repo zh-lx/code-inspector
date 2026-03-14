@@ -127,6 +127,8 @@ export declare class CodeInspectorComponent extends LitElement {
     availableAIProviders: ChatProvider[];
     showProviderMenu: boolean;
     showModelMenu: boolean;
+    revertedToolIds: Set<string>;
+    revertingToolIds: Set<string>;
     private chatAbortController;
     private turnTimerInterval;
     private turnStartTime;
@@ -259,6 +261,9 @@ export declare class CodeInspectorComponent extends LitElement {
     private startTurnTimer;
     private stopTurnTimer;
     interruptChat: () => void;
+    handleRevertEdit: (tool: ToolCall) => Promise<void>;
+    private extractRevertEdits;
+    handleRevertAllEdits: () => Promise<void>;
     handleChatDragStart: (e: MouseEvent) => void;
     handleChatDragMove: (e: MouseEvent) => void;
     handleChatDragEnd: () => void;

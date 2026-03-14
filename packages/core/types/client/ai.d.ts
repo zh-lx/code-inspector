@@ -90,6 +90,8 @@ export interface ChatState {
     availableProviders: ChatProvider[];
     showProviderMenu: boolean;
     showModelMenu: boolean;
+    revertedToolIds: Set<string>;
+    revertingToolIds: Set<string>;
 }
 /**
  * 聊天功能处理器接口
@@ -116,6 +118,8 @@ export interface ChatHandlers {
     handleDragEnd: () => void;
     handleModalClick: (e: MouseEvent) => void;
     handleOverlayClick: () => void;
+    revertEdit: (tool: ToolCall) => void;
+    revertAllEdits: () => void;
 }
 /**
  * 更新聊天框位置（使用 floating-ui）
@@ -169,12 +173,16 @@ declare function renderEditDiff(tool: ToolCall): TemplateResult;
 /**
  * 渲染单个工具调用（CLI 扁平内联风格）
  */
-declare function renderToolCall(tool: ToolCall): TemplateResult;
+declare function renderToolCall(tool: ToolCall, state?: ChatState, handlers?: ChatHandlers): TemplateResult;
 /**
  * 渲染消息内容（连续终端流式风格）
  */
-declare function renderMessageContent(msg: ChatMessage): TemplateResult;
+declare function renderMessageContent(msg: ChatMessage, state?: ChatState, handlers?: ChatHandlers): TemplateResult;
 declare function renderMessageContext(msg: ChatMessage): TemplateResult;
+/**
+ * 收集所有可回退的 Edit 工具调用
+ */
+export declare function collectRevertableTools(state: ChatState): ToolCall[];
 /**
  * 渲染聊天框模板
  */
@@ -201,6 +209,22 @@ declare function normalizeChatProvider(provider: unknown): ChatProvider | null;
  * 获取 AI 模型信息
  */
 export declare function fetchModelInfo(ip: string, port: number, provider?: ChatProvider | null): Promise<AIModelInfo>;
+/**
+ * Revert 请求结果
+ */
+export interface RevertResult {
+    file_path: string;
+    success: boolean;
+    error?: string;
+}
+/**
+ * 发送 revert 请求到服务器
+ */
+export declare function revertEdit(ip: string, port: number, edits: Array<{
+    file_path: string;
+    old_string: string;
+    new_string: string;
+}>): Promise<RevertResult[]>;
 /**
  * 发送聊天消息到服务器
  */

@@ -11,7 +11,7 @@ import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
 import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
 import type { CodeOptions, RecordInfo } from '../shared';
-import { handleAIRequest, getAIOptions, handleAIModelRequest } from './ai';
+import { handleAIRequest, getAIOptions, handleAIModelRequest, handleAIRevertRequest } from './ai';
 import { getEnvVariables } from 'launch-ide';
 
 /**
@@ -150,6 +150,12 @@ export function createServer(
     if (pathname === '/ai/model' && req.method === 'GET') {
       const aiOptions = getAIOptions(options?.behavior);
       await handleAIModelRequest(res, CORS_HEADERS, aiOptions, url.searchParams.get('provider'));
+      return;
+    }
+
+    // 处理 /ai/revert 路由
+    if (pathname === '/ai/revert' && req.method === 'POST') {
+      await handleAIRevertRequest(req, res, CORS_HEADERS, ProjectRootPath);
       return;
     }
 

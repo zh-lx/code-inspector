@@ -20,6 +20,7 @@ export interface PersistedAIState {
   availableAIProviders: ChatProvider[];
   modalPosition: { left: string; top: string } | null;
   turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
+  revertedToolIds?: string[];
 }
 
 /**

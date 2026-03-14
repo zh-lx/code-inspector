@@ -63,4 +63,8 @@ export declare function handleAIRequest(req: http.IncomingMessage, res: http.Ser
  * 处理 AI 模型信息请求
  */
 export declare function handleAIModelRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ResolvedAIOptions | undefined, requestedProvider?: string | null): Promise<void>;
+/**
+ * 处理 AI 编辑回退请求
+ */
+export declare function handleAIRevertRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, projectRootPath: string): Promise<void>;
 export {};

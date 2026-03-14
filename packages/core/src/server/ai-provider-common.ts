@@ -1369,10 +1369,12 @@ function queryViaCli(
               }),
             );
           }
-          const changes = part.files.map((f: any) => ({
-            path: f?.path || '',
-            kind: f?.status || 'edit',
-          }));
+          const changes = part.files.map((f: any) => {
+            if (typeof f === 'string') {
+              return { path: f, kind: 'edit' };
+            }
+            return { path: f?.path || '', kind: f?.status || 'edit' };
+          });
           onData(
             JSON.stringify({
               type: 'tool_input',
@@ -2015,6 +2017,25 @@ function buildToolEventFromItem(
     };
 
     // Codex file_change 仅包含文件级元信息，这里通过快照补齐前后文本，用于前端红绿 diff
+    // item.started 时 changes 可能为空，此时从 readOutputStore 预建快照
+    if (!context?.done && context?.fileSnapshots && context?.readOutputStore) {
+      const toolId = String(item.id);
+      context.readOutputStore.forEach((content, absPath) => {
+        let toolSnapshots = context.fileSnapshots!.get(toolId);
+        if (!toolSnapshots) {
+          toolSnapshots = new Map();
+          context.fileSnapshots!.set(toolId, toolSnapshots);
+        }
+        if (!toolSnapshots.has(absPath)) {
+          toolSnapshots.set(absPath, {
+            absolutePath: absPath,
+            displayPath: context.cwd ? path.relative(context.cwd, absPath) : absPath,
+            beforeContent: content,
+          });
+        }
+      });
+    }
+
     if (context?.cwd && context.fileSnapshots && changes.length > 0) {
       const toolId = String(item.id);
       const oldSections: string[] = [];
@@ -2077,6 +2098,10 @@ function buildToolEventFromItem(
           if (afterText !== '') {
             newSections.push(`# ${displayPath}\n${newString}`);
           }
+          // 更新 readOutputStore 为编辑后内容，防止同文件多次编辑时重复 diff
+          if (context.readOutputStore) {
+            context.readOutputStore.set(absolutePath, afterText);
+          }
           continue;
         }
 
@@ -2102,6 +2127,10 @@ function buildToolEventFromItem(
         }
         if (afterText !== '') {
           newSections.push(`# ${displayPath}\n${newString}`);
+        }
+        // 更新 readOutputStore 为编辑后内容，防止同文件多次编辑时重复 diff
+        if (context.readOutputStore) {
+          context.readOutputStore.set(absolutePath, afterText);
         }
       }
 
