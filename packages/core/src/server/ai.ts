@@ -3,6 +3,8 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
 import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../shared';
 import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-provider-claude';
 import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
@@ -355,4 +357,95 @@ export async function handleAIModelRequest(
     provider: activeAIOptions.provider,
     providers: availableProviders,
   }));
+}
+
+/**
+ * 处理 AI 编辑回退请求
+ */
+export async function handleAIRevertRequest(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  corsHeaders: Record<string, string>,
+  projectRootPath: string,
+): Promise<void> {
+  const projectRootAbs = projectRootPath ? path.resolve(projectRootPath) : '';
+  let body = '';
+  for await (const chunk of req) {
+    body += chunk;
+  }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Invalid JSON' }));
+    return;
+  }
+
+  const edits = Array.isArray(parsed?.edits) ? parsed.edits : [];
+  if (edits.length === 0) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'No edits provided' }));
+    return;
+  }
+
+  const results: Array<{ file_path: string; success: boolean; error?: string }> = [];
+
+  for (const edit of edits) {
+    const filePath = typeof edit?.file_path === 'string' ? edit.file_path : '';
+    const oldString = typeof edit?.old_string === 'string' ? edit.old_string : '';
+    const newString = typeof edit?.new_string === 'string' ? edit.new_string : '';
+
+    if (!filePath) {
+      results.push({ file_path: filePath, success: false, error: 'missing_file_path' });
+      continue;
+    }
+
+    const absolutePath = path.isAbsolute(filePath)
+      ? filePath
+      : projectRootAbs
+        ? path.resolve(projectRootAbs, filePath)
+        : path.resolve(filePath);
+
+    if (projectRootAbs) {
+      const resolvedAbsolutePath = path.resolve(absolutePath);
+      const relativePath = path.relative(projectRootAbs, resolvedAbsolutePath);
+      if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        results.push({
+          file_path: filePath,
+          success: false,
+          error: 'outside_project',
+        });
+        continue;
+      }
+    }
+
+    if (!fs.existsSync(absolutePath)) {
+      results.push({ file_path: filePath, success: false, error: 'file_not_found' });
+      continue;
+    }
+
+    try {
+      const currentContent = fs.readFileSync(absolutePath, 'utf-8');
+      let revertedContent: string;
+
+      if (currentContent === newString) {
+        revertedContent = oldString;
+      } else if (newString && currentContent.includes(newString)) {
+        revertedContent = currentContent.replace(newString, oldString);
+      } else {
+        results.push({ file_path: filePath, success: false, error: 'content_mismatch' });
+        continue;
+      }
+
+      fs.writeFileSync(absolutePath, revertedContent, 'utf-8');
+      results.push({ file_path: filePath, success: true });
+    } catch {
+      results.push({ file_path: filePath, success: false, error: 'write_error' });
+    }
+  }
+
+  res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ results }));
 }

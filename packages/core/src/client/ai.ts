@@ -123,6 +123,8 @@ export interface ChatState {
   availableProviders: ChatProvider[];
   showProviderMenu: boolean;
   showModelMenu: boolean;
+  revertedToolIds: Set<string>;
+  revertingToolIds: Set<string>;
 }
 
 /**
@@ -150,6 +152,8 @@ export interface ChatHandlers {
   handleDragEnd: () => void;
   handleModalClick: (e: MouseEvent) => void;
   handleOverlayClick: () => void;
+  revertEdit: (tool: ToolCall) => void;
+  revertAllEdits: () => void;
 }
 
 /**
@@ -757,11 +761,11 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
         : line.type === 'del'
           ? '-'
           : line.type === 'gap'
-            ? '…'
+            ? ''
             : '\u00A0';
     const text =
       line.type === 'gap'
-        ? `lines ${line.startLine}-${line.endLine}`
+        ? `...${line.count} lines`
         : line.text;
     const lineNumber =
       line.type === 'gap' ? '...' : (line.newLine ?? line.oldLine ?? '');
@@ -878,7 +882,11 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
 /**
  * 渲染单个工具调用（CLI 扁平内联风格）
  */
-function renderToolCall(tool: ToolCall): TemplateResult {
+function renderToolCall(
+  tool: ToolCall,
+  state?: ChatState,
+  handlers?: ChatHandlers,
+): TemplateResult {
   const { name, summary } = getToolDisplayInfo(tool);
   const isComplete = tool.isComplete;
   const hasResult = tool.result !== undefined;
@@ -911,6 +919,37 @@ function renderToolCall(tool: ToolCall): TemplateResult {
     return html``;
   }
 
+  const hasRevertTarget =
+    isEdit &&
+    tool.input &&
+    (() => {
+      const inp = tool.input!;
+      if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
+        return inp.diff_blocks.some(
+          (b: any) =>
+            String(b?.file_path || '').trim() &&
+            String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
+        );
+      }
+      const filePath = String(
+        inp.file_path || inp.path || inp.file || '',
+      ).trim();
+      if (filePath) return true;
+      const changes = Array.isArray(inp.changes) ? inp.changes : [];
+      return changes.some((c: any) =>
+        String(c?.path || c?.file_path || '').trim(),
+      );
+    })();
+
+  const canRevert =
+    hasEditInput &&
+    isComplete &&
+    !tool.isError &&
+    !!handlers?.revertEdit &&
+    hasRevertTarget;
+  const isReverted = state?.revertedToolIds?.has(tool.id) ?? false;
+  const isReverting = state?.revertingToolIds?.has(tool.id) ?? false;
+
   return html`
     <div class="tool-call-inline">
       <div class="tool-header-inline">
@@ -927,9 +966,28 @@ function renderToolCall(tool: ToolCall): TemplateResult {
       </div>
       ${hasEditInput
         ? html`<div class="tool-diff-wrapper">
-            <span class="tool-result-bracket">⎿</span>
-            ${renderEditDiff(tool)}
-          </div>`
+              <span class="tool-result-bracket">⎿</span>
+              ${renderEditDiff(tool)}
+            </div>
+            ${canRevert
+              ? html`<div class="tool-revert-action">
+                  <button
+                    class="tool-revert-btn ${isReverted
+                      ? 'reverted'
+                      : isReverting
+                        ? 'reverting'
+                        : ''}"
+                    @click="${() => handlers!.revertEdit(tool)}"
+                    ?disabled="${isReverted || isReverting}"
+                  >
+                    ${isReverting
+                      ? 'Reverting...'
+                      : isReverted
+                        ? '✓ Reverted'
+                        : 'Revert'}
+                  </button>
+                </div>`
+              : ''}`
         : hasReadResult
           ? html`<div class="tool-diff-wrapper">
               <span class="tool-result-bracket">⎿</span>
@@ -953,7 +1011,11 @@ function renderToolCall(tool: ToolCall): TemplateResult {
 /**
  * 渲染消息内容（连续终端流式风格）
  */
-function renderMessageContent(msg: ChatMessage): TemplateResult {
+function renderMessageContent(
+  msg: ChatMessage,
+  state?: ChatState,
+  handlers?: ChatHandlers,
+): TemplateResult {
   const isAssistant = msg.role === 'assistant';
 
   // 如果有 blocks，按块渲染
@@ -968,7 +1030,7 @@ function renderMessageContent(msg: ChatMessage): TemplateResult {
           }
           return html`<div class="chat-text-inline">${block.content}</div>`;
         } else if (block.type === 'tool' && block.tool) {
-          return renderToolCall(block.tool);
+          return renderToolCall(block.tool, state, handlers);
         }
         return html``;
       })}
@@ -1023,6 +1085,79 @@ function renderMessageContext(msg: ChatMessage): TemplateResult {
       ${toRelativePath(context.file)}#${context.line}</span
     >
   </div>`;
+}
+
+/**
+ * 检查是否有可回退的 Edit 工具调用
+ */
+function hasRevertableEdits(state: ChatState): boolean {
+  for (const msg of state.chatMessages) {
+    if (msg.role !== 'assistant' || !msg.blocks) continue;
+    for (const block of msg.blocks) {
+      if (block.type !== 'tool' || !block.tool) continue;
+      const tool = block.tool;
+      if (
+        canonicalToolName(tool.name) === 'Edit' &&
+        tool.isComplete &&
+        !tool.isError &&
+        !state.revertedToolIds.has(tool.id) &&
+        tool.input
+      ) {
+        const inp = tool.input;
+        if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
+          if (
+            inp.diff_blocks.some(
+              (b: any) =>
+                String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
+            )
+          ) {
+            return true;
+          }
+        } else {
+          const oldStr = String(inp.old_string ?? inp.old_str ?? '');
+          const newStr = String(inp.new_string ?? inp.new_str ?? '');
+          if (oldStr !== newStr) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * 收集所有可回退的 Edit 工具调用
+ */
+export function collectRevertableTools(state: ChatState): ToolCall[] {
+  const tools: ToolCall[] = [];
+  for (const msg of state.chatMessages) {
+    if (msg.role !== 'assistant' || !msg.blocks) continue;
+    for (const block of msg.blocks) {
+      if (block.type !== 'tool' || !block.tool) continue;
+      const tool = block.tool;
+      if (
+        canonicalToolName(tool.name) === 'Edit' &&
+        tool.isComplete &&
+        !tool.isError &&
+        !state.revertedToolIds.has(tool.id) &&
+        tool.input
+      ) {
+        const inp = tool.input;
+        let hasDiff = false;
+        if (Array.isArray(inp.diff_blocks) && inp.diff_blocks.length > 0) {
+          hasDiff = inp.diff_blocks.some(
+            (b: any) =>
+              String(b?.old_string ?? '') !== String(b?.new_string ?? ''),
+          );
+        } else {
+          const oldStr = String(inp.old_string ?? inp.old_str ?? '');
+          const newStr = String(inp.new_string ?? inp.new_str ?? '');
+          hasDiff = oldStr !== newStr;
+        }
+        if (hasDiff) tools.push(tool);
+      }
+    }
+  }
+  return tools;
 }
 
 /**
@@ -1248,7 +1383,8 @@ export function renderChatModal(
                       ? html`<span class="chat-prompt">❯</span>`
                       : html`<span class="chat-indent"></span>`}
                     <div class="chat-message-content">
-                      ${renderMessageContext(msg)} ${renderMessageContent(msg)}
+                      ${renderMessageContext(msg)}
+                      ${renderMessageContent(msg, state, handlers)}
                     </div>
                   </div>
                 `,
@@ -1298,7 +1434,19 @@ export function renderChatModal(
                       <rect x="6" y="6" width="12" height="12" rx="1" />
                     </svg>
                   </button>`
-                : ''}
+                : hasRevertableEdits(state)
+                  ? html`<button
+                      class="tool-revert-btn ${state.revertingToolIds.size > 0
+                        ? 'reverting'
+                        : ''}"
+                      @click="${handlers.revertAllEdits}"
+                      ?disabled="${state.revertingToolIds.size > 0}"
+                    >
+                      ${state.revertingToolIds.size > 0
+                        ? 'Reverting...'
+                        : 'Revert All'}
+                    </button>`
+                  : ''}
             </div>`
           : ''}
         <div class="chat-modal-footer">
@@ -2645,6 +2793,46 @@ export const chatStyles = css`
     font-style: italic;
   }
 
+  /* Revert 按钮 */
+  .tool-revert-action {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 16px 2px 0;
+  }
+
+  .tool-revert-btn {
+    background: transparent;
+    border: 1px solid var(--chat-border);
+    color: var(--chat-text-muted);
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tool-revert-btn:hover:not(:disabled) {
+    background: var(--chat-hover-bg);
+    color: var(--chat-text-secondary);
+    border-color: var(--chat-text-muted);
+  }
+
+  .tool-revert-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .tool-revert-btn.reverting {
+    color: var(--chat-accent);
+    border-color: var(--chat-accent);
+  }
+
+  .tool-revert-btn.reverted {
+    color: var(--chat-tool-complete);
+    border-color: var(--chat-tool-complete);
+  }
+
   /* Read 结果代码预览 */
   .read-result-block {
     flex: 1;
@@ -2767,6 +2955,47 @@ export async function fetchModelInfo(
       provider: provider || null,
       providers: provider ? [provider] : [],
     };
+  }
+}
+
+/**
+ * Revert 请求结果
+ */
+export interface RevertResult {
+  file_path: string;
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * 发送 revert 请求到服务器
+ */
+export async function revertEdit(
+  ip: string,
+  port: number,
+  edits: Array<{ file_path: string; old_string: string; new_string: string }>,
+): Promise<RevertResult[]> {
+  try {
+    const response = await fetch(`http://${ip}:${port}/ai/revert`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ edits }),
+    });
+    if (!response.ok) {
+      return edits.map((e) => ({
+        file_path: e.file_path,
+        success: false,
+        error: 'request_failed',
+      }));
+    }
+    const data = await response.json();
+    return Array.isArray(data?.results) ? data.results : [];
+  } catch {
+    return edits.map((e) => ({
+      file_path: e.file_path,
+      success: false,
+      error: 'network_error',
+    }));
   }
 }
 
