@@ -2499,6 +2499,18 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   disconnectedCallback(): void {
+    // 清理 AI 相关资源
+    if (this.turnTimerInterval) {
+      clearInterval(this.turnTimerInterval);
+      this.turnTimerInterval = null;
+    }
+    if (this.chatAbortController) {
+      this.chatAbortController.abort();
+      this.chatAbortController = null;
+    }
+    if (this.showChatModal) {
+      document.body.style.overflow = '';
+    }
     this.revokeMessageImageUrls(this.chatMessages);
     this.clearPendingPastedImages(true);
     // Detach all event listeners

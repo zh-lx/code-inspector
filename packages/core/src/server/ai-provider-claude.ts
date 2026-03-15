@@ -876,7 +876,7 @@ const DEFAULT_ALLOWED_TOOLS = [
   'WebSearch',
 ];
 
-function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
+function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): () => void {
   const rawOptions =
     aiOptions?.type === 'sdk'
       ? getClaudeSdkOptions(aiOptions)
@@ -885,13 +885,24 @@ function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void {
   if (!process.env) {
     process.env = {};
   }
+  const savedValues: Record<string, string | undefined> = {};
   if (env) {
     for (const [key, value] of Object.entries(env)) {
       if (value !== undefined) {
+        savedValues[key] = process.env[key];
         process.env[key] = value;
       }
     }
   }
+  return () => {
+    for (const [key, value] of Object.entries(savedValues)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  };
 }
 
 function buildSdkQueryOptions(
@@ -961,8 +972,9 @@ async function queryViaSdk(
   sendSSE: (data: object | string) => void,
   isAborted: () => boolean,
 ): Promise<{ timedOut: boolean }> {
-  setupSdkEnvironment(aiOptions);
+  const restoreEnv = setupSdkEnvironment(aiOptions);
 
+  try {
   const query = await getClaudeQuery();
   if (!query) {
     console.log(
@@ -1211,4 +1223,7 @@ async function queryViaSdk(
     clearTimeout(idleTimer);
   }
   return { timedOut };
+  } finally {
+    restoreEnv();
+  }
 }

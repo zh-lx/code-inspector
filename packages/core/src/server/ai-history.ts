@@ -9,6 +9,17 @@ import http from 'http';
 const HISTORY_DIR_NAME = path.join('node_modules', '.code-inspector');
 const INDEX_FILE = 'history-index.json';
 
+/**
+ * 校验 id 不包含路径穿越字符，resolve 后必须仍在 dir 内
+ */
+function isSafeId(id: string, dir: string): boolean {
+  if (!id || /[\/\\]/.test(id) || id === '.' || id === '..') {
+    return false;
+  }
+  const resolved = path.resolve(dir, `${id}.json`);
+  return resolved.startsWith(dir + path.sep);
+}
+
 export interface HistoryEntry {
   id: string;
   title: string;
@@ -56,13 +67,15 @@ function cleanupExpired(dir: string, expireDays: number): void {
     const id = ids[i];
     const entry = index[id];
     if (entry.createdAt + maxAge < now) {
-      const filePath = path.join(dir, `${id}.json`);
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+      if (isSafeId(id, dir)) {
+        const filePath = path.join(dir, `${id}.json`);
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } catch {
+          // 静默
         }
-      } catch {
-        // 静默
       }
       delete index[id];
       changed = true;
@@ -147,6 +160,12 @@ export async function handleAIHistorySaveRequest(
   const messages = Array.isArray(parsed.messages) ? parsed.messages : [];
   const dir = getHistoryDir(projectRootPath);
 
+  if (!isSafeId(id, dir)) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'invalid_id' }));
+    return;
+  }
+
   try {
     ensureHistoryDir(dir);
 
@@ -213,6 +232,13 @@ export async function handleAIHistoryLoadRequest(
   }
 
   const dir = getHistoryDir(projectRootPath);
+
+  if (!isSafeId(id, dir)) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'invalid_id' }));
+    return;
+  }
+
   const filePath = path.join(dir, `${id}.json`);
 
   try {
@@ -257,6 +283,12 @@ export async function handleAIHistoryDeleteRequest(
   }
 
   const dir = getHistoryDir(projectRootPath);
+
+  if (!isSafeId(id, dir)) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'invalid_id' }));
+    return;
+  }
 
   try {
     // 删除对话文件
