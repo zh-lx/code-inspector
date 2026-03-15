@@ -53,6 +53,14 @@ export declare function getAIOptions(behavior?: {
         opencode?: boolean | OpenCodeOptions;
     };
 }): ResolvedAIOptions | undefined;
+/**
+ * 从 behavior 配置中提取 expireDays
+ */
+export declare function getExpireDays(behavior?: {
+    ai?: {
+        expireDays?: number;
+    };
+}): number;
 export declare function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[];
 export declare function resolveAIOptions(aiOptions: ResolvedAIOptions | undefined, requestedProvider?: AIProviderType): ActiveAIOptions | undefined;
 /**

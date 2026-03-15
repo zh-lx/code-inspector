@@ -95,6 +95,15 @@ export function getAIOptions(
   return Object.keys(resolved).length > 0 ? resolved : undefined;
 }
 
+/**
+ * 从 behavior 配置中提取 expireDays
+ */
+export function getExpireDays(
+  behavior?: { ai?: { expireDays?: number } }
+): number {
+  return behavior?.ai?.expireDays ?? 0;
+}
+
 function normalizeAIProviderType(provider?: string | null): AIProviderType | undefined {
   if (provider === 'codex' || provider === 'claudeCode' || provider === 'opencode') {
     return provider;

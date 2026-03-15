@@ -21,6 +21,7 @@ export interface PersistedAIState {
   modalPosition: { left: string; top: string } | null;
   turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
   revertedToolIds?: string[];
+  conversationId?: string | null;
 }
 
 /**

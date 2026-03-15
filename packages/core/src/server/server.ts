@@ -11,7 +11,13 @@ import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
 import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
 import type { CodeOptions, RecordInfo } from '../shared';
-import { handleAIRequest, getAIOptions, handleAIModelRequest, handleAIRevertRequest } from './ai';
+import { handleAIRequest, getAIOptions, handleAIModelRequest, handleAIRevertRequest, getExpireDays } from './ai';
+import {
+  handleAIHistoryListRequest,
+  handleAIHistorySaveRequest,
+  handleAIHistoryLoadRequest,
+  handleAIHistoryDeleteRequest,
+} from './ai-history';
 import { getEnvVariables } from 'launch-ide';
 
 /**
@@ -156,6 +162,28 @@ export function createServer(
     // 处理 /ai/revert 路由
     if (pathname === '/ai/revert' && req.method === 'POST') {
       await handleAIRevertRequest(req, res, CORS_HEADERS, ProjectRootPath);
+      return;
+    }
+
+    // 处理 /ai/history 路由
+    if (pathname === '/ai/history' && req.method === 'GET') {
+      const expireDays = getExpireDays(options?.behavior);
+      await handleAIHistoryListRequest(res, CORS_HEADERS, ProjectRootPath, expireDays);
+      return;
+    }
+
+    if (pathname === '/ai/history/save' && req.method === 'POST') {
+      await handleAIHistorySaveRequest(req, res, CORS_HEADERS, ProjectRootPath);
+      return;
+    }
+
+    if (pathname === '/ai/history/load' && req.method === 'POST') {
+      await handleAIHistoryLoadRequest(req, res, CORS_HEADERS, ProjectRootPath);
+      return;
+    }
+
+    if (pathname === '/ai/history/delete' && req.method === 'POST') {
+      await handleAIHistoryDeleteRequest(req, res, CORS_HEADERS, ProjectRootPath);
       return;
     }
 

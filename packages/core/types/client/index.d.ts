@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
-import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall } from './ai';
+import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall, HistoryEntry } from './ai';
 interface Position {
     left?: string;
     right?: string;
@@ -129,6 +129,10 @@ export declare class CodeInspectorComponent extends LitElement {
     showModelMenu: boolean;
     revertedToolIds: Set<string>;
     revertingToolIds: Set<string>;
+    conversationId: string | null;
+    showHistoryPanel: boolean;
+    historyList: HistoryEntry[];
+    historyLoading: boolean;
     private chatAbortController;
     private turnTimerInterval;
     private turnStartTime;
@@ -260,10 +264,15 @@ export declare class CodeInspectorComponent extends LitElement {
     private scrollChatToBottom;
     private startTurnTimer;
     private stopTurnTimer;
+    private autoSaveConversation;
     interruptChat: () => void;
     handleRevertEdit: (tool: ToolCall) => Promise<void>;
     private extractRevertEdits;
     handleRevertAllEdits: () => Promise<void>;
+    toggleHistoryPanel: () => Promise<void>;
+    handleLoadConversation: (id: string) => Promise<void>;
+    handleDeleteConversation: (id: string) => Promise<void>;
+    handleStartNewConversation: () => void;
     handleChatDragStart: (e: MouseEvent) => void;
     handleChatDragMove: (e: MouseEvent) => void;
     handleChatDragEnd: () => void;
