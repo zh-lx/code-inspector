@@ -433,3 +433,24 @@ type ClaudeSdkOptions = {
 :::
 
 更多 Claude SDK 参数说明可参考 [Claude Code Agent SDK](https://platform.claude.com/docs/zh-CN/agent-sdk/typescript)。
+
+## 对话历史
+
+AI 助手会自动将每次问答保存到项目目录下的 `node_modules/.code-inspector/` 目录中。你可以在对话框右上角点击时钟图标查看历史记录，选择历史条目即可恢复对话上下文。
+
+### expireDays
+
+- 可选项
+- 类型：`number`，默认值为 `0`
+- 说明：对话历史的过期天数。默认为 `0`，不自动清理历史记录。设置为正整数时，打开历史列表会自动清理超过指定天数的记录。
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: true,
+      expireDays: 30, // 自动清理 30 天前的对话历史
+    },
+  },
+}),
+```

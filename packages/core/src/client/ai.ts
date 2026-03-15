@@ -101,6 +101,30 @@ export interface AIModelInfo {
 }
 
 /**
+ * 对话历史条目
+ */
+export interface HistoryEntry {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  provider: string | null;
+  messageCount: number;
+}
+
+/**
+ * 完整对话数据
+ */
+export interface ConversationData {
+  messages: ChatMessage[];
+  context: ChatContext | null;
+  sessionId: string | null;
+  provider: ChatProvider | null;
+  model: string;
+  revertedToolIds: string[];
+}
+
+/**
  * 聊天状态接口
  */
 export interface ChatState {
@@ -125,6 +149,10 @@ export interface ChatState {
   showModelMenu: boolean;
   revertedToolIds: Set<string>;
   revertingToolIds: Set<string>;
+  conversationId: string | null;
+  showHistoryPanel: boolean;
+  historyList: HistoryEntry[];
+  historyLoading: boolean;
 }
 
 /**
@@ -154,6 +182,10 @@ export interface ChatHandlers {
   handleOverlayClick: () => void;
   revertEdit: (tool: ToolCall) => void;
   revertAllEdits: () => void;
+  toggleHistoryPanel: () => void;
+  loadConversation: (id: string) => void;
+  deleteConversation: (id: string) => void;
+  startNewConversation: () => void;
 }
 
 /**
@@ -281,6 +313,19 @@ function formatDuration(seconds: number): string {
     return `${mins}m ${secs.toString().padStart(2, '0')}s`;
   }
   return `${secs}s`;
+}
+
+function formatHistoryDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - timestamp;
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  if (date.getFullYear() === now.getFullYear()) {
+    return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
 /**
@@ -1298,6 +1343,25 @@ export function renderChatModal(
           </div>
           <div class="chat-modal-actions">
             <button
+              class="chat-modal-history"
+              @click="${handlers.toggleHistoryPanel}"
+              title="History"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </button>
+            <button
               class="chat-modal-theme"
               @click="${handlers.toggleTheme}"
               title="${state.chatTheme === 'dark'
@@ -1368,37 +1432,103 @@ export function renderChatModal(
             </button>
           </div>
         </div>
-        <div class="chat-modal-content">
-          ${state.chatMessages.length === 0
-            ? html`<div class="chat-empty">
-                <span class="chat-empty-prompt">❯</span>
-                <span class="chat-empty-text"
-                  >Ask me anything about this code...</span
-                >
-              </div>`
-            : state.chatMessages.map(
-                (msg) => html`
-                  <div class="chat-line chat-line-${msg.role}">
-                    ${msg.role === 'user'
-                      ? html`<span class="chat-prompt">❯</span>`
-                      : html`<span class="chat-indent"></span>`}
-                    <div class="chat-message-content">
-                      ${renderMessageContext(msg)}
-                      ${renderMessageContent(msg, state, handlers)}
-                    </div>
-                  </div>
-                `,
-              )}
-          ${state.chatLoading &&
-          (!state.chatMessages.length ||
-            state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
-            ? html`<div class="chat-loading">
-                <span class="chat-indent"></span>
-                <span class="chat-cursor"></span>
-              </div>`
-            : ''}
-        </div>
-        ${state.turnStatus !== 'idle'
+        ${state.showHistoryPanel
+          ? html`<div class="chat-history-panel">
+              <div class="chat-history-header">
+                <span class="chat-history-title">History</span>
+                <div class="chat-history-actions">
+                  <button
+                    class="chat-history-new-btn"
+                    @click="${handlers.startNewConversation}"
+                    title="New conversation"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 5v14" />
+                      <path d="M5 12h14" />
+                    </svg>
+                    New
+                  </button>
+                  <button
+                    class="chat-history-back-btn"
+                    @click="${handlers.toggleHistoryPanel}"
+                    title="Back to chat"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="chat-history-list">
+                ${state.historyLoading
+                  ? html`<div class="chat-history-loading">
+                      <span class="chat-cursor"></span>
+                      <span>Loading...</span>
+                    </div>`
+                  : state.historyList.length === 0
+                    ? html`<div class="chat-history-empty">No history yet</div>`
+                    : state.historyList.map(
+                        (entry) => html`
+                          <div
+                            class="chat-history-item ${entry.id === state.conversationId ? 'active' : ''}"
+                            @click="${() => handlers.loadConversation(entry.id)}"
+                          >
+                            <div class="chat-history-item-info">
+                              <span class="chat-history-item-title">${entry.title || 'Untitled'}</span>
+                              <span class="chat-history-item-meta">
+                                ${formatHistoryDate(entry.updatedAt)}
+                                ${entry.provider ? html` · <span class="chat-history-item-provider">${entry.provider}</span>` : ''}
+                                · ${entry.messageCount} msgs
+                              </span>
+                            </div>
+                            <button
+                              class="chat-history-item-delete"
+                              @click="${(e: MouseEvent) => { e.stopPropagation(); handlers.deleteConversation(entry.id); }}"
+                              title="Delete"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          </div>
+                        `,
+                      )}
+              </div>
+            </div>`
+          : html`<div class="chat-modal-content">
+              ${state.chatMessages.length === 0
+                ? html`<div class="chat-empty">
+                    <span class="chat-empty-prompt">❯</span>
+                    <span class="chat-empty-text"
+                      >Ask me anything about this code...</span
+                    >
+                  </div>`
+                : state.chatMessages.map(
+                    (msg) => html`
+                      <div class="chat-line chat-line-${msg.role}">
+                        ${msg.role === 'user'
+                          ? html`<span class="chat-prompt">❯</span>`
+                          : html`<span class="chat-indent"></span>`}
+                        <div class="chat-message-content">
+                          ${renderMessageContext(msg)}
+                          ${renderMessageContent(msg, state, handlers)}
+                        </div>
+                      </div>
+                    `,
+                  )}
+              ${state.chatLoading &&
+              (!state.chatMessages.length ||
+                state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
+                ? html`<div class="chat-loading">
+                    <span class="chat-indent"></span>
+                    <span class="chat-cursor"></span>
+                  </div>`
+                : ''}
+            </div>`}
+        ${!state.showHistoryPanel && state.turnStatus !== 'idle'
           ? html`<div class="chat-status-bar">
               <div class="chat-status-info">
                 <span class="chat-status-icon ${state.turnStatus}">
@@ -1449,7 +1579,8 @@ export function renderChatModal(
                   : ''}
             </div>`
           : ''}
-        <div class="chat-modal-footer">
+        ${!state.showHistoryPanel
+          ? html`<div class="chat-modal-footer">
           ${state.chatPastedImages.length > 0
             ? html`<div class="chat-paste-preview">
                 ${state.chatPastedImages.map(
@@ -1523,8 +1654,8 @@ export function renderChatModal(
                   <path d="M12 5l7 7-7 7" />
                 </svg>`}
           </button>
-        </div>
-
+        </div>`
+          : ''}
         ${state.showCloseConfirm
           ? html`<div
               class="chat-close-confirm-overlay"
@@ -1996,7 +2127,8 @@ export const chatStyles = css`
   }
 
   .chat-modal-theme,
-  .chat-modal-clear {
+  .chat-modal-clear,
+  .chat-modal-history {
     background: transparent;
     border: none;
     color: var(--chat-text-muted);
@@ -2010,7 +2142,8 @@ export const chatStyles = css`
   }
 
   .chat-modal-theme:hover,
-  .chat-modal-clear:hover {
+  .chat-modal-clear:hover,
+  .chat-modal-history:hover {
     background: var(--chat-hover-bg);
     color: var(--chat-text-secondary);
   }
@@ -2874,6 +3007,158 @@ export const chatStyles = css`
   .chat-modal-content::-webkit-scrollbar-thumb:hover {
     background: var(--chat-scrollbar-hover);
   }
+
+  /* History Panel */
+  .chat-history-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--chat-border);
+    flex-shrink: 0;
+  }
+
+  .chat-history-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--chat-text-primary);
+  }
+
+  .chat-history-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chat-history-new-btn,
+  .chat-history-back-btn {
+    background: transparent;
+    border: none;
+    color: var(--chat-text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .chat-history-new-btn:hover,
+  .chat-history-back-btn:hover {
+    background: var(--chat-hover-bg);
+    color: var(--chat-text-secondary);
+  }
+
+  .chat-history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  .chat-history-list::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .chat-history-list::-webkit-scrollbar-track {
+    background: var(--chat-scrollbar-track);
+  }
+
+  .chat-history-list::-webkit-scrollbar-thumb {
+    background: var(--chat-scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  .chat-history-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    color: var(--chat-text-muted);
+    font-size: 13px;
+  }
+
+  .chat-history-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--chat-text-muted);
+    font-size: 13px;
+  }
+
+  .chat-history-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    gap: 8px;
+  }
+
+  .chat-history-item:hover {
+    background: var(--chat-hover-bg);
+  }
+
+  .chat-history-item.active {
+    background: var(--chat-hover-bg);
+    border-left: 2px solid var(--chat-accent);
+  }
+
+  .chat-history-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .chat-history-item-title {
+    font-size: 13px;
+    color: var(--chat-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-history-item-meta {
+    font-size: 11px;
+    color: var(--chat-text-muted);
+  }
+
+  .chat-history-item-provider {
+    text-transform: capitalize;
+  }
+
+  .chat-history-item-delete {
+    background: transparent;
+    border: none;
+    color: var(--chat-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .chat-history-item:hover .chat-history-item-delete {
+    opacity: 1;
+  }
+
+  .chat-history-item-delete:hover {
+    background: var(--chat-hover-bg);
+    color: var(--chat-error);
+  }
 `;
 
 /**
@@ -2996,6 +3281,97 @@ export async function revertEdit(
       success: false,
       error: 'network_error',
     }));
+  }
+}
+
+/**
+ * 获取对话历史列表
+ */
+export async function fetchHistoryList(
+  ip: string,
+  port: number,
+): Promise<HistoryEntry[]> {
+  try {
+    const response = await fetch(`http://${ip}:${port}/ai/history`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data?.conversations) ? data.conversations : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 保存对话到服务端
+ */
+export async function saveConversation(
+  ip: string,
+  port: number,
+  data: {
+    id?: string | null;
+    messages: ChatMessage[];
+    context: ChatContext | null;
+    sessionId: string | null;
+    provider: ChatProvider | null;
+    model: string;
+    revertedToolIds: string[];
+  },
+): Promise<{ id: string; success: boolean }> {
+  try {
+    const response = await fetch(`http://${ip}:${port}/ai/history/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) return { id: '', success: false };
+    return await response.json();
+  } catch {
+    return { id: '', success: false };
+  }
+}
+
+/**
+ * 加载对话历史
+ */
+export async function loadConversationData(
+  ip: string,
+  port: number,
+  id: string,
+): Promise<ConversationData | null> {
+  try {
+    const response = await fetch(`http://${ip}:${port}/ai/history/load`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data?.error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 删除对话历史
+ */
+export async function deleteConversationData(
+  ip: string,
+  port: number,
+  id: string,
+): Promise<boolean> {
+  try {
+    const response = await fetch(`http://${ip}:${port}/ai/history/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data?.success === true;
+  } catch {
+    return false;
   }
 }
 

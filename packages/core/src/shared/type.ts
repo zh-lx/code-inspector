@@ -274,6 +274,8 @@ export type Behavior = {
     claudeCode?: boolean | ClaudeCodeOptions;
     codex?: boolean | CodexOptions;
     opencode?: boolean | OpenCodeOptions;
+    /** 对话历史过期天数，默认 0 不自动清理 */
+    expireDays?: number;
   };
   defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };

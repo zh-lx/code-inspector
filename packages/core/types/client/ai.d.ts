@@ -68,6 +68,28 @@ export interface AIModelInfo {
     providers: ChatProvider[];
 }
 /**
+ * 对话历史条目
+ */
+export interface HistoryEntry {
+    id: string;
+    title: string;
+    createdAt: number;
+    updatedAt: number;
+    provider: string | null;
+    messageCount: number;
+}
+/**
+ * 完整对话数据
+ */
+export interface ConversationData {
+    messages: ChatMessage[];
+    context: ChatContext | null;
+    sessionId: string | null;
+    provider: ChatProvider | null;
+    model: string;
+    revertedToolIds: string[];
+}
+/**
  * 聊天状态接口
  */
 export interface ChatState {
@@ -92,6 +114,10 @@ export interface ChatState {
     showModelMenu: boolean;
     revertedToolIds: Set<string>;
     revertingToolIds: Set<string>;
+    conversationId: string | null;
+    showHistoryPanel: boolean;
+    historyList: HistoryEntry[];
+    historyLoading: boolean;
 }
 /**
  * 聊天功能处理器接口
@@ -120,6 +146,10 @@ export interface ChatHandlers {
     handleOverlayClick: () => void;
     revertEdit: (tool: ToolCall) => void;
     revertAllEdits: () => void;
+    toggleHistoryPanel: () => void;
+    loadConversation: (id: string) => void;
+    deleteConversation: (id: string) => void;
+    startNewConversation: () => void;
 }
 /**
  * 更新聊天框位置（使用 floating-ui）
@@ -225,6 +255,33 @@ export declare function revertEdit(ip: string, port: number, edits: Array<{
     old_string: string;
     new_string: string;
 }>): Promise<RevertResult[]>;
+/**
+ * 获取对话历史列表
+ */
+export declare function fetchHistoryList(ip: string, port: number): Promise<HistoryEntry[]>;
+/**
+ * 保存对话到服务端
+ */
+export declare function saveConversation(ip: string, port: number, data: {
+    id?: string | null;
+    messages: ChatMessage[];
+    context: ChatContext | null;
+    sessionId: string | null;
+    provider: ChatProvider | null;
+    model: string;
+    revertedToolIds: string[];
+}): Promise<{
+    id: string;
+    success: boolean;
+}>;
+/**
+ * 加载对话历史
+ */
+export declare function loadConversationData(ip: string, port: number, id: string): Promise<ConversationData | null>;
+/**
+ * 删除对话历史
+ */
+export declare function deleteConversationData(ip: string, port: number, id: string): Promise<boolean>;
 /**
  * 发送聊天消息到服务器
  */

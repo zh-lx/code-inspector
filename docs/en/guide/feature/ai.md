@@ -433,3 +433,24 @@ type ClaudeSdkOptions = {
 :::
 
 For more Claude SDK details, see [Claude Code Agent SDK](https://platform.claude.com/docs/agent-sdk/typescript).
+
+## Conversation History
+
+The AI Assistant automatically saves each Q&A to the `node_modules/.code-inspector/` directory in your project. Click the clock icon in the top-right corner of the chat dialog to browse history. Select an entry to restore its conversation context.
+
+### expireDays
+
+- Optional
+- Type: `number`, default `0`
+- Description: Number of days before conversation history expires. Defaults to `0` (no auto-cleanup). When set to a positive integer, opening the history list will automatically clean up records older than the specified number of days.
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: true,
+      expireDays: 30, // auto-cleanup history older than 30 days
+    },
+  },
+}),
+```

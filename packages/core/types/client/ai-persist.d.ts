@@ -21,6 +21,7 @@ export interface PersistedAIState {
     } | null;
     turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
     revertedToolIds?: string[];
+    conversationId?: string | null;
 }
 /**
  * 保存 AI 状态到 sessionStorage

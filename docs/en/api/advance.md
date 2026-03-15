@@ -23,6 +23,20 @@ Below are configurations for some non-standard scenarios.
      * String type, can use {file}, {line}, {column} templates to replace code location information.
      */
     target?: string;
+    /**
+     * AI assistant configuration, see AI Assistant docs for details
+     */
+    ai?: {
+      claudeCode?: boolean | ClaudeCodeOptions;
+      codex?: boolean | CodexOptions;
+      opencode?: boolean | OpenCodeOptions;
+      /** Conversation history expiration in days, defaults to 0 (no auto-cleanup) */
+      expireDays?: number;
+    };
+    /**
+     * Default click action: 'copy' | 'locate' | 'target' | 'ai'
+     */
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
   };
   ```
 - Description: In some scenarios, if you don't need to locate code when clicking elements and only need to copy the source code location information, you can set `locate: false` and `copy: true`. In this case, clicking elements will only copy the source code location information.

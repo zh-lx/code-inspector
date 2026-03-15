@@ -12,6 +12,7 @@ import {
   ChatHistoryMessage,
   ContentBlock,
   ToolCall,
+  HistoryEntry,
   renderChatModal,
   chatStyles,
   sendChatToServer,
@@ -20,6 +21,10 @@ import {
   fetchModelInfo,
   revertEdit,
   collectRevertableTools,
+  fetchHistoryList,
+  saveConversation,
+  loadConversationData,
+  deleteConversationData,
 } from './ai';
 import { saveAIState, loadAIState, clearAIState } from './ai-persist';
 
@@ -239,6 +244,14 @@ export class CodeInspectorComponent extends LitElement {
   revertedToolIds: Set<string> = new Set();
   @state()
   revertingToolIds: Set<string> = new Set();
+  @state()
+  conversationId: string | null = null;
+  @state()
+  showHistoryPanel = false;
+  @state()
+  historyList: HistoryEntry[] = [];
+  @state()
+  historyLoading = false;
 
   // 中断控制器和计时器
   private chatAbortController: AbortController | null = null;
@@ -1265,6 +1278,7 @@ export class CodeInspectorComponent extends LitElement {
         this.revertedToolIds.size > 0
           ? Array.from(this.revertedToolIds)
           : undefined,
+      conversationId: this.conversationId,
     });
   };
 
@@ -1681,6 +1695,33 @@ export class CodeInspectorComponent extends LitElement {
     }
     this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
     this.turnStatus = status;
+
+    // 自动保存对话到服务端
+    if (status === 'done' && this.chatMessages.length > 0) {
+      this.autoSaveConversation();
+    }
+  };
+
+  // 自动保存对话到服务端
+  private autoSaveConversation = async () => {
+    try {
+      await saveConversation(
+        this.ip || 'localhost',
+        this.port,
+        {
+          messages: this.chatMessages,
+          context: this.chatContext,
+          sessionId: this.chatSessionId,
+          provider: this.chatProvider,
+          model: this.chatModel,
+          revertedToolIds: this.revertedToolIds.size > 0
+            ? Array.from(this.revertedToolIds)
+            : [],
+        },
+      );
+    } catch {
+      // 保存失败静默
+    }
   };
 
   // 中断聊天
@@ -1813,6 +1854,89 @@ export class CodeInspectorComponent extends LitElement {
     for (const tool of tools) {
       await this.handleRevertEdit(tool);
     }
+  };
+
+  // 切换历史面板
+  toggleHistoryPanel = async () => {
+    this.showHistoryPanel = !this.showHistoryPanel;
+    if (this.showHistoryPanel) {
+      this.historyLoading = true;
+      try {
+        this.historyList = await fetchHistoryList(
+          this.ip || 'localhost',
+          this.port,
+        );
+      } catch {
+        this.historyList = [];
+      } finally {
+        this.historyLoading = false;
+      }
+    }
+  };
+
+  // 加载历史对话
+  handleLoadConversation = async (id: string) => {
+    try {
+      const data = await loadConversationData(
+        this.ip || 'localhost',
+        this.port,
+        id,
+      );
+      if (!data) return;
+
+      this.chatMessages = data.messages;
+      this.chatContext = data.context;
+      this.chatSessionId = data.sessionId;
+      if (data.provider) {
+        this.chatProvider = data.provider;
+      }
+      if (data.model) {
+        this.chatModel = data.model;
+      }
+      this.revertedToolIds = new Set(data.revertedToolIds || []);
+      this.conversationId = id;
+      this.showHistoryPanel = false;
+      this.turnStatus = 'idle';
+      this.persistAIState();
+    } catch {
+      // 静默
+    }
+  };
+
+  // 删除历史对话
+  handleDeleteConversation = async (id: string) => {
+    try {
+      const success = await deleteConversationData(
+        this.ip || 'localhost',
+        this.port,
+        id,
+      );
+      if (success) {
+        this.historyList = this.historyList.filter((h) => h.id !== id);
+        if (this.conversationId === id) {
+          this.conversationId = null;
+          this.chatMessages = [];
+          this.chatContext = null;
+          this.chatSessionId = null;
+          this.revertedToolIds = new Set();
+          this.turnStatus = 'idle';
+          this.persistAIState();
+        }
+      }
+    } catch {
+      // 静默
+    }
+  };
+
+  // 新建对话
+  handleStartNewConversation = () => {
+    this.chatMessages = [];
+    this.conversationId = null;
+    this.chatSessionId = null;
+    this.revertedToolIds = new Set();
+    this.turnStatus = 'idle';
+    this.showHistoryPanel = false;
+    this.persistAIState();
   };
 
   // 聊天框拖拽开始
@@ -2316,6 +2440,7 @@ export class CodeInspectorComponent extends LitElement {
       this.chatProvider = persisted.chatProvider || null;
       this.availableAIProviders = persisted.availableAIProviders || [];
       this.revertedToolIds = new Set(persisted.revertedToolIds || []);
+      this.conversationId = persisted.conversationId || null;
       this.showChatModal = true;
 
       if (this.chatTheme === 'light') {
@@ -2691,6 +2816,10 @@ export class CodeInspectorComponent extends LitElement {
             showModelMenu: this.showModelMenu,
             revertedToolIds: this.revertedToolIds,
             revertingToolIds: this.revertingToolIds,
+            conversationId: this.conversationId,
+            showHistoryPanel: this.showHistoryPanel,
+            historyList: this.historyList,
+            historyLoading: this.historyLoading,
           },
           {
             closeChatModal: this.closeChatModal,
@@ -2716,6 +2845,10 @@ export class CodeInspectorComponent extends LitElement {
             handleOverlayClick: this.handleOverlayClick,
             revertEdit: this.handleRevertEdit,
             revertAllEdits: this.handleRevertAllEdits,
+            toggleHistoryPanel: this.toggleHistoryPanel,
+            loadConversation: this.handleLoadConversation,
+            deleteConversation: this.handleDeleteConversation,
+            startNewConversation: this.handleStartNewConversation,
           }
         )}
 
