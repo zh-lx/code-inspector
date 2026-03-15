@@ -67,11 +67,13 @@ describe('claude provider helpers', () => {
     const old = process.env.CLAUDE_API_KEY;
     delete process.env.CLAUDE_API_KEY;
 
-    __TEST_ONLY__.setupSdkEnvironment({
+    const restore = __TEST_ONLY__.setupSdkEnvironment({
       type: 'sdk',
       options: { env: { CLAUDE_API_KEY: 'k' } },
     } as any);
     expect(process.env.CLAUDE_API_KEY).toBe('k');
+    restore();
+    expect(process.env.CLAUDE_API_KEY).toBe(undefined);
 
     const queryOptions = __TEST_ONLY__.buildSdkQueryOptions(
       {
@@ -547,8 +549,9 @@ describe('claude provider helpers', () => {
   it('should cover sdk environment/bootstrap branches and dynamic getClaudeQuery load', async () => {
     const originalEnv = process.env as any;
     (process as any).env = undefined;
-    __TEST_ONLY__.setupSdkEnvironment({ type: 'cli', options: { env: { A: '1' } } } as any);
+    const restore2 = __TEST_ONLY__.setupSdkEnvironment({ type: 'cli', options: { env: { A: '1' } } } as any);
     expect((process as any).env).toBeTruthy();
+    restore2();
     (process as any).env = originalEnv;
 
     const cliOptions = __TEST_ONLY__.buildSdkQueryOptions(
