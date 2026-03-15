@@ -329,11 +329,31 @@ function formatHistoryDate(timestamp: number): string {
 }
 
 /**
+ * 清除 HTML 中的危险标签和属性
+ */
+function sanitizeHTML(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const dangerous = doc.querySelectorAll('script,iframe,object,embed,form,link[rel="import"],meta,base');
+  dangerous.forEach((el) => el.remove());
+  // 移除事件属性（onerror, onclick 等）
+  doc.querySelectorAll('*').forEach((el) => {
+    const attrs = el.getAttributeNames();
+    for (const attr of attrs) {
+      if (attr.startsWith('on') || (attr === 'href' && el.getAttribute(attr)?.trimStart().startsWith('javascript:'))) {
+        el.removeAttribute(attr);
+      }
+    }
+  });
+  return doc.body.innerHTML;
+}
+
+/**
  * 渲染 Markdown 内容为 HTML
  */
 function renderMarkdown(content: string): string {
   try {
-    return marked.parse(content, { async: false }) as string;
+    const raw = marked.parse(content, { async: false }) as string;
+    return sanitizeHTML(raw);
   } catch {
     // 解析失败时返回原始文本（转义 HTML）
     return content
