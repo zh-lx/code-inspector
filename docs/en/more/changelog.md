@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.5
+
+- 【fix】Fixed the issue where it would not take effect in `nuxtjs v4` version [#504](https://github.com/zh-lx/code-inspector/pull/504)
+
 ## 1.4.4
 
 - 【fix】Asynchronously load `@vue/compiler-dom` to fix startup failures in some projects due to dependency issues [#498](https://github.com/zh-lx/code-inspector/pull/498)

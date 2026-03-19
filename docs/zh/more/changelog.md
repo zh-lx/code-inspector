@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.4.5
+
+- 【fix】修复在 `nuxtjs v4` 版本中不生效的问题 [#504](https://github.com/zh-lx/code-inspector/pull/504)
+
 ## 1.4.4
 
 - 【fix】异步按需加载 `@vue/compiler-dom` 已修复部分项目中因依赖问题导致的启动失败 [#498](https://github.com/zh-lx/code-inspector/pull/498)
