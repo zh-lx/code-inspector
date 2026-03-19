@@ -32,7 +32,7 @@ let compatibleDirname = '';
 
 if (typeof __dirname !== 'undefined') {
   compatibleDirname = __dirname;
-/* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
+  /* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
 } else {
   compatibleDirname = dirname(fileURLToPath(import.meta.url));
 }
@@ -48,7 +48,7 @@ const NextEmptyElementName = 'CodeInspectorEmptyElement';
 export function getInjectedCode(
   options: CodeOptions,
   port: number,
-  isNextjs: boolean
+  isNextjs: boolean,
 ) {
   let code = `'use client';`;
   if (!options?.skipSnippets?.includes?.('console')) {
@@ -127,7 +127,7 @@ function addImportToEntry(content: string, webComponentFilePath: string) {
       ) {
         s.prependRight(
           node.end,
-          `;import ${NextEmptyElementName} from '${webComponentFilePath}';`
+          `;import ${NextEmptyElementName} from '${webComponentFilePath}';`,
         );
         hasAddedImport = true;
       }
@@ -299,7 +299,7 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
       record,
       'injectTo',
       /* v8 ignore next -- injectTo is always defined here due to if check above */
-      (injectTo || []).map((file) => normalizePath(file))
+      (injectTo || []).map((file) => normalizePath(file)),
     );
   }
 }
@@ -319,7 +319,7 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
   server?: boolean;
 }) {
-  if (!fs.existsSync(file)) {
+  if (!fs.existsSync(file) && !file.startsWith('virtual:nuxt:')) {
     if (server) {
       await startServer(options, record);
     }
@@ -341,7 +341,7 @@ export async function getCodeWithWebComponent({
     const injectCode = getInjectedCode(
       options,
       getProjectRecord(record)?.port || 0,
-      isNextjs
+      isNextjs,
     );
     if (
       (isNextjs || options.importClient === 'file') &&
@@ -352,11 +352,11 @@ export async function getCodeWithWebComponent({
         record.output,
         injectCode,
         /* v8 ignore next -- port is always set before reaching this code path */
-        getProjectRecord(record)?.port || 0
+        getProjectRecord(record)?.port || 0,
       );
       if (!file.match(webComponentFilePath)) {
         const relativePath = normalizePath(
-          path.relative(path.dirname(file), webComponentFilePath)
+          path.relative(path.dirname(file), webComponentFilePath),
         );
         if (isNextjs) {
           code = addImportToEntry(code, relativePath);
@@ -390,7 +390,7 @@ module.exports = {
 function writeWebComponentFile(
   targetPath: string,
   content: string,
-  port: number
+  port: number,
 ) {
   const webComponentFileName = `append-code-${port}.js`;
   const webComponentFilePath = path.resolve(targetPath, webComponentFileName);
