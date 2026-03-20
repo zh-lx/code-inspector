@@ -152,7 +152,7 @@ export declare function handleCodexRequest(message: string, context: AIContext |
 /**
  * 查找本地 Codex CLI 路径
  */
-declare function findCodexCli(runtime?: CodexProviderRuntime): string | null;
+export declare function findCodexCli(runtime?: CodexProviderRuntime): string | null;
 declare function formatConfigValue(value: string | number | boolean): string;
 declare function buildCommonArgs(codexOptions: CodexCliOptions, outputFile: string): string[];
 declare function buildOpenCodeRunArgs(codexOptions: CodexCliOptions, imagePaths: string[], prompt: string, sessionId?: string): string[];

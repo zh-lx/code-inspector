@@ -82,13 +82,13 @@ export declare function handleClaudeRequest(message: string, context: AIContext 
 /**
  * 查找本地 Claude Code CLI 路径
  */
-declare function findClaudeCodeCli(): string | null;
+export declare function findClaudeCodeCli(): string | null;
 /**
  * 通过 CLI 执行查询
  */
 declare function queryViaCli(cliPath: string, prompt: string, inputMessage: ClaudeCliInputMessage | undefined, cwd: string, aiOptions: ClaudeCodeOptions | undefined, onData: (data: string) => void, onError: (error: string) => void, onEnd: () => void, sessionId?: string, onSessionId?: (id: string) => void): ChildProcess;
 declare function getClaudeQuery(): Promise<Function | null>;
-declare function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): void;
+declare function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): () => void;
 declare function buildSdkQueryOptions(aiOptions: ClaudeCodeOptions | undefined, cwd: string, sessionId?: string): Record<string, any>;
 declare function queryViaSdk(prompt: string | AsyncIterable<any>, cwd: string, aiOptions: ClaudeCodeOptions | undefined, sessionId: string | undefined, sendSSE: (data: object | string) => void, isAborted: () => boolean): Promise<{
     timedOut: boolean;

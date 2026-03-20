@@ -25,7 +25,9 @@ export default defineConfig({
         'launch-ide',
         'portfinder',
         'child_process',
-        '@vue/compiler-dom'
+        '@vue/compiler-dom',
+        'node-pty',
+        'ws',
       ],
     },
     target: ['node8', 'es2015'],

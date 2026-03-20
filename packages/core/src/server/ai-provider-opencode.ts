@@ -17,7 +17,7 @@ import {
 
 const OPENCODE_DEFAULT_MODEL = 'opencode/big-pickle';
 
-const OPENCODE_PROVIDER_RUNTIME: CodexProviderRuntime = {
+export const OPENCODE_PROVIDER_RUNTIME: CodexProviderRuntime = {
   providerId: 'opencode',
   displayName: 'OpenCode',
   cliBinaryName: 'opencode',

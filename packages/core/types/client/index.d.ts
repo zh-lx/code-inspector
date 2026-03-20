@@ -133,6 +133,10 @@ export declare class CodeInspectorComponent extends LitElement {
     showHistoryPanel: boolean;
     historyList: HistoryEntry[];
     historyLoading: boolean;
+    terminalMode: boolean;
+    terminalExitCode: number | null;
+    private terminalManager;
+    private _projectRoot;
     private chatAbortController;
     private turnTimerInterval;
     private turnStartTime;
@@ -266,6 +270,15 @@ export declare class CodeInspectorComponent extends LitElement {
     private stopTurnTimer;
     private autoSaveConversation;
     interruptChat: () => void;
+    /**
+     * 确保终端在当前弹窗容器中可见
+     */
+    private ensureTerminalMounted;
+    /**
+     * 初始化终端模式：挂载 xterm 并启动交互式 CLI
+     */
+    private initTerminal;
+    sendTerminalMessage: () => Promise<void>;
     handleRevertEdit: (tool: ToolCall) => Promise<void>;
     private extractRevertEdits;
     handleRevertAllEdits: () => Promise<void>;

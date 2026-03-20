@@ -103,6 +103,17 @@ export type ClaudeCodeOptions = {
      * @en SDK options
      */
     options?: ClaudeSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: ClaudeCliOptions;
 };
 /**
  * @zh Codex CLI 配置项
@@ -206,6 +217,17 @@ export type CodexOptions = {
      * @en SDK options
      */
     options?: CodexSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: CodexCliOptions;
 };
 /**
  * @zh OpenCode CLI 配置项
@@ -245,6 +267,17 @@ export type OpenCodeOptions = {
      * @en SDK options
      */
     options?: OpenCodeSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: OpenCodeCliOptions;
 };
 export type Behavior = {
     locate?: boolean;

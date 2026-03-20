@@ -607,7 +607,7 @@ const cachedCliPathMap = new Map<string, string | null | undefined>();
 /**
  * 查找本地 Codex CLI 路径
  */
-function findCodexCli(
+export function findCodexCli(
   runtime: CodexProviderRuntime = CODEX_PROVIDER_RUNTIME,
 ): string | null {
   const cachedCliPath = cachedCliPathMap.get(runtime.cliBinaryName);

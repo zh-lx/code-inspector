@@ -98,6 +98,7 @@ export interface AIModelInfo {
   models: string[];
   provider: ChatProvider | null;
   providers: ChatProvider[];
+  providerType: 'cli' | 'sdk' | 'terminal';
 }
 
 /**
@@ -153,6 +154,9 @@ export interface ChatState {
   showHistoryPanel: boolean;
   historyList: HistoryEntry[];
   historyLoading: boolean;
+  // 终端模式（由配置 type: 'terminal' 驱动）
+  terminalMode: boolean;
+  terminalExitCode: number | null;
 }
 
 /**
@@ -186,6 +190,7 @@ export interface ChatHandlers {
   loadConversation: (id: string) => void;
   deleteConversation: (id: string) => void;
   startNewConversation: () => void;
+  sendTerminalMessage: () => void;
 }
 
 /**
@@ -1518,6 +1523,14 @@ export function renderChatModal(
                       )}
               </div>
             </div>`
+          : state.terminalMode
+          ? html`<div class="chat-terminal-container chat-terminal-fullscreen" id="ai-terminal-container">
+              ${state.terminalExitCode !== null
+                ? html`<div class="chat-terminal-exited">
+                    Process exited with code ${state.terminalExitCode}
+                  </div>`
+                : ''}
+            </div>`
           : html`<div class="chat-modal-content">
               ${state.chatMessages.length === 0
                 ? html`<div class="chat-empty">
@@ -1548,7 +1561,7 @@ export function renderChatModal(
                   </div>`
                 : ''}
             </div>`}
-        ${!state.showHistoryPanel && state.turnStatus !== 'idle'
+        ${!state.showHistoryPanel && !state.terminalMode && state.turnStatus !== 'idle'
           ? html`<div class="chat-status-bar">
               <div class="chat-status-info">
                 <span class="chat-status-icon ${state.turnStatus}">
@@ -1599,7 +1612,7 @@ export function renderChatModal(
                   : ''}
             </div>`
           : ''}
-        ${!state.showHistoryPanel
+        ${!state.showHistoryPanel && !state.terminalMode
           ? html`<div class="chat-modal-footer">
           ${state.chatPastedImages.length > 0
             ? html`<div class="chat-paste-preview">
@@ -1683,18 +1696,19 @@ export function renderChatModal(
             >
               <div class="chat-close-confirm">
                 <div class="chat-close-confirm-title">
-                  Task is still running
+                  ${state.terminalMode ? 'Terminal is still running' : 'Task is still running'}
                 </div>
                 <div class="chat-close-confirm-desc">
-                  Closing this dialog will keep the task running in the
-                  background.
+                  ${state.terminalMode
+                    ? 'Closing this dialog will keep the terminal process running in the background.'
+                    : 'Closing this dialog will keep the task running in the background.'}
                 </div>
                 <div class="chat-close-confirm-actions">
                   <button
                     class="chat-confirm-btn chat-confirm-btn-danger"
                     @click="${handlers.terminateAndCloseChatModal}"
                   >
-                    Terminate
+                    ${state.terminalMode ? 'Kill' : 'Terminate'}
                   </button>
                   <button
                     class="chat-confirm-btn chat-confirm-btn-primary"
@@ -1829,6 +1843,11 @@ export const chatStyles = css`
     background: var(--chat-overlay);
     z-index: 99999999999999999;
     animation: fadeIn 0.2s ease-out;
+  }
+
+  .chat-modal-overlay.chat-modal-hidden {
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .chat-modal {
@@ -3028,6 +3047,56 @@ export const chatStyles = css`
     background: var(--chat-scrollbar-hover);
   }
 
+  /* Terminal Mode */
+  .chat-terminal-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-terminal-container.chat-terminal-fullscreen {
+    padding: 0;
+  }
+
+  .chat-terminal-container .xterm {
+    height: 100%;
+  }
+
+  .chat-terminal-exited {
+    padding: 6px 12px;
+    color: var(--chat-text-muted);
+    font-size: 12px;
+    text-align: center;
+    border-top: 1px solid var(--chat-border);
+    flex-shrink: 0;
+  }
+
+  .chat-modal-terminal {
+    background: none;
+    border: none;
+    color: var(--chat-text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .chat-modal-terminal:hover {
+    color: var(--chat-text-primary);
+    background: var(--chat-hover-bg);
+  }
+
+  .chat-modal-terminal.active {
+    color: var(--chat-accent);
+    background: var(--chat-hover-bg);
+  }
+
   /* History Panel */
   .chat-history-panel {
     flex: 1;
@@ -3218,16 +3287,18 @@ export async function fetchModelInfo(
   port: number,
   provider?: ChatProvider | null,
 ): Promise<AIModelInfo> {
+  const fallback: AIModelInfo = {
+    model: '',
+    models: [],
+    provider: provider || null,
+    providers: provider ? [provider] : [],
+    providerType: 'cli',
+  };
   try {
     const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
     const response = await fetch(`http://${ip}:${port}/ai/model${query}`);
     if (!response.ok) {
-      return {
-        model: '',
-        models: [],
-        provider: provider || null,
-        providers: provider ? [provider] : [],
-      };
+      return fallback;
     }
     const data = await response.json();
     const resolvedProvider = normalizeChatProvider(data?.provider);
@@ -3246,20 +3317,19 @@ export async function fetchModelInfo(
       : [];
     const model = typeof data?.model === 'string' ? data.model : '';
     const normalizedModels = models.length > 0 ? models : model ? [model] : [];
+    const rawType = data?.providerType;
+    const providerType: AIModelInfo['providerType'] =
+      rawType === 'terminal' ? 'terminal' : rawType === 'sdk' ? 'sdk' : 'cli';
 
     return {
       model,
       models: normalizedModels,
       provider: resolvedProvider,
       providers: providers.length > 0 ? providers : provider ? [provider] : [],
+      providerType,
     };
   } catch {
-    return {
-      model: '',
-      models: [],
-      provider: provider || null,
-      providers: provider ? [provider] : [],
-    };
+    return fallback;
   }
 }
 

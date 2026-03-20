@@ -27,6 +27,7 @@ import {
   deleteConversationData,
 } from './ai';
 import { saveAIState, loadAIState, clearAIState } from './ai-persist';
+import { AITerminalManager } from './ai-terminal';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -252,6 +253,14 @@ export class CodeInspectorComponent extends LitElement {
   historyList: HistoryEntry[] = [];
   @state()
   historyLoading = false;
+
+  // 终端模式（由配置 type: 'terminal' 驱动）
+  @state()
+  terminalMode = false;
+  @state()
+  terminalExitCode: number | null = null;
+  private terminalManager: AITerminalManager | null = null;
+  private _projectRoot: string = ''; // 服务端返回的项目根路径
 
   // 中断控制器和计时器
   private chatAbortController: AbortController | null = null;
@@ -1379,6 +1388,20 @@ export class CodeInspectorComponent extends LitElement {
       this.availableAIProviders = modelInfo.providers;
     }
     this.availableAIModels = modelInfo.models;
+    const wasTerminalMode = this.terminalMode;
+    this.terminalMode = modelInfo.providerType === 'terminal';
+    // 如果切到终端模式，需要初始化终端
+    if (this.terminalMode && !wasTerminalMode && this.showChatModal) {
+      this.initTerminal();
+    }
+    // 如果从终端模式切走，清理终端
+    if (!this.terminalMode && wasTerminalMode) {
+      if (this.terminalManager && !this.terminalManager.isDisposed()) {
+        this.terminalManager.dispose();
+        this.terminalManager = null;
+      }
+      this.terminalExitCode = null;
+    }
 
     const candidates: Array<ChatProvider | null | undefined> = [
       preferredProvider,
@@ -1434,6 +1457,12 @@ export class CodeInspectorComponent extends LitElement {
     this.chatProvider = provider;
     this.availableAIModels = [];
     this.chatModel = '';
+    // 清理终端状态
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
     this.persistAIState();
     this.refreshChatProviderAndModel(provider).then(() => this.persistAIState());
   };
@@ -1519,6 +1548,9 @@ export class CodeInspectorComponent extends LitElement {
             chatModal.classList.add('chat-modal-centered');
           }
         }
+        if (this.terminalMode) {
+          this.ensureTerminalMounted();
+        }
         // 位置确定后持久化
         requestAnimationFrame(() => this.persistAIState());
       });
@@ -1547,6 +1579,10 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   private isTurnRunning = (): boolean => {
+    // 终端模式：进程未退出即视为运行中
+    if (this.terminalMode && this.terminalManager != null && !this.terminalManager.isDisposed() && this.terminalExitCode === null) {
+      return true;
+    }
     return this.chatLoading || this.turnStatus === 'running';
   };
 
@@ -1572,6 +1608,12 @@ export class CodeInspectorComponent extends LitElement {
   // 二次确认：终止任务并关闭
   terminateAndCloseChatModal = () => {
     this.interruptChat();
+    // 终端模式下销毁终端实例
+    if (this.terminalMode && this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
     this.performCloseChatModal();
   };
 
@@ -1585,6 +1627,12 @@ export class CodeInspectorComponent extends LitElement {
     this.chatSessionId = null;
     this.turnStatus = 'idle';
     this.turnDuration = 0;
+    // 清理终端
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
     this.persistAIState();
   };
 
@@ -1595,6 +1643,10 @@ export class CodeInspectorComponent extends LitElement {
       this.classList.add('chat-theme-light');
     } else {
       this.classList.remove('chat-theme-light');
+    }
+    // 同步终端主题
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.setTheme(this.chatTheme);
     }
     this.persistAIState();
   };
@@ -1726,12 +1778,149 @@ export class CodeInspectorComponent extends LitElement {
 
   // 中断聊天
   interruptChat = () => {
+    if (this.terminalMode && this.terminalManager) {
+      this.terminalManager.closeWebSocket();
+      this.stopTurnTimer('interrupt');
+      this.chatLoading = false;
+      return;
+    }
     if (this.chatAbortController) {
       this.chatAbortController.abort();
       this.chatAbortController = null;
     }
     this.stopTurnTimer('interrupt');
     this.chatLoading = false;
+  };
+
+  /**
+   * 确保终端在当前弹窗容器中可见
+   */
+  private ensureTerminalMounted = async () => {
+    if (!this.terminalMode || !this.showChatModal) return;
+
+    await this.updateComplete;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    if (!containerEl) return;
+
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.remount(containerEl, this.chatTheme);
+      this.terminalManager.focus();
+      return;
+    }
+
+    if (this.terminalExitCode === null) {
+      await this.initTerminal();
+    }
+  };
+
+  /**
+   * 初始化终端模式：挂载 xterm 并启动交互式 CLI
+   */
+  private initTerminal = async () => {
+    // 等待 DOM 渲染完成
+    await this.updateComplete;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    if (!containerEl) return;
+
+    // 如果已有终端且未销毁，重新挂载到当前容器
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.remount(containerEl, this.chatTheme);
+      this.terminalManager.focus();
+      return;
+    }
+
+    this.terminalManager = new AITerminalManager(this.ip, this.port);
+    this.terminalManager.mount(containerEl, this.chatTheme);
+
+    this.terminalManager.onExit = (code: number) => {
+      this.terminalExitCode = code;
+    };
+
+    this.terminalManager.onError = (_message: string) => {
+      // 终端错误已在 xterm 中显示
+    };
+
+    // 以交互模式启动（不传 prompt）
+    this.terminalManager.connect({
+      provider: this.chatProvider!,
+      prompt: '',
+      cwd: this._projectRoot || '',
+      model: this.chatModel || undefined,
+    });
+
+    this.terminalManager.focus();
+  };
+
+  sendTerminalMessage = async () => {
+    const rawMessage = this.chatInput.trim();
+    if (!rawMessage) return;
+    if (this.chatLoading) return;
+
+    const messageContext = this.chatContext ? { ...this.chatContext } : null;
+    this.chatInput = '';
+
+    // 添加用户消息到历史
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'user', content: rawMessage, context: messageContext },
+    ];
+    this.chatLoading = true;
+    this.terminalExitCode = null;
+    this.startTurnTimer();
+    this.scrollChatToBottom();
+
+    // 等待下一帧确保终端容器已渲染
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // 获取终端容器
+    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    if (!containerEl) {
+      this.chatLoading = false;
+      this.stopTurnTimer('done');
+      return;
+    }
+
+    // 创建或复用 terminal manager
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      // 已有终端，清空后重新连接
+      this.terminalManager.clear();
+    } else {
+      this.terminalManager = new AITerminalManager(this.ip, this.port);
+      this.terminalManager.mount(containerEl, this.chatTheme);
+    }
+
+    this.terminalManager.onExit = (code: number) => {
+      this.terminalExitCode = code;
+      this.chatLoading = false;
+      this.stopTurnTimer(code === 0 ? 'done' : 'interrupt');
+      // 添加 assistant 消息记录
+      this.chatMessages = [
+        ...this.chatMessages,
+        { role: 'assistant', content: `[Terminal] Process exited with code ${code}` },
+      ];
+      this.persistAIState();
+    };
+
+    this.terminalManager.onError = (_message: string) => {
+      this.chatLoading = false;
+      this.stopTurnTimer('interrupt');
+    };
+
+    const cwd = this._projectRoot || '';
+
+    this.terminalManager.connect({
+      provider: this.chatProvider || 'claudeCode',
+      prompt: rawMessage,
+      sessionId: this.chatSessionId || undefined,
+      cwd,
+      model: this.chatModel || undefined,
+    });
+
+    this.terminalManager.focus();
   };
 
   handleRevertEdit = async (tool: ToolCall) => {
@@ -2031,6 +2220,11 @@ export class CodeInspectorComponent extends LitElement {
     this.showModelMenu = false;
     if (this.chatLoading || this.chatImageProcessing) return;
 
+    // 终端模式走独立路径
+    if (this.terminalMode) {
+      return this.sendTerminalMessage();
+    }
+
     const historyForRequest = this.chatSessionId
       ? undefined
       : this.buildChatHistoryForModel(this.chatMessages);
@@ -2184,6 +2378,7 @@ export class CodeInspectorComponent extends LitElement {
           },
           onProjectRoot: (cwd) => {
             setProjectRoot(cwd);
+            this._projectRoot = cwd;
           },
           onModel: (model) => {
             this.chatModel = model;
@@ -2336,6 +2531,7 @@ export class CodeInspectorComponent extends LitElement {
           },
           onProjectRoot: (cwd) => {
             setProjectRoot(cwd);
+            this._projectRoot = cwd;
           },
           onModel: (model) => {
             this.chatModel = model;
@@ -2832,6 +3028,8 @@ export class CodeInspectorComponent extends LitElement {
             showHistoryPanel: this.showHistoryPanel,
             historyList: this.historyList,
             historyLoading: this.historyLoading,
+            terminalMode: this.terminalMode,
+            terminalExitCode: this.terminalExitCode,
           },
           {
             closeChatModal: this.closeChatModal,
@@ -2861,6 +3059,7 @@ export class CodeInspectorComponent extends LitElement {
             loadConversation: this.handleLoadConversation,
             deleteConversation: this.handleDeleteConversation,
             startNewConversation: this.handleStartNewConversation,
+            sendTerminalMessage: this.sendTerminalMessage,
           }
         )}
 

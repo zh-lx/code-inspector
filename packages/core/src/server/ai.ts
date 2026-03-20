@@ -359,12 +359,14 @@ export async function handleAIModelRequest(
     ...configuredModels,
     ...(model ? [model] : []),
   ]);
+  const providerType = (activeAIOptions.options as any)?.type || 'cli';
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
   res.end(JSON.stringify({
     model,
     models,
     provider: activeAIOptions.provider,
     providers: availableProviders,
+    providerType,
   }));
 }
 

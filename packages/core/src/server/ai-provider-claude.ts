@@ -540,7 +540,7 @@ let cachedCliPath: string | null | undefined = undefined;
 /**
  * 查找本地 Claude Code CLI 路径
  */
-function findClaudeCodeCli(): string | null {
+export function findClaudeCodeCli(): string | null {
   if (cachedCliPath !== undefined) {
     return cachedCliPath;
   }

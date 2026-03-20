@@ -18,6 +18,7 @@ import {
   handleAIHistoryLoadRequest,
   handleAIHistoryDeleteRequest,
 } from './ai-history';
+import { attachTerminalWebSocket, isTerminalAvailable } from './ai-terminal';
 import { getEnvVariables } from 'launch-ide';
 
 /**
@@ -165,6 +166,13 @@ export function createServer(
       return;
     }
 
+    // 处理 /ai/terminal/status 路由
+    if (pathname === '/ai/terminal/status' && req.method === 'GET') {
+      res.writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ available: isTerminalAvailable() }));
+      return;
+    }
+
     // 处理 /ai/history 路由
     if (pathname === '/ai/history' && req.method === 'GET') {
       const expireDays = getExpireDays(options?.behavior);
@@ -189,6 +197,15 @@ export function createServer(
 
     // 处理 IDE 打开请求
     handleIDERequest(req, res, options, record);
+  });
+
+  // 挂载终端 WebSocket（异步初始化，不阻塞服务器启动）
+  void attachTerminalWebSocket(
+    server,
+    () => getAIOptions(options?.behavior),
+    ProjectRootPath,
+  ).catch(() => {
+    // ignore terminal feature init errors
   });
 
   // 寻找可用端口

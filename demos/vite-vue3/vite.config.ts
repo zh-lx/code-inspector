@@ -12,17 +12,17 @@ export default defineConfig({
       behavior: {
         ai: {
           // claudeCode: {
-          //   type: 'cli',
-          //   options: {
-          //     models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
-          //     maxTurns: 50,
-          //   },
+          //   type: 'terminal',
+          //   // options: {
+          //   //   models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
+          //   //   maxTurns: 50,
+          //   // },
           // },
           codex: {
-            type: 'cli',
-            options: {
-              models: ['gpt-5.2'],
-            },
+            type: 'terminal',
+            // options: {
+            //   models: ['gpt-5.2'],
+            // },
           },
         },
         defaultAction: 'ai',

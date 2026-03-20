@@ -66,6 +66,7 @@ export interface AIModelInfo {
     models: string[];
     provider: ChatProvider | null;
     providers: ChatProvider[];
+    providerType: 'cli' | 'sdk' | 'terminal';
 }
 /**
  * 对话历史条目
@@ -118,6 +119,8 @@ export interface ChatState {
     showHistoryPanel: boolean;
     historyList: HistoryEntry[];
     historyLoading: boolean;
+    terminalMode: boolean;
+    terminalExitCode: number | null;
 }
 /**
  * 聊天功能处理器接口
@@ -150,6 +153,7 @@ export interface ChatHandlers {
     loadConversation: (id: string) => void;
     deleteConversation: (id: string) => void;
     startNewConversation: () => void;
+    sendTerminalMessage: () => void;
 }
 /**
  * 更新聊天框位置（使用 floating-ui）
