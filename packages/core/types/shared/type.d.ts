@@ -343,6 +343,11 @@ export type CodeOptions = {
      */
     hideConsole?: boolean;
     /**
+     * @zh 客户端界面语言。可选 `en` 和 `zh`，默认值为 `en`
+     * @en Client UI language. Available values are `en` and `zh`, defaults to `en`
+     */
+    lang?: 'en' | 'zh';
+    /**
      * @cn 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关
      * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
      */

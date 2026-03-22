@@ -94,6 +94,7 @@ export interface ConversationData {
  * 聊天状态接口
  */
 export interface ChatState {
+    lang: 'en' | 'zh';
     showChatModal: boolean;
     keepTerminalMounted: boolean;
     showCloseConfirm: boolean;
@@ -181,14 +182,14 @@ declare function isCodexTool(tool: ToolCall): boolean;
 declare function canonicalToolName(name: string): string;
 declare function formatProviderName(provider: ChatProvider): string;
 declare function getChangePath(input: Record<string, any>): string;
-declare function getCodexDisplayInfo(tool: ToolCall): {
+declare function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
     name: string;
     summary: string;
 };
 /**
  * 获取工具显示名称和参数摘要
  */
-declare function getToolDisplayInfo(tool: ToolCall): {
+declare function getToolDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
     name: string;
     summary: string;
 };
@@ -199,15 +200,15 @@ declare function extractReadContent(raw: string): {
     path: string;
     content: string;
 };
-declare function formatToolResult(result: string, toolName: string): string;
+declare function formatToolResult(result: string, toolName: string, lang: 'en' | 'zh'): string;
 /**
  * 渲染 Read 工具的代码预览（CLI 风格）
  */
-declare function renderReadResult(tool: ToolCall): TemplateResult;
+declare function renderReadResult(tool: ToolCall, lang: 'en' | 'zh'): TemplateResult;
 /**
  * 渲染 Edit 工具的 diff 视图（红绿对比）
  */
-declare function renderEditDiff(tool: ToolCall): TemplateResult;
+declare function renderEditDiff(tool: ToolCall, lang: 'en' | 'zh'): TemplateResult;
 /**
  * 渲染单个工具调用（CLI 扁平内联风格）
  */
@@ -216,7 +217,7 @@ declare function renderToolCall(tool: ToolCall, state?: ChatState, handlers?: Ch
  * 渲染消息内容（连续终端流式风格）
  */
 declare function renderMessageContent(msg: ChatMessage, state?: ChatState, handlers?: ChatHandlers): TemplateResult;
-declare function renderMessageContext(msg: ChatMessage): TemplateResult;
+declare function renderMessageContext(msg: ChatMessage, lang: 'en' | 'zh'): TemplateResult;
 /**
  * 收集所有可回退的 Edit 工具调用
  */

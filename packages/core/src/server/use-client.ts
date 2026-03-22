@@ -146,6 +146,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
     hideConsole = false,
+    lang = 'en',
     autoToggle = true,
     behavior = {},
     ip = false,
@@ -168,6 +169,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
+      inspector.lang = '${lang === 'zh' ? 'zh' : 'en'}';
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';

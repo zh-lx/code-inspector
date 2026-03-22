@@ -28,6 +28,7 @@ import {
 } from './ai';
 import { saveAIState, loadAIState, clearAIState } from './ai-persist';
 import { AITerminalManager } from './ai-terminal';
+import { getClientText, normalizeClientLang } from './i18n';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -128,6 +129,8 @@ export class CodeInspectorComponent extends LitElement {
   ip: string = 'localhost';
   @property()
   ai: boolean = false;
+  @property()
+  lang: 'en' | 'zh' = 'en';
 
   private wheelThrottling: boolean = false;
   @property()
@@ -297,10 +300,19 @@ export class CodeInspectorComponent extends LitElement {
   @query('#node-tree-tooltip')
   nodeTreeTooltipRef!: HTMLDivElement;
 
-  features = [
+  private getCurrentLang(): 'en' | 'zh' {
+    return normalizeClientLang(this.lang);
+  }
+
+  private t(key: string, vars?: Record<string, string | number>): string {
+    return getClientText(this.getCurrentLang(), key, vars);
+  }
+
+  private getFeatures() {
+    return [
     {
-      label: 'Locate Code',
-      description: 'Open the editor and locate code',
+      label: this.t('feature.locate.label'),
+      description: this.t('feature.locate.description'),
       checked: () => !!this.internalLocate,
       onChange: () => this.toggleLocate(),
       action: 'locate',
@@ -309,8 +321,8 @@ export class CodeInspectorComponent extends LitElement {
       available: () => !!this.locate,
     },
     {
-      label: 'Copy Path',
-      description: 'Copy the code path to clipboard',
+      label: this.t('feature.copy.label'),
+      description: this.t('feature.copy.description'),
       checked: () => !!this.internalCopy,
       onChange: () => this.toggleCopy(),
       action: 'copy',
@@ -319,8 +331,8 @@ export class CodeInspectorComponent extends LitElement {
       available: () => this.copy !== false,
     },
     {
-      label: 'Open Target',
-      description: 'Open the target url',
+      label: this.t('feature.target.label'),
+      description: this.t('feature.target.description'),
       checked: () => !!this.internalTarget,
       onChange: () => this.toggleTarget(),
       action: 'target',
@@ -329,8 +341,8 @@ export class CodeInspectorComponent extends LitElement {
       available: () => !!this.target,
     },
     {
-      label: 'AI Assistant',
-      description: 'Use AI for coding',
+      label: this.t('feature.ai.label'),
+      description: this.t('feature.ai.description'),
       checked: () => !!this.internalAI,
       onChange: () => this.toggleAICode(),
       action: 'ai',
@@ -339,6 +351,7 @@ export class CodeInspectorComponent extends LitElement {
       available: () => !!this.ai,
     },
   ];
+  }
 
   // Event listeners configuration for centralized management
   private eventListeners: Array<{
@@ -744,7 +757,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 触发功能的处理
   trackCode = () => {
-    this.features.forEach((feature) => {
+    this.getFeatures().forEach((feature) => {
       if (feature.checked()) {
         feature.fn();
         this.dispatchCustomEvent(feature.action);
@@ -769,7 +782,7 @@ export class CodeInspectorComponent extends LitElement {
     const code = e.code.toLowerCase();
     const keyCode = e.keyCode;
 
-    this.features.forEach((feature) => {
+    this.getFeatures().forEach((feature) => {
       const targetDigitCode = 'digit' + feature.key;
       const targetNumCode = 'numpad' + feature.key;
       const targetKeyCode = 48 + feature.key; // key code of number1 is 49
@@ -815,7 +828,7 @@ export class CodeInspectorComponent extends LitElement {
         navigator.clipboard
           .writeText(text)
           .then(() => {
-            this.showNotification('✓ Copied to clipboard');
+            this.showNotification(this.t('notification.copySuccess'));
           })
           .catch(() => {
             this.fallbackCopy(text);
@@ -839,12 +852,12 @@ export class CodeInspectorComponent extends LitElement {
       const success = document.execCommand('copy');
       document.body.removeChild(textarea);
       if (success) {
-        this.showNotification('✓ Copied to clipboard');
+        this.showNotification(this.t('notification.copySuccess'));
       } else {
-        this.showNotification('✗ Copy failed', 'error');
+        this.showNotification(this.t('notification.copyFailed'), 'error');
       }
     } catch (error) {
-      this.showNotification('✗ Copy failed', 'error');
+      this.showNotification(this.t('notification.copyFailed'), 'error');
     }
   }
 
@@ -1095,27 +1108,27 @@ export class CodeInspectorComponent extends LitElement {
       return chain;
     };
 
-    c.blue('[code-inspector-plugin] click to expand the guide')
+    c.blue(this.t('console.expandGuide'))
       .groupCollapsed(() => {
-        keysChain(hotKeyNames.concat('left click'))
-          .green(' to use active feature')
+        keysChain(hotKeyNames.concat(this.t('console.leftClick')))
+          .green(this.t('console.useActiveFeature'))
           .log()
 
-        keysChain(hotKeyNames.concat('right click'))
-          .green(' to open node tree')
+        keysChain(hotKeyNames.concat(this.t('console.rightClick')))
+          .green(this.t('console.openNodeTree'))
           .log()
 
-        keysChain(hotKeyNames.concat('mouse wheel'))
-          .green(' to select parent node or child node')
+        keysChain(hotKeyNames.concat(this.t('console.mouseWheel')))
+          .green(this.t('console.selectParentOrChild'))
           .log()
 
         keysChain(switchKeyNames)
-          .green(' to change active feature')
+          .green(this.t('console.changeActiveFeature'))
           .log()
 
-        this.features.forEach((feature) => {
+        this.getFeatures().forEach((feature) => {
           keysChain(hotKeyNames.concat(feature.key.toString()))
-            .green(' to use ')
+            .green(this.t('console.use'))
             .yellow(feature.label)
             .bold()
             .log();
@@ -1340,7 +1353,7 @@ export class CodeInspectorComponent extends LitElement {
     }
 
     const imageBlocks = images.map((image, index) => {
-      const name = image.name || `pasted-image-${index + 1}`;
+      const name = image.name || `${this.t('misc.pastedImage')}-${index + 1}`;
       const type = image.type || 'image';
       return `[Pasted Image ${index + 1}] ${name} (${type}, ${this.formatBytes(image.size)})\n${image.dataUrl}`;
     });
@@ -1749,7 +1762,12 @@ export class CodeInspectorComponent extends LitElement {
       if (!file) continue;
 
       if (file.size > maxImageSize) {
-        this.showNotification(`Image too large (${this.formatBytes(file.size)}). Max 5MB.`, 'error');
+        this.showNotification(
+          this.t('notification.imageTooLarge', {
+            size: this.formatBytes(file.size),
+          }),
+          'error',
+        );
         continue;
       }
 
@@ -1759,14 +1777,14 @@ export class CodeInspectorComponent extends LitElement {
         const id = `${Date.now()}-${Math.random().toString(16).slice(2)}-${i}`;
         addedImages.push({
           id,
-          name: file.name || `pasted-image-${i + 1}.png`,
+          name: file.name || `${this.t('misc.pastedImage')}-${i + 1}.png`,
           type: file.type || 'image/png',
           size: file.size,
           previewUrl,
           dataUrl,
         });
       } catch {
-        this.showNotification('Failed to read pasted image', 'error');
+        this.showNotification(this.t('notification.readPastedImageFailed'), 'error');
       }
     }
 
@@ -1967,7 +1985,10 @@ export class CodeInspectorComponent extends LitElement {
       // 添加 assistant 消息记录
       this.chatMessages = [
         ...this.chatMessages,
-        { role: 'assistant', content: `[Terminal] Process exited with code ${code}` },
+        {
+          role: 'assistant',
+          content: this.t('tool.terminalExitMessage', { code }),
+        },
       ];
       this.persistAIState();
     };
@@ -2466,7 +2487,7 @@ export class CodeInspectorComponent extends LitElement {
       } else {
         // 其他错误
         this.chatMessages = this.chatMessages.slice(0, -1);
-        this.showNotification('Failed to send message', 'error');
+        this.showNotification(this.t('notification.sendMessageFailed'), 'error');
         this.stopTurnTimer('interrupt');
       }
     } finally {
@@ -2520,7 +2541,7 @@ export class CodeInspectorComponent extends LitElement {
       await sendChatToServer(
         this.ip,
         this.port,
-        'The previous task was interrupted by a page refresh. Please continue from where you left off.',
+        this.t('chat.resumeAfterRefresh'),
         this.chatContext,
         undefined,
         {
@@ -2990,7 +3011,7 @@ export class CodeInspectorComponent extends LitElement {
           @touchstart="${(e: TouchEvent) =>
         this.recordMousePosition(e, 'nodeTree')}"
         >
-          <div>🔍️ Click node to locate</div>
+                  <div>🔍️ ${this.t('tree.clickNodeToLocate')}</div>
           ${html`<svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -3030,7 +3051,7 @@ export class CodeInspectorComponent extends LitElement {
                 @click="${(e: MouseEvent) => e.stopPropagation()}"
               >
                 <div class="settings-modal-header">
-                  <h3 class="settings-modal-title">Mode Settings</h3>
+                  <h3 class="settings-modal-title">${this.t('settings.modeSettings')}</h3>
                   <button
                     class="settings-modal-close"
                     @click="${this.closeSettingsModal}"
@@ -3039,7 +3060,7 @@ export class CodeInspectorComponent extends LitElement {
                   </button>
                 </div>
                 <div class="settings-modal-content">
-                  ${this.features.map(
+                  ${this.getFeatures().map(
           (feature) => html`
                       <div class="settings-item">
                         <label class="settings-label">
@@ -3070,6 +3091,7 @@ export class CodeInspectorComponent extends LitElement {
       <!-- 聊天框 -->
       ${renderChatModal(
           {
+            lang: this.getCurrentLang(),
             showChatModal: this.showChatModal,
             keepTerminalMounted:
               this.terminalMode &&

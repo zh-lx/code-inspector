@@ -51,6 +51,7 @@ export declare class CodeInspectorComponent extends LitElement {
     targetNode: HTMLElement | null;
     ip: string;
     ai: boolean;
+    lang: 'en' | 'zh';
     private wheelThrottling;
     modeKey: string;
     defaultAction: string;
@@ -155,16 +156,9 @@ export declare class CodeInspectorComponent extends LitElement {
     nodeTreeRef: HTMLDivElement;
     nodeTreeTitleRef: HTMLDivElement;
     nodeTreeTooltipRef: HTMLDivElement;
-    features: {
-        label: string;
-        description: string;
-        checked: () => boolean;
-        onChange: () => void;
-        action: string;
-        fn: () => void;
-        key: number;
-        available: () => boolean;
-    }[];
+    private getCurrentLang;
+    private t;
+    private getFeatures;
     private eventListeners;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;

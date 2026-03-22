@@ -11,6 +11,12 @@ import {
   Placement,
 } from '@floating-ui/dom';
 import { marked } from 'marked';
+import {
+  formatFileCountText,
+  formatHistoryDateText,
+  getClientText,
+  normalizeClientLang,
+} from './i18n';
 
 /** 项目根路径，由服务端 SSE info 事件传入 */
 let _projectRoot = '';
@@ -129,6 +135,7 @@ export interface ConversationData {
  * 聊天状态接口
  */
 export interface ChatState {
+  lang: 'en' | 'zh';
   showChatModal: boolean;
   keepTerminalMounted: boolean;
   showCloseConfirm: boolean;
@@ -324,19 +331,6 @@ function formatDuration(seconds: number): string {
   return `${secs}s`;
 }
 
-function formatHistoryDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now.getTime() - timestamp;
-  if (diff < 60000) return 'Just now';
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  if (date.getFullYear() === now.getFullYear()) {
-    return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  }
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-}
-
 /**
  * 清除 HTML 中的危险标签和属性
  */
@@ -430,7 +424,7 @@ function getChangePath(input: Record<string, any>): string {
   return '';
 }
 
-function getCodexDisplayInfo(tool: ToolCall): {
+function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
   name: string;
   summary: string;
 } {
@@ -438,15 +432,15 @@ function getCodexDisplayInfo(tool: ToolCall): {
   const canonical = canonicalToolName(tool.name);
 
   if (canonical === 'Bash') {
-    return { name: 'Bash', summary: input.command || '' };
+    return { name: getClientText(lang, 'tool.bash'), summary: input.command || '' };
   }
   if (canonical === 'Edit') {
     const filePath = toRelativePath(getChangePath(input));
     const fallback =
       Array.isArray(input.changes) && input.changes.length > 0
-        ? `${input.changes.length} file${input.changes.length > 1 ? 's' : ''}`
+        ? formatFileCountText(input.changes.length, lang)
         : '';
-    return { name: 'Edited', summary: filePath || fallback };
+    return { name: getClientText(lang, 'tool.edited'), summary: filePath || fallback };
   }
   if (canonical === 'Read') {
     let filePath = getChangePath(input);
@@ -456,13 +450,13 @@ function getCodexDisplayInfo(tool: ToolCall): {
       if (pathMatch) filePath = pathMatch[1].trim();
     }
     return {
-      name: 'Read',
+      name: getClientText(lang, 'tool.read'),
       summary: toRelativePath(filePath),
     };
   }
   if (canonical === 'WebSearch') {
     return {
-      name: 'Search',
+      name: getClientText(lang, 'tool.search'),
       summary: input.query || '',
     };
   }
@@ -473,9 +467,9 @@ function getCodexDisplayInfo(tool: ToolCall): {
 /**
  * 获取工具显示名称和参数摘要
  */
-function getToolDisplayInfo(tool: ToolCall): { name: string; summary: string } {
+function getToolDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): { name: string; summary: string } {
   if (isCodexTool(tool)) {
-    return getCodexDisplayInfo(tool);
+    return getCodexDisplayInfo(tool, lang);
   }
 
   const name = tool.name;
@@ -489,22 +483,22 @@ function getToolDisplayInfo(tool: ToolCall): { name: string; summary: string } {
         const pathMatch = tool.result.match(/<path>([\s\S]*?)<\/path>/);
         if (pathMatch) filePath = pathMatch[1].trim();
       }
-      return { name: 'Read', summary: toRelativePath(filePath) };
+      return { name: getClientText(lang, 'tool.read'), summary: toRelativePath(filePath) };
     }
     case 'Write':
-      return { name: 'Write', summary: toRelativePath(input.file_path || '') };
+      return { name: getClientText(lang, 'tool.write'), summary: toRelativePath(input.file_path || '') };
     case 'Edit':
-      return { name: 'Update', summary: toRelativePath(input.file_path || '') };
+      return { name: getClientText(lang, 'tool.update'), summary: toRelativePath(input.file_path || '') };
     case 'Glob':
-      return { name: 'List', summary: input.pattern || '' };
+      return { name: getClientText(lang, 'tool.list'), summary: input.pattern || '' };
     case 'Grep':
-      return { name: 'Search', summary: input.pattern || '' };
+      return { name: getClientText(lang, 'tool.search'), summary: input.pattern || '' };
     case 'Bash':
-      return { name: 'Bash', summary: input.command || '' };
+      return { name: getClientText(lang, 'tool.bash'), summary: input.command || '' };
     case 'WebFetch':
-      return { name: 'Fetch', summary: input.url || '' };
+      return { name: getClientText(lang, 'tool.fetch'), summary: input.url || '' };
     case 'WebSearch':
-      return { name: 'Search', summary: input.query || '' };
+      return { name: getClientText(lang, 'tool.search'), summary: input.query || '' };
     default:
       return { name, summary: '' };
   }
@@ -540,7 +534,11 @@ function extractReadContent(raw: string): { path: string; content: string } {
   return { path: filePath, content: text.trim() };
 }
 
-function formatToolResult(result: string, toolName: string): string {
+function formatToolResult(
+  result: string,
+  toolName: string,
+  lang: 'en' | 'zh',
+): string {
   if (!result) return '';
 
   const maxLength = 300;
@@ -549,13 +547,13 @@ function formatToolResult(result: string, toolName: string): string {
 
   if (canonical === 'Write') {
     const lines = summary.split('\n').length;
-    return `Wrote ${lines} lines`;
+    return getClientText(lang, 'tool.wroteLines', { count: lines });
   }
 
   if (canonical === 'Read') {
     const { content: cleanContent } = extractReadContent(summary);
     const lines = cleanContent.split('\n').length;
-    return `${lines} lines`;
+    return getClientText(lang, 'tool.lines', { count: lines });
   }
 
   if (summary.length > maxLength) {
@@ -568,7 +566,7 @@ function formatToolResult(result: string, toolName: string): string {
 /**
  * 渲染 Read 工具的代码预览（CLI 风格）
  */
-function renderReadResult(tool: ToolCall): TemplateResult {
+function renderReadResult(tool: ToolCall, lang: 'en' | 'zh'): TemplateResult {
   const result = tool.result || '';
   const { path: extractedPath, content: cleanContent } =
     extractReadContent(result);
@@ -587,14 +585,14 @@ function renderReadResult(tool: ToolCall): TemplateResult {
   return html`<div class="read-result-block">
     ${showContent
       ? lines.map((line) => html`<div class="read-line">${line}</div>`)
-      : html`<div class="read-more">${lines.length} lines</div>`}
+      : html`<div class="read-more">${getClientText(lang, 'tool.lines', { count: lines.length })}</div>`}
   </div>`;
 }
 
 /**
  * 渲染 Edit 工具的 diff 视图（红绿对比）
  */
-function renderEditDiff(tool: ToolCall): TemplateResult {
+function renderEditDiff(tool: ToolCall, lang: 'en' | 'zh'): TemplateResult {
   const input = tool.input || {};
   const oldStr = String(input.old_string ?? input.old_str ?? '');
   const newStr = String(input.new_string ?? input.new_str ?? '');
@@ -839,7 +837,7 @@ function renderEditDiff(tool: ToolCall): TemplateResult {
             : '\u00A0';
     const text =
       line.type === 'gap'
-        ? `...${line.count} lines`
+        ? getClientText(lang, 'tool.collapsedLines', { count: line.count })
         : line.text;
     const lineNumber =
       line.type === 'gap' ? '...' : (line.newLine ?? line.oldLine ?? '');
@@ -961,7 +959,8 @@ function renderToolCall(
   state?: ChatState,
   handlers?: ChatHandlers,
 ): TemplateResult {
-  const { name, summary } = getToolDisplayInfo(tool);
+  const lang = normalizeClientLang(state?.lang);
+  const { name, summary } = getToolDisplayInfo(tool, lang);
   const isComplete = tool.isComplete;
   const hasResult = tool.result !== undefined;
   const canonical = canonicalToolName(tool.name);
@@ -1041,7 +1040,7 @@ function renderToolCall(
       ${hasEditInput
         ? html`<div class="tool-diff-wrapper">
               <span class="tool-result-bracket">⎿</span>
-              ${renderEditDiff(tool)}
+              ${renderEditDiff(tool, lang)}
             </div>
             ${canRevert
               ? html`<div class="tool-revert-action">
@@ -1055,17 +1054,17 @@ function renderToolCall(
                     ?disabled="${isReverted || isReverting}"
                   >
                     ${isReverting
-                      ? 'Reverting...'
+                      ? getClientText(lang, 'tool.reverting')
                       : isReverted
-                        ? '✓ Reverted'
-                        : 'Revert'}
+                        ? getClientText(lang, 'tool.reverted')
+                        : getClientText(lang, 'tool.revert')}
                   </button>
                 </div>`
               : ''}`
         : hasReadResult
           ? html`<div class="tool-diff-wrapper">
               <span class="tool-result-bracket">⎿</span>
-              ${renderReadResult(tool)}
+              ${renderReadResult(tool, lang)}
             </div>`
           : hasResult && !suppressResult
             ? html`<div class="tool-result-inline">
@@ -1074,7 +1073,7 @@ function renderToolCall(
                   class="tool-result-text ${tool.isError
                     ? 'tool-error-text'
                     : ''}"
-                  >${formatToolResult(tool.result!, tool.name)}</span
+                  >${formatToolResult(tool.result!, tool.name, lang)}</span
                 >
               </div>`
             : ''}
@@ -1124,9 +1123,9 @@ function renderMessageContent(
               <img
                 class="chat-image-preview"
                 src="${image.previewUrl}"
-                alt="${image.name || 'pasted-image'}"
+                alt="${image.name || getClientText(state?.lang, 'misc.pastedImage')}"
               />
-              <div class="chat-image-meta">${image.name || 'pasted-image'}</div>
+              <div class="chat-image-meta">${image.name || getClientText(state?.lang, 'misc.pastedImage')}</div>
             </div>
           `,
         )}
@@ -1146,14 +1145,17 @@ function renderMessageContent(
   return html`<div class="chat-text-inline">${msg.content}</div>`;
 }
 
-function renderMessageContext(msg: ChatMessage): TemplateResult {
+function renderMessageContext(
+  msg: ChatMessage,
+  lang: 'en' | 'zh',
+): TemplateResult {
   const context = msg.context;
   if (!context || msg.role !== 'user') {
     return html``;
   }
 
   return html`<div class="chat-message-context">
-    <span class="chat-message-context-tag">Context</span>
+    <span class="chat-message-context-tag">${getClientText(lang, 'chat.context')}</span>
     <span class="chat-message-context-text"
       >&lt;${context.name}&gt;
       ${toRelativePath(context.file)}#${context.line}</span
@@ -1241,6 +1243,7 @@ export function renderChatModal(
   state: ChatState,
   handlers: ChatHandlers,
 ): TemplateResult {
+  const lang = normalizeClientLang(state.lang);
   if (!state.showChatModal && !state.keepTerminalMounted) {
     return html``;
   }
@@ -1262,7 +1265,7 @@ export function renderChatModal(
         <div class="chat-modal-header" @mousedown="${handlers.handleDragStart}">
           <div class="chat-modal-title-wrapper">
             <div class="chat-modal-title-row">
-              <h3 class="chat-modal-title">AI Assistant</h3>
+              <h3 class="chat-modal-title">${getClientText(lang, 'chat.title')}</h3>
               ${state.availableProviders.length > 1
                 ? html`<div
                     class="chat-provider-switcher"
@@ -1273,7 +1276,7 @@ export function renderChatModal(
                       class="chat-provider-badge chat-provider-trigger ${state.showProviderMenu
                         ? 'open'
                         : ''}"
-                      title="Switch AI provider"
+                      title="${getClientText(lang, 'chat.switchProvider')}"
                       ?disabled="${state.chatLoading ||
                       state.turnStatus === 'running'}"
                       @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
@@ -1324,7 +1327,7 @@ export function renderChatModal(
                       class="chat-model-badge chat-model-trigger ${state.showModelMenu
                         ? 'open'
                         : ''}"
-                      title="Switch model"
+                      title="${getClientText(lang, 'chat.switchModel')}"
                       ?disabled="${state.chatLoading ||
                       state.turnStatus === 'running'}"
                       @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
@@ -1367,14 +1370,14 @@ export function renderChatModal(
               ${state.chatContext
                 ? html`&lt;${state.chatContext.name}&gt;
                   ${state.chatContext.file}#${state.chatContext.line}`
-                : 'Global'}
+                : getClientText(lang, 'chat.global')}
             </span>
           </div>
           <div class="chat-modal-actions">
             <button
               class="chat-modal-history"
               @click="${handlers.toggleHistoryPanel}"
-              title="History"
+              title="${getClientText(lang, 'chat.history')}"
             >
               <svg
                 width="14"
@@ -1394,8 +1397,8 @@ export function renderChatModal(
               class="chat-modal-theme"
               @click="${handlers.toggleTheme}"
               title="${state.chatTheme === 'dark'
-                ? 'Switch to light theme'
-                : 'Switch to dark theme'}"
+                ? getClientText(lang, 'chat.switchToLightTheme')
+                : getClientText(lang, 'chat.switchToDarkTheme')}"
             >
               ${state.chatTheme === 'dark'
                 ? html`<svg
@@ -1425,7 +1428,7 @@ export function renderChatModal(
             <button
               class="chat-modal-clear"
               @click="${handlers.clearChatMessages}"
-              title="Clear"
+              title="${getClientText(lang, 'chat.clear')}"
             >
               <svg
                 width="14"
@@ -1443,7 +1446,7 @@ export function renderChatModal(
             <button
               class="chat-modal-close"
               @click="${handlers.closeChatModal}"
-              title="Close"
+              title="${getClientText(lang, 'chat.close')}"
             >
               <svg
                 width="14"
@@ -1464,23 +1467,23 @@ export function renderChatModal(
         ${state.showHistoryPanel
           ? html`<div class="chat-history-panel">
               <div class="chat-history-header">
-                <span class="chat-history-title">History</span>
+                <span class="chat-history-title">${getClientText(lang, 'chat.history')}</span>
                 <div class="chat-history-actions">
                   <button
                     class="chat-history-new-btn"
                     @click="${handlers.startNewConversation}"
-                    title="New conversation"
+                    title="${getClientText(lang, 'chat.newConversation')}"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 5v14" />
                       <path d="M5 12h14" />
                     </svg>
-                    New
+                    ${getClientText(lang, 'chat.newConversation')}
                   </button>
                   <button
                     class="chat-history-back-btn"
                     @click="${handlers.toggleHistoryPanel}"
-                    title="Back to chat"
+                    title="${getClientText(lang, 'chat.backToChat')}"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M18 6 6 18" />
@@ -1493,10 +1496,10 @@ export function renderChatModal(
                 ${state.historyLoading
                   ? html`<div class="chat-history-loading">
                       <span class="chat-cursor"></span>
-                      <span>Loading...</span>
+                      <span>${getClientText(lang, 'chat.loading')}</span>
                     </div>`
                   : state.historyList.length === 0
-                    ? html`<div class="chat-history-empty">No history yet</div>`
+                    ? html`<div class="chat-history-empty">${getClientText(lang, 'chat.noHistoryYet')}</div>`
                     : state.historyList.map(
                         (entry) => html`
                           <div
@@ -1504,17 +1507,17 @@ export function renderChatModal(
                             @click="${() => handlers.loadConversation(entry.id)}"
                           >
                             <div class="chat-history-item-info">
-                              <span class="chat-history-item-title">${entry.title || 'Untitled'}</span>
+                              <span class="chat-history-item-title">${entry.title || getClientText(lang, 'chat.untitled')}</span>
                               <span class="chat-history-item-meta">
-                                ${formatHistoryDate(entry.updatedAt)}
-                                ${entry.provider ? html` · <span class="chat-history-item-provider">${entry.provider}</span>` : ''}
-                                · ${entry.messageCount} msgs
+                                ${formatHistoryDateText(entry.updatedAt, lang)}
+                                ${entry.provider ? html` · <span class="chat-history-item-provider">${formatProviderName(entry.provider as ChatProvider)}</span>` : ''}
+                                · ${getClientText(lang, 'chat.messages', { count: entry.messageCount })}
                               </span>
                             </div>
                             <button
                               class="chat-history-item-delete"
                               @click="${(e: MouseEvent) => { e.stopPropagation(); handlers.deleteConversation(entry.id); }}"
-                              title="Delete"
+                              title="${getClientText(lang, 'chat.delete')}"
                             >
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 6h18" />
@@ -1531,7 +1534,7 @@ export function renderChatModal(
           ? html`<div class="chat-terminal-container chat-terminal-fullscreen" id="ai-terminal-container">
               ${state.terminalExitCode !== null
                 ? html`<div class="chat-terminal-exited">
-                    Process exited with code ${state.terminalExitCode}
+                    ${getClientText(lang, 'chat.processExitedWithCode', { code: state.terminalExitCode })}
                   </div>`
                 : ''}
             </div>`
@@ -1540,7 +1543,7 @@ export function renderChatModal(
                 ? html`<div class="chat-empty">
                     <span class="chat-empty-prompt">❯</span>
                     <span class="chat-empty-text"
-                      >Ask me anything about this code...</span
+                      >${getClientText(lang, 'chat.askAnything')}</span
                     >
                   </div>`
                 : state.chatMessages.map(
@@ -1550,7 +1553,7 @@ export function renderChatModal(
                           ? html`<span class="chat-prompt">❯</span>`
                           : html`<span class="chat-indent"></span>`}
                         <div class="chat-message-content">
-                          ${renderMessageContext(msg)}
+                          ${renderMessageContext(msg, lang)}
                           ${renderMessageContent(msg, state, handlers)}
                         </div>
                       </div>
@@ -1577,10 +1580,10 @@ export function renderChatModal(
                 </span>
                 <span class="chat-status-text">
                   ${state.turnStatus === 'running'
-                    ? 'Running'
+                    ? getClientText(lang, 'chat.running')
                     : state.turnStatus === 'done'
-                      ? 'Done'
-                      : 'Interrupt'}
+                      ? getClientText(lang, 'chat.done')
+                      : getClientText(lang, 'chat.interrupt')}
                 </span>
                 <span class="chat-status-duration"
                   >· ${formatDuration(state.turnDuration)}</span
@@ -1590,7 +1593,7 @@ export function renderChatModal(
                 ? html`<button
                     class="chat-interrupt-btn"
                     @click="${handlers.interruptChat}"
-                    title="Interrupt"
+                    title="${getClientText(lang, 'chat.interrupt')}"
                   >
                     <svg
                       width="12"
@@ -1610,8 +1613,8 @@ export function renderChatModal(
                       ?disabled="${state.revertingToolIds.size > 0}"
                     >
                       ${state.revertingToolIds.size > 0
-                        ? 'Reverting...'
-                        : 'Revert All'}
+                        ? getClientText(lang, 'chat.revertingAll')
+                        : getClientText(lang, 'chat.revertAll')}
                     </button>`
                   : ''}
             </div>`
@@ -1626,11 +1629,11 @@ export function renderChatModal(
                       <img
                         class="chat-paste-preview-img"
                         src="${image.previewUrl}"
-                        alt="${image.name || 'pasted-image'}"
+                        alt="${image.name || getClientText(lang, 'misc.pastedImage')}"
                       />
                       <button
                         class="chat-paste-remove"
-                        title="Remove image"
+                        title="${getClientText(lang, 'chat.removeImage')}"
                         @click="${() => handlers.removePastedImage(image.id)}"
                         ?disabled="${state.chatLoading ||
                         state.chatImageProcessing}"
@@ -1645,7 +1648,7 @@ export function renderChatModal(
           <span class="chat-input-prompt">❯</span>
           <textarea
             class="chat-input"
-            placeholder="Enter your message... (supports paste image)"
+            placeholder="${getClientText(lang, 'chat.inputPlaceholder')}"
             .value="${state.chatInput}"
             @input="${handlers.handleChatInput}"
             @keydown="${handlers.handleChatKeyDown}"
@@ -1659,7 +1662,7 @@ export function renderChatModal(
             ?disabled="${state.chatLoading ||
             state.chatImageProcessing ||
             (!state.chatInput.trim() && state.chatPastedImages.length === 0)}"
-            title="Send (Enter)"
+            title="${getClientText(lang, 'chat.send')}"
           >
             ${state.chatLoading || state.chatImageProcessing
               ? html`<svg
@@ -1700,31 +1703,37 @@ export function renderChatModal(
             >
               <div class="chat-close-confirm">
                 <div class="chat-close-confirm-title">
-                  ${state.terminalMode ? 'Choose how to close the terminal' : 'Task is still running'}
+                  ${state.terminalMode
+                    ? getClientText(lang, 'chat.closeTerminalTitle')
+                    : getClientText(lang, 'chat.closeTaskTitle')}
                 </div>
                 <div class="chat-close-confirm-desc">
                   ${state.terminalMode
-                    ? 'You can keep the terminal running in the background, or kill the terminal now.'
-                    : 'Closing this dialog will keep the task running in the background.'}
+                    ? getClientText(lang, 'chat.closeTerminalDesc')
+                    : getClientText(lang, 'chat.closeTaskDesc')}
                 </div>
                 <div class="chat-close-confirm-actions">
                   <button
                     class="chat-confirm-btn chat-confirm-btn-danger"
                     @click="${handlers.terminateAndCloseChatModal}"
                   >
-                    ${state.terminalMode ? 'Kill Terminal' : 'Terminate'}
+                    ${state.terminalMode
+                      ? getClientText(lang, 'chat.killTerminal')
+                      : getClientText(lang, 'chat.terminate')}
                   </button>
                   <button
                     class="chat-confirm-btn chat-confirm-btn-primary"
                     @click="${handlers.confirmCloseChatModal}"
                   >
-                    ${state.terminalMode ? 'Keep In Background' : 'Confirm'}
+                    ${state.terminalMode
+                      ? getClientText(lang, 'chat.keepInBackground')
+                      : getClientText(lang, 'chat.confirm')}
                   </button>
                   <button
                     class="chat-confirm-btn"
                     @click="${handlers.cancelCloseChatModal}"
                   >
-                    Cancel
+                    ${getClientText(lang, 'chat.cancel')}
                   </button>
                 </div>
               </div>
@@ -1737,23 +1746,23 @@ export function renderChatModal(
             >
               <div class="chat-close-confirm">
                 <div class="chat-close-confirm-title">
-                  Switch terminal provider or model
+                  ${getClientText(lang, 'chat.switchTerminalTitle')}
                 </div>
                 <div class="chat-close-confirm-desc">
-                  Keep the current terminal running, or kill it and switch to the new selection.
+                  ${getClientText(lang, 'chat.switchTerminalDesc')}
                 </div>
                 <div class="chat-close-confirm-actions">
                   <button
                     class="chat-confirm-btn chat-confirm-btn-danger"
                     @click="${handlers.killAndSwitchTerminal}"
                   >
-                    Kill and switch
+                    ${getClientText(lang, 'chat.killAndSwitch')}
                   </button>
                   <button
                     class="chat-confirm-btn chat-confirm-btn-primary"
                     @click="${handlers.keepCurrentTerminal}"
                   >
-                    Keep current terminal
+                    ${getClientText(lang, 'chat.keepCurrentTerminal')}
                   </button>
                 </div>
               </div>
