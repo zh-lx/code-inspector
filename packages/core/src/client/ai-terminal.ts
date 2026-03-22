@@ -17,8 +17,11 @@ import type { ChatProvider } from './ai';
  */
 const XTERM_CSS = `
 .xterm {
+  height: 100%;
+  width: 100%;
   cursor: text;
   position: relative;
+  background-color: inherit;
   user-select: none;
   -ms-user-select: none;
   -webkit-user-select: none;
@@ -37,7 +40,7 @@ const XTERM_CSS = `
 }
 .xterm .composition-view.active { display: block; }
 .xterm .xterm-viewport {
-  background-color: #000; overflow-y: scroll; cursor: default;
+  background-color: inherit; overflow-y: scroll; cursor: default;
   position: absolute; right: 0; left: 0; top: 0; bottom: 0;
 }
 .xterm .xterm-screen {
@@ -312,6 +315,10 @@ export class AITerminalManager {
    * 切换终端主题
    */
   setTheme(theme: 'dark' | 'light'): void {
+    if (this.container) {
+      this.container.style.backgroundColor =
+        theme === 'dark' ? DARK_THEME.background || '#1e1e1e' : LIGHT_THEME.background || '#ffffff';
+    }
     if (this.terminal) {
       this.terminal.options.theme = theme === 'dark' ? DARK_THEME : LIGHT_THEME;
     }
@@ -383,6 +390,8 @@ export class AITerminalManager {
 
   private attachTerminal(container: HTMLElement, theme: 'dark' | 'light'): void {
     this.container = container;
+    this.container.style.backgroundColor =
+      theme === 'dark' ? DARK_THEME.background || '#1e1e1e' : LIGHT_THEME.background || '#ffffff';
 
     // 注入 xterm CSS 到 shadow root（或 document）
     this.injectCSS(container);

@@ -130,7 +130,9 @@ export interface ConversationData {
  */
 export interface ChatState {
   showChatModal: boolean;
+  keepTerminalMounted: boolean;
   showCloseConfirm: boolean;
+  showTerminalSwitchConfirm: boolean;
   chatMessages: ChatMessage[];
   chatInput: string;
   chatPastedImages: ChatImageAttachment[];
@@ -167,6 +169,8 @@ export interface ChatHandlers {
   confirmCloseChatModal: () => void;
   cancelCloseChatModal: () => void;
   terminateAndCloseChatModal: () => void;
+  keepCurrentTerminal: () => void;
+  killAndSwitchTerminal: () => void;
   clearChatMessages: () => void;
   handleChatInput: (e: Event) => void;
   handleChatKeyDown: (e: KeyboardEvent) => void;
@@ -1237,13 +1241,13 @@ export function renderChatModal(
   state: ChatState,
   handlers: ChatHandlers,
 ): TemplateResult {
-  if (!state.showChatModal) {
+  if (!state.showChatModal && !state.keepTerminalMounted) {
     return html``;
   }
 
   return html`
     <div
-      class="chat-modal-overlay"
+      class="chat-modal-overlay ${!state.showChatModal ? 'chat-modal-overlay-hidden' : ''}"
       @click="${handlers.handleOverlayClick}"
       @mousemove="${handlers.handleDragMove}"
       @mouseup="${handlers.handleDragEnd}"
@@ -1310,7 +1314,7 @@ export function renderChatModal(
                       >${formatProviderName(state.chatProvider)}</span
                     >`
                   : ''}
-              ${state.availableModels.length > 1
+              ${!state.terminalMode && state.availableModels.length > 1
                 ? html`<div
                     class="chat-model-switcher"
                     @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
@@ -1353,7 +1357,7 @@ export function renderChatModal(
                         </div>`
                       : ''}
                   </div>`
-                : state.chatModel
+                : !state.terminalMode && state.chatModel
                   ? html`<span class="chat-model-badge"
                       >${state.chatModel}</span
                     >`
@@ -1696,11 +1700,11 @@ export function renderChatModal(
             >
               <div class="chat-close-confirm">
                 <div class="chat-close-confirm-title">
-                  ${state.terminalMode ? 'Terminal is still running' : 'Task is still running'}
+                  ${state.terminalMode ? 'Choose how to close the terminal' : 'Task is still running'}
                 </div>
                 <div class="chat-close-confirm-desc">
                   ${state.terminalMode
-                    ? 'Closing this dialog will keep the terminal process running in the background.'
+                    ? 'You can keep the terminal running in the background, or kill the terminal now.'
                     : 'Closing this dialog will keep the task running in the background.'}
                 </div>
                 <div class="chat-close-confirm-actions">
@@ -1708,19 +1712,48 @@ export function renderChatModal(
                     class="chat-confirm-btn chat-confirm-btn-danger"
                     @click="${handlers.terminateAndCloseChatModal}"
                   >
-                    ${state.terminalMode ? 'Kill' : 'Terminate'}
+                    ${state.terminalMode ? 'Kill Terminal' : 'Terminate'}
                   </button>
                   <button
                     class="chat-confirm-btn chat-confirm-btn-primary"
                     @click="${handlers.confirmCloseChatModal}"
                   >
-                    Confirm
+                    ${state.terminalMode ? 'Keep In Background' : 'Confirm'}
                   </button>
                   <button
                     class="chat-confirm-btn"
                     @click="${handlers.cancelCloseChatModal}"
                   >
                     Cancel
+                  </button>
+                </div>
+              </div>
+            </div>`
+          : ''}
+        ${state.showTerminalSwitchConfirm
+          ? html`<div
+              class="chat-close-confirm-overlay"
+              @click="${(e: MouseEvent) => e.stopPropagation()}"
+            >
+              <div class="chat-close-confirm">
+                <div class="chat-close-confirm-title">
+                  Switch terminal provider or model
+                </div>
+                <div class="chat-close-confirm-desc">
+                  Keep the current terminal running, or kill it and switch to the new selection.
+                </div>
+                <div class="chat-close-confirm-actions">
+                  <button
+                    class="chat-confirm-btn chat-confirm-btn-danger"
+                    @click="${handlers.killAndSwitchTerminal}"
+                  >
+                    Kill and switch
+                  </button>
+                  <button
+                    class="chat-confirm-btn chat-confirm-btn-primary"
+                    @click="${handlers.keepCurrentTerminal}"
+                  >
+                    Keep current terminal
                   </button>
                 </div>
               </div>
@@ -3045,6 +3078,10 @@ export const chatStyles = css`
 
   .chat-modal-content::-webkit-scrollbar-thumb:hover {
     background: var(--chat-scrollbar-hover);
+  }
+
+  .chat-modal-overlay.chat-modal-overlay-hidden {
+    display: none;
   }
 
   /* Terminal Mode */

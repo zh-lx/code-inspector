@@ -110,6 +110,7 @@ export declare class CodeInspectorComponent extends LitElement {
     internalAI: boolean;
     showChatModal: boolean;
     showCloseConfirm: boolean;
+    showTerminalSwitchConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
     chatPastedImages: PendingChatImageAttachment[];
@@ -147,6 +148,7 @@ export declare class CodeInspectorComponent extends LitElement {
     private modalStartY;
     private wasDragging;
     private chatPositionCleanup;
+    private pendingTerminalSwitchAction;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
@@ -247,8 +249,12 @@ export declare class CodeInspectorComponent extends LitElement {
     private buildChatHistoryForModel;
     private resolveActiveChatContext;
     private refreshChatProviderAndModel;
+    private hasLiveTerminal;
+    private promptTerminalSwitch;
+    private performSwitchChatProvider;
     switchChatProvider: (provider: ChatProvider) => void;
     toggleProviderMenu: () => void;
+    private performSwitchChatModel;
     switchChatModel: (model: string) => void;
     toggleModelMenu: () => void;
     openChatModal: (forceGlobal?: boolean) => void;
@@ -257,6 +263,8 @@ export declare class CodeInspectorComponent extends LitElement {
     closeChatModal: () => void;
     confirmCloseChatModal: () => void;
     cancelCloseChatModal: () => void;
+    keepCurrentTerminal: () => void;
+    killAndSwitchTerminal: () => void;
     terminateAndCloseChatModal: () => void;
     clearChatMessages: () => void;
     toggleTheme: () => void;

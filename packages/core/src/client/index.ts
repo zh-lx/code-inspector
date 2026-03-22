@@ -209,6 +209,8 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   showCloseConfirm = false; // 关闭运行中会话的二次确认弹层
   @state()
+  showTerminalSwitchConfirm = false; // terminal 切换 provider/model 的确认弹层
+  @state()
   chatMessages: ChatMessage[] = []; // 聊天消息列表
   @state()
   chatInput = ''; // 聊天输入内容
@@ -278,6 +280,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // floating-ui autoUpdate 清理函数
   private chatPositionCleanup: (() => void) | null = null;
+  private pendingTerminalSwitchAction: (() => void) | null = null;
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -1443,10 +1446,21 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
-  switchChatProvider = (provider: ChatProvider) => {
+  private hasLiveTerminal = (): boolean => {
+    return this.terminalMode && this.terminalManager != null && !this.terminalManager.isDisposed() && this.terminalExitCode === null;
+  };
+
+  private promptTerminalSwitch = (action: () => void) => {
     this.showProviderMenu = false;
     this.showModelMenu = false;
-    if (this.isTurnRunning()) return;
+    this.showCloseConfirm = false;
+    this.pendingTerminalSwitchAction = action;
+    this.showTerminalSwitchConfirm = true;
+  };
+
+  private performSwitchChatProvider = (provider: ChatProvider) => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
     if (provider === this.chatProvider) return;
     if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
 
@@ -1464,11 +1478,27 @@ export class CodeInspectorComponent extends LitElement {
     }
     this.terminalExitCode = null;
     this.persistAIState();
-    this.refreshChatProviderAndModel(provider).then(() => this.persistAIState());
+    this.refreshChatProviderAndModel(provider).then(() => {
+      if (this.terminalMode && this.showChatModal) {
+        this.initTerminal();
+      }
+      this.persistAIState();
+    });
+  };
+
+  switchChatProvider = (provider: ChatProvider) => {
+    if (provider === this.chatProvider) return;
+    if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.hasLiveTerminal()) {
+      this.promptTerminalSwitch(() => this.performSwitchChatProvider(provider));
+      return;
+    }
+    this.performSwitchChatProvider(provider);
   };
 
   toggleProviderMenu = () => {
-    if (this.isTurnRunning()) return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
     if (this.availableAIProviders.length <= 1) return;
     if (this.showModelMenu) {
       this.showModelMenu = false;
@@ -1476,9 +1506,8 @@ export class CodeInspectorComponent extends LitElement {
     this.showProviderMenu = !this.showProviderMenu;
   };
 
-  switchChatModel = (model: string) => {
+  private performSwitchChatModel = (model: string) => {
     this.showModelMenu = false;
-    if (this.isTurnRunning()) return;
     if (!model || !model.trim()) return;
     if (model === this.chatModel) return;
     if (this.availableAIModels.length > 0 && !this.availableAIModels.includes(model)) return;
@@ -1488,11 +1517,26 @@ export class CodeInspectorComponent extends LitElement {
     this.turnStatus = 'idle';
     this.turnDuration = 0;
     this.chatModel = model;
+    if (this.terminalMode && this.showChatModal) {
+      this.initTerminal();
+    }
     this.persistAIState();
   };
 
+  switchChatModel = (model: string) => {
+    if (!model || !model.trim()) return;
+    if (model === this.chatModel) return;
+    if (this.availableAIModels.length > 0 && !this.availableAIModels.includes(model)) return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.hasLiveTerminal()) {
+      this.promptTerminalSwitch(() => this.performSwitchChatModel(model));
+      return;
+    }
+    this.performSwitchChatModel(model);
+  };
+
   toggleModelMenu = () => {
-    if (this.isTurnRunning()) return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
     if (this.availableAIModels.length <= 1) return;
     if (this.showProviderMenu) {
       this.showProviderMenu = false;
@@ -1565,6 +1609,8 @@ export class CodeInspectorComponent extends LitElement {
       this.chatPositionCleanup = null;
     }
     this.showCloseConfirm = false;
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
     this.showProviderMenu = false;
     this.showModelMenu = false;
     this.showChatModal = false;
@@ -1603,6 +1649,27 @@ export class CodeInspectorComponent extends LitElement {
   // 二次确认：取消关闭
   cancelCloseChatModal = () => {
     this.showCloseConfirm = false;
+  };
+
+  keepCurrentTerminal = () => {
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
+  };
+
+  killAndSwitchTerminal = () => {
+    const action = this.pendingTerminalSwitchAction;
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
+    this.interruptChat();
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    this.chatLoading = false;
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    action?.();
   };
 
   // 二次确认：终止任务并关闭
@@ -3004,7 +3071,12 @@ export class CodeInspectorComponent extends LitElement {
       ${renderChatModal(
           {
             showChatModal: this.showChatModal,
+            keepTerminalMounted:
+              this.terminalMode &&
+              this.terminalManager != null &&
+              !this.terminalManager.isDisposed(),
             showCloseConfirm: this.showCloseConfirm,
+            showTerminalSwitchConfirm: this.showTerminalSwitchConfirm,
             chatMessages: this.chatMessages,
             chatInput: this.chatInput,
             chatPastedImages: this.chatPastedImages,
@@ -3036,6 +3108,8 @@ export class CodeInspectorComponent extends LitElement {
             confirmCloseChatModal: this.confirmCloseChatModal,
             cancelCloseChatModal: this.cancelCloseChatModal,
             terminateAndCloseChatModal: this.terminateAndCloseChatModal,
+            keepCurrentTerminal: this.keepCurrentTerminal,
+            killAndSwitchTerminal: this.killAndSwitchTerminal,
             clearChatMessages: this.clearChatMessages,
             handleChatInput: this.handleChatInput,
             handleChatKeyDown: this.handleChatKeyDown,

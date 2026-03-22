@@ -95,7 +95,9 @@ export interface ConversationData {
  */
 export interface ChatState {
     showChatModal: boolean;
+    keepTerminalMounted: boolean;
     showCloseConfirm: boolean;
+    showTerminalSwitchConfirm: boolean;
     chatMessages: ChatMessage[];
     chatInput: string;
     chatPastedImages: ChatImageAttachment[];
@@ -130,6 +132,8 @@ export interface ChatHandlers {
     confirmCloseChatModal: () => void;
     cancelCloseChatModal: () => void;
     terminateAndCloseChatModal: () => void;
+    keepCurrentTerminal: () => void;
+    killAndSwitchTerminal: () => void;
     clearChatMessages: () => void;
     handleChatInput: (e: Event) => void;
     handleChatKeyDown: (e: KeyboardEvent) => void;
