@@ -28,7 +28,12 @@ import {
 } from './ai';
 import { saveAIState, loadAIState, clearAIState } from './ai-persist';
 import { AITerminalManager } from './ai-terminal';
-import { getClientText, normalizeClientLang } from './i18n';
+import {
+  ClientTextVars,
+  ClientTextKey,
+  getClientText,
+  normalizeClientLang,
+} from './i18n';
 
 const styleId = '__code-inspector-unique-id';
 const AstroFile = 'data-astro-source-file';
@@ -304,7 +309,10 @@ export class CodeInspectorComponent extends LitElement {
     return normalizeClientLang(this.lang);
   }
 
-  private t(key: string, vars?: Record<string, string | number>): string {
+  private t<K extends ClientTextKey>(
+    key: K,
+    vars?: ClientTextVars<K>,
+  ): string {
     return getClientText(this.getCurrentLang(), key, vars);
   }
 

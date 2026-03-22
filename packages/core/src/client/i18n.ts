@@ -1,211 +1,241 @@
 export type ClientLang = 'en' | 'zh';
 
-type TemplateVars = Record<string, string | number>;
+type TemplateValue = string | number;
+type MessageMap = Record<string, { en: string; zh: string }>;
 
-const MESSAGES: Record<ClientLang, Record<string, string>> = {
-  en: {
-    'feature.locate.label': 'Locate Code',
-    'feature.locate.description': 'Open the editor and locate code',
-    'feature.copy.label': 'Copy Path',
-    'feature.copy.description': 'Copy the code path to clipboard',
-    'feature.target.label': 'Open Target',
-    'feature.target.description': 'Open the target url',
-    'feature.ai.label': 'AI Assistant',
-    'feature.ai.description': 'Use AI for coding',
-    'console.expandGuide': '[code-inspector-plugin] click to expand the guide',
-    'console.leftClick': 'left click',
-    'console.rightClick': 'right click',
-    'console.mouseWheel': 'mouse wheel',
-    'console.useActiveFeature': ' to use active feature',
-    'console.openNodeTree': ' to open node tree',
-    'console.selectParentOrChild': ' to select parent node or child node',
-    'console.changeActiveFeature': ' to change active feature',
-    'console.use': ' to use ',
-    'notification.copySuccess': '✓ Copied to clipboard',
-    'notification.copyFailed': '✗ Copy failed',
-    'notification.imageTooLarge': 'Image too large ({size}). Max 5MB.',
-    'notification.readPastedImageFailed': 'Failed to read pasted image',
-    'notification.sendMessageFailed': 'Failed to send message',
-    'settings.modeSettings': 'Mode Settings',
-    'tree.clickNodeToLocate': 'Click node to locate',
-    'chat.title': 'AI Assistant',
-    'chat.switchProvider': 'Switch AI provider',
-    'chat.switchModel': 'Switch model',
-    'chat.global': 'Global',
-    'chat.history': 'History',
-    'chat.switchToLightTheme': 'Switch to light theme',
-    'chat.switchToDarkTheme': 'Switch to dark theme',
-    'chat.clear': 'Clear',
-    'chat.close': 'Close',
-    'chat.newConversation': 'New conversation',
-    'chat.backToChat': 'Back to chat',
-    'chat.loading': 'Loading...',
-    'chat.noHistoryYet': 'No history yet',
-    'chat.untitled': 'Untitled',
-    'chat.delete': 'Delete',
-    'chat.processExitedWithCode': 'Process exited with code {code}',
-    'chat.askAnything': 'Ask me anything about this code...',
-    'chat.running': 'Running',
-    'chat.done': 'Done',
-    'chat.interrupt': 'Interrupt',
-    'chat.revertAll': 'Revert All',
-    'chat.revertingAll': 'Reverting...',
-    'chat.removeImage': 'Remove image',
-    'chat.inputPlaceholder': 'Enter your message... (supports paste image)',
-    'chat.send': 'Send (Enter)',
-    'chat.closeTerminalTitle': 'Choose how to close the terminal',
-    'chat.closeTaskTitle': 'Task is still running',
-    'chat.closeTerminalDesc': 'You can keep the terminal running in the background, or kill the terminal now.',
-    'chat.closeTaskDesc': 'Closing this dialog will keep the task running in the background.',
-    'chat.killTerminal': 'Kill Terminal',
-    'chat.terminate': 'Terminate',
-    'chat.keepInBackground': 'Keep In Background',
-    'chat.confirm': 'Confirm',
-    'chat.cancel': 'Cancel',
-    'chat.switchTerminalTitle': 'Switch terminal provider or model',
-    'chat.switchTerminalDesc': 'Keep the current terminal running, or kill it and switch to the new selection.',
-    'chat.killAndSwitch': 'Kill and switch',
-    'chat.keepCurrentTerminal': 'Keep current terminal',
-    'chat.context': 'Context',
-    'chat.justNow': 'Just now',
-    'chat.minutesAgo': '{count}m ago',
-    'chat.hoursAgo': '{count}h ago',
-    'chat.messages': '{count} msgs',
-    'chat.resumeAfterRefresh': 'The previous task was interrupted by a page refresh. Please continue from where you left off.',
-    'tool.read': 'Read',
-    'tool.write': 'Write',
-    'tool.edit': 'Edit',
-    'tool.glob': 'Glob',
-    'tool.grep': 'Grep',
-    'tool.bash': 'Bash',
-    'tool.webFetch': 'WebFetch',
-    'tool.webSearch': 'WebSearch',
-    'tool.edited': 'Edited',
-    'tool.search': 'Search',
-    'tool.update': 'Update',
-    'tool.list': 'List',
-    'tool.fetch': 'Fetch',
-    'tool.reverting': 'Reverting...',
-    'tool.reverted': '✓ Reverted',
-    'tool.revert': 'Revert',
-    'tool.wroteLines': 'Wrote {count} lines',
-    'tool.lines': '{count} lines',
-    'tool.collapsedLines': '...{count} lines',
-    'tool.terminalExitMessage': '[Terminal] Process exited with code {code}',
-    'misc.pastedImage': 'pasted-image',
+function defineMessages<T extends MessageMap>(messages: T): T {
+  return messages;
+}
+
+const MESSAGES = defineMessages({
+  'feature.locate.label': { en: 'Locate Code', zh: '定位代码' },
+  'feature.locate.description': {
+    en: 'Open the editor and locate code',
+    zh: '打开编辑器并定位到代码',
   },
-  zh: {
-    'feature.locate.label': '定位代码',
-    'feature.locate.description': '打开编辑器并定位到代码',
-    'feature.copy.label': '复制路径',
-    'feature.copy.description': '复制代码路径到剪贴板',
-    'feature.target.label': '打开目标',
-    'feature.target.description': '打开目标链接',
-    'feature.ai.label': 'AI 助手',
-    'feature.ai.description': '使用 AI 辅助编码',
-    'console.expandGuide': '[code-inspector-plugin] 点击展开使用说明',
-    'console.leftClick': '左键点击',
-    'console.rightClick': '右键点击',
-    'console.mouseWheel': '滚轮',
-    'console.useActiveFeature': ' 触发当前功能',
-    'console.openNodeTree': ' 打开节点树',
-    'console.selectParentOrChild': ' 选择父节点或子节点',
-    'console.changeActiveFeature': ' 切换当前功能',
-    'console.use': ' 使用 ',
-    'notification.copySuccess': '✓ 已复制到剪贴板',
-    'notification.copyFailed': '✗ 复制失败',
-    'notification.imageTooLarge': '图片过大（{size}），最大支持 5MB。',
-    'notification.readPastedImageFailed': '读取粘贴图片失败',
-    'notification.sendMessageFailed': '发送消息失败',
-    'settings.modeSettings': '模式设置',
-    'tree.clickNodeToLocate': '点击节点进行定位',
-    'chat.title': 'AI 助手',
-    'chat.switchProvider': '切换 AI 提供方',
-    'chat.switchModel': '切换模型',
-    'chat.global': '全局',
-    'chat.history': '历史记录',
-    'chat.switchToLightTheme': '切换到浅色主题',
-    'chat.switchToDarkTheme': '切换到深色主题',
-    'chat.clear': '清空',
-    'chat.close': '关闭',
-    'chat.newConversation': '新建对话',
-    'chat.backToChat': '返回对话',
-    'chat.loading': '加载中...',
-    'chat.noHistoryYet': '暂无历史记录',
-    'chat.untitled': '未命名',
-    'chat.delete': '删除',
-    'chat.processExitedWithCode': '进程已退出，退出码 {code}',
-    'chat.askAnything': '可以问我任何与这段代码相关的问题...',
-    'chat.running': '运行中',
-    'chat.done': '完成',
-    'chat.interrupt': '中断',
-    'chat.revertAll': '全部回退',
-    'chat.revertingAll': '回退中...',
-    'chat.removeImage': '移除图片',
-    'chat.inputPlaceholder': '输入消息...（支持粘贴图片）',
-    'chat.send': '发送（Enter）',
-    'chat.closeTerminalTitle': '选择如何关闭终端',
-    'chat.closeTaskTitle': '任务仍在运行',
-    'chat.closeTerminalDesc': '你可以让终端继续在后台运行，或立即杀掉终端。',
-    'chat.closeTaskDesc': '关闭此对话框后，任务会继续在后台运行。',
-    'chat.killTerminal': '杀掉终端',
-    'chat.terminate': '终止',
-    'chat.keepInBackground': '保留后台运行',
-    'chat.confirm': '确认',
-    'chat.cancel': '取消',
-    'chat.switchTerminalTitle': '切换终端提供方或模型',
-    'chat.switchTerminalDesc': '保留当前终端继续运行，或杀掉终端并切换到新的选择。',
-    'chat.killAndSwitch': '杀掉并切换',
-    'chat.keepCurrentTerminal': '保留当前终端',
-    'chat.context': '上下文',
-    'chat.justNow': '刚刚',
-    'chat.minutesAgo': '{count} 分钟前',
-    'chat.hoursAgo': '{count} 小时前',
-    'chat.messages': '{count} 条消息',
-    'chat.resumeAfterRefresh': '上一次任务因页面刷新被中断，请从中断处继续。',
-    'tool.read': '读取',
-    'tool.write': '写入',
-    'tool.edit': '编辑',
-    'tool.glob': '匹配',
-    'tool.grep': '搜索',
-    'tool.bash': '命令',
-    'tool.webFetch': '抓取',
-    'tool.webSearch': '搜索',
-    'tool.edited': '已编辑',
-    'tool.search': '搜索',
-    'tool.update': '更新',
-    'tool.list': '列出',
-    'tool.fetch': '抓取',
-    'tool.reverting': '回退中...',
-    'tool.reverted': '✓ 已回退',
-    'tool.revert': '回退',
-    'tool.wroteLines': '写入了 {count} 行',
-    'tool.lines': '{count} 行',
-    'tool.collapsedLines': '...{count} 行',
-    'tool.terminalExitMessage': '[终端] 进程已退出，退出码 {code}',
-    'misc.pastedImage': '粘贴图片',
+  'feature.copy.label': { en: 'Copy Path', zh: '复制路径' },
+  'feature.copy.description': {
+    en: 'Copy the code path to clipboard',
+    zh: '复制代码路径到剪贴板',
   },
-};
+  'feature.target.label': { en: 'Open Target', zh: '打开目标' },
+  'feature.target.description': {
+    en: 'Open the target url',
+    zh: '打开目标链接',
+  },
+  'feature.ai.label': { en: 'AI Assistant', zh: 'AI 助手' },
+  'feature.ai.description': {
+    en: 'Use AI for coding',
+    zh: '使用 AI 辅助编码',
+  },
+  'console.expandGuide': {
+    en: '[code-inspector-plugin] click to expand the guide',
+    zh: '[code-inspector-plugin] 点击展开使用说明',
+  },
+  'console.leftClick': { en: 'left click', zh: '左键点击' },
+  'console.rightClick': { en: 'right click', zh: '右键点击' },
+  'console.mouseWheel': { en: 'mouse wheel', zh: '滚轮' },
+  'console.useActiveFeature': {
+    en: ' to use active feature',
+    zh: ' 触发当前功能',
+  },
+  'console.openNodeTree': {
+    en: ' to open node tree',
+    zh: ' 打开节点树',
+  },
+  'console.selectParentOrChild': {
+    en: ' to select parent node or child node',
+    zh: ' 选择父节点或子节点',
+  },
+  'console.changeActiveFeature': {
+    en: ' to change active feature',
+    zh: ' 切换当前功能',
+  },
+  'console.use': { en: ' to use ', zh: ' 使用 ' },
+  'notification.copySuccess': {
+    en: '✓ Copied to clipboard',
+    zh: '✓ 已复制到剪贴板',
+  },
+  'notification.copyFailed': {
+    en: '✗ Copy failed',
+    zh: '✗ 复制失败',
+  },
+  'notification.imageTooLarge': {
+    en: 'Image too large ({size}). Max 5MB.',
+    zh: '图片过大（{size}），最大支持 5MB。',
+  },
+  'notification.readPastedImageFailed': {
+    en: 'Failed to read pasted image',
+    zh: '读取粘贴图片失败',
+  },
+  'notification.sendMessageFailed': {
+    en: 'Failed to send message',
+    zh: '发送消息失败',
+  },
+  'settings.modeSettings': { en: 'Mode Settings', zh: '模式设置' },
+  'tree.clickNodeToLocate': {
+    en: 'Click node to locate',
+    zh: '点击节点进行定位',
+  },
+  'chat.title': { en: 'AI Assistant', zh: 'AI 助手' },
+  'chat.switchProvider': {
+    en: 'Switch AI provider',
+    zh: '切换 AI 提供方',
+  },
+  'chat.switchModel': { en: 'Switch model', zh: '切换模型' },
+  'chat.global': { en: 'Global', zh: '全局' },
+  'chat.history': { en: 'History', zh: '历史记录' },
+  'chat.switchToLightTheme': {
+    en: 'Switch to light theme',
+    zh: '切换到浅色主题',
+  },
+  'chat.switchToDarkTheme': {
+    en: 'Switch to dark theme',
+    zh: '切换到深色主题',
+  },
+  'chat.clear': { en: 'Clear', zh: '清空' },
+  'chat.close': { en: 'Close', zh: '关闭' },
+  'chat.newConversation': {
+    en: 'New conversation',
+    zh: '新建对话',
+  },
+  'chat.backToChat': { en: 'Back to chat', zh: '返回对话' },
+  'chat.loading': { en: 'Loading...', zh: '加载中...' },
+  'chat.noHistoryYet': { en: 'No history yet', zh: '暂无历史记录' },
+  'chat.untitled': { en: 'Untitled', zh: '未命名' },
+  'chat.delete': { en: 'Delete', zh: '删除' },
+  'chat.processExitedWithCode': {
+    en: 'Process exited with code {code}',
+    zh: '进程已退出，退出码 {code}',
+  },
+  'chat.askAnything': {
+    en: 'Ask me anything about this code...',
+    zh: '可以问我任何与这段代码相关的问题...',
+  },
+  'chat.running': { en: 'Running', zh: '运行中' },
+  'chat.done': { en: 'Done', zh: '完成' },
+  'chat.interrupt': { en: 'Interrupt', zh: '中断' },
+  'chat.revertAll': { en: 'Revert All', zh: '全部回退' },
+  'chat.revertingAll': { en: 'Reverting...', zh: '回退中...' },
+  'chat.removeImage': { en: 'Remove image', zh: '移除图片' },
+  'chat.inputPlaceholder': {
+    en: 'Enter your message... (supports paste image)',
+    zh: '输入消息...（支持粘贴图片）',
+  },
+  'chat.send': { en: 'Send (Enter)', zh: '发送（Enter）' },
+  'chat.closeTerminalTitle': {
+    en: 'Choose how to close the terminal',
+    zh: '选择如何关闭终端',
+  },
+  'chat.closeTaskTitle': {
+    en: 'Task is still running',
+    zh: '任务仍在运行',
+  },
+  'chat.closeTerminalDesc': {
+    en: 'You can keep the terminal running in the background, or kill the terminal now.',
+    zh: '你可以让终端继续在后台运行，或立即终止终端。',
+  },
+  'chat.closeTaskDesc': {
+    en: 'Closing this dialog will keep the task running in the background.',
+    zh: '关闭此对话框后，任务会继续在后台运行。',
+  },
+  'chat.killTerminal': { en: 'Kill Terminal', zh: '终止终端' },
+  'chat.terminate': { en: 'Terminate', zh: '终止' },
+  'chat.keepInBackground': {
+    en: 'Keep In Background',
+    zh: '保留后台运行',
+  },
+  'chat.confirm': { en: 'Confirm', zh: '确认' },
+  'chat.cancel': { en: 'Cancel', zh: '取消' },
+  'chat.switchTerminalTitle': {
+    en: 'Switch terminal provider or model',
+    zh: '切换终端提供方或模型',
+  },
+  'chat.switchTerminalDesc': {
+    en: 'Keep the current terminal running, or kill it and switch to the new selection.',
+    zh: '保留当前终端继续运行，或终止终端并切换到新的选择。',
+  },
+  'chat.killAndSwitch': {
+    en: 'Kill and switch',
+    zh: '终止并切换',
+  },
+  'chat.keepCurrentTerminal': {
+    en: 'Keep current terminal',
+    zh: '保留当前终端',
+  },
+  'chat.context': { en: 'Context', zh: '上下文' },
+  'chat.justNow': { en: 'Just now', zh: '刚刚' },
+  'chat.minutesAgo': { en: '{count}m ago', zh: '{count} 分钟前' },
+  'chat.hoursAgo': { en: '{count}h ago', zh: '{count} 小时前' },
+  'chat.messages': { en: '{count} msgs', zh: '{count} 条消息' },
+  'chat.resumeAfterRefresh': {
+    en: 'The previous task was interrupted by a page refresh. Please continue from where you left off.',
+    zh: '上一次任务因页面刷新被中断，请从中断处继续。',
+  },
+  'tool.read': { en: 'Read', zh: '读取' },
+  'tool.write': { en: 'Write', zh: '写入' },
+  'tool.edit': { en: 'Edit', zh: '编辑' },
+  'tool.glob': { en: 'Glob', zh: '匹配' },
+  'tool.grep': { en: 'Grep', zh: '搜索' },
+  'tool.bash': { en: 'Bash', zh: '命令' },
+  'tool.webFetch': { en: 'WebFetch', zh: '抓取' },
+  'tool.webSearch': { en: 'WebSearch', zh: '搜索' },
+  'tool.edited': { en: 'Edited', zh: '已编辑' },
+  'tool.search': { en: 'Search', zh: '搜索' },
+  'tool.update': { en: 'Update', zh: '更新' },
+  'tool.list': { en: 'List', zh: '列出' },
+  'tool.fetch': { en: 'Fetch', zh: '抓取' },
+  'tool.reverting': { en: 'Reverting...', zh: '回退中...' },
+  'tool.reverted': { en: '✓ Reverted', zh: '✓ 已回退' },
+  'tool.revert': { en: 'Revert', zh: '回退' },
+  'tool.wroteLines': {
+    en: 'Wrote {count} lines',
+    zh: '写入了 {count} 行',
+  },
+  'tool.lines': { en: '{count} lines', zh: '{count} 行' },
+  'tool.collapsedLines': { en: '...{count} lines', zh: '...{count} 行' },
+  'tool.terminalExitMessage': {
+    en: '[Terminal] Process exited with code {code}',
+    zh: '[终端] 进程已退出，退出码 {code}',
+  },
+  'misc.pastedImage': { en: 'pasted-image', zh: '粘贴图片' },
+} as const);
+
+export type ClientTextKey = keyof typeof MESSAGES;
+
+type ExtractTemplateVars<S extends string> =
+  S extends `${string}{${infer Name}}${infer Rest}`
+    ? Name | ExtractTemplateVars<Rest>
+    : never;
+
+type MessageTemplateVars<K extends ClientTextKey> = ExtractTemplateVars<
+  (typeof MESSAGES)[K]['en'] | (typeof MESSAGES)[K]['zh']
+>;
+
+type TemplateVars<K extends ClientTextKey> = [MessageTemplateVars<K>] extends [
+  never,
+]
+  ? Record<string, never>
+  : Record<MessageTemplateVars<K>, TemplateValue>;
+
+export type ClientTextVars<K extends ClientTextKey> = TemplateVars<K>;
 
 export function normalizeClientLang(lang?: string | null): ClientLang {
   return lang === 'zh' ? 'zh' : 'en';
 }
 
-export function getClientText(
+export function getClientText<K extends ClientTextKey>(
   lang: string | null | undefined,
-  key: string,
-  vars?: TemplateVars,
+  key: K,
+  vars?: ClientTextVars<K>,
 ): string {
   const normalizedLang = normalizeClientLang(lang);
-  const template =
-    MESSAGES[normalizedLang][key] ||
-    MESSAGES.en[key] ||
-    key;
+  const template = MESSAGES[key][normalizedLang];
   if (!vars) {
     return template;
   }
   return template.replace(/\{(\w+)\}/g, (_, name: string) => {
-    return String(vars[name] ?? '');
+    return String(vars[name as keyof typeof vars] ?? '');
   });
 }
 
