@@ -1,8 +1,16 @@
 # 更新日志
 
+## 1.4.5
+
+- 【fix】修复在 `nuxtjs v4` 版本中不生效的问题 [#504](https://github.com/zh-lx/code-inspector/pull/504)
+
+## 1.4.4
+
+- 【fix】异步按需加载 `@vue/compiler-dom` 已修复部分项目中因依赖问题导致的启动失败 [#498](https://github.com/zh-lx/code-inspector/pull/498)
+
 ## 1.4.3
 
-- 【fix】修复 vscode `1.110.0+` 版本无法识别的问题 [#493](https://github.com/zh-lx/code-inspector/pull/493)
+- 【fix】修复 vscode `1.110.0+` 版本无法识别的问题 [#494](https://github.com/zh-lx/code-inspector/pull/494)
 
 ## 1.4.2
 
