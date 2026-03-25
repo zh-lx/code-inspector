@@ -19,33 +19,100 @@ import { OPENCODE_PROVIDER_RUNTIME } from './ai-provider-opencode';
 type NodePtyModule = typeof import('node-pty');
 type WsModule = any;
 
-let nodePty: NodePtyModule | null = null;
-let wsModule: WsModule | null = null;
 let terminalFeatureAvailable = false;
 
-async function loadNodePty(): Promise<NodePtyModule | null> {
-  if (nodePty) return nodePty;
+function getRuntimeRequire(): NodeJS.Require | null {
   try {
-    const mod = await Function('return import("node-pty")')();
-    nodePty = mod.default || mod;
-    return nodePty;
+    return Function(
+      'return typeof require !== "undefined" ? require : null',
+    )() as NodeJS.Require | null;
   } catch {
     return null;
   }
 }
 
-async function loadWs(): Promise<WsModule | null> {
-  if (wsModule) return wsModule;
+async function tryDynamicImport(specifier: string): Promise<any | null> {
   try {
-    const mod = await Function('return import("ws")')();
-    // mod.default is the WebSocket constructor which lacks WebSocketServer/Server.
-    // Keep the full module namespace so that named exports (WebSocketServer) are accessible.
-    wsModule = mod;
-    return wsModule;
+    return await Function(
+      's',
+      'return import(s)',
+    )(specifier);
   } catch {
     return null;
   }
 }
+
+function tryRequire(specifier: string): any | null {
+  const runtimeRequire = getRuntimeRequire();
+  if (!runtimeRequire) return null;
+  try {
+    return runtimeRequire(specifier);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 通用可选模块加载器：动态 import → require，加载后通过 normalize 校验/提取
+ */
+async function loadOptionalModule<T>(
+  specifier: string,
+  cache: { value: T | null },
+  normalize: (mod: any) => T | null,
+): Promise<T | null> {
+  if (cache.value) return cache.value;
+  const imported = normalize(await tryDynamicImport(specifier));
+  if (imported) {
+    cache.value = imported;
+    return imported;
+  }
+  const required = normalize(tryRequire(specifier));
+  if (required) {
+    cache.value = required;
+    return required;
+  }
+  return null;
+}
+
+function normalizeNodePtyModule(mod: any): NodePtyModule | null {
+  const candidates = [mod, mod?.default];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate.spawn === 'function') {
+      return candidate as NodePtyModule;
+    }
+  }
+  return null;
+}
+
+function normalizeWsModule(mod: any): WsModule | null {
+  const candidates = [mod, mod?.default];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const WebSocketServer = candidate.WebSocketServer || candidate.Server;
+    if (!WebSocketServer) continue;
+    if (typeof candidate === 'function') {
+      const wsCtor = candidate;
+      return Object.assign(wsCtor, {
+        WebSocket: wsCtor.WebSocket || wsCtor,
+        WebSocketServer,
+        Server: candidate.Server || WebSocketServer,
+      });
+    }
+    return {
+      ...candidate,
+      WebSocket: candidate.WebSocket || candidate.default || null,
+      WebSocketServer,
+      Server: candidate.Server || WebSocketServer,
+    };
+  }
+  return null;
+}
+
+const nodePtyCache = { value: null as NodePtyModule | null };
+const wsCache = { value: null as WsModule | null };
+
+const loadNodePty = () => loadOptionalModule('node-pty', nodePtyCache, normalizeNodePtyModule);
+const loadWs = () => loadOptionalModule('ws', wsCache, normalizeWsModule);
 
 // ============================================================================
 // 终端会话管理
