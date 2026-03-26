@@ -21,7 +21,9 @@ function getJSXElementName(nameNode: any): string {
     return objectName ? `${objectName}.${propertyName}` : propertyName;
   }
   if (nameNode.type === 'JSXNamespacedName') {
-    return `${nameNode.namespace?.name || ''}:${nameNode.name?.name || ''}`;
+    // Use '.' instead of ':' to avoid breaking data-insp-path parsing
+    // which uses ':' as its delimiter (filePath:line:column:tagName)
+    return `${nameNode.namespace?.name || ''}.${nameNode.name?.name || ''}`;
   }
   return '';
 }

@@ -302,6 +302,16 @@ function B() { return <span>B</span>; }`;
     });
   });
 
+  describe('JSXNamespacedName support', () => {
+    it('should use dot separator instead of colon to avoid breaking data-insp-path parsing', () => {
+      const content = 'function App() { return <svg:rect width="100" />; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(':svg.rect"');
+      expect(result).not.toContain(':svg:rect"');
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle elements without name (should not crash)', () => {
       // This tests that code handles nodeName being empty
