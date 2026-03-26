@@ -265,6 +265,43 @@ function B() { return <span>B</span>; }`;
     });
   });
 
+  describe('JSXMemberExpression support', () => {
+    it('should handle JSXMemberExpression like Typography.H2', () => {
+      const content = 'function App() { return <Typography.H2>Hello</Typography.H2>; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(':Typography.H2"');
+    });
+
+    it('should handle JSXMemberExpression like Page.Content', () => {
+      const content = 'function App() { return <Page.Content>Hello</Page.Content>; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(':Page.Content"');
+    });
+
+    it('should handle self-closing JSXMemberExpression', () => {
+      const content = 'function App() { return <Icons.Close />; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(':Icons.Close"');
+    });
+
+    it('should handle deeply nested member expressions', () => {
+      const content = 'function App() { return <A.B.C>Hello</A.B.C>; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(':A.B.C"');
+    });
+
+    it('should escape JSXMemberExpression tags via escapeTags', () => {
+      const content = 'function App() { return <Foo.Bar>Hello</Foo.Bar>; }';
+      const result = transformJsx(content, filePath, ['Foo.Bar']);
+
+      expect(result).not.toContain(':Foo.Bar"');
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle elements without name (should not crash)', () => {
       // This tests that code handles nodeName being empty

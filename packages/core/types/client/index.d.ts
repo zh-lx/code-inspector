@@ -163,6 +163,7 @@ export declare class CodeInspectorComponent extends LitElement {
     handleMouseClick: (e: MouseEvent | TouchEvent) => void;
     handleContextMenu: (e: MouseEvent) => void;
     generateNodeTree: (nodePath: HTMLElement[]) => TreeNode;
+    generateFiberNodeTree: (target: HTMLElement) => TreeNode | null;
     handlePointerDown: (e: PointerEvent) => void;
     handleKeyUp: (e: KeyboardEvent) => void;
     printTip: () => void;

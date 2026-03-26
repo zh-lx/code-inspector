@@ -13,6 +13,41 @@ import chalk from 'chalk';
 
 const PluginName = '@code-inspector/vite';
 
+// Patch React 19's jsx-dev-runtime to restore source info on fibers.
+// React 19 removed _debugSource (facebook/react#32574) but still receives `source`
+// in jsxDEV(). This patch injects it into _debugInfo so the client can read it.
+// Adapted from vite-plugin-react-click-to-component by ArnaudBarre.
+function patchReact19JsxDevRuntime(code: string): string | undefined {
+  if (code.includes('_source')) return undefined; // React <19, already has source
+
+  const defineIndex = code.indexOf('"_debugInfo"');
+  if (defineIndex === -1) return undefined;
+  const valueIndex = code.indexOf('value: null', defineIndex);
+  if (valueIndex === -1) return undefined;
+
+  let patched =
+    code.slice(0, valueIndex) + 'value: source' + code.slice(valueIndex + 11);
+
+  // React 19.0-19.1: source is already a param of ReactElement
+  if (patched.includes('function ReactElement(type, key, self, source,')) {
+    return patched;
+  }
+
+  // React 19.2+: source needs to be threaded through jsxDEV → jsxDEVImpl → ReactElement
+  patched = patched.replace(
+    /maybeKey,\s*isStaticChildren/g,
+    'maybeKey, isStaticChildren, source',
+  );
+  patched = patched.replace(
+    /(\w+)?,\s*debugStack,\s*debugTask/g,
+    (m: string, previousArg: string) => {
+      if (previousArg === 'source') return m;
+      return m.replace('debugTask', 'debugTask, source');
+    },
+  );
+  return patched;
+}
+
 const OrderedPlugins = [
   {
     name: 'vite:react-babel',
@@ -95,6 +130,11 @@ export function ViteCodeInspectorPlugin(options: Options) {
       record.root = config.root;
     },
     async transform(code: string, id: string) {
+      // Patch React 19 jsx-dev-runtime to re-inject source into _debugInfo
+      if (id.includes('jsx-dev-runtime') && id.includes('.js')) {
+        return patchReact19JsxDevRuntime(code);
+      }
+
       if (isExcludedFile(id, options)) {
         return code;
       }

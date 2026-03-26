@@ -76,6 +76,133 @@ function nextTick() {
   });
 }
 
+// --- React Fiber helpers (for component tree in context menu) ---
+
+type FiberSource = {
+  columnNumber?: number;
+  fileName: string;
+  lineNumber?: number;
+};
+
+type Fiber = {
+  _debugSource?: FiberSource;
+  _debugInfo?: FiberSource; // Injected by our jsx-dev-runtime patch for React 19
+  _debugOwner?: Fiber;
+  type: string | { displayName?: string; name?: string; render?: { name?: string } };
+  stateNode: any;
+  child?: Fiber;
+  sibling?: Fiber;
+  return?: Fiber;
+};
+
+function getReactFiber(element: Element): Fiber | undefined {
+  if ('__REACT_DEVTOOLS_GLOBAL_HOOK__' in window) {
+    const { renderers } = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+    for (const renderer of renderers.values()) {
+      try {
+        const fiber = renderer.findFiberByHostInstance(element);
+        if (fiber) return fiber;
+      } catch {
+        // React may be mid-render
+      }
+    }
+  }
+  for (const key in element) {
+    if (key.startsWith('__reactFiber')) return (element as any)[key];
+  }
+  return undefined;
+}
+
+function resolveInnerComponentName(type: any, depth = 0): string {
+  if (!type || depth > 5) return '';
+  const name = type.displayName ?? type.name;
+  if (name && !name.includes('Unknown')) return name;
+  if (type.WrappedComponent) return resolveInnerComponentName(type.WrappedComponent, depth + 1);
+  if (type.type) return resolveInnerComponentName(type.type, depth + 1);
+  const renderName = type.render?.displayName ?? type.render?.name;
+  if (renderName && !renderName.includes('Unknown')) return renderName;
+  return '';
+}
+
+function getFiberComponentName(fiber: Fiber): string {
+  if (typeof fiber.type === 'string') return fiber.type;
+  const t = fiber.type as any;
+  let name = t?.displayName ?? t?.name;
+
+  if (name?.includes('(Unknown)')) {
+    const inner = resolveInnerComponentName(t);
+    if (inner) name = name.replace(/Unknown/g, inner);
+  }
+
+  return name
+    ?? t?.render?.displayName ?? t?.render?.name
+    ?? t?.type?.displayName ?? t?.type?.name
+    ?? 'Unknown';
+}
+
+function getFiberSource(fiber: Fiber): FiberSource | undefined {
+  return fiber._debugSource ?? fiber._debugInfo;
+}
+
+function findFirstDomNode(fiber: Fiber): HTMLElement | null {
+  const root = fiber;
+  let current: Fiber | undefined = fiber.child;
+  while (current) {
+    if (current.stateNode instanceof HTMLElement) return current.stateNode;
+    if (current.child) { current = current.child; continue; }
+    while (current && current !== root && !current.sibling) {
+      current = current.return;
+    }
+    if (!current || current === root) break;
+    current = current.sibling;
+  }
+  return null;
+}
+
+interface FiberLayer {
+  name: string;
+  path: string;
+  line: number;
+  column: number;
+  element: HTMLElement;
+}
+
+function isValidSourcePath(fileName: string): boolean {
+  if (!fileName) return false;
+  if (fileName.includes('node_modules')) return false;
+  return true;
+}
+
+function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
+  const fiber = getReactFiber(target);
+  if (!fiber) return [];
+
+  const layers: FiberLayer[] = [];
+  let current: Fiber | undefined = fiber;
+
+  while (current) {
+    const source = getFiberSource(current);
+    if (source?.fileName && isValidSourcePath(source.fileName)) {
+      const name = getFiberComponentName(current);
+      if (name.includes('Unknown')) { current = current._debugOwner; continue; }
+      const domNode = (current.stateNode instanceof HTMLElement)
+        ? current.stateNode
+        : findFirstDomNode(current);
+
+      layers.push({
+        name,
+        path: source.fileName,
+        line: source.lineNumber ?? 1,
+        column: source.columnNumber ?? 1,
+        element: domNode || target,
+      });
+    }
+    current = current._debugOwner;
+  }
+
+  return layers;
+}
+
 export class CodeInspectorComponent extends LitElement {
   @property()
   hotKeys: string = 'shiftKey,altKey';
@@ -836,8 +963,15 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   generateNodeTree = (nodePath: HTMLElement[]): TreeNode => {
-    let root: TreeNode;
+    // Try fiber-based tree first (shows React component names)
+    const target = nodePath[0];
+    if (target) {
+      const fiberTree = this.generateFiberNodeTree(target);
+      if (fiberTree) return fiberTree;
+    }
 
+    // Fallback: DOM-based tree using data-insp-path attributes
+    let root: TreeNode;
     let depth = 1;
     let preNode = null;
 
@@ -861,6 +995,37 @@ export class CodeInspectorComponent extends LitElement {
     }
 
     return root!;
+  };
+
+  generateFiberNodeTree = (target: HTMLElement): TreeNode | null => {
+    const layers = getLayersFromFiber(target);
+    if (layers.length === 0) return null;
+
+    let root: TreeNode | null = null;
+    let preNode: TreeNode | null = null;
+
+    // Layers are innermost-first, reverse for tree (outermost = root)
+    for (let i = layers.length - 1; i >= 0; i--) {
+      const layer = layers[i];
+      const node: TreeNode = {
+        name: layer.name,
+        path: layer.path,
+        line: layer.line,
+        column: layer.column,
+        children: [],
+        element: layer.element,
+        depth: (layers.length - i),
+      };
+
+      if (preNode) {
+        preNode.children.push(node);
+      } else {
+        root = node;
+      }
+      preNode = node;
+    }
+
+    return root;
   };
 
   // disabled 的元素及其子元素无法触发 click 事件
