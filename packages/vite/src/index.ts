@@ -125,6 +125,17 @@ export function ViteCodeInspectorPlugin(options: Options) {
     apply(_, { command }) {
       return !options.close && isDev(options.dev, command === 'serve');
     },
+    config() {
+      // Exclude jsx-dev-runtime from Vite's dependency pre-bundling so the
+      // transform hook can intercept it by filename. Without this, Vite may
+      // bundle it into a chunk file (e.g. chunk-XXXXX.js) where the filename
+      // no longer contains "jsx-dev-runtime".
+      return {
+        optimizeDeps: {
+          exclude: ['react/jsx-dev-runtime'],
+        },
+      };
+    },
     configResolved(config) {
       record.envDir = config.envDir || config.root;
       record.root = config.root;
@@ -133,6 +144,18 @@ export function ViteCodeInspectorPlugin(options: Options) {
       // Patch React 19 jsx-dev-runtime to re-inject source into _debugInfo
       if (id.includes('jsx-dev-runtime') && id.includes('.js')) {
         return patchReact19JsxDevRuntime(code);
+      }
+
+      // Fallback: Vite may still pre-bundle jsx-dev-runtime into chunk files
+      // (e.g. when another dep re-exports it). Detect via code content,
+      // but only for files in Vite's dep cache to avoid scanning user code.
+      if (
+        id.includes('node_modules') &&
+        code.includes('"_debugInfo"') &&
+        code.includes('value: null')
+      ) {
+        const patched = patchReact19JsxDevRuntime(code);
+        if (patched) return patched;
       }
 
       if (isExcludedFile(id, options)) {
