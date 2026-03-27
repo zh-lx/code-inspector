@@ -254,6 +254,21 @@ class MyComponent {
       expect(result).toContain(`:div"`);
     });
 
+    it('should handle JSX member expression tag names', () => {
+      const content = 'function App() { return <Form.Item><input /></Form.Item>; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(`${filePath}:1:25:Form.Item"`);
+      expect(result).toContain(':input"');
+    });
+
+    it('should handle JSX namespaced tag names', () => {
+      const content = 'function App() { return <svg:path />; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(`${filePath}:1:25:svg:path"`);
+    });
+
     it('should handle multiple root elements in different functions', () => {
       const content = `
 function A() { return <div>A</div>; }

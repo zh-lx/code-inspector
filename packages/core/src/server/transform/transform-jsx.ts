@@ -10,6 +10,40 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-expect-error - @babel/plugin-proposal-decorators doesn't provide TypeScript types
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
+function getJsxElementName(node: any): string {
+  if (!node) {
+    return '';
+  }
+
+  if (node.type === 'JSXIdentifier') {
+    return node.name || '';
+  }
+
+  if (node.type === 'JSXMemberExpression') {
+    const objectName = getJsxElementName(node.object);
+    const propertyName = getJsxElementName(node.property);
+
+    if (!objectName || !propertyName) {
+      return '';
+    }
+
+    return `${objectName}.${propertyName}`;
+  }
+
+  if (node.type === 'JSXNamespacedName') {
+    const namespaceName = getJsxElementName(node.namespace);
+    const localName = getJsxElementName(node.name);
+
+    if (!namespaceName || !localName) {
+      return '';
+    }
+
+    return `${namespaceName}:${localName}`;
+  }
+
+  return '';
+}
+
 export function transformJsx(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
@@ -27,7 +61,7 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
 
   traverse(ast!, {
     enter({ node }: any) {
-      const nodeName = node?.openingElement?.name?.name || '';
+      const nodeName = getJsxElementName(node?.openingElement?.name);
       const attributes = node?.openingElement?.attributes || [];
       if (
         node.type === 'JSXElement' &&
