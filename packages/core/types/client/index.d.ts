@@ -133,7 +133,7 @@ export declare class CodeInspectorComponent extends LitElement {
             transform: string;
         };
     }>;
-    renderCover: (target: HTMLElement) => Promise<void>;
+    renderCover: (target: HTMLElement, sourceInfo?: SourceInfo) => Promise<void>;
     getAstroFilePath: (target: HTMLElement) => string;
     getSourceInfo: (target: HTMLElement) => SourceInfo | null;
     removeCover: (force?: boolean | MouseEvent) => void;
@@ -153,6 +153,8 @@ export declare class CodeInspectorComponent extends LitElement {
     copyToClipboard(text: string): void;
     private fallbackCopy;
     handleDrag: (e: MouseEvent | TouchEvent) => void;
+    getNodePath: (element: HTMLElement | null) => HTMLElement[];
+    getEffectiveNodePath: (e: MouseEvent | TouchEvent) => HTMLElement[];
     getValidNodeList: (nodePath: HTMLElement[]) => {
         node: HTMLElement;
         isAstro: boolean;

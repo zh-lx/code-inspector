@@ -116,12 +116,16 @@ function getReactFiber(element: Element): Fiber | undefined {
 function resolveInnerComponentName(type: any, depth = 0): string {
   if (!type || depth > 5) return '';
   const name = type.displayName ?? type.name;
-  if (name && !name.includes('Unknown')) return name;
+  if (name && !name.includes('Unknown') && !name.includes('undefined')) return name;
   if (type.WrappedComponent) return resolveInnerComponentName(type.WrappedComponent, depth + 1);
   if (type.type) return resolveInnerComponentName(type.type, depth + 1);
   const renderName = type.render?.displayName ?? type.render?.name;
-  if (renderName && !renderName.includes('Unknown')) return renderName;
+  if (renderName && !renderName.includes('Unknown') && !renderName.includes('undefined')) return renderName;
   return '';
+}
+
+function hasUnresolvedName(name: string): boolean {
+  return name.includes('(Unknown)') || name.includes('undefined');
 }
 
 function getFiberComponentName(fiber: Fiber): string {
@@ -129,9 +133,13 @@ function getFiberComponentName(fiber: Fiber): string {
   const t = fiber.type as any;
   let name = t?.displayName ?? t?.name;
 
-  if (name?.includes('(Unknown)')) {
+  if (name && hasUnresolvedName(name)) {
     const inner = resolveInnerComponentName(t);
-    if (inner) name = name.replace(/Unknown/g, inner);
+    if (inner) {
+      name = name.replace(/Unknown/g, inner);
+    }
+    // Clean up remaining "undefined" fragments (e.g. "Form.undefined" → "Form")
+    name = name.replace(/\.undefined/g, '');
   }
 
   return name
@@ -173,6 +181,41 @@ function isValidSourcePath(fileName: string): boolean {
   return true;
 }
 
+// Infer the project root by comparing an absolute fiber path against a
+// relative data-insp-path from the same page. Cached after first lookup.
+let _projectRoot: string | null | undefined;
+function inferProjectRoot(): string | null {
+  if (_projectRoot !== undefined) return _projectRoot;
+  const el = document.querySelector(`[${PathName}]`);
+  if (!el) { _projectRoot = null; return null; }
+  const inspPath = el.getAttribute(PathName) || '';
+  const relativePath = inspPath.split(':')[0];
+  if (!relativePath || relativePath.startsWith('/')) {
+    _projectRoot = null;
+    return null;
+  }
+  const fiber = getReactFiber(el);
+  let cur: Fiber | undefined = fiber;
+  while (cur) {
+    const src = getFiberSource(cur);
+    if (src?.fileName && src.fileName.endsWith(relativePath)) {
+      _projectRoot = src.fileName.slice(0, -relativePath.length);
+      return _projectRoot;
+    }
+    cur = cur._debugOwner ?? cur.return;
+  }
+  _projectRoot = null;
+  return null;
+}
+
+function toRelativePath(absolutePath: string): string {
+  const root = inferProjectRoot();
+  if (root && absolutePath.startsWith(root)) {
+    return absolutePath.slice(root.length);
+  }
+  return absolutePath;
+}
+
 function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
   const fiber = getReactFiber(target);
   if (!fiber) return [];
@@ -191,7 +234,7 @@ function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
 
       layers.push({
         name,
-        path: source.fileName,
+        path: toRelativePath(source.fileName),
         line: source.lineNumber ?? 1,
         column: source.columnNumber ?? 1,
         element: domNode || target,
@@ -505,7 +548,7 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 渲染遮罩层
-  renderCover = async (target: HTMLElement) => {
+  renderCover = async (target: HTMLElement, sourceInfo?: SourceInfo) => {
     if (target === this.targetNode) {
       return;
     }
@@ -551,7 +594,7 @@ export class CodeInspectorComponent extends LitElement {
       this.preUserSelect = getComputedStyle(document.body).userSelect;
     }
     document.body.style.userSelect = 'none';
-    this.element = this.getSourceInfo(target)!;
+    this.element = sourceInfo || this.getSourceInfo(target)!;
     this.show = true;
     if (!this.showNodeTree) {
       const { vertical, horizon, additionStyle } =
@@ -837,6 +880,35 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
+  // Get the DOM path from an element up to the document root.
+  // Used as a fallback when composedPath() doesn't reach the visually
+  // topmost element (e.g. inside portals/modals with backdrop overlays).
+  getNodePath = (element: HTMLElement | null): HTMLElement[] => {
+    const path: HTMLElement[] = [];
+    let current = element;
+    while (current) {
+      path.push(current);
+      current = current.parentElement;
+    }
+    return path;
+  };
+
+  // Get the effective target element at a mouse position.
+  // composedPath() returns elements from the event target up, but when a
+  // modal backdrop sits on top, the target is the backdrop — not the content.
+  // elementFromPoint returns the topmost visible element, which is the
+  // actual modal content the user sees and wants to inspect.
+  getEffectiveNodePath = (e: MouseEvent | TouchEvent): HTMLElement[] => {
+    const composedNodePath = e.composedPath() as HTMLElement[];
+    if (e instanceof MouseEvent) {
+      const elementAtPoint = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+      if (elementAtPoint && elementAtPoint !== composedNodePath[0]) {
+        return this.getNodePath(elementAtPoint);
+      }
+    }
+    return composedNodePath;
+  };
+
   getValidNodeList = (nodePath: HTMLElement[]) => {
     const validNodeList: { node: HTMLElement; isAstro: boolean }[] = [];
     for (const node of nodePath) {
@@ -866,7 +938,7 @@ export class CodeInspectorComponent extends LitElement {
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
     ) {
-      const nodePath = e.composedPath() as HTMLElement[];
+      const nodePath = this.getEffectiveNodePath(e);
       const validNodeList = this.getValidNodeList(nodePath);
       let targetNode;
       for (const { node, isAstro } of validNodeList) {
@@ -881,8 +953,27 @@ export class CodeInspectorComponent extends LitElement {
           targetNode = node;
         }
       }
+
+      // Fallback: when no data-insp-path is found (e.g. inside portals
+      // rendering library components), use the fiber tree to find the
+      // nearest user component with source info to highlight.
+      let fiberSourceInfo: SourceInfo | undefined;
+      if (!targetNode && nodePath[0]) {
+        const layers = getLayersFromFiber(nodePath[0]);
+        if (layers.length > 0) {
+          const layer = layers[0];
+          targetNode = layer.element;
+          fiberSourceInfo = {
+            name: layer.name,
+            path: layer.path,
+            line: layer.line,
+            column: layer.column,
+          };
+        }
+      }
+
       if (targetNode) {
-        this.renderCover(targetNode);
+        this.renderCover(targetNode, fiberSourceInfo);
       } else {
         this.removeCover();
       }
@@ -904,7 +995,7 @@ export class CodeInspectorComponent extends LitElement {
 
     this.wheelThrottling = true;
 
-    const nodePath = e.composedPath() as HTMLElement[];
+    const nodePath = this.getEffectiveNodePath(e);
     const validNodeList = this.getValidNodeList(nodePath);
     let targetNodeIndex = validNodeList.findIndex(({ node }) => node === this.targetNode);
     if (targetNodeIndex === -1) {
@@ -955,7 +1046,7 @@ export class CodeInspectorComponent extends LitElement {
       !this.hoverSwitch
     ) {
       e.preventDefault();
-      const nodePath = e.composedPath() as HTMLElement[];
+      const nodePath = this.getEffectiveNodePath(e);
       const nodeTree = this.generateNodeTree(nodePath);
 
       this.renderLayerPanel(nodeTree, { x: e.clientX, y: e.clientY });
@@ -1185,7 +1276,12 @@ export class CodeInspectorComponent extends LitElement {
       class: 'tooltip-top',
     };
 
-    this.renderCover(node.element);
+    this.renderCover(node.element, {
+      name: node.name,
+      path: node.path,
+      line: node.line,
+      column: node.column,
+    });
 
     await nextTick();
     const { y: tooltipY } = this.nodeTreeTooltipRef!.getBoundingClientRect();
@@ -1381,11 +1477,11 @@ export class CodeInspectorComponent extends LitElement {
           <div class="element-info-content">
             <div class="name-line">
               <div class="element-name">
-                <span class="element-title">&lt;${this.element.name}&gt;</span>
+                <span class="element-title">&lt;${this.element?.name ?? 'unknown'}&gt;</span>
               </div>
             </div>
             <div class="path-line">
-              ${this.element.path}:${this.element.line}:${this.element.column}
+              ${this.element?.path ?? ''}:${this.element?.line ?? ''}:${this.element?.column ?? ''}
             </div>
           </div>
         </div>
