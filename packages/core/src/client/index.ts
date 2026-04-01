@@ -223,11 +223,18 @@ function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
   const layers: FiberLayer[] = [];
   let current: Fiber | undefined = fiber;
 
+  const visited = new Set<Fiber>();
   while (current) {
+    if (visited.has(current)) break;
+    visited.add(current);
+
     const source = getFiberSource(current);
     if (source?.fileName && isValidSourcePath(source.fileName)) {
       const name = getFiberComponentName(current);
-      if (name.includes('Unknown')) { current = current._debugOwner; continue; }
+      if (name.includes('Unknown')) {
+        current = current._debugOwner ?? current.return;
+        continue;
+      }
       const domNode = (current.stateNode instanceof HTMLElement)
         ? current.stateNode
         : findFirstDomNode(current);
@@ -240,7 +247,7 @@ function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
         element: domNode || target,
       });
     }
-    current = current._debugOwner;
+    current = current._debugOwner ?? current.return;
   }
 
   return layers;
