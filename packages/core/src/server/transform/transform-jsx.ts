@@ -10,6 +10,24 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-expect-error - @babel/plugin-proposal-decorators doesn't provide TypeScript types
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
+function getJSXElementName(nameNode: any): string {
+  if (!nameNode) return '';
+  if (nameNode.type === 'JSXIdentifier') {
+    return nameNode.name || '';
+  }
+  if (nameNode.type === 'JSXMemberExpression') {
+    const objectName = getJSXElementName(nameNode.object);
+    const propertyName = nameNode.property?.name || '';
+    return objectName ? `${objectName}.${propertyName}` : propertyName;
+  }
+  if (nameNode.type === 'JSXNamespacedName') {
+    // Use '.' instead of ':' to avoid breaking data-insp-path parsing
+    // which uses ':' as its delimiter (filePath:line:column:tagName)
+    return `${nameNode.namespace?.name || ''}.${nameNode.name?.name || ''}`;
+  }
+  return '';
+}
+
 export function transformJsx(content: string, filePath: string, escapeTags: EscapeTags) {
   const s = new MagicString(content);
 
@@ -27,7 +45,7 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
 
   traverse(ast!, {
     enter({ node }: any) {
-      const nodeName = node?.openingElement?.name?.name || '';
+      const nodeName = getJSXElementName(node?.openingElement?.name);
       const attributes = node?.openingElement?.attributes || [];
       if (
         node.type === 'JSXElement' &&
