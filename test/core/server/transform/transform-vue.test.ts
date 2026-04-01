@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
-import { transformVue } from '@/core/src/server/transform/transform-vue';
+import {
+  resolveVueCompilerDom,
+  transformVue,
+} from '@/core/src/server/transform/transform-vue';
 import { PathName } from '@/core/src/shared/constant';
 
 // Only mock server module, not fs
@@ -663,6 +666,23 @@ const count = ref(0);
       expect(result).toContain('</template>');
       expect(result).toContain('Hello');
       expect(result).toContain(':div"');
+    });
+  });
+
+  describe('compiler-dom interop', () => {
+    it('should support transform export provided on default namespace', async () => {
+      const parse = vi.fn();
+      const transform = vi.fn();
+
+      const compilerDom = resolveVueCompilerDom({
+        parse,
+        default: {
+          transform,
+        },
+      });
+
+      expect(compilerDom.parse).toBe(parse);
+      expect(compilerDom.transform).toBe(transform);
     });
   });
 });
