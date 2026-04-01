@@ -239,11 +239,32 @@ function getLayersFromFiber(target: HTMLElement): FiberLayer[] {
         ? current.stateNode
         : findFirstDomNode(current);
 
+      // Prefer data-insp-path from rendered DOM (points to definition file)
+      // over _debugSource (points to call site / HOC wrapper).
+      let layerPath = toRelativePath(source.fileName);
+      let layerLine = source.lineNumber ?? 1;
+      let layerColumn = source.columnNumber ?? 1;
+
+      const inspAttr = domNode?.getAttribute?.(PathName);
+      if (inspAttr) {
+        const segments = inspAttr.split(':');
+        if (segments.length >= 4) {
+          const inspFile = segments.slice(0, segments.length - 3).join(':');
+          const inspLine = Number(segments[segments.length - 3]);
+          const inspColumn = Number(segments[segments.length - 2]);
+          if (inspFile && isValidSourcePath(inspFile)) {
+            layerPath = inspFile;
+            layerLine = inspLine || layerLine;
+            layerColumn = inspColumn || layerColumn;
+          }
+        }
+      }
+
       layers.push({
         name,
-        path: toRelativePath(source.fileName),
-        line: source.lineNumber ?? 1,
-        column: source.columnNumber ?? 1,
+        path: layerPath,
+        line: layerLine,
+        column: layerColumn,
         element: domNode || target,
       });
     }
