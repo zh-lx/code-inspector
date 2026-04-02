@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.5.0
+
+- 【feat】React 组件优先显示组件名称并定位至组件调用处 [#513](https://github.com/zh-lx/code-inspector/pull/513)
+
 ## 1.4.6
 
 - 【fix】修复了在 webpack 中 vue 无法注入 `data-insp-path` 的问题 [#511](https://github.com/zh-lx/code-inspector/pull/511)
