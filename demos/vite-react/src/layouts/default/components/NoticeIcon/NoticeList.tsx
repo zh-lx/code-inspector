@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Avatar, theme, Tag } from 'antd';
+import { List, Avatar, theme } from 'antd';
 import classNames from 'classnames';
 import styles from './NoticeList.module.css';
 const { useToken } = theme;

@@ -371,6 +371,47 @@ describe('WebpackCodeInspectorPlugin', () => {
       );
       expect(injectLoader?.enforce).toBe('pre');
     });
+
+    it('should not register duplicate loaders on repeated apply', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+
+      await plugin.apply(mockCompiler);
+      const firstRuleCount = mockCompiler.options.module.rules.length;
+
+      await plugin.apply(mockCompiler);
+
+      expect(mockCompiler.options.module.rules.length).toBe(firstRuleCount);
+    });
+
+    it('should not register loaders when inject-loader already exists', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      vi.mocked(isDev).mockReturnValueOnce(true);
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+
+      await plugin.apply(mockCompiler);
+      const injectLoader = mockCompiler.options.module.rules.find((rule: any) =>
+        rule.use?.some?.((item: any) => item.loader?.includes('inject-loader.js')),
+      );
+
+      mockCompiler.options.module.rules = [
+        {
+          use: [{ loader: injectLoader.use[0].loader }],
+        },
+      ];
+
+      await plugin.apply(mockCompiler);
+
+      expect(mockCompiler.options.module.rules).toHaveLength(1);
+    });
   });
 
   describe('rspack persistent cache', () => {
@@ -420,6 +461,20 @@ describe('WebpackCodeInspectorPlugin', () => {
       await plugin.apply(mockCompiler);
 
       expect(mockCompiler.options.module.loaders.length).toBeGreaterThan(0);
+    });
+
+    it('should handle missing module config', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      delete mockCompiler.options.module;
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+
+      await plugin.apply(mockCompiler);
+
+      expect(mockCompiler.hooks.emit.tapAsync).toHaveBeenCalled();
     });
   });
 

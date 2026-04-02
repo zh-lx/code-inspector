@@ -43,7 +43,7 @@ export default function TagMultiSelect({
             isSelected: value.indexOf(item.value) > -1,
             label: item.label,
             value: item.value,
-            onClick: () => onClick(item.value, item)
+            onClick: () => onClick(item.value)
           });
         }
         return (

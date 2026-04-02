@@ -96,7 +96,7 @@ const NoticeIcon: React.FC<NoticeIconProps> & {
     );
   };
 
-  const { className, count, bell } = props;
+  const { count, bell } = props;
 
   const [visible, setVisible] = useControllableValue<boolean>({
     value: props.popupVisible,

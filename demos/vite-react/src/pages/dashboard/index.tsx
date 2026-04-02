@@ -14,7 +14,7 @@ export default function Analysis() {
       <IntroduceRow loading={loading} visitData={data.visitData || []} />
       <Row gutter={16}>
         <Col span={16}>
-          <SalesCard loading={loading} data={data?.salesData || []} />
+          <SalesCard loading={loading} data={data.salesData || []} />
         </Col>
         <Col span={8}>
           <Ranking loading={loading} data={Array.from({ length: 18 })} />

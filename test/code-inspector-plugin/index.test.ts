@@ -145,6 +145,14 @@ describe('CodeInspectorPlugin', () => {
       CodeInspectorPlugin({ bundler: 'vite' });
       expect(resetFileRecord).toHaveBeenCalled();
     });
+
+    it('should pass the same output path to plugin and resetFileRecord', () => {
+      CodeInspectorPlugin({ bundler: 'vite' });
+
+      const pluginOptions = vi.mocked(ViteCodeInspectorPlugin).mock.calls[0]?.[0];
+      expect(pluginOptions?.output).toBeDefined();
+      expect(resetFileRecord).toHaveBeenCalledWith(pluginOptions?.output);
+    });
   });
 
   describe('export alias', () => {

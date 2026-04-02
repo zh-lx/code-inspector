@@ -29,20 +29,6 @@ export function getIP(ip: boolean | string) {
   return 'localhost';
 }
 
-// 将 import.meta.url 转换为 __dirname: 兼容 mac linux 和 windows
-export function fileURLToPath(fileURL: string) {
-  let filePath = fileURL;
-  if (process.platform === 'win32') {
-    filePath = filePath.replace(/^file:\/\/\//, '');
-    filePath = decodeURIComponent(filePath);
-    filePath = filePath.replace(/\//g, '\\');
-  } else {
-    filePath = filePath.replace(/^file:\/\//, '');
-    filePath = decodeURIComponent(filePath);
-  }
-  return filePath;
-}
-
 // 是否为 JS 类型的文件
 export function isJsTypeFile(file: string) {
   return JsFileExtList.some((ext) => file.endsWith(ext));
@@ -78,7 +64,7 @@ export function getDependenciesMap() {
   const packageJsonPath = path.resolve(process.cwd(), './package.json');
   if (fs.existsSync(packageJsonPath)) {
     const packageJson = JSON.parse(
-      fs.readFileSync(packageJsonPath, 'utf-8') || '{}'
+      fs.readFileSync(packageJsonPath, 'utf-8') || '{}',
     );
     const dependencies = {
       ...packageJson.dependencies,
@@ -126,7 +112,7 @@ type BooleanFunction = () => boolean;
  */
 export function isDev(
   userDev: boolean | BooleanFunction | undefined,
-  systemDev: boolean
+  systemDev: boolean,
 ) {
   let dev: boolean | undefined;
   if (typeof userDev === 'function') {
@@ -209,7 +195,7 @@ export function getMappingFilePath(
   file: string,
   mappings?:
     | Record<string, string>
-    | Array<{ find: string | RegExp; replacement: string }>
+    | Array<{ find: string | RegExp; replacement: string }>,
 ): string {
   if (!mappings) {
     return file;
@@ -245,7 +231,7 @@ export function getMappingFilePath(
 function replaceFileWithString(
   file: string,
   find: string,
-  replacement: string
+  replacement: string,
 ): string | null {
   find = handlePathWithSlash(find);
   replacement = handlePathWithSlash(replacement);
@@ -270,7 +256,7 @@ function replaceFileWithString(
 function replaceFileWithRegExp(
   file: string,
   find: RegExp,
-  replacement: string
+  replacement: string,
 ): string | null {
   const match = find.exec(file);
   if (match) {

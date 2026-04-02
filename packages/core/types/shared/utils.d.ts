@@ -1,6 +1,5 @@
 import { CodeOptions, Condition, EscapeTags } from './type';
 export declare function getIP(ip: boolean | string): string;
-export declare function fileURLToPath(fileURL: string): string;
 export declare function isJsTypeFile(file: string): boolean;
 export declare function getFilePathWithoutExt(filePath: string): string;
 export declare function normalizePath(filepath: string): string;

@@ -73,7 +73,7 @@ const NoticeIconView: React.FC = () => {
   );
 
   const noticeData = getNoticeData(notices);
-  const unreadMsg = getUnreadData(noticeData || {});
+  const unreadMsg = getUnreadData(noticeData);
 
   const changeReadState = (id: string) => {
     setNotices(

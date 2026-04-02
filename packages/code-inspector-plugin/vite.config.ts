@@ -21,6 +21,7 @@ export default defineConfig({
         '@code-inspector/mako',
         'chalk',
         'path',
+        'url',
       ],
     },
     target: ['node8', 'es2015'],

@@ -61,7 +61,7 @@ export const get = (
       .catch((err) => {
         console.error(err, 'Get err')
         if (notice) {
-          let message = err?.data?.desc
+          let message = err.data?.desc
           if (err.message && err.message.indexOf('timeout') !== -1) {
             message = notice.timeoutMsg || '接口超时'
           }
@@ -96,7 +96,7 @@ export const post = (
       .catch((err) => {
         console.error(err, 'Post err')
         if (notice) {
-          let message = err?.data?.desc
+          let message = err.data?.desc
           if (err.message.indexOf('timeout') !== -1) {
             message = notice.timeoutMsg || '接口超时'
           }

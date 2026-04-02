@@ -684,5 +684,23 @@ const count = ref(0);
       expect(compilerDom.parse).toBe(parse);
       expect(compilerDom.transform).toBe(transform);
     });
+
+    it('should throw when parse export is missing', () => {
+      expect(() =>
+        resolveVueCompilerDom({
+          default: {
+            transform: vi.fn(),
+          },
+        }),
+      ).toThrowError('Failed to load @vue/compiler-dom parse/transform exports');
+    });
+
+    it('should throw when transform export is missing', () => {
+      expect(() =>
+        resolveVueCompilerDom({
+          parse: vi.fn(),
+        }),
+      ).toThrowError('Failed to load @vue/compiler-dom parse/transform exports');
+    });
   });
 });
