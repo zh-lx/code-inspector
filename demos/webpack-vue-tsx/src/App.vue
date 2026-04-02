@@ -6,7 +6,6 @@
 </template>
 
 <script lang="ts" setup>
-import { defineComponent } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
 import Detail from './components/detail';
 import About from './components/about.vue';

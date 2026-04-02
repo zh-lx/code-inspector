@@ -77,21 +77,5 @@ function SalesCard({ loading, data }: SalesCardProps) {
   );
 }
 
-function TabBarExtraContent() {
-  return (
-    <Space size="large">
-      <a>今日</a>
-      <a>本周</a>
-      <a>本月</a>
-      <a>本年</a>
-      <RangePicker
-        style={{ width: 256 }}
-        onChange={(date, string) => {
-          console.log(date, string);
-        }}
-      />
-    </Space>
-  );
-}
 
 export default SalesCard;

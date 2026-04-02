@@ -38,7 +38,7 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(login.fulfilled, (state, action) => {
-        const { UserInfo, SessionKey, MenuItems = [] } = action.payload;
+        const { UserInfo, SessionKey } = action.payload;
         state.userInfo = UserInfo;
         state.token = SessionKey;
         state.isLogin = true;
