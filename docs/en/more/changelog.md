@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.6
+
+- 【fix】Fixed the issue where vue could not inject `data-insp-path` in webpack [#511](https://github.com/zh-lx/code-inspector/pull/511)
+- 【fix】Fixed the issue where esbuild could not compile with this plugin [#510](https://github.com/zh-lx/code-inspector/pull/510)
+
 ## 1.4.5
 
 - 【fix】Fixed the issue where it would not take effect in `nuxtjs v4` version [#504](https://github.com/zh-lx/code-inspector/pull/504)

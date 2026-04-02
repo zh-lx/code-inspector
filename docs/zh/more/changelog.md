@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.4.6
+
+- 【fix】修复了在 webpack 中 vue 无法注入 `data-insp-path` 的问题 [#511](https://github.com/zh-lx/code-inspector/pull/511)
+- 【fix】修复了 esbuild 中使用本插件编译失败的问题 [#510](https://github.com/zh-lx/code-inspector/pull/510)
+
 ## 1.4.5
 
 - 【fix】修复在 `nuxtjs v4` 版本中不生效的问题 [#504](https://github.com/zh-lx/code-inspector/pull/504)
