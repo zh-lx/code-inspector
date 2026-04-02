@@ -2,8 +2,9 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import http from 'http';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
+
+const mockStartServer = vi.hoisted(() => vi.fn(async () => {}));
 
 // Mock fs.readFileSync to handle missing client files first (before imports)
 vi.mock('fs', async () => {
@@ -43,15 +44,16 @@ vi.mock('fs', async () => {
   };
 });
 
-vi.mock('http');
-vi.mock('portfinder', () => ({
-  getPort: vi.fn((options: any, callback: any) => {
-    callback(null, options?.port || 5678);
-  }),
-}));
 vi.mock('launch-ide', () => ({
   launchIDE: vi.fn(),
 }));
+vi.mock('@/core/src/server/server', async () => {
+  const actual = await vi.importActual('@/core/src/server/server');
+  return {
+    ...actual,
+    startServer: mockStartServer,
+  };
+});
 
 import { getCodeWithWebComponent } from '@/core/src/server/use-client';
 import { setProjectRecord, resetFileRecord } from '@/core/src/shared/record-cache';
@@ -60,20 +62,14 @@ import * as sharedModule from '@/core/src/shared';
 
 describe('Next.js Integration Tests', () => {
   let testDir: string;
-  let mockServer: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockStartServer.mockResolvedValue(undefined);
 
     // Create a temporary test directory
     testDir = path.join(os.tmpdir(), `test-nextjs-${Date.now()}`);
     fs.mkdirSync(testDir, { recursive: true });
-
-    // Mock HTTP server
-    mockServer = {
-      listen: vi.fn((port: number, callback: Function) => callback()),
-    };
-    vi.mocked(http.createServer).mockReturnValue(mockServer as any);
   });
 
   afterEach(() => {
@@ -496,7 +492,8 @@ export default function NoWrite() {
         code: 'const x = 1;',
       });
 
-      expect(result).toBeDefined();
+      expect(result).toContain('append-code-0.js');
+      expect(fs.existsSync(path.join(testDir, 'append-code-0.js'))).toBe(true);
     });
 
     it('should inject code when file matches injectTo in record', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock core module before imports
 vi.mock('@code-inspector/core', () => ({
@@ -17,15 +17,24 @@ vi.mock('path', async () => {
   };
 });
 
-import { TurbopackCodeInspectorPlugin } from '@/turbopack/src/index';
+import {
+  resolveWebpackEntry,
+  TurbopackCodeInspectorPlugin,
+} from '@/turbopack/src/index';
 import { isDev, isNextGET16 } from '@code-inspector/core';
 
 describe('TurbopackCodeInspectorPlugin', () => {
   const originalRequire = global.require;
-  const originalImportMeta = import.meta;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    global.require = {
+      resolve: vi.fn(() => '/pkg/webpack/index.js'),
+    } as any;
+  });
+
+  afterEach(() => {
+    global.require = originalRequire;
   });
 
   describe('basic plugin structure', () => {
@@ -123,6 +132,29 @@ describe('TurbopackCodeInspectorPlugin', () => {
 
       expect(loaderOptions.escapeTags).toEqual(['div']);
       expect(loaderOptions.record).toBeDefined();
+    });
+  });
+
+  describe('resolveWebpackEntry', () => {
+    it('should return null when no resolver is provided', () => {
+      expect(resolveWebpackEntry({})).toBeNull();
+    });
+
+    it('should use require.resolve when provided', () => {
+      expect(
+        resolveWebpackEntry({
+          requireResolve: vi.fn(() => '/pkg/webpack/index.js'),
+        }),
+      ).toBe('/pkg/webpack/index.js');
+    });
+
+    it('should prefer import.meta.resolve when provided', () => {
+      expect(
+        resolveWebpackEntry({
+          requireResolve: vi.fn(() => '/pkg/webpack/index.js'),
+          importMetaResolve: vi.fn(() => 'file:///esm/webpack/index.js'),
+        }),
+      ).toBe('/esm/webpack/index.js');
     });
   });
 });

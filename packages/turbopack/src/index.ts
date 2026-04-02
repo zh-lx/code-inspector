@@ -12,8 +12,24 @@ interface Options extends CodeOptions {
   output: string;
 }
 
+export function resolveWebpackEntry(params: {
+  requireResolve?: (id: string) => string;
+  importMetaResolve?: (id: string) => string | Promise<string>;
+}) {
+  if (typeof params.importMetaResolve === 'function') {
+    const resolved = params.importMetaResolve(
+      '@code-inspector/webpack',
+    ) as unknown as string;
+    return fileURLToPath(resolved);
+  }
+
+  return typeof params.requireResolve === 'function'
+    ? params.requireResolve('@code-inspector/webpack')
+    : null;
+}
+
 export function TurbopackCodeInspectorPlugin(
-  options: Options
+  options: Options,
 ): Record<string, any> {
   if (
     options.close ||
@@ -28,17 +44,10 @@ export function TurbopackCodeInspectorPlugin(
     output: options.output,
   };
 
-  let WebpackEntry = null;
-  if (typeof require !== 'undefined' && typeof require.resolve === 'function') {
-    WebpackEntry = require.resolve('@code-inspector/webpack');
-  }
-  /* v8 ignore next 6 -- ESM import.meta.resolve branch not available in CJS test environment */
-  if (typeof import.meta.resolve === 'function') {
-    const dir = import.meta.resolve(
-      '@code-inspector/webpack'
-    ) as unknown as string;
-    WebpackEntry = fileURLToPath(dir);
-  }
+  const WebpackEntry = resolveWebpackEntry({
+    requireResolve: globalThis.require?.resolve,
+    importMetaResolve: import.meta.resolve,
+  });
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
 
   // according to: https://nextjs.org/docs/app/getting-started/project-structure#routing-files

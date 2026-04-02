@@ -1,36 +1,34 @@
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import http from 'http';
+import path from 'path';
+import { createRequire } from 'module';
 
-// Store reference to portfinder mock for testing error cases
-const mockPortfinderGetPort = vi.hoisted(() => vi.fn((options: any, callback: any) => {
-  callback(null, options?.port || 5678);
-}));
+const mockHttpCreateServer = vi.hoisted(() => vi.fn());
+const mockPortfinderGetPort = vi.hoisted(() => vi.fn());
+const mockLaunchIDE = vi.hoisted(() => vi.fn());
+const requireFromCore = createRequire(
+  path.resolve(process.cwd(), 'packages/core/package.json'),
+);
+const corePortFinder = requireFromCore('portfinder') as {
+  getPort: (...args: any[]) => unknown;
+};
 
-vi.mock('http');
-vi.mock('portfinder', () => ({
-  default: {
-    getPort: mockPortfinderGetPort,
-  },
-  getPort: mockPortfinderGetPort,
-}));
 vi.mock('launch-ide', () => ({
-  launchIDE: vi.fn(),
+  launchIDE: mockLaunchIDE,
 }));
 
-import { createServer, ProjectRootPath, getRelativePath, getRelativeOrAbsolutePath } from '@/core/src/server/server';
-import { launchIDE } from 'launch-ide';
+const loadServerModule = async () => {
+  return import('@/core/src/server/server');
+};
 
 describe('createServer', () => {
+  let serverModule: Awaited<typeof import('@/core/src/server/server')>;
   let mockServer: any;
   let requestHandler: Function;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
     vi.clearAllMocks();
-
-    // Reset portfinder mock to default implementation
-    mockPortfinderGetPort.mockImplementation((options: any, callback: any) => {
-      callback(null, options?.port || 5678);
-    });
 
     mockServer = {
       listen: vi.fn((port: number, callback: Function) => {
@@ -38,10 +36,19 @@ describe('createServer', () => {
       }),
     };
 
-    vi.mocked(http.createServer).mockImplementation((handler: any) => {
+    mockHttpCreateServer.mockImplementation((handler: any) => {
       requestHandler = handler;
       return mockServer as any;
     });
+    mockPortfinderGetPort.mockImplementation((options: any, callback: any) => {
+      callback(null, options?.port || 5678);
+    });
+    vi.spyOn(http, 'createServer').mockImplementation(mockHttpCreateServer as any);
+    vi.spyOn(corePortFinder, 'getPort').mockImplementation(
+      mockPortfinderGetPort as any,
+    );
+
+    serverModule = await loadServerModule();
   });
 
   afterEach(() => {
@@ -50,20 +57,33 @@ describe('createServer', () => {
 
   it('should create an HTTP server', () => {
     const callback = vi.fn();
-    createServer(callback);
-    expect(http.createServer).toHaveBeenCalled();
+
+    serverModule.createServer(callback);
+
+    expect(mockHttpCreateServer).toHaveBeenCalled();
+    expect(requestHandler).toBeInstanceOf(Function);
   });
 
   it('should return the server instance', () => {
     const callback = vi.fn();
-    const result = createServer(callback);
+
+    const result = serverModule.createServer(callback);
+
     expect(result).toBe(mockServer);
+  });
+
+  it('should throw when getPort returns an error', () => {
+    const callback = vi.fn();
+    mockPortfinderGetPort.mockImplementationOnce((options: any, portCallback: any) => {
+      portCallback(new Error('port failed'));
+    });
+
+    expect(() => serverModule.createServer(callback)).toThrow('port failed');
   });
 
   describe('request handling', () => {
     it('should handle request with file, line, and column parameters', () => {
-      const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(vi.fn());
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
@@ -82,12 +102,11 @@ describe('createServer', () => {
         'Access-Control-Allow-Private-Network': 'true',
       });
       expect(mockRes.end).toHaveBeenCalledWith('ok');
-      expect(launchIDE).toHaveBeenCalled();
+      expect(mockLaunchIDE).toHaveBeenCalled();
     });
 
     it('should prepend ProjectRootPath to relative file paths', () => {
-      const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(vi.fn());
 
       const mockReq = {
         url: '?file=src%2Ffile.ts&line=1&column=1',
@@ -99,18 +118,20 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      if (ProjectRootPath) {
-        expect(launchIDE).toHaveBeenCalledWith(
+      if (serverModule.ProjectRootPath) {
+        expect(mockLaunchIDE).toHaveBeenCalledWith(
           expect.objectContaining({
-            file: `${ProjectRootPath}/src/file.ts`,
-          })
+            file: `${serverModule.ProjectRootPath}/src/file.ts`,
+          }),
         );
       }
     });
 
-    it('should return 403 for file outside ProjectRootPath with relative pathType', async () => {
-      const callback = vi.fn();
-      createServer(callback, { pathType: 'relative', bundler: 'vite' });
+    it('should return 403 for file outside ProjectRootPath with relative pathType', () => {
+      serverModule.createServer(vi.fn(), {
+        pathType: 'relative',
+        bundler: 'vite',
+      });
 
       const mockReq = {
         url: '?file=%2Fetc%2Fpasswd&line=1&column=1',
@@ -122,7 +143,7 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      if (ProjectRootPath) {
+      if (serverModule.ProjectRootPath) {
         expect(mockRes.writeHead).toHaveBeenCalledWith(403, expect.any(Object));
         expect(mockRes.end).toHaveBeenCalledWith('not allowed to open this file');
       }
@@ -136,8 +157,8 @@ describe('createServer', () => {
           afterInspectRequest,
         },
       };
-      const callback = vi.fn();
-      createServer(callback, options);
+
+      serverModule.createServer(vi.fn(), options);
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
@@ -157,15 +178,22 @@ describe('createServer', () => {
     });
 
     it('should pass editor and openIn options to launchIDE', () => {
-      const callback = vi.fn();
-      const options = {
-        bundler: 'vite' as const,
-        editor: 'code' as const,
-        openIn: 'new' as const,
-        pathFormat: '{file}:{line}',
-        launchType: 'open' as const,
-      };
-      createServer(callback, options, { output: '/test', port: 0, entry: '', envDir: '/project' });
+      serverModule.createServer(
+        vi.fn(),
+        {
+          bundler: 'vite',
+          editor: 'code',
+          openIn: 'new',
+          pathFormat: '{file}:{line}',
+          launchType: 'open',
+        },
+        {
+          output: '/test',
+          port: 0,
+          entry: '',
+          envDir: '/project',
+        },
+      );
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
@@ -177,20 +205,19 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(launchIDE).toHaveBeenCalledWith(
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
         expect.objectContaining({
           editor: 'code',
           method: 'new',
           format: '{file}:{line}',
           type: 'open',
           rootDir: '/project',
-        })
+        }),
       );
     });
 
     it('should decode URL-encoded file paths correctly', () => {
-      const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(vi.fn());
 
       const mockReq = {
         url: '?file=%2Fpath%2Fwith%20spaces%2Ffile.ts&line=5&column=10',
@@ -202,18 +229,17 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(launchIDE).toHaveBeenCalledWith(
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
         expect.objectContaining({
           file: expect.stringContaining('/path/with spaces/file.ts'),
           line: 5,
           column: 10,
-        })
+        }),
       );
     });
 
     it('should handle missing line and column parameters', () => {
-      const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(vi.fn());
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts',
@@ -225,76 +251,87 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      // When line/column are missing, Number(null) returns 0
-      expect(launchIDE).toHaveBeenCalledWith(
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
         expect.objectContaining({
           line: 0,
           column: 0,
-        })
+        }),
       );
     });
   });
 });
 
-describe('getRelativePath', () => {
+describe('server path helpers', () => {
+  let serverModule: Awaited<typeof import('@/core/src/server/server')>;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    serverModule = await loadServerModule();
+  });
+
   it('should return relative path when ProjectRootPath is set', () => {
-    if (ProjectRootPath) {
-      const result = getRelativePath(`${ProjectRootPath}/src/file.ts`);
-      expect(result).toBe('src/file.ts');
+    if (!serverModule.ProjectRootPath) {
+      return;
     }
+
+    const result = serverModule.getRelativePath(
+      `${serverModule.ProjectRootPath}/src/file.ts`,
+    );
+
+    expect(result).toBe('src/file.ts');
   });
 
   it('should return original path when not under ProjectRootPath', () => {
-    const result = getRelativePath('/other/path/file.ts');
-    expect(result).toBe('/other/path/file.ts');
+    expect(serverModule.getRelativePath('/other/path/file.ts')).toBe(
+      '/other/path/file.ts',
+    );
   });
-});
 
-describe('getRelativeOrAbsolutePath', () => {
   it('should return relative path when pathType is "relative"', () => {
-    if (ProjectRootPath) {
-      const result = getRelativeOrAbsolutePath(`${ProjectRootPath}/src/file.ts`, 'relative');
-      expect(result).toBe('src/file.ts');
+    if (!serverModule.ProjectRootPath) {
+      return;
     }
+
+    const result = serverModule.getRelativeOrAbsolutePath(
+      `${serverModule.ProjectRootPath}/src/file.ts`,
+      'relative',
+    );
+
+    expect(result).toBe('src/file.ts');
   });
 
   it('should return absolute path when pathType is "absolute"', () => {
-    const result = getRelativeOrAbsolutePath('/test/file.ts', 'absolute');
-    expect(result).toBe('/test/file.ts');
+    expect(
+      serverModule.getRelativeOrAbsolutePath('/test/file.ts', 'absolute'),
+    ).toBe('/test/file.ts');
   });
 
   it('should return absolute path when pathType is undefined', () => {
-    const result = getRelativeOrAbsolutePath('/test/file.ts', undefined);
-    expect(result).toBe('/test/file.ts');
-  });
-});
-
-describe('ProjectRootPath (getProjectRoot)', () => {
-  it('should be a string', () => {
-    expect(typeof ProjectRootPath).toBe('string');
+    expect(
+      serverModule.getRelativeOrAbsolutePath('/test/file.ts', undefined),
+    ).toBe('/test/file.ts');
   });
 
-  it('should be a valid git root or empty string', () => {
-    if (ProjectRootPath) {
-      // If it's set, it should be an absolute path
-      expect(ProjectRootPath.startsWith('/')).toBe(true);
-    } else {
-      expect(ProjectRootPath).toBe('');
+  it('should expose ProjectRootPath as a string', () => {
+    expect(typeof serverModule.ProjectRootPath).toBe('string');
+  });
+
+  it('should expose a valid git root or empty string', () => {
+    if (serverModule.ProjectRootPath) {
+      expect(serverModule.ProjectRootPath.startsWith('/')).toBe(true);
+      return;
     }
-  });
-});
 
-describe('getRelativePath edge cases', () => {
-  it('should return original path when file is not under ProjectRootPath', () => {
-    // This tests the case where filePath doesn't start with ProjectRootPath
-    const result = getRelativePath('/completely/different/path/file.ts');
-    // If ProjectRootPath is set, the path won't be modified since it doesn't contain ProjectRootPath
-    // If ProjectRootPath is empty, it returns the original path
-    expect(result).toBe('/completely/different/path/file.ts');
+    expect(serverModule.ProjectRootPath).toBe('');
+  });
+
+  it('should return original path when file is outside ProjectRootPath', () => {
+    expect(serverModule.getRelativePath('/completely/different/path/file.ts')).toBe(
+      '/completely/different/path/file.ts',
+    );
   });
 
   it('should handle empty file path', () => {
-    const result = getRelativePath('');
-    expect(result).toBe('');
+    expect(serverModule.getRelativePath('')).toBe('');
   });
 });

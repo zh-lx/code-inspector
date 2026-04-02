@@ -266,5 +266,19 @@ describe('WebpackCodeInspectorLoader', () => {
       const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
       expect(result).toBeDefined();
     });
+
+    it('should handle undefined options', async () => {
+      mockContext.query = undefined;
+      mockContext.resourcePath = '/test/file.tsx';
+      mockContext.resource = '/test/file.tsx';
+      vi.mocked(isJsTypeFile).mockReturnValueOnce(true);
+
+      const result = await WebpackCodeInspectorLoader.call(
+        mockContext,
+        'const x = 1;',
+      );
+
+      expect(result).toBeDefined();
+    });
   });
 });

@@ -1,7 +1,7 @@
-/* v8 ignore next -- import branch coverage artifact */
-import path, { isAbsolute, dirname } from 'path';
+import path from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
+import { fileURLToPath } from 'url';
 import MagicString from 'magic-string';
 // @ts-ignore
 import { parse, traverse } from '@babel/core';
@@ -17,7 +17,6 @@ import {
   PathName,
   isJsTypeFile,
   getFilePathWithoutExt,
-  fileURLToPath,
   AstroToolbarFile,
   getIP,
   getDependencies,
@@ -28,14 +27,7 @@ import {
   hasWritePermission,
 } from '../shared';
 
-let compatibleDirname = '';
-
-if (typeof __dirname !== 'undefined') {
-  compatibleDirname = __dirname;
-  /* v8 ignore next 3 -- ESM fallback: only runs in native ESM without bundler __dirname shim */
-} else {
-  compatibleDirname = dirname(fileURLToPath(import.meta.url));
-}
+const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
 
 // 这个路径是根据打包后来的
 export const clientJsPath = path.resolve(compatibleDirname, './client.umd.js');
@@ -260,13 +252,13 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
 // target file to inject code
 async function isTargetFileToInject(file: string, record: RecordInfo) {
   const inputs: string[] = await (record?.inputs || []);
+  const recordInfo = getProjectRecord(record);
+  const normalizedFile = normalizePath(file);
   return (
-    (isJsTypeFile(file) &&
-      getFilePathWithoutExt(file) === getProjectRecord(record)?.entry) ||
+    (isJsTypeFile(file) && getFilePathWithoutExt(file) === recordInfo?.entry) ||
     file === AstroToolbarFile ||
-    /* v8 ignore next -- optional chaining fallback */
-    getProjectRecord(record)?.injectTo?.includes(normalizePath(file)) ||
-    inputs?.includes(normalizePath(file))
+    (recordInfo?.injectTo || []).includes(normalizedFile) ||
+    inputs.includes(normalizedFile)
   );
 }
 
@@ -276,7 +268,7 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
       ? options.injectTo
       : [options.injectTo];
     injectTo.forEach((injectToPath) => {
-      if (!isAbsolute(injectToPath)) {
+      if (!path.isAbsolute(injectToPath)) {
         const info = [
           chalk.cyan('injectTo'),
           chalk.red('in'),
@@ -298,8 +290,7 @@ function recordInjectTo(record: RecordInfo, options: CodeOptions) {
     setProjectRecord(
       record,
       'injectTo',
-      /* v8 ignore next -- injectTo is always defined here due to if check above */
-      (injectTo || []).map((file) => normalizePath(file)),
+      injectTo.map((file) => normalizePath(file)),
     );
   }
 }
@@ -351,7 +342,6 @@ export async function getCodeWithWebComponent({
       const webComponentFilePath = writeWebComponentFile(
         record.output,
         injectCode,
-        /* v8 ignore next -- port is always set before reaching this code path */
         getProjectRecord(record)?.port || 0,
       );
       if (!file.match(webComponentFilePath)) {

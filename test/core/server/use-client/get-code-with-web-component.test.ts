@@ -2,8 +2,9 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import http from 'http';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
+
+const mockStartServer = vi.hoisted(() => vi.fn(async () => {}));
 
 // Mock fs.readFileSync to handle missing client files first (before imports)
 vi.mock('fs', async () => {
@@ -43,35 +44,35 @@ vi.mock('fs', async () => {
   };
 });
 
-vi.mock('http');
-vi.mock('portfinder', () => ({
-  getPort: vi.fn((options: any, callback: any) => {
-    callback(null, options?.port || 5678);
-  }),
-}));
 vi.mock('launch-ide', () => ({
   launchIDE: vi.fn(),
 }));
+vi.mock('@/core/src/server/server', async () => {
+  const actual = await vi.importActual('@/core/src/server/server');
+  return {
+    ...actual,
+    startServer: mockStartServer,
+  };
+});
 
 import { getCodeWithWebComponent } from '@/core/src/server/use-client';
-import { setProjectRecord, resetFileRecord } from '@/core/src/shared/record-cache';
+import { startServer } from '@/core/src/server/server';
+import {
+  getProjectRecord,
+  setProjectRecord,
+  resetFileRecord,
+} from '@/core/src/shared/record-cache';
 
 describe('getCodeWithWebComponent', () => {
   let testDir: string;
-  let mockServer: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockStartServer.mockResolvedValue(undefined);
 
     // Create a temporary test directory
     testDir = path.join(os.tmpdir(), `test-get-code-${Date.now()}`);
     fs.mkdirSync(testDir, { recursive: true });
-
-    // Mock HTTP server
-    mockServer = {
-      listen: vi.fn((port: number, callback: Function) => callback()),
-    };
-    vi.mocked(http.createServer).mockReturnValue(mockServer as any);
   });
 
   afterEach(() => {
@@ -133,7 +134,7 @@ describe('getCodeWithWebComponent', () => {
         server: true,
       });
 
-      expect(http.createServer).toHaveBeenCalled();
+      expect(startServer).toHaveBeenCalledWith(options, record);
     });
   });
 
@@ -160,7 +161,7 @@ describe('getCodeWithWebComponent', () => {
         code: 'const x = 1;',
       });
 
-      expect(http.createServer).toHaveBeenCalled();
+      expect(startServer).toHaveBeenCalledWith(options, record);
     });
 
     it('should not start server when server option is "close"', async () => {
@@ -179,9 +180,6 @@ describe('getCodeWithWebComponent', () => {
         server: 'close',
       };
 
-      // Reset mocks to track new calls
-      vi.mocked(http.createServer).mockClear();
-
       await getCodeWithWebComponent({
         options,
         record,
@@ -190,7 +188,7 @@ describe('getCodeWithWebComponent', () => {
       });
 
       // Server should not be created when server is 'close'
-      expect(http.createServer).not.toHaveBeenCalled();
+      expect(startServer).not.toHaveBeenCalled();
     });
   });
 
@@ -252,7 +250,9 @@ describe('getCodeWithWebComponent', () => {
         code: 'const x = 1;',
       });
 
-      // injectTo should be recorded
+      expect(getProjectRecord(record)?.injectTo).toEqual([
+        injectToFile.replace(/\\/g, '/'),
+      ]);
     });
 
     it('should handle array of injectTo paths', async () => {
@@ -282,6 +282,11 @@ describe('getCodeWithWebComponent', () => {
         file: testFile,
         code: 'const x = 1;',
       });
+
+      expect(getProjectRecord(record)?.injectTo).toEqual([
+        injectFile1.replace(/\\/g, '/'),
+        injectFile2.replace(/\\/g, '/'),
+      ]);
     });
 
     it('should warn when injectTo path is not absolute', async () => {

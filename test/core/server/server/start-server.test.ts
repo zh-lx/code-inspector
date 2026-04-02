@@ -4,66 +4,80 @@ import net from 'net';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { createRequire } from 'module';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
 
-vi.mock('http');
-vi.mock('net');
-vi.mock('portfinder', () => ({
-  default: {
-    getPort: vi.fn((options: any, callback: any) => {
-      callback(null, options?.port || 5678);
-    }),
-  },
-  getPort: vi.fn((options: any, callback: any) => {
-    callback(null, options?.port || 5678);
-  }),
-}));
-vi.mock('launch-ide', () => ({
-  launchIDE: vi.fn(),
-}));
-
-import { startServer } from '@/core/src/server/server';
-import { getProjectRecord, setProjectRecord, resetFileRecord } from '@/core/src/shared/record-cache';
+const mockHttpCreateServer = vi.hoisted(() => vi.fn());
+const mockNetCreateServer = vi.hoisted(() => vi.fn());
+const mockPortfinderGetPort = vi.hoisted(() => vi.fn());
+const requireFromCore = createRequire(
+  path.resolve(process.cwd(), 'packages/core/package.json'),
+);
+const corePortFinder = requireFromCore('portfinder') as {
+  getPort: (...args: any[]) => unknown;
+};
 
 describe('startServer', () => {
+  let serverModule: Awaited<typeof import('@/core/src/server/server')>;
+  let recordCacheModule: Awaited<typeof import('@/core/src/shared/record-cache')>;
   let testDir: string;
   let mockHttpServer: any;
   let mockNetServer: any;
+  let occupiedState: boolean;
+  let netListeners: Record<string, Function>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
     vi.clearAllMocks();
 
-    // Create a temporary test directory
     testDir = path.join(os.tmpdir(), `test-start-server-${Date.now()}`);
     fs.mkdirSync(testDir, { recursive: true });
 
-    // Mock HTTP server
     mockHttpServer = {
       listen: vi.fn((port: number, callback: Function) => callback()),
     };
-    vi.mocked(http.createServer).mockReturnValue(mockHttpServer as any);
+    mockHttpCreateServer.mockReturnValue(mockHttpServer as any);
 
-    // Mock net server for isPortOccupied
+    occupiedState = false;
+    netListeners = {};
     mockNetServer = {
       unref: vi.fn(),
-      close: vi.fn(),
-      listen: vi.fn(),
+      close: vi.fn((callback?: Function) => callback?.()),
+      listen: vi.fn(() => {
+        setTimeout(() => {
+          if (occupiedState) {
+            netListeners.error?.(new Error('EADDRINUSE'));
+            return;
+          }
+          netListeners.listening?.();
+        }, 0);
+        return mockNetServer;
+      }),
       on: vi.fn((event: string, callback: Function) => {
-        if (event === 'listening') {
-          // Port is available by default
-          setTimeout(() => callback(), 0);
-        }
+        netListeners[event] = callback;
         return mockNetServer;
       }),
     };
-    vi.mocked(net.createServer).mockReturnValue(mockNetServer as any);
+    mockNetCreateServer.mockReturnValue(mockNetServer as any);
+    mockPortfinderGetPort.mockImplementation((options: any, callback: any) => {
+      callback(null, options?.port || 5678);
+    });
+    vi.spyOn(http, 'createServer').mockImplementation(
+      mockHttpCreateServer as any,
+    );
+    vi.spyOn(net, 'createServer').mockImplementation(
+      mockNetCreateServer as any,
+    );
+    vi.spyOn(corePortFinder, 'getPort').mockImplementation(
+      mockPortfinderGetPort as any,
+    );
+
+    serverModule = await import('@/core/src/server/server');
+    recordCacheModule = await import('@/core/src/shared/record-cache');
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(process, 'cwd').mockRestore();
-
-    // Clean up test directory
     try {
       if (fs.existsSync(testDir)) {
         fs.rmSync(testDir, { recursive: true, force: true });
@@ -73,211 +87,161 @@ describe('startServer', () => {
     }
   });
 
-  describe('when previous port exists and is still running', () => {
-    it('should not restart server if port is occupied (already running)', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/running');
+  it('should not restart server if previous port is occupied', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/running');
 
-      // Set up record with existing port
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+    };
 
-      // Create initial record with port
-      setProjectRecord(record, 'port', 8888);
+    recordCacheModule.setProjectRecord(record, 'port', 8888);
+    occupiedState = true;
 
-      // Mock net server to indicate port is occupied (in use)
-      mockNetServer.on = vi.fn((event: string, callback: Function) => {
-        if (event === 'error') {
-          // Port is occupied (already started)
-          setTimeout(() => callback(), 0);
-        }
-        return mockNetServer;
-      });
+    await serverModule.startServer(options, record);
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-      };
-
-      await startServer(options, record);
-
-      // Should not create a new server since port is already running
-      // The server check happens through isPortOccupied
-      const projectRecord = getProjectRecord(record);
-      expect(projectRecord?.port).toBe(8888);
-    });
+    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(8888);
+    expect(mockHttpCreateServer).not.toHaveBeenCalled();
   });
 
-  describe('when previous port exists but is not running', () => {
-    it('should restart server when port is available (not occupied)', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/restart');
+  it('should restart server when previous port is available', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/restart');
 
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+    };
 
-      // Set up record with existing port
-      setProjectRecord(record, 'port', 7777);
-      setProjectRecord(record, 'findPort', 1);
+    recordCacheModule.setProjectRecord(record, 'port', 7777);
+    recordCacheModule.setProjectRecord(record, 'findPort', 1);
 
-      // Mock net server to indicate port is available (not occupied)
-      mockNetServer.on = vi.fn((event: string, callback: Function) => {
-        if (event === 'listening') {
-          // Port is available (not occupied)
-          setTimeout(() => callback(), 0);
-        }
-        return mockNetServer;
-      });
+    await serverModule.startServer(options, record);
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-      };
-
-      await startServer(options, record);
-
-      // Should create a new server since port is not running
-      expect(http.createServer).toHaveBeenCalled();
-    });
+    expect(mockHttpCreateServer).toHaveBeenCalled();
+    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(5678);
   });
 
-  describe('findPort behavior', () => {
-    it('should not restart server if findPort is already set and port exists', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/findport');
+  it('should not restart server if findPort is already set and port exists', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/findport');
 
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+    };
 
-      // Set findPort to indicate server is already being created
-      setProjectRecord(record, 'findPort', 1);
-      setProjectRecord(record, 'port', 5678);
+    recordCacheModule.setProjectRecord(record, 'findPort', 1);
+    recordCacheModule.setProjectRecord(record, 'port', 5678);
+    occupiedState = true;
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-      };
+    await serverModule.startServer(options, record);
 
-      await startServer(options, record);
-
-      // Server should not be created again, port should remain 5678
-      const projectRecord = getProjectRecord(record);
-      expect(projectRecord?.port).toBe(5678);
-    });
-
-    it('should wait for port if not yet available', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/wait');
-
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
-
-      // Set findPort but not port
-      setProjectRecord(record, 'findPort', 1);
-
-      const options: CodeOptions = {
-        bundler: 'vite',
-      };
-
-      // Start server in background
-      const promise = startServer(options, record);
-
-      // Set port after a delay
-      setTimeout(() => {
-        setProjectRecord(record, 'port', 9999);
-      }, 50);
-
-      await promise;
-
-      const projectRecord = getProjectRecord(record);
-      expect(projectRecord?.port).toBe(9999);
-    });
+    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(5678);
+    expect(mockHttpCreateServer).not.toHaveBeenCalled();
   });
 
-  describe('printServer option', () => {
-    it('should print server info when printServer is true', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/print-server');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  it('should wait for port if findPort is set but port is not available yet', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/wait');
 
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+    };
 
-      resetFileRecord(testDir);
+    recordCacheModule.setProjectRecord(record, 'findPort', 1);
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-        printServer: true,
-      };
+    const promise = serverModule.startServer(options, record);
 
-      await startServer(options, record);
+    setTimeout(() => {
+      recordCacheModule.setProjectRecord(record, 'port', 9999);
+    }, 50);
 
-      // Should have printed server info
-      expect(consoleSpy).toHaveBeenCalled();
-      const logCall = consoleSpy.mock.calls[0]?.[0];
-      expect(logCall).toContain('[code-inspector-plugin]');
+    await promise;
 
-      consoleSpy.mockRestore();
-    });
+    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(9999);
+  });
 
-    it('should print server info with custom ip', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/print-server-ip');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  it('should print server info when printServer is true', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/print-server');
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+      printServer: true,
+    };
 
-      resetFileRecord(testDir);
+    recordCacheModule.resetFileRecord(testDir);
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-        printServer: true,
-        ip: '192.168.1.100',
-      };
+    await serverModule.startServer(options, record);
 
-      await startServer(options, record);
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(consoleSpy.mock.calls[0]?.[0]).toContain('[code-inspector-plugin]');
+  });
 
-      expect(consoleSpy).toHaveBeenCalled();
+  it('should print server info with custom ip', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/print-server-ip');
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      consoleSpy.mockRestore();
-    });
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+      printServer: true,
+      ip: '192.168.1.100',
+    };
 
-    it('should not print server info when printServer is false', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/no-print');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    recordCacheModule.resetFileRecord(testDir);
 
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
+    await serverModule.startServer(options, record);
 
-      resetFileRecord(testDir);
+    expect(consoleSpy).toHaveBeenCalled();
+  });
 
-      const options: CodeOptions = {
-        bundler: 'vite',
-        printServer: false,
-      };
+  it('should not print server info when printServer is false', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/no-print');
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-      await startServer(options, record);
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = {
+      bundler: 'vite',
+      printServer: false,
+    };
 
-      // Should not print server info (console.log might be called for other reasons)
-      const serverInfoCalls = consoleSpy.mock.calls.filter(
-        call => call[0]?.includes?.('[code-inspector-plugin]')
-      );
-      expect(serverInfoCalls.length).toBe(0);
+    recordCacheModule.resetFileRecord(testDir);
 
-      consoleSpy.mockRestore();
-    });
+    await serverModule.startServer(options, record);
+
+    const serverInfoCalls = consoleSpy.mock.calls.filter(
+      (call) => call[0]?.includes?.('[code-inspector-plugin]'),
+    );
+
+    expect(serverInfoCalls.length).toBe(0);
   });
 });

@@ -16,11 +16,10 @@ export interface PugFileInfo {
 const AttributeNodeType = 6;
 export const pugMap = new Map<string, PugFileInfo>(); // 使用了 pug 模板的 vue 文件集合
 
-/* v8 ignore next 14 -- defensive checks: column undefined branches rarely triggered by Pug parser */
-function belongTemplate(
+export function belongTemplate(
   target: AstLocation,
   start: AstLocation,
-  end: AstLocation
+  end: AstLocation,
 ) {
   return (
     (target.line > start.line && target.line < end.line) ||
@@ -32,16 +31,15 @@ function belongTemplate(
 }
 
 interface TransformPugParams {
-  node: pug.Node;
+  node: pug.Node | null | undefined;
   templateNode: ElementNode;
   s: MagicString;
   escapeTags: EscapeTags;
   filePath: string;
 }
 
-function transformPugAst(params: TransformPugParams) {
+export function transformPugAst(params: TransformPugParams) {
   const { node, templateNode, escapeTags, s, filePath } = params;
-  /* v8 ignore next 3 -- defensive guard: node.block can be null for empty Pug elements */
   if (!node) {
     return;
   }
@@ -58,7 +56,7 @@ function transformPugAst(params: TransformPugParams) {
     const belongToTemplate = belongTemplate(
       nodeLocation,
       templateNode.loc.start,
-      templateNode.loc.end
+      templateNode.loc.end,
     );
     if (
       belongToTemplate &&
@@ -77,8 +75,10 @@ function transformPugAst(params: TransformPugParams) {
           const attr = node.attrs[i];
           if (['class', 'id'].includes(attr.name) && !attr.mustEscape) {
             insertPosition =
-              // @ts-expect-error - Pug attr type not typed
-              offsets[attr.line + lineOffset - 1] + attr.column + (attr.val.length - 2);
+              offsets[attr.line + lineOffset - 1] +
+              attr.column +
+              // @ts-expect-error - attr.val is not typed
+              (attr.val.length - 2);
           }
         }
       }
@@ -94,14 +94,12 @@ function transformPugAst(params: TransformPugParams) {
     transformPugAst({ ...params, node: node.block });
   } else if (['Case', 'Code', 'When', 'Each', 'While'].includes(node.type)) {
     if ((node as pug.MixinNode).block) {
-      /* v8 ignore next 3 -- defensive fallback: nodes array always exists when block exists */
       ((node as pug.MixinNode).block?.nodes || []).forEach((childNode) => {
         transformPugAst({ ...params, node: childNode });
       });
     }
     // @ts-expect-error - Pug Conditional type not exported
   } else if (node.type === 'Conditional') {
-    /* v8 ignore next 7 -- defensive fallbacks: Pug Conditional nodes always have consequent/alternate structure */
     // @ts-expect-error - Pug Conditional consequent/alternate properties not typed
     (node.consequent?.nodes || []).forEach((childNode) => {
       transformPugAst({ ...params, node: childNode });
@@ -122,12 +120,11 @@ export function isPugTemplate(templateNode: ElementNode | undefined): boolean {
   if (!templateNode) {
     return false;
   }
-  /* v8 ignore next 9 -- defensive fallback: templateNode.props is always an array in valid Vue SFCs */
   return (templateNode.props || []).some(
     (prop) =>
       prop.type === AttributeNodeType &&
       prop.name === 'lang' &&
-      prop.value?.content === 'pug'
+      prop.value?.content === 'pug',
   );
 }
 
@@ -159,7 +156,7 @@ export function transformPugTemplate(
   filePath: string,
   templateNode: ElementNode,
   escapeTags: EscapeTags,
-  s: MagicString
+  s: MagicString,
 ): void {
   // Calculate and store line offsets
   const offsets = calculateLineOffsets(content);
@@ -168,10 +165,7 @@ export function transformPugTemplate(
   // Create temporary content with template section preserved
   const tempContent =
     ' '.repeat(templateNode.loc.start.offset - 0) +
-    content.slice(
-      templateNode.loc.start.offset,
-      templateNode.loc.end.offset
-    ) +
+    content.slice(templateNode.loc.start.offset, templateNode.loc.end.offset) +
     ' '.repeat(content.length - templateNode.loc.end.offset);
 
   // Parse and transform Pug AST
