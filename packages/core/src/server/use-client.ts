@@ -251,7 +251,7 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
 
 // target file to inject code
 async function isTargetFileToInject(file: string, record: RecordInfo) {
-  const inputs: string[] = await (record?.inputs || []);
+  const inputs: string[] = await (record.inputs || []);
   const recordInfo = getProjectRecord(record);
   const normalizedFile = normalizePath(file);
   return (
