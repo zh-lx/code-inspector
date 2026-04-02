@@ -27,6 +27,9 @@ describe('createServer', () => {
     vi.clearAllMocks();
     vi.doMock('launch-ide', () => ({
       launchIDE: mockLaunchIDE,
+      default: {
+        launchIDE: mockLaunchIDE,
+      },
     }));
 
     mockServer = {
