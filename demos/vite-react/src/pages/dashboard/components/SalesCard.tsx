@@ -1,7 +1,6 @@
-import { Card, Tabs, Space, DatePicker } from 'antd';
+import { Card, Tabs, DatePicker } from 'antd';
 import { Column } from '@ant-design/plots';
 import '../style.css';
-const { RangePicker } = DatePicker;
 
 interface SalesCardProps {
   loading: boolean;
