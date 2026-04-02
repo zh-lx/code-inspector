@@ -252,6 +252,17 @@ class MyComponent {
       expect(result).toContain(`:div"`);
     });
 
+    it('should not propagate a single component path to multiple fragment roots', () => {
+      const content = 'function App(props) { return <><div>A</div><h1>B</h1></>; }';
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(`${PathName}="${filePath}:1:32:div"`);
+      expect(result).toContain(`${PathName}="${filePath}:1:44:h1"`);
+      expect(result).not.toContain('props && props[');
+      expect(result).not.toContain(`|| "${filePath}:1:32:div"`);
+      expect(result).not.toContain(`|| "${filePath}:1:44:h1"`);
+    });
+
     it('should handle conditional rendering', () => {
       const content = 'function App() { return condition ? <div>A</div> : <span>B</span>; }';
       const result = transformJsx(content, filePath, defaultEscapeTags);
@@ -421,6 +432,22 @@ class MyApp extends React.Component {
       const result = transformJsx(content, filePath, defaultEscapeTags);
 
       expect(result).toContain(`:div"`);
+    });
+
+    it('should not propagate a single component path to multiple class render roots', () => {
+      const content = `
+class MyApp extends React.Component {
+  render() {
+    return <><div>A</div><h1>B</h1></>;
+  }
+}`;
+      const result = transformJsx(content, filePath, defaultEscapeTags);
+
+      expect(result).toContain(`${PathName}="${filePath}:4:14:div"`);
+      expect(result).toContain(`${PathName}="${filePath}:4:26:h1"`);
+      expect(result).not.toContain('this.props');
+      expect(result).not.toContain(`|| "${filePath}:4:14:div"`);
+      expect(result).not.toContain(`|| "${filePath}:4:26:h1"`);
     });
   });
 
@@ -1153,6 +1180,44 @@ export default class extends React.Component {
       expect(__TEST__.collectRootTargets(null, null)).toEqual([]);
     });
 
+    it('should ignore sparse array holes when collecting root targets', () => {
+      expect(
+        __TEST__.collectRootTargets(
+          {
+            type: 'ArrayExpression',
+            elements: [null],
+          },
+          null,
+        ),
+      ).toEqual([]);
+    });
+
+    it('should collect fragment expression container root targets', () => {
+      expect(
+        __TEST__.collectRootTargets(
+          {
+            type: 'JSXFragment',
+            children: [
+              {
+                type: 'JSXExpressionContainer',
+                expression: {
+                  type: 'JSXElement',
+                },
+              },
+            ],
+          },
+          null,
+        ),
+      ).toEqual([
+        {
+          type: 'jsx',
+          node: {
+            type: 'JSXElement',
+          },
+        },
+      ]);
+    });
+
     it('should tolerate bindings without identifier metadata or constant violations', () => {
       expect(
         __TEST__.collectRootTargets(
@@ -1173,6 +1238,125 @@ export default class extends React.Component {
           },
         ),
       ).toEqual([]);
+    });
+
+    it('should estimate zero roots when identifier bindings have missing metadata', () => {
+      expect(
+        __TEST__.estimateRootCount(
+          {
+            type: 'Identifier',
+            name: 'el',
+          },
+          {
+            getBinding: () => ({
+              identifier: {},
+              path: {
+                node: {
+                  type: 'VariableDeclarator',
+                },
+                scope: null,
+              },
+            }),
+          },
+          new Set(),
+        ),
+      ).toBe(0);
+    });
+
+    it('should return zero root count for null, unsupported calls, and unsupported nodes', () => {
+      expect(__TEST__.estimateRootCount(null, null, new Set())).toBe(0);
+      expect(
+        __TEST__.estimateRootCount(
+          {
+            type: 'CallExpression',
+            callee: {
+              type: 'Identifier',
+              name: 'helper',
+            },
+          },
+          null,
+          new Set(),
+        ),
+      ).toBe(0);
+      expect(
+        __TEST__.estimateRootCount(
+          {
+            type: 'NumericLiteral',
+            value: 1,
+          },
+          null,
+          new Set(),
+        ),
+      ).toBe(0);
+    });
+
+    it('should handle empty arrays and fragments when estimating root count', () => {
+      expect(
+        __TEST__.estimateRootCount(
+          {
+            type: 'ArrayExpression',
+          },
+          null,
+          new Set(),
+        ),
+      ).toBe(0);
+      expect(
+        __TEST__.estimateRootCount(
+          {
+            type: 'JSXFragment',
+          },
+          null,
+          new Set(),
+        ),
+      ).toBe(0);
+    });
+
+    it('should stop propagating path for multi-root arrays and fragments', () => {
+      expect(
+        __TEST__.shouldPropagatePathToExpression(
+          {
+            type: 'ArrayExpression',
+            elements: [
+              null,
+              {
+                type: 'SpreadElement',
+                argument: {
+                  type: 'ArrayExpression',
+                  elements: [
+                    {
+                      type: 'JSXElement',
+                    },
+                    {
+                      type: 'JSXElement',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+          null,
+        ),
+      ).toBe(false);
+
+      expect(
+        __TEST__.shouldPropagatePathToExpression(
+          {
+            type: 'JSXFragment',
+            children: [
+              {
+                type: 'JSXElement',
+              },
+              {
+                type: 'JSXExpressionContainer',
+                expression: {
+                  type: 'JSXElement',
+                },
+              },
+            ],
+          },
+          null,
+        ),
+      ).toBe(false);
     });
 
     it('should fall back to the original node name when escaped tag suffix is empty', () => {

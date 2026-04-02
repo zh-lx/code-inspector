@@ -158,6 +158,10 @@ function transformComponentFunction(
   }
 
   const injectRootExpression = (expression: any, scope: any) => {
+    if (!shouldPropagatePathToExpression(expression, scope)) {
+      return;
+    }
+
     injectRootTargets(
       collectRootTargets(expression, scope),
       s,
@@ -215,6 +219,10 @@ function transformClassComponent(
   const renderMethodPaths = getRenderMethodPaths(path);
   const propExpression = `this.props && this.props[${JSON.stringify(PathName)}]`;
   const injectRootExpression = (expression: any, scope: any) => {
+    if (!shouldPropagatePathToExpression(expression, scope)) {
+      return;
+    }
+
     injectRootTargets(
       collectRootTargets(expression, scope),
       s,
@@ -625,6 +633,152 @@ function unwrapRenderableExpression(node: any) {
   return node;
 }
 
+function shouldPropagatePathToExpression(
+  node: any,
+  scope: any,
+  visitedBindings = new Set<string>(),
+): boolean {
+  return estimateRootCount(node, scope, visitedBindings) <= 1;
+}
+
+function estimateRootCount(
+  node: any,
+  scope: any,
+  visitedBindings: Set<string>,
+): number {
+  if (!node) {
+    return 0;
+  }
+
+  const unwrappedNode = unwrapRenderableExpression(node);
+  if (unwrappedNode !== node) {
+    return estimateRootCount(unwrappedNode, scope, visitedBindings);
+  }
+
+  if (unwrappedNode.type === 'JSXElement') {
+    return 1;
+  }
+
+  if (unwrappedNode.type === 'CallExpression') {
+    if (isCreatePortalCall(unwrappedNode)) {
+      return estimateRootCount(
+        unwrappedNode.arguments?.[0],
+        scope,
+        visitedBindings,
+      );
+    }
+
+    if (isCreateElementCall(unwrappedNode)) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  if (unwrappedNode.type === 'Identifier') {
+    return estimateIdentifierRootCount(unwrappedNode, scope, visitedBindings);
+  }
+
+  if (unwrappedNode.type === 'ConditionalExpression') {
+    return Math.max(
+      estimateRootCount(unwrappedNode.consequent, scope, visitedBindings),
+      estimateRootCount(unwrappedNode.alternate, scope, visitedBindings),
+    );
+  }
+
+  if (unwrappedNode.type === 'LogicalExpression') {
+    return Math.max(
+      estimateRootCount(unwrappedNode.left, scope, visitedBindings),
+      estimateRootCount(unwrappedNode.right, scope, visitedBindings),
+    );
+  }
+
+  if (unwrappedNode.type === 'SequenceExpression') {
+    return estimateRootCount(
+      unwrappedNode.expressions[unwrappedNode.expressions.length - 1],
+      scope,
+      visitedBindings,
+    );
+  }
+
+  if (unwrappedNode.type === 'ArrayExpression') {
+    let total = 0;
+
+    for (const element of unwrappedNode.elements || []) {
+      if (!element) {
+        continue;
+      }
+
+      const childNode =
+        element.type === 'SpreadElement' ? element.argument : element;
+      total += estimateRootCount(childNode, scope, visitedBindings);
+      if (total > 1) {
+        return 2;
+      }
+    }
+
+    return total;
+  }
+
+  if (unwrappedNode.type === 'JSXFragment') {
+    let total = 0;
+
+    for (const child of unwrappedNode.children || []) {
+      if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
+        total += estimateRootCount(child, scope, visitedBindings);
+      } else if (child.type === 'JSXExpressionContainer') {
+        total += estimateRootCount(child.expression, scope, visitedBindings);
+      }
+
+      if (total > 1) {
+        return 2;
+      }
+    }
+
+    return total;
+  }
+
+  return 0;
+}
+
+function estimateIdentifierRootCount(
+  node: any,
+  scope: any,
+  visitedBindings: Set<string>,
+): number {
+  if (!scope || node.name === 'undefined') {
+    return 0;
+  }
+
+  const binding = scope.getBinding?.(node.name);
+  if (!binding) {
+    return 0;
+  }
+
+  const bindingKey = `${binding.identifier?.start ?? ''}:${binding.identifier?.name ?? ''}`;
+  if (visitedBindings.has(bindingKey)) {
+    return 0;
+  }
+  visitedBindings.add(bindingKey);
+
+  if (binding.path?.node?.type === 'VariableDeclarator') {
+    if (binding.path.node.init) {
+      return estimateRootCount(binding.path.node.init, binding.path.scope, visitedBindings);
+    }
+
+    const assignmentRightNode = getSingleBindingAssignment(binding);
+    if (assignmentRightNode) {
+      return estimateRootCount(
+        assignmentRightNode,
+        binding.path.scope,
+        visitedBindings,
+      );
+    }
+  }
+
+  return 0;
+}
+
 function collectIdentifierRootTargets(
   node: any,
   scope: any,
@@ -926,6 +1080,8 @@ export const __TEST__ = {
   getObjectPatternPathBinding,
   getObjectPropertyName,
   getEmptyParamsInsertPosition,
+  shouldPropagatePathToExpression,
+  estimateRootCount,
   collectRootTargets,
   isEscapedJsxTag,
 };
