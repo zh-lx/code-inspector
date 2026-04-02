@@ -10,7 +10,11 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-expect-error - @babel/plugin-proposal-decorators doesn't provide TypeScript types
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 
-export function transformJsx(content: string, filePath: string, escapeTags: EscapeTags) {
+export function transformJsx(
+  content: string,
+  filePath: string,
+  escapeTags: EscapeTags,
+) {
   const s = new MagicString(content);
 
   const ast = parse(content, {
@@ -27,8 +31,8 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
 
   traverse(ast!, {
     enter({ node }: any) {
-      const nodeName = node?.openingElement?.name?.name || '';
-      const attributes = node?.openingElement?.attributes || [];
+      const nodeName = node.openingElement?.name?.name || '';
+      const attributes = node.openingElement?.attributes || [];
       if (
         node.type === 'JSXElement' &&
         nodeName &&
@@ -37,7 +41,8 @@ export function transformJsx(content: string, filePath: string, escapeTags: Esca
         if (
           attributes.some(
             (attr: any) =>
-              attr.type !== 'JSXSpreadAttribute' && attr.name?.name === PathName
+              attr.type !== 'JSXSpreadAttribute' &&
+              attr.name?.name === PathName,
           )
         ) {
           return;

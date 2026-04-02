@@ -13,10 +13,6 @@ const corePortFinder = requireFromCore('portfinder') as {
   getPort: (...args: any[]) => unknown;
 };
 
-vi.mock('launch-ide', () => ({
-  launchIDE: mockLaunchIDE,
-}));
-
 const loadServerModule = async () => {
   return import('@/core/src/server/server');
 };
@@ -29,6 +25,9 @@ describe('createServer', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    vi.doMock('launch-ide', () => ({
+      launchIDE: mockLaunchIDE,
+    }));
 
     mockServer = {
       listen: vi.fn((port: number, callback: Function) => {
