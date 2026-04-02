@@ -5,7 +5,6 @@ import { createRequire } from 'module';
 
 const mockHttpCreateServer = vi.hoisted(() => vi.fn());
 const mockPortfinderGetPort = vi.hoisted(() => vi.fn());
-const mockLaunchIDE = vi.hoisted(() => vi.fn());
 const requireFromCore = createRequire(
   path.resolve(process.cwd(), 'packages/core/package.json'),
 );
@@ -25,12 +24,6 @@ describe('createServer', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
-    vi.doMock('launch-ide', () => ({
-      launchIDE: mockLaunchIDE,
-      default: {
-        launchIDE: mockLaunchIDE,
-      },
-    }));
 
     mockServer = {
       listen: vi.fn((port: number, callback: Function) => {
@@ -85,7 +78,13 @@ describe('createServer', () => {
 
   describe('request handling', () => {
     it('should handle request with file, line, and column parameters', () => {
-      serverModule.createServer(vi.fn());
+      const afterInspectRequest = vi.fn();
+      serverModule.createServer(vi.fn(), {
+        bundler: 'vite',
+        hooks: {
+          afterInspectRequest,
+        },
+      });
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts&line=10&column=5',
@@ -104,11 +103,24 @@ describe('createServer', () => {
         'Access-Control-Allow-Private-Network': 'true',
       });
       expect(mockRes.end).toHaveBeenCalledWith('ok');
-      expect(mockLaunchIDE).toHaveBeenCalled();
+      expect(afterInspectRequest).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          file: '/test/file.ts',
+          line: 10,
+          column: 5,
+        }),
+      );
     });
 
     it('should prepend ProjectRootPath to relative file paths', () => {
-      serverModule.createServer(vi.fn());
+      const afterInspectRequest = vi.fn();
+      serverModule.createServer(vi.fn(), {
+        bundler: 'vite',
+        hooks: {
+          afterInspectRequest,
+        },
+      });
 
       const mockReq = {
         url: '?file=src%2Ffile.ts&line=1&column=1',
@@ -121,10 +133,11 @@ describe('createServer', () => {
       requestHandler(mockReq, mockRes);
 
       if (serverModule.ProjectRootPath) {
-        expect(mockLaunchIDE).toHaveBeenCalledWith(
+        expect(afterInspectRequest).toHaveBeenCalledWith(
+          expect.any(Object),
           expect.objectContaining({
             file: `${serverModule.ProjectRootPath}/src/file.ts`,
-          }),
+          })
         );
       }
     });
@@ -180,6 +193,7 @@ describe('createServer', () => {
     });
 
     it('should pass editor and openIn options to launchIDE', () => {
+      const afterInspectRequest = vi.fn();
       serverModule.createServer(
         vi.fn(),
         {
@@ -188,6 +202,9 @@ describe('createServer', () => {
           openIn: 'new',
           pathFormat: '{file}:{line}',
           launchType: 'open',
+          hooks: {
+            afterInspectRequest,
+          },
         },
         {
           output: '/test',
@@ -207,19 +224,30 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(mockLaunchIDE).toHaveBeenCalledWith(
+      expect(afterInspectRequest).toHaveBeenCalledWith(
         expect.objectContaining({
+          bundler: 'vite',
           editor: 'code',
-          method: 'new',
-          format: '{file}:{line}',
-          type: 'open',
-          rootDir: '/project',
+          openIn: 'new',
+          pathFormat: '{file}:{line}',
+          launchType: 'open',
+        }),
+        expect.objectContaining({
+          file: '/test/file.ts',
+          line: 10,
+          column: 5,
         }),
       );
     });
 
     it('should decode URL-encoded file paths correctly', () => {
-      serverModule.createServer(vi.fn());
+      const afterInspectRequest = vi.fn();
+      serverModule.createServer(vi.fn(), {
+        bundler: 'vite',
+        hooks: {
+          afterInspectRequest,
+        },
+      });
 
       const mockReq = {
         url: '?file=%2Fpath%2Fwith%20spaces%2Ffile.ts&line=5&column=10',
@@ -231,17 +259,24 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(mockLaunchIDE).toHaveBeenCalledWith(
+      expect(afterInspectRequest).toHaveBeenCalledWith(
+        expect.any(Object),
         expect.objectContaining({
           file: expect.stringContaining('/path/with spaces/file.ts'),
           line: 5,
           column: 10,
-        }),
+        })
       );
     });
 
     it('should handle missing line and column parameters', () => {
-      serverModule.createServer(vi.fn());
+      const afterInspectRequest = vi.fn();
+      serverModule.createServer(vi.fn(), {
+        bundler: 'vite',
+        hooks: {
+          afterInspectRequest,
+        },
+      });
 
       const mockReq = {
         url: '?file=%2Ftest%2Ffile.ts',
@@ -253,11 +288,12 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(mockLaunchIDE).toHaveBeenCalledWith(
+      expect(afterInspectRequest).toHaveBeenCalledWith(
+        expect.any(Object),
         expect.objectContaining({
           line: 0,
           column: 0,
-        }),
+        })
       );
     });
   });
