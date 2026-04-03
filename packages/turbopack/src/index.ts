@@ -45,7 +45,7 @@ export function TurbopackCodeInspectorPlugin(
   };
 
   const WebpackEntry = resolveWebpackEntry({
-    requireResolve: globalThis.require?.resolve,
+    requireResolve: typeof require === 'undefined' ? null : require.resolve,
     importMetaResolve: import.meta.resolve,
   });
   const WebpackDistDir = path.resolve(WebpackEntry, '..');
