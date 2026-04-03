@@ -1,8 +1,16 @@
 # 更新日志
 
+## 1.5.1
+
+- 【fix】修复了 nextjs 中使用本插件编译失败的问题 [#514](https://github.com/zh-lx/code-inspector/pull/514)
+
 ## 1.5.0
 
 - 【feat】React 组件优先显示组件名称并定位至组件调用处 [#513](https://github.com/zh-lx/code-inspector/pull/513)
+
+## 1.4.7
+
+- 【fix】修复了 nextjs 中使用本插件编译失败的问题 [#514](https://github.com/zh-lx/code-inspector/pull/514)
 
 ## 1.4.6
 

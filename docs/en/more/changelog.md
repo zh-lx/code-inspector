@@ -1,8 +1,16 @@
 # Changelog
 
+## 1.5.1
+
+- 【fix】Fixed the issue where nextjs would fail to compile when using this plugin [#514](https://github.com/zh-lx/code-inspector/pull/514)
+
 ## 1.5.0
 
 - 【feat】React components now prioritize displaying component names and locating to component call sites [#513](https://github.com/zh-lx/code-inspector/pull/513)
+
+## 1.4.7
+
+- 【fix】Fixed the issue where nextjs would fail to compile when using this plugin [#514](https://github.com/zh-lx/code-inspector/pull/514)
 
 ## 1.4.6
 
