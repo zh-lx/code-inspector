@@ -3,32 +3,48 @@ import fs from 'fs';
 
 // Mock fs.readFileSync to handle missing client files
 vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs') as typeof fs;
+  const actual = (await vi.importActual('fs')) as typeof fs;
   return {
     ...actual,
     default: {
       ...actual,
       readFileSync: vi.fn((filePath: string, encoding?: string) => {
-        if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+        if (
+          typeof filePath === 'string' &&
+          (filePath.includes('client.umd.js') ||
+            filePath.includes('client.iife.js'))
+        ) {
           return '// mocked client code';
         }
         return actual.readFileSync(filePath, encoding as BufferEncoding);
       }),
       existsSync: vi.fn((filePath: string) => {
-        if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+        if (
+          typeof filePath === 'string' &&
+          (filePath.includes('client.umd.js') ||
+            filePath.includes('client.iife.js'))
+        ) {
           return true;
         }
         return actual.existsSync(filePath);
       }),
     },
     readFileSync: vi.fn((filePath: string, encoding?: string) => {
-      if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+      if (
+        typeof filePath === 'string' &&
+        (filePath.includes('client.umd.js') ||
+          filePath.includes('client.iife.js'))
+      ) {
         return '// mocked client code';
       }
       return actual.readFileSync(filePath, encoding as BufferEncoding);
     }),
     existsSync: vi.fn((filePath: string) => {
-      if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+      if (
+        typeof filePath === 'string' &&
+        (filePath.includes('client.umd.js') ||
+          filePath.includes('client.iife.js'))
+      ) {
         return true;
       }
       return actual.existsSync(filePath);
@@ -71,7 +87,6 @@ describe('core/src/index exports', () => {
     const exports = await import('@/core/src/index');
     // From shared/index.ts
     expect(typeof exports.getIP).toBe('function');
-    expect(typeof exports.fileURLToPath).toBe('function');
     expect(typeof exports.isJsTypeFile).toBe('function');
     expect(typeof exports.getFilePathWithoutExt).toBe('function');
     expect(typeof exports.normalizePath).toBe('function');

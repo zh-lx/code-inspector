@@ -32,7 +32,6 @@ function getProjectRoot(): string {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
     return gitRoot;
-  /* v8 ignore next 3 -- only runs when not in a git repo */
   } catch (error) {
     return '';
   }
@@ -53,7 +52,6 @@ export const ProjectRootPath = getProjectRoot();
  * 获取相对路径
  */
 export function getRelativePath(filePath: string): string {
-  /* v8 ignore next 5 -- branch depends on git repo presence at module load time */
   if (ProjectRootPath) {
     return filePath.replace(`${ProjectRootPath}/`, '');
   }
@@ -212,7 +210,6 @@ export function createServer(
   __TEST_ONLY__.getPort(
     { port: options?.port ?? DefaultPort },
     (err: Error, port: number) => {
-      /* v8 ignore next 3 -- error thrown in callback, tested via integration */
       if (err) {
         throw err;
       }

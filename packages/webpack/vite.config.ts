@@ -12,7 +12,7 @@ export default defineConfig({
     minify: true,
     emptyOutDir: false,
     rollupOptions: {
-      external: ['@code-inspector/core', '@vue/compiler-sfc', 'path'],
+      external: ['@code-inspector/core', '@vue/compiler-sfc', 'path', 'url'],
       output: {
         exports: 'default', // 设置默认导出
       },

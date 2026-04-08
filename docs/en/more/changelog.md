@@ -1,8 +1,33 @@
 # Changelog
 
+## 1.5.1
+
+- 【fix】Fixed the issue where nextjs would fail to compile when using this plugin [#514](https://github.com/zh-lx/code-inspector/pull/514)
+
+## 1.5.0
+
+- 【feat】React components now prioritize displaying component names and locating to component call sites [#513](https://github.com/zh-lx/code-inspector/pull/513)
+
+## 1.4.7
+
+- 【fix】Fixed the issue where nextjs would fail to compile when using this plugin [#514](https://github.com/zh-lx/code-inspector/pull/514)
+
+## 1.4.6
+
+- 【fix】Fixed the issue where vue could not inject `data-insp-path` in webpack [#511](https://github.com/zh-lx/code-inspector/pull/511)
+- 【fix】Fixed the issue where esbuild could not compile with this plugin [#510](https://github.com/zh-lx/code-inspector/pull/510)
+
+## 1.4.5
+
+- 【fix】Fixed the issue where it would not take effect in `nuxtjs v4` version [#504](https://github.com/zh-lx/code-inspector/pull/504)
+
+## 1.4.4
+
+- 【fix】Asynchronously load `@vue/compiler-dom` to fix startup failures in some projects due to dependency issues [#498](https://github.com/zh-lx/code-inspector/pull/498)
+
 ## 1.4.3
 
-- 【fix】Fixed the issue where vscode `1.110.0+` version could not be recognized [#493](https://github.com/zh-lx/code-inspector/pull/493)
+- 【fix】Fixed the issue where vscode `1.110.0+` version could not be recognized [#494](https://github.com/zh-lx/code-inspector/pull/494)
 
 ## 1.4.2
 - 【fix】Fixed the issue where the page would scroll when switching parent/child elements by scrolling with the mouse wheel [#480](https://github.com/zh-lx/code-inspector/pull/480)

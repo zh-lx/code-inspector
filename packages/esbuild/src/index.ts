@@ -45,6 +45,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
         async (args) => {
           let filePath = args.path;
           filePath = getMappingFilePath(filePath, options.mappings);
+          const ext = path.extname(filePath).replace('.', '');
           let originCode = await fs.promises.readFile(filePath, 'utf8');
           let result = cache.get(filePath);
 
@@ -53,7 +54,10 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
             let code = originCode;
 
             if (isExcludedFile(filePath, options)) {
-              return code;
+              return {
+                contents: code,
+                loader: ext,
+              };
             }
 
             code = await getCodeWithWebComponent({
@@ -94,13 +98,12 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
               code = code.replace(descriptor.template.content, templateContent);
             }
 
-            const ext = path.extname(filePath).replace('.', '');
             result = { originCode, output: { contents: code, loader: ext } };
             cache.set(filePath, result);
           }
 
           return result.output;
-        }
+        },
       );
     },
   };

@@ -122,8 +122,10 @@ describe('EsbuildCodeInspectorPlugin', () => {
       const onLoadCallback = mockBuild.onLoad.mock.calls[0][1];
 
       const result = await onLoadCallback({ path: '/test/excluded-file-1.tsx' });
-      // When excluded and not in cache, returns the code string (checked source code line 56)
-      expect(result).toBe('const excluded = 1;');
+      expect(result).toEqual({
+        contents: 'const excluded = 1;',
+        loader: 'tsx',
+      });
     });
 
     it('should transform JSX files and return output object', async () => {

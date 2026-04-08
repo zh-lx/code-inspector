@@ -22,6 +22,7 @@ export default defineConfig({
         'https',
         'net',
         'chalk',
+        'url',
         'launch-ide',
         'portfinder',
         'child_process',

@@ -2,14 +2,20 @@ import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
 import { parse as parseSvelte, walk } from 'svelte/compiler';
 
-export function transformSvelte(content: string, filePath: string, escapeTags: EscapeTags) {
+export function transformSvelte(
+  content: string,
+  filePath: string,
+  escapeTags: EscapeTags,
+) {
   const s = new MagicString(content);
 
   // svelte parse dosen't support ts or scss/less
   // so replace the content of <script></script> and <style></style> with space
   let replacedContent = content;
-  const scriptRegex = /<script(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/script>/gi;
-  const styleRegex = /<style(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/style>/gi;
+  const scriptRegex =
+    /<script(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/script>/gi;
+  const styleRegex =
+    /<style(?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>\s]*))?)?>[\s\S]*?<\/style>/gi;
   const scriptMatches = content.match(scriptRegex) || [];
   const styleMatches = content.match(styleRegex) || [];
   [...scriptMatches, ...styleMatches].forEach((match) => {
@@ -23,7 +29,7 @@ export function transformSvelte(content: string, filePath: string, escapeTags: E
       if (
         node.type === 'Element' &&
         !isEscapeTags(escapeTags, node.name) &&
-        !node?.attributes?.some((attr: any) => attr?.name === PathName)
+        !node.attributes?.some((attr: any) => attr?.name === PathName)
       ) {
         const insertPosition = node.start + node.name.length + 1;
         const line = countLines(content, node.start) + 1;

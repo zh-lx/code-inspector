@@ -1,49 +1,50 @@
 import {
   CodeOptions,
   RecordInfo,
-  fileURLToPath,
   getCodeWithWebComponent,
   getProjectRecord,
   isDev,
   isNextjsProject,
 } from '@code-inspector/core';
-/* v8 ignore next -- import statement branch coverage not testable */
-import path, { dirname } from 'path';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getWebpackEntrys } from './entry';
 
-let compatibleDirname = '';
-
-/* v8 ignore next 5 -- environment-specific: __dirname available in CJS, import.meta.url in ESM */
-if (typeof __dirname !== 'undefined') {
-  compatibleDirname = __dirname;
-} else {
-  compatibleDirname = dirname(fileURLToPath(import.meta.url));
-}
-
-let isFirstLoad = true;
+const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface LoaderOptions extends CodeOptions {
   record: RecordInfo;
 }
 
+const baseLoaderPath = path.resolve(compatibleDirname, './loader.js');
+const injectLoaderPath = path.resolve(compatibleDirname, './inject-loader.js');
+
+function hasRegisteredCodeInspectorLoader(rules: any[]) {
+  return rules.some((rule) =>
+    rule?.use?.some?.(
+      (item: any) =>
+        item?.loader === baseLoaderPath || item?.loader === injectLoaderPath,
+    ),
+  );
+}
+
 const applyLoader = (options: LoaderOptions, compiler: any) => {
-  /* v8 ignore next 3 -- guard prevents duplicate loader registration */
-  if (!isFirstLoad) {
-    return;
-  }
-  isFirstLoad = false;
   // 适配 webpack 各个版本
   const _compiler = compiler?.compiler || compiler;
   const module = _compiler?.options?.module;
-  /* v8 ignore next -- fallback for legacy webpack versions with module.loaders */
   const rules = module?.rules || module?.loaders || [];
+
+  if (hasRegisteredCodeInspectorLoader(rules)) {
+    return;
+  }
+
   rules.push(
     {
       test: options.match ?? /\.html$/,
       resourceQuery: /vue/,
       use: [
         {
-          loader: path.resolve(compatibleDirname, `./loader.js`),
+          loader: baseLoaderPath,
           options,
         },
       ],
@@ -53,7 +54,7 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
       test: /\.(vue|jsx|tsx|js|ts|mjs|mts|svelte)$/,
       use: [
         {
-          loader: path.resolve(compatibleDirname, `./loader.js`),
+          loader: baseLoaderPath,
           options,
         },
       ],
@@ -68,12 +69,12 @@ const applyLoader = (options: LoaderOptions, compiler: any) => {
           }),
       use: [
         {
-          loader: path.resolve(compatibleDirname, `./inject-loader.js`),
+          loader: injectLoaderPath,
           options,
         },
       ],
       enforce: isNextjsProject() ? 'pre' : 'post',
-    }
+    },
   );
 };
 
@@ -85,7 +86,7 @@ interface Options extends CodeOptions {
 function getPureClientCodeString(
   options: Options,
   record: RecordInfo,
-  server?: boolean
+  server?: boolean,
 ): Promise<string> {
   return getCodeWithWebComponent({
     options: { ...options, importClient: 'code' },
@@ -114,7 +115,7 @@ async function replaceHtml({
       if (typeof source === 'string') {
         const sourceCode = source.replace(
           '<head>',
-          `<head><script type="module">\n${code}\n</script>`
+          `<head><script type="module">\n${code}\n</script>`,
         );
         assets[filename] = {
           source: () => sourceCode,
@@ -133,14 +134,12 @@ class WebpackCodeInspectorPlugin {
   }
 
   async apply(compiler) {
-    isFirstLoad = true;
-
     if (
       this.options.close ||
       !isDev(
         this.options.dev,
         compiler?.options?.mode === 'development' ||
-          process.env.NODE_ENV === 'development'
+          process.env.NODE_ENV === 'development',
       )
     ) {
       return;
@@ -152,7 +151,7 @@ class WebpackCodeInspectorPlugin {
       output: this.options.output,
       inputs: getWebpackEntrys(
         compiler?.options?.entry,
-        compiler?.options?.context
+        compiler?.options?.context,
       ),
       envDir: compiler?.options?.context,
       root: compiler?.options?.context,
@@ -195,7 +194,7 @@ class WebpackCodeInspectorPlugin {
             assets,
           });
           cb();
-        }
+        },
       );
     }
   }

@@ -16,16 +16,30 @@ import {
 } from './transform-vue-pug';
 
 const VueElementType = 1;
-type VueCompilerDom = Pick<typeof import('@vue/compiler-dom'), 'parse' | 'transform'>;
+type VueCompilerDom = Pick<
+  typeof import('@vue/compiler-dom'),
+  'parse' | 'transform'
+>;
 const VUE_COMPILER_DOM = '@vue/compiler-dom';
 let vueCompilerDomPromise: Promise<VueCompilerDom> | undefined;
+
+export function resolveVueCompilerDom(mod: any): VueCompilerDom {
+  const parse = mod?.parse ?? mod?.default?.parse;
+  const transform = mod?.transform ?? mod?.default?.transform;
+
+  if (typeof parse !== 'function' || typeof transform !== 'function') {
+    throw new Error('Failed to load @vue/compiler-dom parse/transform exports');
+  }
+
+  return { parse, transform };
+}
 
 async function getVueCompilerDom(): Promise<VueCompilerDom> {
   if (!vueCompilerDomPromise) {
     vueCompilerDomPromise = import(
       /* @vite-ignore */
       VUE_COMPILER_DOM
-    ).then(({ parse, transform }) => ({ parse, transform }));
+    ).then((mod) => resolveVueCompilerDom(mod));
   }
   return vueCompilerDomPromise;
 }
@@ -33,10 +47,11 @@ async function getVueCompilerDom(): Promise<VueCompilerDom> {
 export async function transformVue(
   content: string,
   filePath: string,
-  escapeTags: EscapeTags
+  escapeTags: EscapeTags,
 ) {
   // 兼容 pug 热更新时逻辑
-  let prefixSubstring = '', suffixSubstring = '';
+  let prefixSubstring = '',
+    suffixSubstring = '';
   if (pugMap.has(filePath)) {
     try {
       const absolutePath =
@@ -64,7 +79,7 @@ export async function transformVue(
 
   // 判断是否为 Pug 模版
   const templateNode = ast.children.find(
-    (node) => node.type === VueElementType && node.tag === 'template'
+    (node) => node.type === VueElementType && node.tag === 'template',
   ) as ElementNode;
 
   // Check if template uses Pug
@@ -82,7 +97,10 @@ export async function transformVue(
   }
 
   let result = s.toString();
-  return result.slice(prefixSubstring.length, result.length - suffixSubstring.length);
+  return result.slice(
+    prefixSubstring.length,
+    result.length - suffixSubstring.length,
+  );
 }
 
 /**
@@ -97,7 +115,7 @@ function transformVueTemplate(
   filePath: string,
   escapeTags: EscapeTags,
   s: MagicString,
-  transform: VueCompilerDom['transform']
+  transform: VueCompilerDom['transform'],
 ): void {
   transform(ast, {
     nodeTransforms: [
