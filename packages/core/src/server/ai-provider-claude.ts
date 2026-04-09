@@ -198,6 +198,7 @@ export const __TEST_ONLY__ = {
   setupSdkEnvironment,
   buildSdkQueryOptions,
   queryViaSdk,
+  normalizeClaudeCliPathForWindowsSpawn,
   setClaudeQuery: (queryFn: Function | null) => {
     claudeQuery = queryFn;
   },
@@ -538,6 +539,31 @@ export function handleClaudeRequest(
 let cachedCliPath: string | null | undefined = undefined;
 
 /**
+ * Windows 上 `where claude` 常指向 npm 目录里无后缀的 `claude`（实为 Unix shell 脚本）。
+ * `child_process.spawn` 无法将其作为可执行文件启动，会报 ENOENT；同目录下的 `claude.cmd` 才是可 spawn 的入口。
+ */
+function normalizeClaudeCliPathForWindowsSpawn(resolvedPath: string): string {
+  if (process.platform !== 'win32') {
+    return resolvedPath;
+  }
+  const ext = path.extname(resolvedPath).toLowerCase();
+  if (
+    ext === '.cmd' ||
+    ext === '.bat' ||
+    ext === '.exe' ||
+    ext === '.com' ||
+    ext === '.ps1'
+  ) {
+    return resolvedPath;
+  }
+  if (path.basename(resolvedPath) !== 'claude') {
+    return resolvedPath;
+  }
+  const cmdPath = path.join(path.dirname(resolvedPath), 'claude.cmd');
+  return fs.existsSync(cmdPath) ? cmdPath : resolvedPath;
+}
+
+/**
  * 查找本地 Claude Code CLI 路径
  */
 function findClaudeCodeCli(): string | null {
@@ -553,7 +579,8 @@ function findClaudeCodeCli(): string | null {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
     if (result) {
-      cachedCliPath = result.split('\n')[0];
+      const first = result.split(/\r?\n/)[0].trim();
+      cachedCliPath = normalizeClaudeCliPathForWindowsSpawn(first);
       return cachedCliPath;
     }
   } catch {
@@ -571,7 +598,7 @@ function findClaudeCodeCli(): string | null {
 
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
-      cachedCliPath = p;
+      cachedCliPath = normalizeClaudeCliPathForWindowsSpawn(p);
       return cachedCliPath;
     }
   }

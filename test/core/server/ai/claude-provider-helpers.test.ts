@@ -546,6 +546,33 @@ describe('claude provider helpers', () => {
     }
   });
 
+  it('should normalize npm claude shim to claude.cmd on win32', () => {
+    const oldPlatform = process.platform;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-claude-shim-'));
+    const shimPath = path.join(dir, 'claude');
+    const cmdPath = path.join(dir, 'claude.cmd');
+    fs.writeFileSync(shimPath, '#!/bin/sh\n');
+    fs.writeFileSync(cmdPath, '@echo off\n');
+
+    try {
+      Object.defineProperty(process, 'platform', {
+        configurable: true,
+        value: 'win32',
+      });
+      expect(__TEST_ONLY__.normalizeClaudeCliPathForWindowsSpawn(shimPath)).toBe(
+        cmdPath,
+      );
+      expect(__TEST_ONLY__.normalizeClaudeCliPathForWindowsSpawn(cmdPath)).toBe(
+        cmdPath,
+      );
+    } finally {
+      Object.defineProperty(process, 'platform', {
+        configurable: true,
+        value: oldPlatform,
+      });
+    }
+  });
+
   it('should cover sdk environment/bootstrap branches and dynamic getClaudeQuery load', async () => {
     const originalEnv = process.env as any;
     (process as any).env = undefined;
