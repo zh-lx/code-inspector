@@ -51,6 +51,35 @@ interface ClaudeCliInputMessage {
 const INLINE_IMAGE_DATA_URL_REGEX =
   /data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)/g;
 
+const CLAUDE_MODEL_LOG_MAX_CHARS = 1800;
+
+function truncateForLog(text: string, max = CLAUDE_MODEL_LOG_MAX_CHARS): string {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  return `${text.slice(0, max)}...[truncated ${text.length - max} chars]`;
+}
+
+function stringifyForLog(value: unknown): string {
+  if (typeof value === 'string') {
+    return truncateForLog(value);
+  }
+  try {
+    return truncateForLog(JSON.stringify(value));
+  } catch {
+    return truncateForLog(String(value));
+  }
+}
+
+function logClaudeModelIO(stage: string, payload: unknown): void {
+  const prefix = chalk.gray('[claude-model-io]');
+  const output = stringifyForLog(payload);
+  if (output) {
+    console.log(`${prefix} ${stage}: ${output}`);
+  } else {
+    console.log(`${prefix} ${stage}`);
+  }
+}
+
 function stripInlineImageDataUrls(text: string): string {
   return text.replace(
     INLINE_IMAGE_DATA_URL_REGEX,
@@ -235,13 +264,20 @@ export async function getModelInfo(
 
   try {
     const model = await new Promise<string>((resolve) => {
+      const probeArgs = ['-p', 'hi', '--output-format', 'stream-json', '--verbose'];
+      const probeUseShell = cliPathNeedsShellSpawnOnWindows(cliPath);
+      logClaudeModelIO('probe.spawn', {
+        cliPath,
+        args: probeArgs,
+        shell: probeUseShell,
+      });
       const child = spawn(
         cliPath,
-        ['-p', 'hi', '--output-format', 'stream-json', '--verbose'],
+        probeArgs,
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           env: getEnvVars(),
-          ...(cliPathNeedsShellSpawnOnWindows(cliPath) ? { shell: true } : {}),
+          ...(probeUseShell ? { shell: true } : {}),
         },
       );
       child.stdin?.end();
@@ -259,6 +295,7 @@ export async function getModelInfo(
 
         for (const line of lines) {
           if (!line.trim()) continue;
+          logClaudeModelIO('probe.stdout', line);
           try {
             const event = JSON.parse(line);
             if (event.type === 'system' && event.model) {
@@ -634,7 +671,16 @@ function queryViaCli(
   onSessionId?: (id: string) => void,
 ): ChildProcess {
   const opts = getClaudeCliOptions(aiOptions);
-  const args = inputMessage
+  // On Windows with shell spawning, long multiline prompt passed as CLI args can
+  // be mangled by cmd parsing. Force stream-json stdin input to avoid arg parsing issues.
+  const forceStreamInputOnWindows = process.platform === 'win32';
+  const effectiveInputMessage =
+    inputMessage ||
+    (forceStreamInputOnWindows
+      ? buildClaudeCliInputMessage(prompt, [], sessionId)
+      : undefined);
+
+  const args = effectiveInputMessage
     ? [
         '-p',
         '--output-format',
@@ -699,16 +745,28 @@ function queryViaCli(
   }
 
   const env = { ...getEnvVars(), ...opts?.env };
+  const useShell = cliPathNeedsShellSpawnOnWindows(cliPath);
+  logClaudeModelIO('cli.spawn', {
+    cliPath,
+    args,
+    cwd,
+    shell: useShell,
+    hasInputMessage: Boolean(effectiveInputMessage),
+    promptPreview: effectiveInputMessage ? '[sent via stream-json stdin]' : prompt,
+  });
 
   const child = spawn(cliPath, args, {
     cwd,
     env,
     stdio: ['pipe', 'pipe', 'pipe'],
-    ...(cliPathNeedsShellSpawnOnWindows(cliPath) ? { shell: true } : {}),
+    ...(useShell ? { shell: true } : {}),
   });
 
-  if (inputMessage) {
-    child.stdin?.write(`${JSON.stringify(inputMessage)}\n`);
+  if (effectiveInputMessage) {
+    logClaudeModelIO('cli.stdin', effectiveInputMessage);
+    child.stdin?.write(`${JSON.stringify(effectiveInputMessage)}\n`);
+  } else {
+    logClaudeModelIO('cli.prompt', prompt);
   }
   child.stdin?.end();
 
@@ -728,6 +786,7 @@ function queryViaCli(
 
     for (const line of lines) {
       if (!line.trim()) continue;
+      logClaudeModelIO('cli.stdout', line);
 
       try {
         const event = JSON.parse(line);
@@ -1036,10 +1095,17 @@ async function queryViaSdk(
   }
 
   const queryOptions = buildSdkQueryOptions(aiOptions, cwd, sessionId);
+  logClaudeModelIO('sdk.query.options', queryOptions);
+  if (typeof prompt === 'string') {
+    logClaudeModelIO('sdk.query.prompt', prompt);
+  } else {
+    logClaudeModelIO('sdk.query.prompt', '[async iterable multimodal input]');
+  }
   if (typeof queryOptions.stderr !== 'function') {
     queryOptions.stderr = (data: string) => {
       const text = String(data || '').trim();
       if (text) {
+        logClaudeModelIO('sdk.stderr', text);
         sendSSE({ type: 'info', message: text });
       }
     };
@@ -1081,6 +1147,7 @@ async function queryViaSdk(
 
   try {
     for await (const sdkMessage of conversation) {
+      logClaudeModelIO('sdk.event', sdkMessage);
       if (isAborted()) {
         conversation.interrupt();
         break;
