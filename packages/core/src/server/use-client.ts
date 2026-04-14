@@ -333,7 +333,10 @@ export async function getCodeWithWebComponent({
 
   // 注入消除 warning 代码
   const isTargetFile = await isTargetFileToInject(file, record);
-  if (isTargetFile || inject) {
+  // Babel can only parse JS-type source. Skip non-JS (e.g. raw `.html`) to avoid
+  // "Unexpected token" errors from `addImportToEntry` / `addNextEmptyElementToEntry`.
+  const canParseAsJs = !file || isJsTypeFile(file);
+  if ((isTargetFile || inject) && canParseAsJs) {
     const injectCode = getInjectedCode(
       options,
       getProjectRecord(record)?.port || 0,

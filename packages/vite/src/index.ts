@@ -99,6 +99,17 @@ export function ViteCodeInspectorPlugin(options: Options) {
         return code;
       }
 
+      const [_completePath, query] = id.split('?', 2); // 当前文件的绝对路径
+      let filePath = normalizePath(_completePath);
+
+      // Skip raw HTML entries. In Vite 8 `experimental.bundledDev` mode, rolldown
+      // invokes filterless `transform` hooks on every module including `index.html`
+      // before `vite:build-html` converts it to a JS proxy. Passing raw HTML into
+      // `getCodeWithWebComponent` may trigger Babel `parse()` on HTML and throw.
+      if (filePath.endsWith('.html') && !query) {
+        return code;
+      }
+
       code = await getCodeWithWebComponent({
         options,
         file: id,
@@ -107,9 +118,6 @@ export function ViteCodeInspectorPlugin(options: Options) {
       });
 
       const { escapeTags = [], mappings } = options;
-
-      const [_completePath, query] = id.split('?', 2); // 当前文件的绝对路径
-      let filePath = normalizePath(_completePath);
       filePath = getMappingFilePath(filePath, mappings);
       const params = new URLSearchParams(query);
       // 仅对符合正则的生效
