@@ -14,6 +14,10 @@ export declare class AITerminalManager {
     onExit?: (code: number) => void;
     /** 错误回调 */
     onError?: (message: string) => void;
+    /** 运行时会话 ID 回调 */
+    onRuntimeSession?: (runtimeSessionId: string, kind?: string) => void;
+    /** 运行时游标回调 */
+    onRuntimeCursor?: (cursor: number) => void;
     constructor(ip: string, port: number);
     /**
      * 将终端挂载到 DOM 容器
@@ -30,6 +34,8 @@ export declare class AITerminalManager {
         provider: ChatProvider;
         prompt?: string;
         sessionId?: string;
+        runtimeSessionId?: string;
+        runtimeCursor?: number;
         cwd: string;
         model?: string;
     }): void;

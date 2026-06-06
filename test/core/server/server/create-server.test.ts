@@ -5,6 +5,49 @@ import { createRequire } from 'module';
 
 const mockHttpCreateServer = vi.hoisted(() => vi.fn());
 const mockPortfinderGetPort = vi.hoisted(() => vi.fn());
+const mockLaunchIDE = vi.hoisted(() => vi.fn());
+const mockGetEnvVariables = vi.hoisted(() => vi.fn(() => ({})));
+const mockGetAIOptions = vi.hoisted(() => vi.fn());
+const mockHandleAIRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIModelRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIRevertRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIRuntimeAbortRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIRuntimeStreamRequest = vi.hoisted(() => vi.fn());
+const mockGetExpireDays = vi.hoisted(() => vi.fn());
+const mockAttachTerminalWebSocket = vi.hoisted(() => vi.fn());
+const mockGetTerminalAvailabilityStatus = vi.hoisted(() => vi.fn());
+const mockHandleAIHistoryListRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIHistorySaveRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIHistoryLoadRequest = vi.hoisted(() => vi.fn());
+const mockHandleAIHistoryDeleteRequest = vi.hoisted(() => vi.fn());
+
+vi.mock('launch-ide', () => ({
+  launchIDE: mockLaunchIDE,
+  getEnvVariables: mockGetEnvVariables,
+}));
+
+vi.mock('@/core/src/server/ai', () => ({
+  getAIOptions: mockGetAIOptions,
+  handleAIRequest: mockHandleAIRequest,
+  handleAIModelRequest: mockHandleAIModelRequest,
+  handleAIRevertRequest: mockHandleAIRevertRequest,
+  handleAIRuntimeAbortRequest: mockHandleAIRuntimeAbortRequest,
+  handleAIRuntimeStreamRequest: mockHandleAIRuntimeStreamRequest,
+  getExpireDays: mockGetExpireDays,
+}));
+
+vi.mock('@/core/src/server/ai-terminal', () => ({
+  attachTerminalWebSocket: mockAttachTerminalWebSocket,
+  getTerminalAvailabilityStatus: mockGetTerminalAvailabilityStatus,
+}));
+
+vi.mock('@/core/src/server/ai-history', () => ({
+  handleAIHistoryListRequest: mockHandleAIHistoryListRequest,
+  handleAIHistorySaveRequest: mockHandleAIHistorySaveRequest,
+  handleAIHistoryLoadRequest: mockHandleAIHistoryLoadRequest,
+  handleAIHistoryDeleteRequest: mockHandleAIHistoryDeleteRequest,
+}));
+
 const requireFromCore = createRequire(
   path.resolve(process.cwd(), 'packages/core/package.json'),
 );
@@ -38,6 +81,24 @@ describe('createServer', () => {
     mockPortfinderGetPort.mockImplementation((options: any, callback: any) => {
       callback(null, options?.port || 5678);
     });
+    mockGetAIOptions.mockImplementation((behavior: any) =>
+      behavior?.ai?.codex ? { provider: 'codex' } : undefined,
+    );
+    mockHandleAIRequest.mockResolvedValue(undefined);
+    mockHandleAIModelRequest.mockResolvedValue(undefined);
+    mockHandleAIRevertRequest.mockResolvedValue(undefined);
+    mockHandleAIRuntimeAbortRequest.mockResolvedValue(undefined);
+    mockHandleAIRuntimeStreamRequest.mockResolvedValue(undefined);
+    mockGetExpireDays.mockReturnValue(undefined);
+    mockAttachTerminalWebSocket.mockResolvedValue(undefined);
+    mockGetTerminalAvailabilityStatus.mockReturnValue({
+      available: false,
+      reason: 'mocked',
+    });
+    mockHandleAIHistoryListRequest.mockResolvedValue(undefined);
+    mockHandleAIHistorySaveRequest.mockResolvedValue(undefined);
+    mockHandleAIHistoryLoadRequest.mockResolvedValue(undefined);
+    mockHandleAIHistoryDeleteRequest.mockResolvedValue(undefined);
     vi.spyOn(http, 'createServer').mockImplementation(
       mockHttpCreateServer as any,
     );
@@ -319,7 +380,7 @@ describe('createServer', () => {
 
     it('should handle OPTIONS request for CORS preflight', () => {
       const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(callback);
 
       const mockReq = {
         url: '/',
@@ -348,7 +409,7 @@ describe('createServer', () => {
         bundler: 'vite' as const,
         behavior: { ai: { codex: true } },
       };
-      createServer(callback, options as any);
+      serverModule.createServer(callback, options as any);
 
       const mockReq = {
         url: '/ai',
@@ -373,9 +434,9 @@ describe('createServer', () => {
           'Access-Control-Allow-Private-Network': 'true',
         },
         { provider: 'codex' },
-        ProjectRootPath,
+        serverModule.ProjectRootPath,
       );
-      expect(launchIDE).not.toHaveBeenCalled();
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
     });
 
     it('should handle /ai/model GET route', async () => {
@@ -384,7 +445,7 @@ describe('createServer', () => {
         bundler: 'vite' as const,
         behavior: { ai: { codex: true } },
       };
-      createServer(callback, options as any);
+      serverModule.createServer(callback, options as any);
 
       const mockReq = {
         url: '/ai/model?provider=codex',
@@ -410,12 +471,176 @@ describe('createServer', () => {
         { provider: 'codex' },
         'codex',
       );
-      expect(launchIDE).not.toHaveBeenCalled();
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle /ai/revert POST route', async () => {
+      const callback = vi.fn();
+      serverModule.createServer(callback);
+
+      const mockReq = {
+        url: '/ai/revert',
+        method: 'POST',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      await requestHandler(mockReq, mockRes);
+
+      expect(mockHandleAIRevertRequest).toHaveBeenCalledWith(
+        mockReq,
+        mockRes,
+        expect.objectContaining({
+          'Access-Control-Allow-Origin': '*',
+        }),
+        serverModule.ProjectRootPath,
+      );
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle runtime stream and abort routes', async () => {
+      const callback = vi.fn();
+      serverModule.createServer(callback);
+
+      const streamReq = {
+        url: '/ai/runtime?runtimeSessionId=rt-1&cursor=3',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const streamRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+      await requestHandler(streamReq, streamRes);
+
+      expect(mockHandleAIRuntimeStreamRequest).toHaveBeenCalledWith(
+        streamRes,
+        expect.objectContaining({
+          'Access-Control-Allow-Origin': '*',
+        }),
+        'rt-1',
+        '3',
+      );
+
+      const abortReq = {
+        url: '/ai/runtime/abort',
+        method: 'POST',
+        headers: { host: 'localhost:5678' },
+      };
+      const abortRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+      await requestHandler(abortReq, abortRes);
+
+      expect(mockHandleAIRuntimeAbortRequest).toHaveBeenCalledWith(
+        abortReq,
+        abortRes,
+        expect.objectContaining({
+          'Access-Control-Allow-Origin': '*',
+        }),
+      );
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle terminal status route', async () => {
+      const callback = vi.fn();
+      mockGetTerminalAvailabilityStatus.mockReturnValueOnce({
+        available: true,
+        provider: 'codex',
+      });
+      serverModule.createServer(callback);
+
+      const mockReq = {
+        url: '/ai/terminal/status',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      await requestHandler(mockReq, mockRes);
+
+      expect(mockRes.writeHead).toHaveBeenCalledWith(
+        200,
+        expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+      );
+      expect(JSON.parse(mockRes.end.mock.calls[0][0])).toEqual({
+        available: true,
+        provider: 'codex',
+      });
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
+    });
+
+    it('should handle ai history routes', async () => {
+      const callback = vi.fn();
+      const options = {
+        bundler: 'vite' as const,
+        behavior: { ai: { historyExpireDays: 7 } },
+      };
+      mockGetExpireDays.mockReturnValueOnce(7);
+      serverModule.createServer(callback, options as any);
+
+      const listReq = {
+        url: '/ai/history',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const listRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+      await requestHandler(listReq, listRes);
+
+      expect(mockGetExpireDays).toHaveBeenCalledWith(options.behavior);
+      expect(mockHandleAIHistoryListRequest).toHaveBeenCalledWith(
+        listRes,
+        expect.objectContaining({
+          'Access-Control-Allow-Origin': '*',
+        }),
+        serverModule.ProjectRootPath,
+        7,
+      );
+
+      const routes = [
+        ['/ai/history/save', mockHandleAIHistorySaveRequest],
+        ['/ai/history/load', mockHandleAIHistoryLoadRequest],
+        ['/ai/history/delete', mockHandleAIHistoryDeleteRequest],
+      ] as const;
+
+      for (const [url, handler] of routes) {
+        const req = {
+          url,
+          method: 'POST',
+          headers: { host: 'localhost:5678' },
+        };
+        const res = {
+          writeHead: vi.fn(),
+          end: vi.fn(),
+        };
+        await requestHandler(req, res);
+        expect(handler).toHaveBeenCalledWith(
+          req,
+          res,
+          expect.objectContaining({
+            'Access-Control-Allow-Origin': '*',
+          }),
+          serverModule.ProjectRootPath,
+        );
+      }
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
     });
 
     it('should handle request when req.url is undefined', () => {
       const callback = vi.fn();
-      createServer(callback);
+      serverModule.createServer(callback);
 
       const mockReq = {
         url: undefined,

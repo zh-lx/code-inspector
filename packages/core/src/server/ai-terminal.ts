@@ -1,7 +1,9 @@
 /**
  * 终端模块 - 基于 node-pty 和 WebSocket 提供原生 CLI 终端体验
  */
+import fs from 'fs';
 import http from 'http';
+import path from 'path';
 import type {
   ClaudeCliOptions,
   CodexCliOptions,
@@ -11,6 +13,17 @@ import { getEnvVars } from './server';
 import { findClaudeCodeCli } from './ai-provider-claude';
 import { findCodexCli, CODEX_PROVIDER_RUNTIME } from './ai-provider-common';
 import { OPENCODE_PROVIDER_RUNTIME } from './ai-provider-opencode';
+import {
+  completeRuntimeSession,
+  createRuntimeSession,
+  emitRuntimeEvent,
+  getRuntimeSession,
+  markRuntimeSessionRunning,
+  setRuntimeSessionHooks,
+  subscribeRuntimeSession,
+  unsubscribeRuntimeSession,
+  updateRuntimeSessionMetadata,
+} from './runtime-session';
 
 // ============================================================================
 // 动态加载 node-pty 和 ws（可选依赖，加载失败则终端功能不可用）
@@ -20,6 +33,7 @@ type NodePtyModule = typeof import('node-pty');
 type WsModule = any;
 
 let terminalFeatureAvailable = false;
+let terminalFeatureUnavailableReason = 'Terminal feature has not been initialized.';
 
 function getRuntimeRequire(): NodeJS.Require | null {
   try {
@@ -114,6 +128,153 @@ const wsCache = { value: null as WsModule | null };
 const loadNodePty = () => loadOptionalModule('node-pty', nodePtyCache, normalizeNodePtyModule);
 const loadWs = () => loadOptionalModule('ws', wsCache, normalizeWsModule);
 
+function isExecutableFile(filePath: string): boolean {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) return false;
+    if (process.platform === 'win32') return true;
+    fs.accessSync(filePath, fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveSpawnCommand(command: string): string | null {
+  const trimmed = command.trim();
+  if (!trimmed) return null;
+
+  if (!path.isAbsolute(trimmed) && !trimmed.includes(path.sep)) {
+    return trimmed;
+  }
+
+  const candidates = [trimmed, path.resolve(trimmed)];
+  try {
+    candidates.push(fs.realpathSync(trimmed));
+  } catch {
+    // ignore invalid realpath
+  }
+
+  for (const candidate of candidates) {
+    if (isExecutableFile(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function isExistingDirectory(candidate: string): boolean {
+  try {
+    return fs.statSync(candidate).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function resolveSpawnCwd(
+  requestedCwd: string | undefined,
+  projectRootPath: string,
+): string {
+  const candidates = [requestedCwd, projectRootPath, process.cwd()]
+    .filter((value): value is string => typeof value === 'string' && !!value.trim())
+    .map((value) => path.resolve(value));
+
+  for (const candidate of candidates) {
+    if (isExistingDirectory(candidate)) {
+      return candidate;
+    }
+  }
+
+  return process.cwd();
+}
+
+function normalizeSpawnEnv(
+  env: Record<string, string | undefined>,
+): Record<string, string> {
+  const normalized: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(env)) {
+    if (typeof value === 'string') {
+      normalized[key] = value;
+    }
+  }
+
+  if (!normalized.PATH && process.env.PATH) {
+    normalized.PATH = process.env.PATH;
+  }
+
+  return normalized;
+}
+
+export const __TEST_ONLY__ = {
+  isExecutableFile,
+  resolveSpawnCommand,
+  resolveSpawnCwd,
+  normalizeSpawnEnv,
+};
+
+function getTerminalProbeCommand(): { command: string; args: string[] } {
+  if (process.platform === 'win32') {
+    return {
+      command: 'cmd.exe',
+      args: ['/d', '/s', '/c', 'exit 0'],
+    };
+  }
+  return {
+    command: '/bin/sh',
+    args: ['-lc', 'exit 0'],
+  };
+}
+
+async function verifyPtySpawn(
+  pty: NodePtyModule,
+): Promise<{ ok: boolean; reason?: string }> {
+  const probe = getTerminalProbeCommand();
+  const command = resolveSpawnCommand(probe.command);
+
+  if (!command) {
+    return {
+      ok: false,
+      reason: `Terminal self-test command is not runnable: ${probe.command}`,
+    };
+  }
+
+  try {
+    const child = pty.spawn(command, probe.args, {
+      name: 'xterm-256color',
+      cols: 80,
+      rows: 24,
+      cwd: resolveSpawnCwd(process.cwd(), process.cwd()),
+      env: normalizeSpawnEnv(getEnvVars()),
+    });
+
+    return await new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        try {
+          child.kill();
+        } catch {
+          // ignore cleanup errors
+        }
+        resolve({
+          ok: false,
+          reason: 'Terminal self-test timed out while spawning a PTY process.',
+        });
+      }, 2000);
+
+      child.onExit(() => {
+        clearTimeout(timeout);
+        resolve({ ok: true });
+      });
+    });
+  } catch (err: any) {
+    return {
+      ok: false,
+      reason: `Terminal self-test failed: ${err?.message || err}`,
+    };
+  }
+}
+
 // ============================================================================
 // 终端会话管理
 // ============================================================================
@@ -127,10 +288,6 @@ interface TerminalSession {
 }
 
 const sessions = new Map<string, TerminalSession>();
-
-function generateSessionId(): string {
-  return `term-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 function destroySession(sessionId: string): void {
   const session = sessions.get(sessionId);
@@ -384,6 +541,8 @@ type ClientMessage =
       provider: AIProviderType;
       prompt?: string;
       sessionId?: string;
+      runtimeSessionId?: string;
+      runtimeCursor?: number;
       cwd: string;
       model?: string;
     }
@@ -394,7 +553,19 @@ type ClientMessage =
 type ServerMessage =
   | { type: 'output'; data: string }
   | { type: 'exit'; code: number }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | {
+      type: 'runtime_session';
+      runtimeSessionId: string;
+      runtimeKind: 'terminal';
+      seq?: number;
+    }
+  | {
+      type: 'runtime_state';
+      status: string;
+      reason?: string;
+      seq?: number;
+    };
 
 function sendWsMessage(ws: any, msg: ServerMessage): void {
   try {
@@ -422,6 +593,8 @@ export async function attachTerminalWebSocket(
 
   if (!pty || !WS) {
     terminalFeatureAvailable = false;
+    terminalFeatureUnavailableReason =
+      'node-pty or ws is not available in the current runtime.';
     return false;
   }
 
@@ -433,6 +606,16 @@ export async function attachTerminalWebSocket(
   const WebSocketServerCtor = (WS as any).WebSocketServer || (WS as any).Server;
   if (!WebSocketServerCtor) {
     terminalFeatureAvailable = false;
+    terminalFeatureUnavailableReason =
+      'WebSocketServer constructor is unavailable from ws.';
+    return false;
+  }
+
+  const probeResult = await verifyPtySpawn(pty);
+  if (!probeResult.ok) {
+    terminalFeatureAvailable = false;
+    terminalFeatureUnavailableReason =
+      probeResult.reason || 'Terminal self-test failed.';
     return false;
   }
 
@@ -445,10 +628,13 @@ export async function attachTerminalWebSocket(
     }
   } catch {
     terminalFeatureAvailable = false;
+    terminalFeatureUnavailableReason =
+      'Failed to construct the terminal WebSocket server.';
     return false;
   }
 
   terminalFeatureAvailable = true;
+  terminalFeatureUnavailableReason = '';
 
   server.on('upgrade', (req: http.IncomingMessage, socket: any, head: Buffer) => {
     const url = new URL(req.url || '', `http://${req.headers.host}`);
@@ -463,6 +649,14 @@ export async function attachTerminalWebSocket(
 
   wss.on('connection', (ws: any) => {
     let currentSessionId: string | null = null;
+    const wsClientId = `ws-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const detachCurrentSession = () => {
+      if (currentSessionId) {
+        unsubscribeRuntimeSession(currentSessionId, wsClientId);
+        currentSessionId = null;
+      }
+    };
 
     ws.on('message', (rawData: any) => {
       let msg: ClientMessage;
@@ -474,9 +668,27 @@ export async function attachTerminalWebSocket(
       }
 
       if (msg.type === 'create') {
-        // 如果已有会话，先销毁
-        if (currentSessionId) {
-          destroySession(currentSessionId);
+        detachCurrentSession();
+
+        if (msg.runtimeSessionId) {
+          const existingRuntimeSession = getRuntimeSession(msg.runtimeSessionId);
+          if (!existingRuntimeSession || existingRuntimeSession.kind !== 'terminal') {
+            sendWsMessage(ws, {
+              type: 'error',
+              message: `Terminal runtime session not found: ${msg.runtimeSessionId}`,
+            });
+            return;
+          }
+          currentSessionId = msg.runtimeSessionId;
+          subscribeRuntimeSession(
+            msg.runtimeSessionId,
+            wsClientId,
+            Number(msg.runtimeCursor || 0),
+            (event) => {
+              sendWsMessage(ws, event as ServerMessage);
+            },
+          );
+          return;
         }
 
         const aiOptions = getAIOptionsFn();
@@ -496,17 +708,44 @@ export async function attachTerminalWebSocket(
           return;
         }
 
-        const cwd = msg.cwd || projectRootPath || process.cwd();
-        const sessionId = generateSessionId();
-        currentSessionId = sessionId;
+        const cwd = resolveSpawnCwd(msg.cwd, projectRootPath);
+        const command = resolveSpawnCommand(cmd.command);
+
+        if (!command) {
+          sendWsMessage(ws, {
+            type: 'error',
+            message: `CLI executable is not runnable: ${cmd.command}`,
+          });
+          return;
+        }
 
         try {
-          const ptyProcess = pty!.spawn(cmd.command, cmd.args, {
+          const runtimeSession = createRuntimeSession('terminal', {
+            metadata: {
+              provider: msg.provider,
+              cwd,
+              providerSessionId: msg.sessionId || null,
+              model: msg.model || '',
+            },
+          });
+          const sessionId = runtimeSession.id;
+          currentSessionId = sessionId;
+          subscribeRuntimeSession(sessionId, wsClientId, 0, (event) => {
+            sendWsMessage(ws, event as ServerMessage);
+          });
+          markRuntimeSessionRunning(sessionId);
+          emitRuntimeEvent(sessionId, {
+            type: 'runtime_session',
+            runtimeSessionId: sessionId,
+            runtimeKind: 'terminal',
+          });
+
+          const ptyProcess = pty!.spawn(command, cmd.args, {
             name: 'xterm-256color',
             cols: 80,
             rows: 24,
             cwd,
-            env: cmd.env as Record<string, string>,
+            env: normalizeSpawnEnv(cmd.env),
           });
 
           const session: TerminalSession = {
@@ -517,15 +756,37 @@ export async function attachTerminalWebSocket(
             createdAt: Date.now(),
           };
           sessions.set(sessionId, session);
+          setRuntimeSessionHooks(sessionId, {
+            abort: () => {
+              try {
+                ptyProcess.kill();
+              } catch {
+                // ignore
+              }
+            },
+            cleanup: () => {
+              destroySession(sessionId);
+            },
+          });
+          updateRuntimeSessionMetadata(sessionId, {
+            cwd,
+            provider: msg.provider,
+            providerSessionId: msg.sessionId || null,
+          });
 
           // PTY 输出 → WebSocket
           ptyProcess.onData((data: string) => {
-            sendWsMessage(ws, { type: 'output', data });
+            emitRuntimeEvent(sessionId, { type: 'output', data });
           });
 
           // PTY 退出
           ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
-            sendWsMessage(ws, { type: 'exit', code: exitCode });
+            emitRuntimeEvent(sessionId, { type: 'exit', code: exitCode });
+            completeRuntimeSession(
+              sessionId,
+              exitCode === 0 ? 'completed' : 'failed',
+              exitCode === 0 ? undefined : `terminal_exit_${exitCode}`,
+            );
             sessions.delete(sessionId);
             if (currentSessionId === sessionId) {
               currentSessionId = null;
@@ -534,7 +795,7 @@ export async function attachTerminalWebSocket(
         } catch (err: any) {
           sendWsMessage(ws, {
             type: 'error',
-            message: `Failed to spawn PTY: ${err?.message || err}`,
+            message: `Failed to spawn PTY: ${err?.message || err} (command: ${command}, cwd: ${cwd})`,
           });
         }
       } else if (msg.type === 'input') {
@@ -565,17 +826,11 @@ export async function attachTerminalWebSocket(
     });
 
     ws.on('close', () => {
-      if (currentSessionId) {
-        destroySession(currentSessionId);
-        currentSessionId = null;
-      }
+      detachCurrentSession();
     });
 
     ws.on('error', () => {
-      if (currentSessionId) {
-        destroySession(currentSessionId);
-        currentSessionId = null;
-      }
+      detachCurrentSession();
     });
   });
 
@@ -592,4 +847,16 @@ export async function attachTerminalWebSocket(
  */
 export function isTerminalAvailable(): boolean {
   return terminalFeatureAvailable;
+}
+
+export function getTerminalAvailabilityStatus(): {
+  available: boolean;
+  reason?: string;
+} {
+  return terminalFeatureAvailable
+    ? { available: true }
+    : {
+        available: false,
+        reason: terminalFeatureUnavailableReason,
+      };
 }

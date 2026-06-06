@@ -45,6 +45,7 @@ export function TurbopackCodeInspectorPlugin(
   };
 
   const WebpackEntry = resolveWebpackEntry({
+    /* v8 ignore next */
     requireResolve: typeof require === 'undefined' ? null : require.resolve,
     importMetaResolve: import.meta.resolve,
   });

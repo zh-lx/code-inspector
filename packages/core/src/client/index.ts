@@ -16,6 +16,8 @@ import {
   renderChatModal,
   chatStyles,
   sendChatToServer,
+  attachRuntimeSessionToServer,
+  abortRuntimeSessionOnServer,
   updateChatModalPosition,
   setProjectRoot,
   fetchModelInfo,
@@ -233,6 +235,9 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   currentTools: Map<string, ToolCall> = new Map(); // 当前正在执行的工具调用
   chatSessionId: string | null = null; // CLI 会话 ID，用于 --resume 恢复上下文
+  runtimeSessionId: string | null = null; // 服务端运行时会话 ID，用于刷新后重连流/终端
+  runtimeSessionKind: 'agent-turn' | 'terminal' | null = null;
+  runtimeCursor = 0;
   @state()
   chatTheme: 'light' | 'dark' = 'dark'; // 聊天主题
   @state()
@@ -314,6 +319,16 @@ export class CodeInspectorComponent extends LitElement {
     vars?: ClientTextVars<K>,
   ): string {
     return getClientText(this.getCurrentLang(), key, vars);
+  }
+
+  private featuresOverride: any[] | null = null;
+
+  get features() {
+    return this.featuresOverride || this.getFeatures();
+  }
+
+  set features(value: any[]) {
+    this.featuresOverride = value;
   }
 
   private getFeatures() {
@@ -765,7 +780,7 @@ export class CodeInspectorComponent extends LitElement {
 
   // 触发功能的处理
   trackCode = () => {
-    this.getFeatures().forEach((feature) => {
+    this.features.forEach((feature) => {
       if (feature.checked()) {
         feature.fn();
         this.dispatchCustomEvent(feature.action);
@@ -790,7 +805,7 @@ export class CodeInspectorComponent extends LitElement {
     const code = e.code.toLowerCase();
     const keyCode = e.keyCode;
 
-    this.getFeatures().forEach((feature) => {
+    this.features.forEach((feature) => {
       const targetDigitCode = 'digit' + feature.key;
       const targetNumCode = 'numpad' + feature.key;
       const targetKeyCode = 48 + feature.key; // key code of number1 is 49
@@ -1134,7 +1149,7 @@ export class CodeInspectorComponent extends LitElement {
           .green(this.t('console.changeActiveFeature'))
           .log()
 
-        this.getFeatures().forEach((feature) => {
+        this.features.forEach((feature) => {
           keysChain(hotKeyNames.concat(feature.key.toString()))
             .green(this.t('console.use'))
             .yellow(feature.label)
@@ -1312,7 +1327,16 @@ export class CodeInspectorComponent extends LitElement {
           ? Array.from(this.revertedToolIds)
           : undefined,
       conversationId: this.conversationId,
+      runtimeSessionId: this.runtimeSessionId,
+      runtimeSessionKind: this.runtimeSessionKind,
+      runtimeCursor: this.runtimeCursor,
     });
+  };
+
+  private clearRuntimeSessionState = () => {
+    this.runtimeSessionId = null;
+    this.runtimeSessionKind = null;
+    this.runtimeCursor = 0;
   };
 
   private revokeObjectUrl = (url?: string) => {
@@ -1487,6 +1511,7 @@ export class CodeInspectorComponent extends LitElement {
 
     // 切换 provider 时保留当前对话上下文，仅重置会话 ID 以避免跨 provider 复用会话
     this.chatSessionId = null;
+    this.clearRuntimeSessionState();
     this.turnStatus = 'idle';
     this.turnDuration = 0;
     this.chatProvider = provider;
@@ -1535,6 +1560,7 @@ export class CodeInspectorComponent extends LitElement {
 
     // 切换 model 时保留当前对话上下文，仅重置会话 ID 以避免跨 model 复用会话
     this.chatSessionId = null;
+    this.clearRuntimeSessionState();
     this.turnStatus = 'idle';
     this.turnDuration = 0;
     this.chatModel = model;
@@ -1713,6 +1739,7 @@ export class CodeInspectorComponent extends LitElement {
     this.clearPendingPastedImages(true);
     this.chatMessages = [];
     this.chatSessionId = null;
+    this.clearRuntimeSessionState();
     this.turnStatus = 'idle';
     this.turnDuration = 0;
     // 清理终端
@@ -1841,6 +1868,10 @@ export class CodeInspectorComponent extends LitElement {
     this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
     this.turnStatus = status;
 
+    if (!this.terminalMode) {
+      this.clearRuntimeSessionState();
+    }
+
     // 自动保存对话到服务端
     if (status === 'done' && this.chatMessages.length > 0) {
       this.autoSaveConversation();
@@ -1871,16 +1902,25 @@ export class CodeInspectorComponent extends LitElement {
 
   // 中断聊天
   interruptChat = () => {
-    if (this.terminalMode && this.terminalManager) {
-      this.terminalManager.closeWebSocket();
-      this.stopTurnTimer('interrupt');
-      this.chatLoading = false;
-      return;
-    }
     if (this.chatAbortController) {
       this.chatAbortController.abort();
       this.chatAbortController = null;
     }
+
+    const runtimeSessionId = this.runtimeSessionId;
+    if (this.terminalMode && this.terminalManager) {
+      this.terminalManager.closeWebSocket();
+    }
+
+    if (runtimeSessionId) {
+      void abortRuntimeSessionOnServer(
+        this.ip,
+        this.port,
+        runtimeSessionId,
+      );
+    }
+
+    this.clearRuntimeSessionState();
     this.stopTurnTimer('interrupt');
     this.chatLoading = false;
   };
@@ -1931,21 +1971,52 @@ export class CodeInspectorComponent extends LitElement {
 
     this.terminalManager.onExit = (code: number) => {
       this.terminalExitCode = code;
+      this.clearRuntimeSessionState();
+      // 进程已退出：销毁 xterm，避免残留一个可聚焦却无后端的“死终端”，
+      // 改由“会话已结束”卡片提供重新开始 / 关闭出口。
+      if (this.terminalManager && !this.terminalManager.isDisposed()) {
+        this.terminalManager.dispose();
+        this.terminalManager = null;
+      }
     };
 
     this.terminalManager.onError = (_message: string) => {
       // 终端错误已在 xterm 中显示
+    };
+    this.terminalManager.onRuntimeSession = (runtimeSessionId, kind) => {
+      this.runtimeSessionId = runtimeSessionId;
+      this.runtimeSessionKind =
+        kind === 'terminal' || kind === 'agent-turn' ? kind : 'terminal';
+      this.persistAIState();
+    };
+    this.terminalManager.onRuntimeCursor = (cursor) => {
+      this.runtimeCursor = cursor;
     };
 
     // 以交互模式启动（不传 prompt）
     this.terminalManager.connect({
       provider: this.chatProvider!,
       prompt: '',
+      runtimeSessionId:
+        this.runtimeSessionKind === 'terminal' ? this.runtimeSessionId || undefined : undefined,
+      runtimeCursor: this.runtimeCursor,
       cwd: this._projectRoot || '',
       model: this.chatModel || undefined,
     });
 
     this.terminalManager.focus();
+  };
+
+  /**
+   * 从“会话已结束”卡片重新启动一个交互式终端会话
+   */
+  restartTerminal = async () => {
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    await this.initTerminal();
   };
 
   sendTerminalMessage = async () => {
@@ -1961,6 +2032,7 @@ export class CodeInspectorComponent extends LitElement {
       ...this.chatMessages,
       { role: 'user', content: rawMessage, context: messageContext },
     ];
+    this.clearRuntimeSessionState();
     this.chatLoading = true;
     this.terminalExitCode = null;
     this.startTurnTimer();
@@ -1989,6 +2061,7 @@ export class CodeInspectorComponent extends LitElement {
     this.terminalManager.onExit = (code: number) => {
       this.terminalExitCode = code;
       this.chatLoading = false;
+      this.clearRuntimeSessionState();
       this.stopTurnTimer(code === 0 ? 'done' : 'interrupt');
       // 添加 assistant 消息记录
       this.chatMessages = [
@@ -2005,13 +2078,25 @@ export class CodeInspectorComponent extends LitElement {
       this.chatLoading = false;
       this.stopTurnTimer('interrupt');
     };
+    this.terminalManager.onRuntimeSession = (runtimeSessionId, kind) => {
+      this.runtimeSessionId = runtimeSessionId;
+      this.runtimeSessionKind =
+        kind === 'terminal' || kind === 'agent-turn' ? kind : 'terminal';
+      this.persistAIState();
+    };
+    this.terminalManager.onRuntimeCursor = (cursor) => {
+      this.runtimeCursor = cursor;
+    };
 
     const cwd = this._projectRoot || '';
+    this.runtimeSessionKind = 'terminal';
 
     this.terminalManager.connect({
       provider: this.chatProvider || 'claudeCode',
       prompt: rawMessage,
       sessionId: this.chatSessionId || undefined,
+      runtimeSessionId: undefined,
+      runtimeCursor: this.runtimeCursor,
       cwd,
       model: this.chatModel || undefined,
     });
@@ -2181,6 +2266,7 @@ export class CodeInspectorComponent extends LitElement {
       this.revertedToolIds = new Set(data.revertedToolIds || []);
       this.conversationId = id;
       this.showHistoryPanel = false;
+      this.clearRuntimeSessionState();
       this.turnStatus = 'idle';
       this.persistAIState();
     } catch {
@@ -2203,6 +2289,7 @@ export class CodeInspectorComponent extends LitElement {
           this.chatMessages = [];
           this.chatContext = null;
           this.chatSessionId = null;
+          this.clearRuntimeSessionState();
           this.revertedToolIds = new Set();
           this.turnStatus = 'idle';
           this.persistAIState();
@@ -2218,6 +2305,7 @@ export class CodeInspectorComponent extends LitElement {
     this.chatMessages = [];
     this.conversationId = null;
     this.chatSessionId = null;
+    this.clearRuntimeSessionState();
     this.revertedToolIds = new Set();
     this.turnStatus = 'idle';
     this.showHistoryPanel = false;
@@ -2342,6 +2430,7 @@ export class CodeInspectorComponent extends LitElement {
       : null;
     this.chatInput = '';
     this.chatPastedImages = [];
+    this.clearRuntimeSessionState();
     this.chatMessages = [
       ...this.chatMessages,
       { role: 'user', content: userMessage, modelContent: outgoingMessage, context: messageContext, images: userImages },
@@ -2389,6 +2478,7 @@ export class CodeInspectorComponent extends LitElement {
       updateAssistantMessage();
       this.persistAIState();
     };
+    let finalRuntimeStatus: 'done' | 'interrupt' = 'done';
 
     try {
       await sendChatToServer(
@@ -2479,6 +2569,24 @@ export class CodeInspectorComponent extends LitElement {
           onModel: (model) => {
             this.chatModel = model;
           },
+          onRuntimeSessionId: (runtimeSessionId, kind) => {
+            this.runtimeSessionId = runtimeSessionId;
+            this.runtimeSessionKind =
+              kind === 'terminal' || kind === 'agent-turn'
+                ? kind
+                : 'agent-turn';
+            this.runtimeCursor = 0;
+            this.persistAIState();
+          },
+          onRuntimeCursor: (cursor) => {
+            this.runtimeCursor = cursor;
+          },
+          onRuntimeState: (_status, _reason) => {
+            if (_status === 'aborted' || _status === 'failed') {
+              finalRuntimeStatus = 'interrupt';
+            }
+            this.persistAIState();
+          },
         },
         this.chatAbortController.signal,
         this.chatSessionId,
@@ -2487,7 +2595,7 @@ export class CodeInspectorComponent extends LitElement {
       );
       // 正常完成：最终刷新确保所有内容显示
       flushUpdate();
-      this.stopTurnTimer('done');
+      this.stopTurnTimer(finalRuntimeStatus);
     } catch (error) {
       // 检查是否是中断导致的错误
       if (error instanceof Error && error.name === 'AbortError') {
@@ -2506,7 +2614,167 @@ export class CodeInspectorComponent extends LitElement {
 
   // 页面刷新后自动恢复未完成的 AI 任务
   private resumeAITask = async () => {
-    if (!this.chatSessionId || this.chatLoading) return;
+    if (this.chatLoading) return;
+
+    if (this.runtimeSessionId && this.runtimeSessionKind === 'terminal') {
+      this.chatLoading = true;
+      this.startTurnTimer();
+      this.terminalExitCode = null;
+      await this.initTerminal();
+      return;
+    }
+
+    if (this.runtimeSessionId) {
+      this.chatLoading = true;
+      this.startTurnTimer();
+      this.chatAbortController = new AbortController();
+
+      // 如果最后一条 assistant 消息是未完成恢复占位，则直接复用；否则追加一个新的占位消息
+      const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+      if (!lastMessage || lastMessage.role !== 'assistant' || lastMessage.content || (lastMessage.blocks && lastMessage.blocks.length > 0)) {
+        this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+      }
+
+      let assistantContent = '';
+      const blocks: ContentBlock[] = [];
+      const toolIdToIndex = new Map<string, number>();
+      const toolStreamIndexToBlockIndex = new Map<number, number>();
+
+      const updateAssistantMessage = () => {
+        this.chatMessages = [
+          ...this.chatMessages.slice(0, -1),
+          { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+        ];
+        this.scrollChatToBottom();
+      };
+
+      let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+      const throttledUpdate = () => {
+        if (!renderThrottleTimer) {
+          renderThrottleTimer = setTimeout(() => {
+            renderThrottleTimer = null;
+            updateAssistantMessage();
+          }, 50);
+        }
+      };
+      const flushUpdate = () => {
+        if (renderThrottleTimer) {
+          clearTimeout(renderThrottleTimer);
+          renderThrottleTimer = null;
+        }
+        updateAssistantMessage();
+        this.persistAIState();
+      };
+
+      try {
+        await attachRuntimeSessionToServer(
+          this.ip,
+          this.port,
+          this.runtimeSessionId,
+          this.runtimeCursor,
+          {
+            onText: (content) => {
+              assistantContent += content;
+              const lastBlock = blocks[blocks.length - 1];
+              if (lastBlock && lastBlock.type === 'text') {
+                lastBlock.content = (lastBlock.content || '') + content;
+              } else {
+                blocks.push({ type: 'text', content });
+              }
+              throttledUpdate();
+            },
+            onToolStart: (toolId, toolName, index) => {
+              if (toolIdToIndex.has(toolId)) {
+                return;
+              }
+              const tool: ToolCall = {
+                id: toolId,
+                name: toolName,
+                isComplete: false,
+              };
+              const blockIndex = blocks.length;
+              blocks.push({ type: 'tool', tool });
+              toolIdToIndex.set(toolId, blockIndex);
+              const normalizedIndex = Number(index);
+              if (Number.isFinite(normalizedIndex)) {
+                toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+              }
+              flushUpdate();
+            },
+            onToolInput: (index, input, toolUseId) => {
+              if (toolUseId) {
+                const byIdIndex = toolIdToIndex.get(toolUseId);
+                if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                  blocks[byIdIndex].tool!.input = input;
+                  flushUpdate();
+                  return;
+                }
+              }
+              const normalizedIndex = Number(index);
+              const blockIndex = Number.isFinite(normalizedIndex)
+                ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+                : undefined;
+              if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+                blocks[blockIndex].tool!.input = input;
+                flushUpdate();
+              }
+            },
+            onToolResult: (toolUseId, content, isError) => {
+              const blockIndex = toolIdToIndex.get(toolUseId);
+              if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+                blocks[blockIndex].tool!.result = content;
+                blocks[blockIndex].tool!.isError = isError;
+                blocks[blockIndex].tool!.isComplete = true;
+                flushUpdate();
+              }
+            },
+            onError: (error) => {
+              console.error('Runtime reattach error:', error);
+            },
+            onSessionId: (sessionId) => {
+              this.chatSessionId = sessionId;
+            },
+            onProjectRoot: (cwd) => {
+              setProjectRoot(cwd);
+              this._projectRoot = cwd;
+            },
+            onModel: (model) => {
+              this.chatModel = model;
+            },
+            onRuntimeSessionId: (runtimeSessionId, kind) => {
+              this.runtimeSessionId = runtimeSessionId;
+              this.runtimeSessionKind =
+                kind === 'terminal' || kind === 'agent-turn'
+                  ? kind
+                  : this.runtimeSessionKind;
+            },
+            onRuntimeCursor: (cursor) => {
+              this.runtimeCursor = cursor;
+            },
+            onRuntimeState: (status) => {
+              if (status === 'completed') {
+                flushUpdate();
+                this.stopTurnTimer('done');
+              } else if (status === 'aborted' || status === 'failed') {
+                this.stopTurnTimer('interrupt');
+              }
+            },
+          },
+          this.chatAbortController.signal,
+        );
+      } catch (error) {
+        if (!(error instanceof Error && error.name === 'AbortError')) {
+          this.chatMessages = this.chatMessages.slice(0, -1);
+          this.stopTurnTimer('interrupt');
+        }
+      } finally {
+        this.chatLoading = false;
+        this.chatAbortController = null;
+      }
+      return;
+    }
+
+    if (!this.chatSessionId) return;
 
     this.chatLoading = true;
     this.startTurnTimer();
@@ -2632,6 +2900,20 @@ export class CodeInspectorComponent extends LitElement {
           onModel: (model) => {
             this.chatModel = model;
           },
+          onRuntimeSessionId: (runtimeSessionId, kind) => {
+            this.runtimeSessionId = runtimeSessionId;
+            this.runtimeSessionKind =
+              kind === 'terminal' || kind === 'agent-turn'
+                ? kind
+                : 'agent-turn';
+            this.runtimeCursor = 0;
+          },
+          onRuntimeCursor: (cursor) => {
+            this.runtimeCursor = cursor;
+          },
+          onRuntimeState: (_status) => {
+            this.persistAIState();
+          },
         },
         this.chatAbortController.signal,
         this.chatSessionId,
@@ -2733,6 +3015,9 @@ export class CodeInspectorComponent extends LitElement {
       this.availableAIProviders = persisted.availableAIProviders || [];
       this.revertedToolIds = new Set(persisted.revertedToolIds || []);
       this.conversationId = persisted.conversationId || null;
+      this.runtimeSessionId = persisted.runtimeSessionId || null;
+      this.runtimeSessionKind = persisted.runtimeSessionKind || null;
+      this.runtimeCursor = persisted.runtimeCursor || 0;
       this.showChatModal = true;
 
       if (this.chatTheme === 'light') {
@@ -2751,7 +3036,10 @@ export class CodeInspectorComponent extends LitElement {
           }
           this.refreshChatProviderAndModel(this.chatProvider).then(() => this.persistAIState());
           // 如果刷新前任务正在执行，自动恢复
-          if (persisted.turnStatus === 'running' && persisted.chatSessionId) {
+          if (
+            persisted.turnStatus === 'running' &&
+            (persisted.runtimeSessionId || persisted.chatSessionId)
+          ) {
             this.resumeAITask();
           }
         });
@@ -3068,7 +3356,7 @@ export class CodeInspectorComponent extends LitElement {
                   </button>
                 </div>
                 <div class="settings-modal-content">
-                  ${this.getFeatures().map(
+                  ${this.features.map(
           (feature) => html`
                       <div class="settings-item">
                         <label class="settings-label">
@@ -3164,6 +3452,7 @@ export class CodeInspectorComponent extends LitElement {
             deleteConversation: this.handleDeleteConversation,
             startNewConversation: this.handleStartNewConversation,
             sendTerminalMessage: this.sendTerminalMessage,
+            restartTerminal: this.restartTerminal,
           }
         )}
 

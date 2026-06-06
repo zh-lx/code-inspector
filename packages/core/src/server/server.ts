@@ -11,14 +11,25 @@ import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
 import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
 import type { CodeOptions, RecordInfo } from '../shared';
-import { handleAIRequest, getAIOptions, handleAIModelRequest, handleAIRevertRequest, getExpireDays } from './ai';
+import {
+  handleAIRequest,
+  getAIOptions,
+  handleAIModelRequest,
+  handleAIRevertRequest,
+  getExpireDays,
+  handleAIRuntimeAbortRequest,
+  handleAIRuntimeStreamRequest,
+} from './ai';
 import {
   handleAIHistoryListRequest,
   handleAIHistorySaveRequest,
   handleAIHistoryLoadRequest,
   handleAIHistoryDeleteRequest,
 } from './ai-history';
-import { attachTerminalWebSocket, isTerminalAvailable } from './ai-terminal';
+import {
+  attachTerminalWebSocket,
+  getTerminalAvailabilityStatus,
+} from './ai-terminal';
 import { getEnvVariables } from 'launch-ide';
 
 /**
@@ -164,10 +175,25 @@ export function createServer(
       return;
     }
 
+    if (pathname === '/ai/runtime' && req.method === 'GET') {
+      await handleAIRuntimeStreamRequest(
+        res,
+        CORS_HEADERS,
+        url.searchParams.get('runtimeSessionId'),
+        url.searchParams.get('cursor'),
+      );
+      return;
+    }
+
+    if (pathname === '/ai/runtime/abort' && req.method === 'POST') {
+      await handleAIRuntimeAbortRequest(req, res, CORS_HEADERS);
+      return;
+    }
+
     // 处理 /ai/terminal/status 路由
     if (pathname === '/ai/terminal/status' && req.method === 'GET') {
       res.writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ available: isTerminalAvailable() }));
+      res.end(JSON.stringify(getTerminalAvailabilityStatus()));
       return;
     }
 

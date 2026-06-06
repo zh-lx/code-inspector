@@ -10,6 +10,19 @@ import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-pr
 import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
 import { handleOpenCodeRequest, getModelInfo as getOpenCodeModelInfo } from './ai-provider-opencode';
 import type { ProviderResult } from './ai-provider-claude';
+import { isTerminalAvailable } from './ai-terminal';
+import {
+  abortRuntimeSession,
+  completeRuntimeSession,
+  createRuntimeSession,
+  emitRuntimeEvent,
+  getRuntimeSessionSnapshot,
+  markRuntimeSessionRunning,
+  setRuntimeSessionHooks,
+  subscribeRuntimeSession,
+  unsubscribeRuntimeSession,
+  updateRuntimeSessionMetadata,
+} from './runtime-session';
 
 // ============================================================================
 // 类型定义
@@ -43,6 +56,10 @@ export interface AIRequest {
   sessionId?: string;
   provider?: AIProviderType;
   model?: string;
+}
+
+interface RuntimeAbortRequest {
+  runtimeSessionId?: string;
 }
 
 export type AIProviderType = 'claudeCode' | 'codex' | 'opencode';
@@ -139,6 +156,18 @@ function getConfiguredModels(aiOption: ActiveAIOptions): string[] {
   ]);
 }
 
+function resolveProviderType(
+  type?: string,
+): 'cli' | 'sdk' | 'terminal' {
+  if (type === 'sdk') {
+    return 'sdk';
+  }
+  if (type === 'terminal') {
+    return isTerminalAvailable() ? 'terminal' : 'cli';
+  }
+  return 'cli';
+}
+
 function resolveRequestedModel(aiOption: ActiveAIOptions, requestedModel?: string): string | undefined {
   const normalizedRequestedModel = normalizeModelName(requestedModel);
   if (!normalizedRequestedModel) {
@@ -207,14 +236,18 @@ export function resolveAIOptions(
   return undefined;
 }
 
-/**
- * 发送 SSE 消息
- */
-function createSSESender(res: http.ServerResponse): (data: object | string) => void {
-  return (data: object | string) => {
-    const message = typeof data === 'string' ? data : JSON.stringify(data);
-    res.write(`data: ${message}\n\n`);
-  };
+function writeSSEEvent(res: http.ServerResponse, data: object | string): void {
+  const message = typeof data === 'string' ? data : JSON.stringify(data);
+  res.write(`data: ${message}\n\n`);
+}
+
+function isFinalRuntimeStateEvent(event: Record<string, unknown>): boolean {
+  return (
+    event.type === 'runtime_state' &&
+    (event.status === 'completed' ||
+      event.status === 'aborted' ||
+      event.status === 'failed')
+  );
 }
 
 /**
@@ -256,19 +289,69 @@ export async function handleAIRequest(
     Connection: 'keep-alive',
   });
 
-  const sendSSE = createSSESender(res);
   const cwd = projectRootPath || process.cwd();
 
   const activeAIOptions = resolveAIOptions(aiOptions, requestedProvider);
   if (!activeAIOptions) {
-    sendSSE({ error: 'AI provider is not configured. Please set behavior.ai.claudeCode, behavior.ai.codex, or behavior.ai.opencode.' });
-    sendSSE('[DONE]');
+    writeSSEEvent(res, {
+      error:
+        'AI provider is not configured. Please set behavior.ai.claudeCode, behavior.ai.codex, or behavior.ai.opencode.',
+    });
+    writeSSEEvent(res, '[DONE]');
     res.end();
     return;
   }
 
   const selectedModel = resolveRequestedModel(activeAIOptions, requestedModel);
   const effectiveAIOptions = withModelOverride(activeAIOptions, selectedModel);
+  const runtimeSession = createRuntimeSession('agent-turn', {
+    metadata: {
+      provider: effectiveAIOptions.provider,
+      providerSessionId: sessionId || null,
+      model: selectedModel || '',
+    },
+  });
+  const subscriberId = `http-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let responseClosed = false;
+
+  const sendRuntimeEventToResponse = (event: Record<string, unknown>) => {
+    if (responseClosed || res.writableEnded) return;
+    try {
+      writeSSEEvent(res, event);
+      if (isFinalRuntimeStateEvent(event)) {
+        res.end();
+      }
+    } catch {
+      responseClosed = true;
+    }
+  };
+
+  subscribeRuntimeSession(runtimeSession.id, subscriberId, 0, sendRuntimeEventToResponse);
+  markRuntimeSessionRunning(runtimeSession.id);
+  emitRuntimeEvent(runtimeSession.id, {
+    type: 'runtime_session',
+    runtimeSessionId: runtimeSession.id,
+    runtimeKind: 'agent-turn',
+  });
+
+  const sendSSE = (data: object | string) => {
+    if (typeof data === 'string') {
+      if (data === '[DONE]') return;
+      emitRuntimeEvent(runtimeSession.id, { type: 'text', content: data });
+      return;
+    }
+
+    emitRuntimeEvent(runtimeSession.id, data as Record<string, unknown>);
+    if (
+      typeof (data as { sessionId?: unknown }).sessionId === 'string' ||
+      typeof (data as { type?: unknown; sessionId?: unknown }).sessionId ===
+        'string'
+    ) {
+      updateRuntimeSessionMetadata(runtimeSession.id, {
+        providerSessionId: (data as { sessionId?: string }).sessionId || null,
+      });
+    }
+  };
 
   let provider: ProviderResult;
   if (effectiveAIOptions.provider === 'codex') {
@@ -281,7 +364,9 @@ export async function handleAIRequest(
       effectiveAIOptions.options as CodexOptions,
       {
         sendSSE,
-        onEnd: () => res.end(),
+        onEnd: () => {
+          completeRuntimeSession(runtimeSession.id, 'completed');
+        },
       },
     );
   } else if (effectiveAIOptions.provider === 'opencode') {
@@ -294,7 +379,9 @@ export async function handleAIRequest(
       effectiveAIOptions.options as OpenCodeOptions,
       {
         sendSSE,
-        onEnd: () => res.end(),
+        onEnd: () => {
+          completeRuntimeSession(runtimeSession.id, 'completed');
+        },
       },
     );
   } else {
@@ -307,21 +394,124 @@ export async function handleAIRequest(
       effectiveAIOptions.options as ClaudeCodeOptions,
       {
         sendSSE,
-        onEnd: () => res.end(),
+        onEnd: () => {
+          completeRuntimeSession(runtimeSession.id, 'completed');
+        },
       },
     );
   }
 
-  // 仅在客户端真正中断时取消任务，避免请求体读取完成后误触发中断
-  const abortProvider = () => {
-    provider.abort();
-  };
-  req.on('aborted', abortProvider);
-  res.on('close', () => {
-    if (!res.writableEnded) {
-      abortProvider();
-    }
+  setRuntimeSessionHooks(runtimeSession.id, {
+    abort: () => {
+      provider.abort();
+    },
   });
+
+  req.on('aborted', () => {
+    responseClosed = true;
+    unsubscribeRuntimeSession(runtimeSession.id, subscriberId);
+  });
+  res.on('close', () => {
+    responseClosed = true;
+    unsubscribeRuntimeSession(runtimeSession.id, subscriberId);
+  });
+}
+
+export async function handleAIRuntimeStreamRequest(
+  res: http.ServerResponse,
+  corsHeaders: Record<string, string>,
+  runtimeSessionId?: string | null,
+  cursor?: string | null,
+): Promise<void> {
+  if (!runtimeSessionId) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'missing_runtime_session_id' }));
+    return;
+  }
+
+  const snapshot = getRuntimeSessionSnapshot(runtimeSessionId);
+  if (!snapshot) {
+    res.writeHead(404, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'runtime_session_not_found' }));
+    return;
+  }
+
+  const parsedCursor = Number(cursor || '0');
+  const normalizedCursor =
+    Number.isFinite(parsedCursor) && parsedCursor > 0 ? parsedCursor : 0;
+
+  res.writeHead(200, {
+    ...corsHeaders,
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+  });
+
+  const subscriberId = `http-reattach-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let responseClosed = false;
+
+  const attached = subscribeRuntimeSession(
+    runtimeSessionId,
+    subscriberId,
+    normalizedCursor,
+    (event) => {
+      if (responseClosed || res.writableEnded) return;
+      writeSSEEvent(res, event);
+      if (isFinalRuntimeStateEvent(event)) {
+        res.end();
+      }
+    },
+  );
+
+  if (!attached) {
+    res.writeHead(404, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'runtime_session_not_found' }));
+    return;
+  }
+
+  if (attached.isFinal) {
+    res.end();
+    return;
+  }
+
+  res.on('close', () => {
+    responseClosed = true;
+    unsubscribeRuntimeSession(runtimeSessionId, subscriberId);
+  });
+}
+
+export async function handleAIRuntimeAbortRequest(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  corsHeaders: Record<string, string>,
+): Promise<void> {
+  let body = '';
+  for await (const chunk of req) {
+    body += chunk;
+  }
+
+  let parsed: RuntimeAbortRequest;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Invalid JSON' }));
+    return;
+  }
+
+  const runtimeSessionId =
+    typeof parsed.runtimeSessionId === 'string'
+      ? parsed.runtimeSessionId
+      : '';
+  if (!runtimeSessionId) {
+    res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'missing_runtime_session_id' }));
+    return;
+  }
+
+  const success = abortRuntimeSession(runtimeSessionId);
+  res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ success }));
 }
 
 /**
@@ -359,7 +549,9 @@ export async function handleAIModelRequest(
     ...configuredModels,
     ...(model ? [model] : []),
   ]);
-  const providerType = (activeAIOptions.options as any)?.type || 'cli';
+  const providerType = resolveProviderType(
+    (activeAIOptions.options as any)?.type,
+  );
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
   res.end(JSON.stringify({
     model,

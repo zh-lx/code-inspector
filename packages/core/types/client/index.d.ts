@@ -120,6 +120,9 @@ export declare class CodeInspectorComponent extends LitElement {
     chatContext: ChatContext | null;
     currentTools: Map<string, ToolCall>;
     chatSessionId: string | null;
+    runtimeSessionId: string | null;
+    runtimeSessionKind: 'agent-turn' | 'terminal' | null;
+    runtimeCursor: number;
     chatTheme: 'light' | 'dark';
     turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
     turnDuration: number;
@@ -234,6 +237,7 @@ export declare class CodeInspectorComponent extends LitElement {
     toggleTarget: () => void;
     toggleAICode: () => void;
     private persistAIState;
+    private clearRuntimeSessionState;
     private revokeObjectUrl;
     private revokeMessageImageUrls;
     private clearPendingPastedImages;
@@ -280,6 +284,10 @@ export declare class CodeInspectorComponent extends LitElement {
      * 初始化终端模式：挂载 xterm 并启动交互式 CLI
      */
     private initTerminal;
+    /**
+     * 从“会话已结束”卡片重新启动一个交互式终端会话
+     */
+    restartTerminal: () => Promise<void>;
     sendTerminalMessage: () => Promise<void>;
     handleRevertEdit: (tool: ToolCall) => Promise<void>;
     private extractRevertEdits;

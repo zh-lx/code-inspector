@@ -22,6 +22,9 @@ export interface PersistedAIState {
     turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
     revertedToolIds?: string[];
     conversationId?: string | null;
+    runtimeSessionId?: string | null;
+    runtimeSessionKind?: 'agent-turn' | 'terminal' | null;
+    runtimeCursor?: number;
 }
 /**
  * 保存 AI 状态到 sessionStorage

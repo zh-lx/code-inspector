@@ -22,7 +22,13 @@ vi.mock('@/core/src/server/ai-provider-claude', () => ({
   getModelInfo: mockGetClaudeModelInfo,
 }));
 
-import { handleAIModelRequest, handleAIRequest, getAIOptions } from '@/core/src/server/ai';
+import {
+  handleAIModelRequest,
+  handleAIRequest,
+  getAIOptions,
+  handleAIRuntimeAbortRequest,
+  handleAIRuntimeStreamRequest,
+} from '@/core/src/server/ai';
 
 function createMockReq(rawBody: string) {
   const listeners: Record<string, Function[]> = {};
@@ -198,7 +204,7 @@ describe('ai module branch coverage', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
-  it('should abort provider when request is aborted', async () => {
+  it('should keep provider running when request is aborted after session creation', async () => {
     const abort = vi.fn();
     mockHandleCodexRequest.mockReturnValueOnce({ abort });
 
@@ -209,10 +215,10 @@ describe('ai module branch coverage', () => {
     await handleAIRequest(req, res, {}, aiOptions, '/project');
     req.emit('aborted');
 
-    expect(abort).toHaveBeenCalledTimes(1);
+    expect(abort).not.toHaveBeenCalled();
   });
 
-  it('should abort provider on response close before writable end', async () => {
+  it('should keep provider running when response closes before writable end', async () => {
     const abort = vi.fn();
     mockHandleCodexRequest.mockReturnValueOnce({ abort });
 
@@ -223,7 +229,7 @@ describe('ai module branch coverage', () => {
     await handleAIRequest(req, res, {}, aiOptions, '/project');
     res.emit('close');
 
-    expect(abort).toHaveBeenCalledTimes(1);
+    expect(abort).not.toHaveBeenCalled();
   });
 
   it('should not abort on response close after writable end', async () => {
@@ -239,6 +245,29 @@ describe('ai module branch coverage', () => {
     res.emit('close');
 
     expect(abort).not.toHaveBeenCalled();
+  });
+
+  it('should stream an existing runtime session and abort it explicitly', async () => {
+    const req = createMockReq(JSON.stringify({ message: 'hello', context: null, provider: 'codex' }));
+    const { res, chunks } = createMockRes();
+    const aiOptions = getAIOptions({ ai: { codex: true } });
+
+    await handleAIRequest(req, res, {}, aiOptions, '/project');
+    const createdPayload = chunks
+      .join('')
+      .split('\n')
+      .find((line) => line.includes('"type":"runtime_session"'));
+    expect(createdPayload).toBeTruthy();
+    const runtimeSessionId = JSON.parse((createdPayload || '').slice(6)).runtimeSessionId;
+
+    const { res: attachRes, chunks: attachChunks } = createMockRes();
+    await handleAIRuntimeStreamRequest(attachRes, {}, runtimeSessionId, '0');
+    expect(attachChunks.join('')).toContain(runtimeSessionId);
+
+    const abortReq = createMockReq(JSON.stringify({ runtimeSessionId }));
+    const { res: abortRes } = createMockRes();
+    await handleAIRuntimeAbortRequest(abortReq, abortRes, {});
+    expect(JSON.parse(abortRes.end.mock.calls[0][0])).toEqual({ success: true });
   });
 
   it('should return empty model payload when no provider configured for model route', async () => {
@@ -302,6 +331,27 @@ describe('ai module branch coverage', () => {
     expect(payload.model).toBe('claude-sonnet-4-5');
     expect(payload.models).toEqual(['claude-sonnet-4-5', 'claude-opus-4-1']);
     expect(payload.providers).toEqual(['claudeCode']);
+  });
+
+  it('should downgrade terminal provider type to cli when PTY is unavailable', async () => {
+    mockGetCodexModelInfo.mockResolvedValueOnce('gpt-5-codex');
+    const aiOptions = getAIOptions({
+      ai: {
+        codex: {
+          type: 'terminal',
+          options: {
+            model: 'gpt-5-codex',
+          },
+        },
+      },
+    });
+    const { res } = createMockRes();
+
+    await handleAIModelRequest(res, {}, aiOptions, 'codex');
+
+    const payload = JSON.parse(res.end.mock.calls[0][0]);
+    expect(payload.provider).toBe('codex');
+    expect(payload.providerType).toBe('cli');
   });
 
   it('should fallback model to configured list when detected model is empty', async () => {

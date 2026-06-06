@@ -511,11 +511,31 @@ describe('claude provider helpers', () => {
     const fallbackPath = path.join(fakeHome, '.npm-global', 'bin', 'claude');
     fs.mkdirSync(path.dirname(fallbackPath), { recursive: true });
     fs.writeFileSync(fallbackPath, '#!/bin/sh\necho claude');
+    fs.chmodSync(fallbackPath, 0o755);
     process.env.PATH = '';
     process.env.HOME = fakeHome;
 
     const found = __TEST_ONLY__.findClaudeCodeCli();
     expect(found).toBe(fallbackPath);
+
+    process.env.PATH = oldPath;
+    process.env.HOME = oldHome;
+  });
+
+  it('should ignore non-executable claude fallback paths', () => {
+    __TEST_ONLY__.resetCaches();
+    const oldPath = process.env.PATH;
+    const oldHome = process.env.HOME;
+    const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-home-nonexec-'));
+    const fallbackPath = path.join(fakeHome, '.npm-global', 'bin', 'claude');
+    fs.mkdirSync(path.dirname(fallbackPath), { recursive: true });
+    fs.writeFileSync(fallbackPath, '#!/bin/sh\necho claude');
+    fs.chmodSync(fallbackPath, 0o644);
+    process.env.PATH = '';
+    process.env.HOME = fakeHome;
+
+    const found = __TEST_ONLY__.findClaudeCodeCli();
+    expect(found).toBeNull();
 
     process.env.PATH = oldPath;
     process.env.HOME = oldHome;

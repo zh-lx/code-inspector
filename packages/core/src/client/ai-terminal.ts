@@ -74,6 +74,29 @@ const XTERM_CSS = `
   z-index: 8; position: absolute; top: 0; right: 0; pointer-events: none;
 }
 .xterm-decoration-top { z-index: 2; position: relative; }
+
+/* ----------------------------------------------------------------------------
+ * xterm v6 自定义滚动条（派生自 VS Code ScrollableElement）
+ * 真实滚动条是 .xterm-scrollable-element > .scrollbar > .slider，宽度由 xterm
+ * 以内联样式写死为 14px（overviewRuler.width || 14），又粗又显眼。
+ * 由于项目未引入官方 xterm.css，这里补齐滚动条的显隐过渡，并把它收窄美化。
+ * 滑块颜色仍由 xterm 按主题动态注入（含 normal/hover/active 三态），无需在此设置。
+ * -------------------------------------------------------------------------- */
+.xterm .xterm-scrollable-element > .scrollbar { cursor: default; }
+/* 空闲淡出 / 滚动·悬停时淡入（xterm 通过 toggle visible/invisible class 控制）*/
+.xterm .xterm-scrollable-element > .visible {
+  opacity: 1; background: rgba(0, 0, 0, 0);
+  transition: opacity 100ms linear; z-index: 11;
+}
+.xterm .xterm-scrollable-element > .invisible { opacity: 0; pointer-events: none; }
+.xterm .xterm-scrollable-element > .invisible.fade { transition: opacity 800ms linear; }
+/* 收窄：垂直 14px→8px、水平同步；!important 覆盖 xterm 写在元素上的内联宽高 */
+.xterm .xterm-scrollable-element > .scrollbar.vertical,
+.xterm .xterm-scrollable-element > .scrollbar.vertical > .slider { width: 8px !important; }
+.xterm .xterm-scrollable-element > .scrollbar.horizontal,
+.xterm .xterm-scrollable-element > .scrollbar.horizontal > .slider { height: 8px !important; }
+/* 圆角胶囊滑块 */
+.xterm .xterm-scrollable-element > .scrollbar > .slider { border-radius: 4px; }
 `;
 
 // ============================================================================
@@ -139,6 +162,8 @@ interface TerminalCreateMessage {
   provider: ChatProvider;
   prompt?: string;
   sessionId?: string;
+  runtimeSessionId?: string;
+  runtimeCursor?: number;
   cwd: string;
   model?: string;
 }
@@ -169,7 +194,26 @@ interface ServerErrorMessage {
   message: string;
 }
 
-type ServerMessage = ServerOutputMessage | ServerExitMessage | ServerErrorMessage;
+interface ServerSessionMessage {
+  type: 'runtime_session';
+  runtimeSessionId: string;
+  runtimeKind?: string;
+  seq?: number;
+}
+
+interface ServerRuntimeStateMessage {
+  type: 'runtime_state';
+  status: string;
+  reason?: string;
+  seq?: number;
+}
+
+type ServerMessage =
+  | ServerOutputMessage
+  | ServerExitMessage
+  | ServerErrorMessage
+  | ServerSessionMessage
+  | ServerRuntimeStateMessage;
 
 // ============================================================================
 // AITerminalManager
@@ -189,6 +233,10 @@ export class AITerminalManager {
   onExit?: (code: number) => void;
   /** 错误回调 */
   onError?: (message: string) => void;
+  /** 运行时会话 ID 回调 */
+  onRuntimeSession?: (runtimeSessionId: string, kind?: string) => void;
+  /** 运行时游标回调 */
+  onRuntimeCursor?: (cursor: number) => void;
 
   constructor(
     private ip: string,
@@ -224,6 +272,8 @@ export class AITerminalManager {
     provider: ChatProvider;
     prompt?: string;
     sessionId?: string;
+    runtimeSessionId?: string;
+    runtimeCursor?: number;
     cwd: string;
     model?: string;
   }): void {
@@ -241,6 +291,8 @@ export class AITerminalManager {
         provider: options.provider,
         prompt: options.prompt,
         sessionId: options.sessionId,
+        runtimeSessionId: options.runtimeSessionId,
+        runtimeCursor: options.runtimeCursor,
         cwd: options.cwd,
         model: options.model,
       };
@@ -267,6 +319,15 @@ export class AITerminalManager {
       } else if (msg.type === 'error') {
         this.terminal?.write(`\r\n\x1b[31m${msg.message}\x1b[0m\r\n`);
         this.onError?.(msg.message);
+      } else if (msg.type === 'runtime_session') {
+        this.onRuntimeSession?.(msg.runtimeSessionId, msg.runtimeKind);
+        if (typeof msg.seq === 'number') {
+          this.onRuntimeCursor?.(msg.seq);
+        }
+      } else if (msg.type === 'runtime_state') {
+        if (typeof msg.seq === 'number') {
+          this.onRuntimeCursor?.(msg.seq);
+        }
       }
     };
 

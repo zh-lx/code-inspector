@@ -159,6 +159,7 @@ export interface ChatHandlers {
     deleteConversation: (id: string) => void;
     startNewConversation: () => void;
     sendTerminalMessage: () => void;
+    restartTerminal: () => void;
 }
 /**
  * 更新聊天框位置（使用 floating-ui）
@@ -242,6 +243,9 @@ export interface StreamHandlers {
     onSessionId?: (sessionId: string) => void;
     onProjectRoot?: (cwd: string) => void;
     onModel?: (model: string) => void;
+    onRuntimeSessionId?: (runtimeSessionId: string, kind?: string) => void;
+    onRuntimeCursor?: (cursor: number) => void;
+    onRuntimeState?: (status: string, reason?: string) => void;
 }
 declare function normalizeChatProvider(provider: unknown): ChatProvider | null;
 /**
@@ -291,10 +295,9 @@ export declare function loadConversationData(ip: string, port: number, id: strin
  * 删除对话历史
  */
 export declare function deleteConversationData(ip: string, port: number, id: string): Promise<boolean>;
-/**
- * 发送聊天消息到服务器
- */
 export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null, model?: string | null): Promise<void>;
+export declare function attachRuntimeSessionToServer(ip: string, port: number, runtimeSessionId: string, cursor: number, handlers: StreamHandlers, signal?: AbortSignal): Promise<void>;
+export declare function abortRuntimeSessionOnServer(ip: string, port: number, runtimeSessionId: string): Promise<boolean>;
 export declare const __TEST_ONLY__: {
     toRelativePath: typeof toRelativePath;
     formatDuration: typeof formatDuration;

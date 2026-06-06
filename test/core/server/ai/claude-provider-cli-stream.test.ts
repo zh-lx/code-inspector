@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import fs from 'fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockSpawn = vi.hoisted(() => vi.fn());
@@ -18,6 +19,8 @@ import {
   getModelInfo,
   handleClaudeRequest,
 } from '@/core/src/server/ai-provider-claude';
+
+const runnableCliPath = process.execPath;
 
 function createChildProcessMock() {
   const child = new EventEmitter() as any;
@@ -173,7 +176,7 @@ describe('claude cli stream parsing', () => {
 
   it('should detect model via cli system event and cache it', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const promise = getModelInfo(undefined as any);
@@ -187,7 +190,7 @@ describe('claude cli stream parsing', () => {
 
   it('should ignore blank probe lines before system model event', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const promise = getModelInfo(undefined as any);
@@ -213,9 +216,23 @@ describe('claude cli stream parsing', () => {
     process.env.PATH = oldPath;
   });
 
+  it('should ignore non-runnable cli candidates', async () => {
+    mockExecSync.mockReturnValue('/not-runnable\n\n');
+    const statSpy = vi.spyOn(fs, 'statSync').mockImplementation(() => {
+      throw new Error('not runnable');
+    });
+
+    try {
+      await expect(getModelInfo(undefined as any)).resolves.toBe('');
+      expect(statSpy).toHaveBeenCalled();
+    } finally {
+      statSpy.mockRestore();
+    }
+  });
+
   it('should timeout while probing model and return empty string', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     vi.useFakeTimers();
@@ -231,7 +248,7 @@ describe('claude cli stream parsing', () => {
 
   it('should ignore invalid system json line and fallback to empty model', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const probe = getModelInfo(undefined as any);
@@ -241,7 +258,7 @@ describe('claude cli stream parsing', () => {
   });
 
   it('should return empty model when spawn throws during probe', async () => {
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockImplementation(() => {
       throw new Error('spawn crash');
     });
@@ -251,7 +268,7 @@ describe('claude cli stream parsing', () => {
 
   it('should handle claude request in cli mode and sdk error mode', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const sentCli: any[] = [];
@@ -306,7 +323,7 @@ describe('claude cli stream parsing', () => {
 
   it('should default to cli mode when ai options are missing', () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const sent: any[] = [];
@@ -556,7 +573,7 @@ describe('claude cli stream parsing', () => {
   it('should cover handleClaudeRequest cli callbacks and sdk-timeout fallback-to-cli', async () => {
     const childCli = createChildProcessMock();
     mockSpawn.mockReturnValueOnce(childCli);
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
 
     const sentCli: any[] = [];
     const onEndCli = vi.fn();
@@ -600,7 +617,7 @@ describe('claude cli stream parsing', () => {
 
     const childFallback = createChildProcessMock();
     mockSpawn.mockReturnValueOnce(childFallback);
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
 
     vi.useFakeTimers();
     try {
@@ -661,7 +678,7 @@ describe('claude cli stream parsing', () => {
 
   it('should resolve empty model when cli probe emits error event', async () => {
     const child = createChildProcessMock();
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
     mockSpawn.mockReturnValue(child);
 
     const probe = getModelInfo(undefined as any);
@@ -672,7 +689,7 @@ describe('claude cli stream parsing', () => {
   it('should cover sdk-timeout fallback with session/images and fallback cli callbacks', async () => {
     const child = createChildProcessMock();
     mockSpawn.mockReturnValue(child);
-    mockExecSync.mockReturnValue('/bin/claude\n');
+    mockExecSync.mockReturnValue(`${runnableCliPath}\n`);
 
     vi.useFakeTimers();
     try {

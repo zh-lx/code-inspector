@@ -162,6 +162,28 @@ function buildResumeTurnPrompt(
  * 缓存 CLI 检测到的模型名
  */
 let cachedCliModel: string | undefined;
+function isRunnableCliPath(filePath: string): boolean {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) return false;
+    if (process.platform === 'win32') return true;
+    fs.accessSync(filePath, fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function pickRunnableCliPath(candidates: string[]): string | null {
+  for (const candidate of candidates) {
+    const trimmed = candidate.trim();
+    if (!trimmed) continue;
+    if (isRunnableCliPath(trimmed)) {
+      return trimmed;
+    }
+  }
+  return null;
+}
 
 function getClaudeAgentOptions(
   aiOptions?: ClaudeCodeOptions,
@@ -552,8 +574,9 @@ export function findClaudeCodeCli(): string | null {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
-    if (result) {
-      cachedCliPath = result.split('\n')[0];
+    const resolvedPath = pickRunnableCliPath(result.split('\n'));
+    if (resolvedPath) {
+      cachedCliPath = resolvedPath;
       return cachedCliPath;
     }
   } catch {
@@ -570,7 +593,7 @@ export function findClaudeCodeCli(): string | null {
   ];
 
   for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
+    if (isRunnableCliPath(p)) {
       cachedCliPath = p;
       return cachedCliPath;
     }

@@ -164,6 +164,17 @@ describe('getWebComponentCode', () => {
     });
   });
 
+  describe('lang configuration', () => {
+    it('should set zh lang when specified', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        lang: 'zh',
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain("inspector.lang = 'zh'");
+    });
+  });
+
   describe('behavior configuration', () => {
     it('should default locate to true', () => {
       const options: CodeOptions = {

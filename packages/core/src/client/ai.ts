@@ -202,6 +202,7 @@ export interface ChatHandlers {
   deleteConversation: (id: string) => void;
   startNewConversation: () => void;
   sendTerminalMessage: () => void;
+  restartTerminal: () => void;
 }
 
 /**
@@ -1533,8 +1534,36 @@ export function renderChatModal(
           : state.terminalMode
           ? html`<div class="chat-terminal-container chat-terminal-fullscreen" id="ai-terminal-container">
               ${state.terminalExitCode !== null
-                ? html`<div class="chat-terminal-exited">
-                    ${getClientText(lang, 'chat.processExitedWithCode', { code: state.terminalExitCode })}
+                ? html`<div class="chat-terminal-ended">
+                    <div
+                      class="chat-terminal-ended-icon ${state.terminalExitCode === 0
+                        ? 'success'
+                        : 'error'}"
+                    >
+                      ${state.terminalExitCode === 0 ? '✓' : '✕'}
+                    </div>
+                    <div class="chat-terminal-ended-title">
+                      ${getClientText(lang, 'chat.terminalEndedTitle')}
+                    </div>
+                    <div class="chat-terminal-ended-desc">
+                      ${getClientText(lang, 'chat.processExitedWithCode', {
+                        code: state.terminalExitCode,
+                      })}
+                    </div>
+                    <div class="chat-terminal-ended-actions">
+                      <button
+                        class="chat-terminal-ended-btn chat-terminal-ended-btn-primary"
+                        @click="${handlers.restartTerminal}"
+                      >
+                        ↻ ${getClientText(lang, 'chat.terminalRestart')}
+                      </button>
+                      <button
+                        class="chat-terminal-ended-btn"
+                        @click="${handlers.closeChatModal}"
+                      >
+                        ${getClientText(lang, 'chat.terminalClose')}
+                      </button>
+                    </div>
                   </div>`
                 : ''}
             </div>`
@@ -2102,16 +2131,16 @@ export const chatStyles = css`
   }
 
   .chat-provider-badge {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--chat-text-secondary);
-    background: var(--chat-hover-bg);
-    border: 1px solid var(--chat-border);
+    background: var(--chat-border);
     padding: 1px 6px;
     border-radius: 3px;
     font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .chat-provider-switcher {
@@ -3111,13 +3140,83 @@ export const chatStyles = css`
     height: 100%;
   }
 
-  .chat-terminal-exited {
-    padding: 6px 12px;
-    color: var(--chat-text-muted);
-    font-size: 12px;
+  .chat-terminal-ended {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
     text-align: center;
-    border-top: 1px solid var(--chat-border);
-    flex-shrink: 0;
+    background: var(--chat-bg);
+  }
+
+  .chat-terminal-ended-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .chat-terminal-ended-icon.success {
+    color: var(--chat-tool-complete);
+    background: var(--chat-diff-add-bg);
+  }
+
+  .chat-terminal-ended-icon.error {
+    color: var(--chat-tool-error);
+    background: var(--chat-diff-del-bg);
+  }
+
+  .chat-terminal-ended-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--chat-text-primary);
+  }
+
+  .chat-terminal-ended-desc {
+    font-size: 12px;
+    color: var(--chat-text-muted);
+  }
+
+  .chat-terminal-ended-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .chat-terminal-ended-btn {
+    padding: 5px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-bg-secondary);
+    color: var(--chat-text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .chat-terminal-ended-btn:hover {
+    background: var(--chat-hover-bg);
+    color: var(--chat-text-primary);
+  }
+
+  .chat-terminal-ended-btn-primary {
+    border-color: var(--chat-accent);
+    background: var(--chat-accent);
+    color: var(--chat-btn-text);
+  }
+
+  .chat-terminal-ended-btn-primary:hover {
+    background: var(--chat-accent-hover);
+    border-color: var(--chat-accent-hover);
+    color: var(--chat-btn-text);
   }
 
   .chat-modal-terminal {
@@ -3312,6 +3411,9 @@ export interface StreamHandlers {
   onSessionId?: (sessionId: string) => void;
   onProjectRoot?: (cwd: string) => void;
   onModel?: (model: string) => void;
+  onRuntimeSessionId?: (runtimeSessionId: string, kind?: string) => void;
+  onRuntimeCursor?: (cursor: number) => void;
+  onRuntimeState?: (status: string, reason?: string) => void;
 }
 
 function normalizeChatProvider(provider: unknown): ChatProvider | null {
@@ -3514,39 +3616,10 @@ export async function deleteConversationData(
 /**
  * 发送聊天消息到服务器
  */
-export async function sendChatToServer(
-  ip: string,
-  port: number,
-  message: string,
-  context: ChatContext | null,
-  history: ChatHistoryMessage[] | undefined,
+async function consumeSSEStream(
+  response: Response,
   handlers: StreamHandlers,
-  signal?: AbortSignal,
-  sessionId?: string | null,
-  provider?: ChatProvider | null,
-  model?: string | null,
 ): Promise<void> {
-  const response = await fetch(`http://${ip}:${port}/ai`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message,
-      context,
-      ...(history && history.length > 0 ? { history } : {}),
-      ...(sessionId && { sessionId }),
-      ...(provider && { provider }),
-      ...(model && { model }),
-    }),
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error('Chat request failed');
-  }
-
-  // 处理 SSE 流式响应
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
 
@@ -3567,9 +3640,23 @@ export async function sendChatToServer(
           if (data === '[DONE]') continue;
           try {
             const parsed = JSON.parse(data);
+            if (typeof parsed.seq === 'number') {
+              handlers.onRuntimeCursor?.(parsed.seq);
+            }
 
             // 处理不同类型的事件
             switch (parsed.type) {
+              case 'runtime_session':
+                if (parsed.runtimeSessionId) {
+                  handlers.onRuntimeSessionId?.(
+                    parsed.runtimeSessionId,
+                    parsed.runtimeKind,
+                  );
+                }
+                break;
+              case 'runtime_state':
+                handlers.onRuntimeState?.(parsed.status, parsed.reason);
+                break;
               case 'text':
                 if (parsed.content) {
                   handlers.onText(parsed.content);
@@ -3625,6 +3712,90 @@ export async function sendChatToServer(
         }
       }
     }
+  }
+}
+
+export async function sendChatToServer(
+  ip: string,
+  port: number,
+  message: string,
+  context: ChatContext | null,
+  history: ChatHistoryMessage[] | undefined,
+  handlers: StreamHandlers,
+  signal?: AbortSignal,
+  sessionId?: string | null,
+  provider?: ChatProvider | null,
+  model?: string | null,
+): Promise<void> {
+  const response = await fetch(`http://${ip}:${port}/ai`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      context,
+      ...(history && history.length > 0 ? { history } : {}),
+      ...(sessionId && { sessionId }),
+      ...(provider && { provider }),
+      ...(model && { model }),
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error('Chat request failed');
+  }
+
+  await consumeSSEStream(response, handlers);
+}
+
+export async function attachRuntimeSessionToServer(
+  ip: string,
+  port: number,
+  runtimeSessionId: string,
+  cursor: number,
+  handlers: StreamHandlers,
+  signal?: AbortSignal,
+): Promise<void> {
+  const query = new URLSearchParams({
+    runtimeSessionId,
+    cursor: String(cursor || 0),
+  });
+  const response = await fetch(`http://${ip}:${port}/ai/runtime?${query.toString()}`, {
+    method: 'GET',
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error('Runtime session attach failed');
+  }
+
+  await consumeSSEStream(response, handlers);
+}
+
+export async function abortRuntimeSessionOnServer(
+  ip: string,
+  port: number,
+  runtimeSessionId: string,
+): Promise<boolean> {
+  const response = await fetch(`http://${ip}:${port}/ai/runtime/abort`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ runtimeSessionId }),
+  });
+
+  if (!response.ok) {
+    return false;
+  }
+
+  try {
+    const payload = await response.json();
+    return payload.success === true;
+  } catch {
+    return false;
   }
 }
 

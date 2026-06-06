@@ -67,6 +67,8 @@ export declare function resolveAIOptions(aiOptions: ResolvedAIOptions | undefine
  * 处理 AI 请求
  */
 export declare function handleAIRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>, aiOptions: ResolvedAIOptions | undefined, projectRootPath: string): Promise<void>;
+export declare function handleAIRuntimeStreamRequest(res: http.ServerResponse, corsHeaders: Record<string, string>, runtimeSessionId?: string | null, cursor?: string | null): Promise<void>;
+export declare function handleAIRuntimeAbortRequest(req: http.IncomingMessage, res: http.ServerResponse, corsHeaders: Record<string, string>): Promise<void>;
 /**
  * 处理 AI 模型信息请求
  */

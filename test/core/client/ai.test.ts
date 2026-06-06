@@ -372,7 +372,7 @@ describe('client ai module', () => {
     };
 
     const tpl = renderChatModal(state, createHandlers() as any);
-    const raw = (tpl as any).strings.join('');
+    const raw = collectTemplateText(tpl);
     expect(raw).toContain('AI Assistant');
     expect(raw).toContain('chat-modal-overlay');
     expect(raw).toContain('chat-input');
@@ -602,6 +602,7 @@ describe('client ai module', () => {
       models: ['gpt-5-codex', 'gpt-5.1-codex'],
       provider: 'codex',
       providers: ['codex', 'claudeCode', 'opencode'],
+      providerType: 'cli',
     });
   });
 
@@ -622,6 +623,7 @@ describe('client ai module', () => {
       models: ['claude-sonnet-4-5'],
       provider: 'claudeCode',
       providers: ['claudeCode'],
+      providerType: 'cli',
     });
   });
 
@@ -632,12 +634,14 @@ describe('client ai module', () => {
       models: [],
       provider: 'claudeCode',
       providers: ['claudeCode'],
+      providerType: 'cli',
     });
     expect(await fetchModelInfo('127.0.0.1', 5678)).toEqual({
       model: '',
       models: [],
       provider: null,
       providers: [],
+      providerType: 'cli',
     });
 
     vi.stubGlobal('fetch', vi.fn(async () => {
@@ -648,12 +652,14 @@ describe('client ai module', () => {
       models: [],
       provider: null,
       providers: [],
+      providerType: 'cli',
     });
     expect(await fetchModelInfo('127.0.0.1', 5678, 'codex')).toEqual({
       model: '',
       models: [],
       provider: 'codex',
       providers: ['codex'],
+      providerType: 'cli',
     });
   });
 
@@ -673,6 +679,7 @@ describe('client ai module', () => {
       models: [],
       provider: null,
       providers: [],
+      providerType: 'cli',
     });
   });
 

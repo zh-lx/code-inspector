@@ -108,6 +108,18 @@ const MESSAGES = defineMessages({
     en: 'Process exited with code {code}',
     zh: '进程已退出，退出码 {code}',
   },
+  'chat.terminalEndedTitle': {
+    en: 'Session ended',
+    zh: '会话已结束',
+  },
+  'chat.terminalRestart': {
+    en: 'Restart',
+    zh: '重新开始',
+  },
+  'chat.terminalClose': {
+    en: 'Close',
+    zh: '关闭',
+  },
   'chat.askAnything': {
     en: 'Ask me anything about this code...',
     zh: '可以问我任何与这段代码相关的问题...',
