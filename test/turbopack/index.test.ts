@@ -25,15 +25,18 @@ import { isDev, isNextGET16 } from '@code-inspector/core';
 
 describe('TurbopackCodeInspectorPlugin', () => {
   const originalRequire = global.require;
+  let cwdSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/test/project');
     global.require = {
       resolve: vi.fn(() => '/pkg/webpack/index.js'),
     } as any;
   });
 
   afterEach(() => {
+    cwdSpy.mockRestore();
     global.require = originalRequire;
   });
 
@@ -83,6 +86,7 @@ describe('TurbopackCodeInspectorPlugin', () => {
 
       const keys = Object.keys(plugin);
       expect(keys[0]).toBe('**/*.{jsx,tsx,js,ts,mjs,mts}');
+      expect(isNextGET16).toHaveBeenCalledWith('/test/project');
     });
 
     it('should use specific file pattern for Next.js < 16', () => {

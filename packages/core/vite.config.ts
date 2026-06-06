@@ -23,6 +23,7 @@ export default defineConfig({
         'net',
         'chalk',
         'url',
+        'module',
         'launch-ide',
         'portfinder',
         'child_process',

@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import MagicString from 'magic-string';
 // @ts-ignore
 import { parse, traverse } from '@babel/core';
@@ -239,7 +240,7 @@ function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
   if (
     !getProjectRecord(record)?.entry &&
     isJsTypeFile(file) &&
-    !isNextjsInstrumentationFile(file)
+    !isNextjsInstrumentationFile(file, isNextjs)
   ) {
     // exclude svelte kit server entry file
     if (file.includes('/.svelte-kit/')) {
@@ -321,7 +322,7 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
-  const isNextjs = isNextjsProject();
+  const isNextjs = isNextjsProject(path.dirname(file));
 
   recordInjectTo(record, options);
   recordEntry(record, file, isNextjs);
@@ -388,28 +389,97 @@ function writeWebComponentFile(
   return webComponentFilePath;
 }
 
-export function isNextjsProject() {
+function normalizeResolveDir(basedir: string) {
+  try {
+    if (fs.existsSync(basedir) && fs.statSync(basedir).isFile()) {
+      return path.dirname(basedir);
+    }
+  } catch (error) {
+    // Fall back to the provided path and let module resolution fail normally.
+  }
+  return basedir;
+}
+
+function resolveNextPackageJson(basedir: string) {
+  const resolveDir = normalizeResolveDir(basedir);
+  try {
+    const require = createRequire(path.join(resolveDir, 'noop.js'));
+    const request = 'next/package.json';
+    const resolvedPath = require.resolve(request);
+    const resolvePaths = require.resolve.paths(request) || [];
+    const allowedResolvePaths = getNodeModulesPaths(resolveDir);
+    const matchedResolvePath = resolvePaths.find((resolvePath) => {
+      const normalizedResolvePath = path.resolve(resolvePath);
+      return (
+        allowedResolvePaths.has(normalizedResolvePath) &&
+        fs.existsSync(path.join(normalizedResolvePath, request))
+      );
+    });
+    const hasNextPackageInResolvePaths = Boolean(matchedResolvePath);
+    return hasNextPackageInResolvePaths ? resolvedPath : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function getNodeModulesPaths(basedir: string) {
+  const paths = new Set<string>();
+  let currentDir = path.resolve(basedir);
+  while (true) {
+    paths.add(path.join(currentDir, 'node_modules'));
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      break;
+    }
+    currentDir = parentDir;
+  }
+  return paths;
+}
+
+function getResolvedNextVersion(basedir: string) {
+  const packageJsonPath = resolveNextPackageJson(basedir);
+  if (!packageJsonPath) {
+    return '';
+  }
+  try {
+    const packageJson = JSON.parse(
+      fs.readFileSync(packageJsonPath, 'utf-8') || '{}',
+    );
+    return packageJson.version || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function isNextVersionGET16(version: string) {
+  if (!version) {
+    return false;
+  }
+  const majorVersion = version.split('.')[0];
+  if (majorVersion === 'latest') {
+    return true;
+  }
+  const majorVersionNumber = parseInt(majorVersion.replace(/\D/g, ''));
+  return majorVersionNumber >= 16;
+}
+
+export function isNextjsProject(basedir?: string) {
+  if (basedir && resolveNextPackageJson(basedir)) {
+    return true;
+  }
   const dependencies = getDependencies();
   return dependencies.includes('next');
 }
 
-export function isNextGET16() {
-  const dependencies = getDependenciesMap();
-  if (dependencies.next) {
-    const version = dependencies.next;
-    const majorVersion = version.split('.')[0];
-    if (majorVersion === 'latest') {
-      return true;
-    }
-    const majorVersionNumber = parseInt(majorVersion.replace(/\D/g, ''));
-    return majorVersionNumber >= 16;
+export function isNextGET16(basedir?: string) {
+  const resolvedVersion = basedir ? getResolvedNextVersion(basedir) : '';
+  if (resolvedVersion) {
+    return isNextVersionGET16(resolvedVersion);
   }
-  return false;
+  const dependencies = getDependenciesMap();
+  return isNextVersionGET16(dependencies.next || '');
 }
 
-function isNextjsInstrumentationFile(file: string) {
-  return (
-    isNextjsProject() &&
-    getFilePathWithoutExt(file).endsWith('/instrumentation')
-  );
+function isNextjsInstrumentationFile(file: string, isNextjs: boolean) {
+  return isNextjs && getFilePathWithoutExt(file).endsWith('/instrumentation');
 }
