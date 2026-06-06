@@ -82,6 +82,38 @@ describe('isNextjsProject', () => {
 
     expect(isNextjsProject(path.join(testDir, 'app'))).toBe(true);
   });
+
+  it('should normalize file basedir before resolving next/package.json', () => {
+    const nextPackageDir = path.join(testDir, 'node_modules/next');
+    const testFile = path.join(testDir, 'app/page.tsx');
+    fs.mkdirSync(nextPackageDir, { recursive: true });
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(
+      path.join(nextPackageDir, 'package.json'),
+      JSON.stringify({ name: 'next', version: '16.2.3' }),
+    );
+    fs.writeFileSync(testFile, 'export default function Page() {}');
+    vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue([]);
+
+    expect(isNextjsProject(testFile)).toBe(true);
+  });
+
+  it('should fall back to dependencies when basedir stat fails', () => {
+    const testFile = path.join(testDir, 'app/page.tsx');
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, 'export default function Page() {}');
+    const originalStatSync = fs.statSync;
+    const statSyncSpy = vi.spyOn(fs, 'statSync').mockImplementation((filePath, options) => {
+      if (filePath === testFile) {
+        throw new Error('stat failed');
+      }
+      return originalStatSync(filePath, options as fs.StatSyncOptions);
+    });
+    vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next']);
+
+    expect(isNextjsProject(testFile)).toBe(true);
+    expect(statSyncSpy).toHaveBeenCalledWith(testFile);
+  });
 });
 
 describe('isNextGET16', () => {
@@ -144,6 +176,16 @@ describe('isNextGET16', () => {
     expect(isNextGET16()).toBe(false);
   });
 
+  it('should return false when basedir cannot resolve next and dependencies map is empty', () => {
+    vi.spyOn(sharedUtils, 'getDependenciesMap').mockReturnValue({});
+    expect(isNextGET16(path.join(testDir, 'app/page.tsx'))).toBe(false);
+  });
+
+  it('should return false when basedir cannot be used for module resolution', () => {
+    vi.spyOn(sharedUtils, 'getDependenciesMap').mockReturnValue({});
+    expect(isNextGET16('relative/page.tsx')).toBe(false);
+  });
+
   it('should read next version from resolved next/package.json before dependency declarations', () => {
     const nextPackageDir = path.join(testDir, 'node_modules/next');
     fs.mkdirSync(nextPackageDir, { recursive: true });
@@ -170,5 +212,25 @@ describe('isNextGET16', () => {
     });
 
     expect(isNextGET16(path.join(testDir, 'app/page.tsx'))).toBe(false);
+  });
+
+  it('should fall back to dependency declarations when resolved next package json cannot be read', () => {
+    const nextPackageDir = path.join(testDir, 'node_modules/next');
+    const nextPackageJsonPath = path.join(nextPackageDir, 'package.json');
+    fs.mkdirSync(nextPackageDir, { recursive: true });
+    fs.writeFileSync(
+      nextPackageJsonPath,
+      JSON.stringify({ name: 'next', version: '16.2.3' }),
+    );
+    fs.chmodSync(nextPackageJsonPath, 0o000);
+    vi.spyOn(sharedUtils, 'getDependenciesMap').mockReturnValue({
+      next: '16.0.0',
+    });
+
+    try {
+      expect(isNextGET16(path.join(testDir, 'app/page.tsx'))).toBe(true);
+    } finally {
+      fs.chmodSync(nextPackageJsonPath, 0o644);
+    }
   });
 });

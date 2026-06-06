@@ -389,10 +389,7 @@ function writeWebComponentFile(
   return webComponentFilePath;
 }
 
-function normalizeResolveDir(basedir?: string) {
-  if (!basedir) {
-    return process.cwd();
-  }
+function normalizeResolveDir(basedir: string) {
   try {
     if (fs.existsSync(basedir) && fs.statSync(basedir).isFile()) {
       return path.dirname(basedir);
@@ -403,7 +400,7 @@ function normalizeResolveDir(basedir?: string) {
   return basedir;
 }
 
-function resolveNextPackageJson(basedir?: string) {
+function resolveNextPackageJson(basedir: string) {
   const resolveDir = normalizeResolveDir(basedir);
   try {
     const require = createRequire(path.join(resolveDir, 'noop.js'));
@@ -439,7 +436,7 @@ function getNodeModulesPaths(basedir: string) {
   return paths;
 }
 
-function getResolvedNextVersion(basedir?: string) {
+function getResolvedNextVersion(basedir: string) {
   const packageJsonPath = resolveNextPackageJson(basedir);
   if (!packageJsonPath) {
     return '';
@@ -480,10 +477,7 @@ export function isNextGET16(basedir?: string) {
     return isNextVersionGET16(resolvedVersion);
   }
   const dependencies = getDependenciesMap();
-  if (dependencies.next) {
-    return isNextVersionGET16(dependencies.next);
-  }
-  return false;
+  return isNextVersionGET16(dependencies.next || '');
 }
 
 function isNextjsInstrumentationFile(file: string, isNextjs: boolean) {
