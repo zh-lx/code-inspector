@@ -35,8 +35,10 @@ function parseEnd(res: ReturnType<typeof createRes>) {
 
 describe('ai history persistence', () => {
   const roots: string[] = [];
+  const originalCwd = process.cwd();
 
   afterEach(() => {
+    process.chdir(originalCwd);
     vi.restoreAllMocks();
     for (const root of roots.splice(0)) {
       fs.rmSync(root, { recursive: true, force: true });
@@ -120,6 +122,111 @@ describe('ai history persistence', () => {
       root,
     );
     expect(parseEnd(missingRes)).toEqual({ error: 'not_found' });
+  });
+
+  it('should use process cwd when project root is empty', async () => {
+    const root = createProjectRoot();
+    roots.push(root);
+    process.chdir(root);
+
+    const res = createRes();
+    await handleAIHistoryListRequest(res, corsHeaders, '', 0);
+
+    expect(parseEnd(res)).toEqual({ conversations: [] });
+    expect(
+      fs.existsSync(path.join(root, 'node_modules', '.code-inspector')),
+    ).toBe(true);
+  });
+
+  it('should save generated ids and default conversation fields', async () => {
+    const root = createProjectRoot();
+    roots.push(root);
+    vi.spyOn(Date, 'now').mockReturnValueOnce(1234).mockReturnValueOnce(5678);
+
+    const saveRes = createRes();
+    await handleAIHistorySaveRequest(
+      createReq(JSON.stringify({ messages: 'not-array' })),
+      saveRes,
+      corsHeaders,
+      root,
+    );
+
+    expect(parseEnd(saveRes)).toEqual({ id: '1234', success: true });
+
+    const dir = path.join(root, 'node_modules', '.code-inspector');
+    expect(
+      JSON.parse(fs.readFileSync(path.join(dir, '1234.json'), 'utf-8')),
+    ).toEqual({
+      messages: [],
+      context: null,
+      sessionId: null,
+      provider: null,
+      model: '',
+      revertedToolIds: [],
+    });
+    expect(
+      JSON.parse(fs.readFileSync(path.join(dir, 'history-index.json'), 'utf-8')),
+    ).toEqual({
+      '1234': {
+        id: '1234',
+        title: '',
+        createdAt: 5678,
+        updatedAt: 5678,
+        provider: null,
+        messageCount: 0,
+      },
+    });
+  });
+
+  it('should extract short titles and preserve created time when updating', async () => {
+    const root = createProjectRoot();
+    roots.push(root);
+    vi.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(2000);
+
+    const firstSave = createRes();
+    await handleAIHistorySaveRequest(
+      createReq(
+        JSON.stringify({
+          id: 'same-id',
+          messages: [
+            { role: 'assistant', content: 'ignored' },
+            { role: 'user', content: ' Short title ' },
+          ],
+        }),
+      ),
+      firstSave,
+      corsHeaders,
+      root,
+    );
+    expect(parseEnd(firstSave)).toEqual({ id: 'same-id', success: true });
+
+    const secondSave = createRes();
+    await handleAIHistorySaveRequest(
+      createReq(
+        JSON.stringify({
+          id: 'same-id',
+          messages: [{ role: 'user', content: ' Updated title ' }],
+        }),
+      ),
+      secondSave,
+      corsHeaders,
+      root,
+    );
+    expect(parseEnd(secondSave)).toEqual({ id: 'same-id', success: true });
+
+    const index = JSON.parse(
+      fs.readFileSync(
+        path.join(root, 'node_modules', '.code-inspector', 'history-index.json'),
+        'utf-8',
+      ),
+    );
+    expect(index['same-id']).toMatchObject({
+      title: 'Updated title',
+      createdAt: 1000,
+      updatedAt: 2000,
+      provider: null,
+      messageCount: 1,
+    });
   });
 
   it('should reject invalid request bodies and unsafe ids', async () => {

@@ -120,9 +120,7 @@ export async function handleAIHistoryListRequest(
 
   try {
     ensureHistoryDir(dir);
-    if (expireDays > 0) {
-      cleanupExpired(dir, expireDays);
-    }
+    cleanupExpired(dir, expireDays);
     const index = readIndex(dir);
     // 按 updatedAt 降序排列
     const conversations = Object.keys(index)
@@ -157,7 +155,8 @@ export async function handleAIHistorySaveRequest(
   }
 
   const id = parsed.id ? String(parsed.id) : String(Date.now());
-  const messages = Array.isArray(parsed.messages) ? parsed.messages : [];
+  const rawMessages = parsed.messages;
+  const messages = Array.isArray(rawMessages) ? rawMessages : [];
   const dir = getHistoryDir(projectRootPath);
 
   if (!isSafeId(id, dir)) {
@@ -189,7 +188,7 @@ export async function handleAIHistorySaveRequest(
     const now = Date.now();
     index[id] = {
       id,
-      title: extractTitle(messages),
+      title: extractTitle(rawMessages),
       createdAt: index[id]?.createdAt || now,
       updatedAt: now,
       provider: parsed.provider ?? null,
