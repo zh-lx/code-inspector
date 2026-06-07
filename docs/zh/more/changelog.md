@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.5.2
+
+- 【fix】修复了在被转换文件不属于当前工作目录时，Next.js 项目识别和 `next/package.json` 解析错误的问题 [#523](https://github.com/zh-lx/code-inspector/pull/523)
+
 ## 1.5.1
 
 - 【fix】修复了 nextjs 中使用本插件编译失败的问题 [#514](https://github.com/zh-lx/code-inspector/pull/514)

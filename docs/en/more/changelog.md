@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2
+
+- 【fix】Fixed Next.js project detection and `next/package.json` resolution when the transformed file is outside the current working directory [#523](https://github.com/zh-lx/code-inspector/pull/523)
+
 ## 1.5.1
 
 - 【fix】Fixed the issue where nextjs would fail to compile when using this plugin [#514](https://github.com/zh-lx/code-inspector/pull/514)
