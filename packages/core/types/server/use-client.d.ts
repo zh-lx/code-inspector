@@ -12,5 +12,5 @@ export declare function getCodeWithWebComponent({ options, record, file, code, i
     inject?: boolean;
     server?: boolean;
 }): Promise<string>;
-export declare function isNextjsProject(): boolean;
-export declare function isNextGET16(): boolean;
+export declare function isNextjsProject(basedir?: string): boolean;
+export declare function isNextGET16(basedir?: string): boolean;

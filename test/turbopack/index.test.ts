@@ -25,15 +25,18 @@ import { isDev, isNextGET16 } from '@code-inspector/core';
 
 describe('TurbopackCodeInspectorPlugin', () => {
   const originalRequire = global.require;
+  let cwdSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue('/test/project');
     global.require = {
       resolve: vi.fn(() => '/pkg/webpack/index.js'),
     } as any;
   });
 
   afterEach(() => {
+    cwdSpy.mockRestore();
     global.require = originalRequire;
   });
 
@@ -83,6 +86,7 @@ describe('TurbopackCodeInspectorPlugin', () => {
 
       const keys = Object.keys(plugin);
       expect(keys[0]).toBe('**/*.{jsx,tsx,js,ts,mjs,mts}');
+      expect(isNextGET16).toHaveBeenCalledWith('/test/project');
     });
 
     it('should use specific file pattern for Next.js < 16', () => {
@@ -131,7 +135,24 @@ describe('TurbopackCodeInspectorPlugin', () => {
       const loaderOptions = plugin[key].loaders[0].options;
 
       expect(loaderOptions.escapeTags).toEqual(['div']);
+      expect(loaderOptions.importClient).toBe('file');
       expect(loaderOptions.record).toBeDefined();
+    });
+
+    it('should preserve explicit importClient option', () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      vi.mocked(isNextGET16).mockReturnValueOnce(true);
+
+      const plugin = TurbopackCodeInspectorPlugin({
+        bundler: 'turbopack',
+        output: '/test',
+        importClient: 'code',
+      });
+
+      const key = Object.keys(plugin)[0];
+      const loaderOptions = plugin[key].loaders[0].options;
+
+      expect(loaderOptions.importClient).toBe('code');
     });
   });
 
