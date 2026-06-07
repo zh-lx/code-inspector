@@ -1,0 +1,61 @@
+name: Publish npm packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: npm dist-tag
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+      dry_run:
+        description: Run publish in dry-run mode
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.20.8
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Publish packages
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            pnpm -r --filter "./packages/*" publish --dry-run --no-git-checks --access public --tag "${{ inputs.dist_tag }}"
+          else
+            pnpm -r --filter "./packages/*" publish --no-git-checks --access public --tag "${{ inputs.dist_tag }}"
+          fi
