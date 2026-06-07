@@ -161,6 +161,9 @@ export declare class CodeInspectorComponent extends LitElement {
     nodeTreeTooltipRef: HTMLDivElement;
     private getCurrentLang;
     private t;
+    private featuresOverride;
+    get features(): any[];
+    set features(value: any[]);
     private getFeatures;
     private eventListeners;
     isTracking: (e: any) => boolean | "";

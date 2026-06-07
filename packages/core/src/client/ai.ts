@@ -337,13 +337,19 @@ function formatDuration(seconds: number): string {
  */
 function sanitizeHTML(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
-  const dangerous = doc.querySelectorAll('script,iframe,object,embed,form,link[rel="import"],meta,base');
+  const dangerous = doc.querySelectorAll(
+    'script,iframe,object,embed,form,link[rel="import"],meta,base',
+  );
   dangerous.forEach((el) => el.remove());
   // 移除事件属性（onerror, onclick 等）
   doc.querySelectorAll('*').forEach((el) => {
     const attrs = el.getAttributeNames();
     for (const attr of attrs) {
-      if (attr.startsWith('on') || (attr === 'href' && el.getAttribute(attr)?.trimStart().startsWith('javascript:'))) {
+      if (
+        attr.startsWith('on') ||
+        (attr === 'href' &&
+          el.getAttribute(attr)?.trimStart().startsWith('javascript:'))
+      ) {
         el.removeAttribute(attr);
       }
     }
@@ -425,7 +431,10 @@ function getChangePath(input: Record<string, any>): string {
   return '';
 }
 
-function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
+function getCodexDisplayInfo(
+  tool: ToolCall,
+  lang: 'en' | 'zh',
+): {
   name: string;
   summary: string;
 } {
@@ -433,7 +442,10 @@ function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
   const canonical = canonicalToolName(tool.name);
 
   if (canonical === 'Bash') {
-    return { name: getClientText(lang, 'tool.bash'), summary: input.command || '' };
+    return {
+      name: getClientText(lang, 'tool.bash'),
+      summary: input.command || '',
+    };
   }
   if (canonical === 'Edit') {
     const filePath = toRelativePath(getChangePath(input));
@@ -441,7 +453,10 @@ function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
       Array.isArray(input.changes) && input.changes.length > 0
         ? formatFileCountText(input.changes.length, lang)
         : '';
-    return { name: getClientText(lang, 'tool.edited'), summary: filePath || fallback };
+    return {
+      name: getClientText(lang, 'tool.edited'),
+      summary: filePath || fallback,
+    };
   }
   if (canonical === 'Read') {
     let filePath = getChangePath(input);
@@ -468,7 +483,10 @@ function getCodexDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): {
 /**
  * 获取工具显示名称和参数摘要
  */
-function getToolDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): { name: string; summary: string } {
+function getToolDisplayInfo(
+  tool: ToolCall,
+  lang: 'en' | 'zh',
+): { name: string; summary: string } {
   if (isCodexTool(tool)) {
     return getCodexDisplayInfo(tool, lang);
   }
@@ -484,22 +502,46 @@ function getToolDisplayInfo(tool: ToolCall, lang: 'en' | 'zh'): { name: string; 
         const pathMatch = tool.result.match(/<path>([\s\S]*?)<\/path>/);
         if (pathMatch) filePath = pathMatch[1].trim();
       }
-      return { name: getClientText(lang, 'tool.read'), summary: toRelativePath(filePath) };
+      return {
+        name: getClientText(lang, 'tool.read'),
+        summary: toRelativePath(filePath),
+      };
     }
     case 'Write':
-      return { name: getClientText(lang, 'tool.write'), summary: toRelativePath(input.file_path || '') };
+      return {
+        name: getClientText(lang, 'tool.write'),
+        summary: toRelativePath(input.file_path || ''),
+      };
     case 'Edit':
-      return { name: getClientText(lang, 'tool.update'), summary: toRelativePath(input.file_path || '') };
+      return {
+        name: getClientText(lang, 'tool.update'),
+        summary: toRelativePath(input.file_path || ''),
+      };
     case 'Glob':
-      return { name: getClientText(lang, 'tool.list'), summary: input.pattern || '' };
+      return {
+        name: getClientText(lang, 'tool.list'),
+        summary: input.pattern || '',
+      };
     case 'Grep':
-      return { name: getClientText(lang, 'tool.search'), summary: input.pattern || '' };
+      return {
+        name: getClientText(lang, 'tool.search'),
+        summary: input.pattern || '',
+      };
     case 'Bash':
-      return { name: getClientText(lang, 'tool.bash'), summary: input.command || '' };
+      return {
+        name: getClientText(lang, 'tool.bash'),
+        summary: input.command || '',
+      };
     case 'WebFetch':
-      return { name: getClientText(lang, 'tool.fetch'), summary: input.url || '' };
+      return {
+        name: getClientText(lang, 'tool.fetch'),
+        summary: input.url || '',
+      };
     case 'WebSearch':
-      return { name: getClientText(lang, 'tool.search'), summary: input.query || '' };
+      return {
+        name: getClientText(lang, 'tool.search'),
+        summary: input.query || '',
+      };
     default:
       return { name, summary: '' };
   }
@@ -586,7 +628,9 @@ function renderReadResult(tool: ToolCall, lang: 'en' | 'zh'): TemplateResult {
   return html`<div class="read-result-block">
     ${showContent
       ? lines.map((line) => html`<div class="read-line">${line}</div>`)
-      : html`<div class="read-more">${getClientText(lang, 'tool.lines', { count: lines.length })}</div>`}
+      : html`<div class="read-more">
+          ${getClientText(lang, 'tool.lines', { count: lines.length })}
+        </div>`}
   </div>`;
 }
 
@@ -1124,9 +1168,12 @@ function renderMessageContent(
               <img
                 class="chat-image-preview"
                 src="${image.previewUrl}"
-                alt="${image.name || getClientText(state?.lang, 'misc.pastedImage')}"
+                alt="${image.name ||
+                getClientText(state?.lang, 'misc.pastedImage')}"
               />
-              <div class="chat-image-meta">${image.name || getClientText(state?.lang, 'misc.pastedImage')}</div>
+              <div class="chat-image-meta">
+                ${image.name || getClientText(state?.lang, 'misc.pastedImage')}
+              </div>
             </div>
           `,
         )}
@@ -1156,7 +1203,9 @@ function renderMessageContext(
   }
 
   return html`<div class="chat-message-context">
-    <span class="chat-message-context-tag">${getClientText(lang, 'chat.context')}</span>
+    <span class="chat-message-context-tag"
+      >${getClientText(lang, 'chat.context')}</span
+    >
     <span class="chat-message-context-text"
       >&lt;${context.name}&gt;
       ${toRelativePath(context.file)}#${context.line}</span
@@ -1251,7 +1300,9 @@ export function renderChatModal(
 
   return html`
     <div
-      class="chat-modal-overlay ${!state.showChatModal ? 'chat-modal-overlay-hidden' : ''}"
+      class="chat-modal-overlay ${!state.showChatModal
+        ? 'chat-modal-overlay-hidden'
+        : ''}"
       @click="${handlers.handleOverlayClick}"
       @mousemove="${handlers.handleDragMove}"
       @mouseup="${handlers.handleDragEnd}"
@@ -1266,7 +1317,9 @@ export function renderChatModal(
         <div class="chat-modal-header" @mousedown="${handlers.handleDragStart}">
           <div class="chat-modal-title-wrapper">
             <div class="chat-modal-title-row">
-              <h3 class="chat-modal-title">${getClientText(lang, 'chat.title')}</h3>
+              <h3 class="chat-modal-title">
+                ${getClientText(lang, 'chat.title')}
+              </h3>
               ${state.availableProviders.length > 1
                 ? html`<div
                     class="chat-provider-switcher"
@@ -1468,14 +1521,25 @@ export function renderChatModal(
         ${state.showHistoryPanel
           ? html`<div class="chat-history-panel">
               <div class="chat-history-header">
-                <span class="chat-history-title">${getClientText(lang, 'chat.history')}</span>
+                <span class="chat-history-title"
+                  >${getClientText(lang, 'chat.history')}</span
+                >
                 <div class="chat-history-actions">
                   <button
                     class="chat-history-new-btn"
                     @click="${handlers.startNewConversation}"
                     title="${getClientText(lang, 'chat.newConversation')}"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="M12 5v14" />
                       <path d="M5 12h14" />
                     </svg>
@@ -1486,7 +1550,16 @@ export function renderChatModal(
                     @click="${handlers.toggleHistoryPanel}"
                     title="${getClientText(lang, 'chat.backToChat')}"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="M18 6 6 18" />
                       <path d="m6 6 12 12" />
                     </svg>
@@ -1500,30 +1573,63 @@ export function renderChatModal(
                       <span>${getClientText(lang, 'chat.loading')}</span>
                     </div>`
                   : state.historyList.length === 0
-                    ? html`<div class="chat-history-empty">${getClientText(lang, 'chat.noHistoryYet')}</div>`
+                    ? html`<div class="chat-history-empty">
+                        ${getClientText(lang, 'chat.noHistoryYet')}
+                      </div>`
                     : state.historyList.map(
                         (entry) => html`
                           <div
-                            class="chat-history-item ${entry.id === state.conversationId ? 'active' : ''}"
-                            @click="${() => handlers.loadConversation(entry.id)}"
+                            class="chat-history-item ${entry.id ===
+                            state.conversationId
+                              ? 'active'
+                              : ''}"
+                            @click="${() =>
+                              handlers.loadConversation(entry.id)}"
                           >
                             <div class="chat-history-item-info">
-                              <span class="chat-history-item-title">${entry.title || getClientText(lang, 'chat.untitled')}</span>
+                              <span class="chat-history-item-title"
+                                >${entry.title ||
+                                getClientText(lang, 'chat.untitled')}</span
+                              >
                               <span class="chat-history-item-meta">
                                 ${formatHistoryDateText(entry.updatedAt, lang)}
-                                ${entry.provider ? html` · <span class="chat-history-item-provider">${formatProviderName(entry.provider as ChatProvider)}</span>` : ''}
-                                · ${getClientText(lang, 'chat.messages', { count: entry.messageCount })}
+                                ${entry.provider
+                                  ? html` ·
+                                      <span class="chat-history-item-provider"
+                                        >${formatProviderName(
+                                          entry.provider as ChatProvider,
+                                        )}</span
+                                      >`
+                                  : ''}
+                                ·
+                                ${getClientText(lang, 'chat.messages', {
+                                  count: entry.messageCount,
+                                })}
                               </span>
                             </div>
                             <button
                               class="chat-history-item-delete"
-                              @click="${(e: MouseEvent) => { e.stopPropagation(); handlers.deleteConversation(entry.id); }}"
+                              @click="${(e: MouseEvent) => {
+                                e.stopPropagation();
+                                handlers.deleteConversation(entry.id);
+                              }}"
                               title="${getClientText(lang, 'chat.delete')}"
                             >
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
                                 <path d="M3 6h18" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <path
+                                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                />
+                                <path
+                                  d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
                               </svg>
                             </button>
                           </div>
@@ -1532,72 +1638,79 @@ export function renderChatModal(
               </div>
             </div>`
           : state.terminalMode
-          ? html`<div class="chat-terminal-container chat-terminal-fullscreen" id="ai-terminal-container">
-              ${state.terminalExitCode !== null
-                ? html`<div class="chat-terminal-ended">
-                    <div
-                      class="chat-terminal-ended-icon ${state.terminalExitCode === 0
-                        ? 'success'
-                        : 'error'}"
-                    >
-                      ${state.terminalExitCode === 0 ? '✓' : '✕'}
-                    </div>
-                    <div class="chat-terminal-ended-title">
-                      ${getClientText(lang, 'chat.terminalEndedTitle')}
-                    </div>
-                    <div class="chat-terminal-ended-desc">
-                      ${getClientText(lang, 'chat.processExitedWithCode', {
-                        code: state.terminalExitCode,
-                      })}
-                    </div>
-                    <div class="chat-terminal-ended-actions">
-                      <button
-                        class="chat-terminal-ended-btn chat-terminal-ended-btn-primary"
-                        @click="${handlers.restartTerminal}"
+            ? html`<div
+                class="chat-terminal-container chat-terminal-fullscreen"
+                id="ai-terminal-container"
+              >
+                ${state.terminalExitCode !== null
+                  ? html`<div class="chat-terminal-ended">
+                      <div
+                        class="chat-terminal-ended-icon ${state.terminalExitCode ===
+                        0
+                          ? 'success'
+                          : 'error'}"
                       >
-                        ↻ ${getClientText(lang, 'chat.terminalRestart')}
-                      </button>
-                      <button
-                        class="chat-terminal-ended-btn"
-                        @click="${handlers.closeChatModal}"
-                      >
-                        ${getClientText(lang, 'chat.terminalClose')}
-                      </button>
-                    </div>
-                  </div>`
-                : ''}
-            </div>`
-          : html`<div class="chat-modal-content">
-              ${state.chatMessages.length === 0
-                ? html`<div class="chat-empty">
-                    <span class="chat-empty-prompt">❯</span>
-                    <span class="chat-empty-text"
-                      >${getClientText(lang, 'chat.askAnything')}</span
-                    >
-                  </div>`
-                : state.chatMessages.map(
-                    (msg) => html`
-                      <div class="chat-line chat-line-${msg.role}">
-                        ${msg.role === 'user'
-                          ? html`<span class="chat-prompt">❯</span>`
-                          : html`<span class="chat-indent"></span>`}
-                        <div class="chat-message-content">
-                          ${renderMessageContext(msg, lang)}
-                          ${renderMessageContent(msg, state, handlers)}
-                        </div>
+                        ${state.terminalExitCode === 0 ? '✓' : '✕'}
                       </div>
-                    `,
-                  )}
-              ${state.chatLoading &&
-              (!state.chatMessages.length ||
-                state.chatMessages[state.chatMessages.length - 1]?.role === 'user')
-                ? html`<div class="chat-loading">
-                    <span class="chat-indent"></span>
-                    <span class="chat-cursor"></span>
-                  </div>`
-                : ''}
-            </div>`}
-        ${!state.showHistoryPanel && !state.terminalMode && state.turnStatus !== 'idle'
+                      <div class="chat-terminal-ended-title">
+                        ${getClientText(lang, 'chat.terminalEndedTitle')}
+                      </div>
+                      <div class="chat-terminal-ended-desc">
+                        ${getClientText(lang, 'chat.processExitedWithCode', {
+                          code: state.terminalExitCode,
+                        })}
+                      </div>
+                      <div class="chat-terminal-ended-actions">
+                        <button
+                          class="chat-terminal-ended-btn chat-terminal-ended-btn-primary"
+                          @click="${handlers.restartTerminal}"
+                        >
+                          ↻ ${getClientText(lang, 'chat.terminalRestart')}
+                        </button>
+                        <button
+                          class="chat-terminal-ended-btn"
+                          @click="${handlers.closeChatModal}"
+                        >
+                          ${getClientText(lang, 'chat.terminalClose')}
+                        </button>
+                      </div>
+                    </div>`
+                  : ''}
+              </div>`
+            : html`<div class="chat-modal-content">
+                ${state.chatMessages.length === 0
+                  ? html`<div class="chat-empty">
+                      <span class="chat-empty-prompt">❯</span>
+                      <span class="chat-empty-text"
+                        >${getClientText(lang, 'chat.askAnything')}</span
+                      >
+                    </div>`
+                  : state.chatMessages.map(
+                      (msg) => html`
+                        <div class="chat-line chat-line-${msg.role}">
+                          ${msg.role === 'user'
+                            ? html`<span class="chat-prompt">❯</span>`
+                            : html`<span class="chat-indent"></span>`}
+                          <div class="chat-message-content">
+                            ${renderMessageContext(msg, lang)}
+                            ${renderMessageContent(msg, state, handlers)}
+                          </div>
+                        </div>
+                      `,
+                    )}
+                ${state.chatLoading &&
+                (!state.chatMessages.length ||
+                  state.chatMessages[state.chatMessages.length - 1]?.role ===
+                    'user')
+                  ? html`<div class="chat-loading">
+                      <span class="chat-indent"></span>
+                      <span class="chat-cursor"></span>
+                    </div>`
+                  : ''}
+              </div>`}
+        ${!state.showHistoryPanel &&
+        !state.terminalMode &&
+        state.turnStatus !== 'idle'
           ? html`<div class="chat-status-bar">
               <div class="chat-status-info">
                 <span class="chat-status-icon ${state.turnStatus}">
@@ -1650,80 +1763,83 @@ export function renderChatModal(
           : ''}
         ${!state.showHistoryPanel && !state.terminalMode
           ? html`<div class="chat-modal-footer">
-          ${state.chatPastedImages.length > 0
-            ? html`<div class="chat-paste-preview">
-                ${state.chatPastedImages.map(
-                  (image) => html`
-                    <div class="chat-paste-preview-item">
-                      <img
-                        class="chat-paste-preview-img"
-                        src="${image.previewUrl}"
-                        alt="${image.name || getClientText(lang, 'misc.pastedImage')}"
+              ${state.chatPastedImages.length > 0
+                ? html`<div class="chat-paste-preview">
+                    ${state.chatPastedImages.map(
+                      (image) => html`
+                        <div class="chat-paste-preview-item">
+                          <img
+                            class="chat-paste-preview-img"
+                            src="${image.previewUrl}"
+                            alt="${image.name ||
+                            getClientText(lang, 'misc.pastedImage')}"
+                          />
+                          <button
+                            class="chat-paste-remove"
+                            title="${getClientText(lang, 'chat.removeImage')}"
+                            @click="${() =>
+                              handlers.removePastedImage(image.id)}"
+                            ?disabled="${state.chatLoading ||
+                            state.chatImageProcessing}"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      `,
+                    )}
+                  </div>`
+                : ''}
+              <span class="chat-input-prompt">❯</span>
+              <textarea
+                class="chat-input"
+                placeholder="${getClientText(lang, 'chat.inputPlaceholder')}"
+                .value="${state.chatInput}"
+                @input="${handlers.handleChatInput}"
+                @keydown="${handlers.handleChatKeyDown}"
+                @paste="${handlers.handleChatPaste}"
+                ?disabled="${state.chatLoading || state.chatImageProcessing}"
+                rows="2"
+              ></textarea>
+              <button
+                class="chat-send-btn"
+                @click="${handlers.sendChatMessage}"
+                ?disabled="${state.chatLoading ||
+                state.chatImageProcessing ||
+                (!state.chatInput.trim() &&
+                  state.chatPastedImages.length === 0)}"
+                title="${getClientText(lang, 'chat.send')}"
+              >
+                ${state.chatLoading || state.chatImageProcessing
+                  ? html`<svg
+                      class="chat-send-loading"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        fill="none"
+                        stroke-dasharray="31.4"
+                        stroke-linecap="round"
                       />
-                      <button
-                        class="chat-paste-remove"
-                        title="${getClientText(lang, 'chat.removeImage')}"
-                        @click="${() => handlers.removePastedImage(image.id)}"
-                        ?disabled="${state.chatLoading ||
-                        state.chatImageProcessing}"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  `,
-                )}
-              </div>`
-            : ''}
-          <span class="chat-input-prompt">❯</span>
-          <textarea
-            class="chat-input"
-            placeholder="${getClientText(lang, 'chat.inputPlaceholder')}"
-            .value="${state.chatInput}"
-            @input="${handlers.handleChatInput}"
-            @keydown="${handlers.handleChatKeyDown}"
-            @paste="${handlers.handleChatPaste}"
-            ?disabled="${state.chatLoading || state.chatImageProcessing}"
-            rows="2"
-          ></textarea>
-          <button
-            class="chat-send-btn"
-            @click="${handlers.sendChatMessage}"
-            ?disabled="${state.chatLoading ||
-            state.chatImageProcessing ||
-            (!state.chatInput.trim() && state.chatPastedImages.length === 0)}"
-            title="${getClientText(lang, 'chat.send')}"
-          >
-            ${state.chatLoading || state.chatImageProcessing
-              ? html`<svg
-                  class="chat-send-loading"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    fill="none"
-                    stroke-dasharray="31.4"
-                    stroke-linecap="round"
-                  />
-                </svg>`
-              : html`<svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>`}
-          </button>
-        </div>`
+                    </svg>`
+                  : html`<svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="M12 5l7 7-7 7" />
+                    </svg>`}
+              </button>
+            </div>`
           : ''}
         ${state.showCloseConfirm
           ? html`<div
@@ -3132,8 +3248,8 @@ export const chatStyles = css`
     flex-direction: column;
   }
 
-  .chat-terminal-container.chat-terminal-fullscreen {
-    padding: 0;
+  .chat-terminal-container .xterm-rows {
+    padding: 4px 0 0 4px;
   }
 
   .chat-terminal-container .xterm {
@@ -3199,7 +3315,10 @@ export const chatStyles = css`
     background: var(--chat-bg-secondary);
     color: var(--chat-text-secondary);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      border-color 0.15s,
+      color 0.15s;
   }
 
   .chat-terminal-ended-btn:hover {
@@ -3229,7 +3348,9 @@ export const chatStyles = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.15s, background 0.15s;
+    transition:
+      color 0.15s,
+      background 0.15s;
   }
 
   .chat-modal-terminal:hover {
@@ -3762,10 +3883,13 @@ export async function attachRuntimeSessionToServer(
     runtimeSessionId,
     cursor: String(cursor || 0),
   });
-  const response = await fetch(`http://${ip}:${port}/ai/runtime?${query.toString()}`, {
-    method: 'GET',
-    signal,
-  });
+  const response = await fetch(
+    `http://${ip}:${port}/ai/runtime?${query.toString()}`,
+    {
+      method: 'GET',
+      signal,
+    },
+  );
 
   if (!response.ok) {
     throw new Error('Runtime session attach failed');
