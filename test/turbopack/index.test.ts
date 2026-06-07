@@ -135,7 +135,24 @@ describe('TurbopackCodeInspectorPlugin', () => {
       const loaderOptions = plugin[key].loaders[0].options;
 
       expect(loaderOptions.escapeTags).toEqual(['div']);
+      expect(loaderOptions.importClient).toBe('file');
       expect(loaderOptions.record).toBeDefined();
+    });
+
+    it('should preserve explicit importClient option', () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      vi.mocked(isNextGET16).mockReturnValueOnce(true);
+
+      const plugin = TurbopackCodeInspectorPlugin({
+        bundler: 'turbopack',
+        output: '/test',
+        importClient: 'code',
+      });
+
+      const key = Object.keys(plugin)[0];
+      const loaderOptions = plugin[key].loaders[0].options;
+
+      expect(loaderOptions.importClient).toBe('code');
     });
   });
 
