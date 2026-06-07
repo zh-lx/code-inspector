@@ -77,23 +77,22 @@ export function TurbopackCodeInspectorPlugin(
   const files = isNextGET16(process.cwd())
     ? '**/*.{jsx,tsx,js,ts,mjs,mts}'
     : matchFiles;
+  const loaderOptions = {
+    ...options,
+    importClient: options.importClient ?? 'file',
+    record,
+  };
 
   return {
     [files]: {
       loaders: [
         {
           loader: `${WebpackDistDir}/loader.js`,
-          options: {
-            ...options,
-            record,
-          },
+          options: loaderOptions,
         },
         {
           loader: `${WebpackDistDir}/inject-loader.js`,
-          options: {
-            ...options,
-            record,
-          },
+          options: loaderOptions,
         },
       ],
     },
