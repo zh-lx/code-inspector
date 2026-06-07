@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.3
+
+- 【fix】Changed the default `importClient` value to `file` in `turbopack` while preserving explicit user configuration [#525](https://github.com/zh-lx/code-inspector/pull/525)
+
 ## 1.5.2
 
 - 【fix】Fixed Next.js project detection and `next/package.json` resolution when the transformed file is outside the current working directory [#523](https://github.com/zh-lx/code-inspector/pull/523)
