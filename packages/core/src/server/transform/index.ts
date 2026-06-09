@@ -1,11 +1,13 @@
 import fs from 'fs';
+import { transformAstro } from './transform-astro';
 import { transformJsx } from './transform-jsx';
+import { transformMdx } from './transform-mdx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
 import { EscapeTags, PathType, isIgnoredFile } from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
 
-type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
+type FileType = 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
 
 type TransformCodeParams = {
   content: string;
@@ -53,6 +55,10 @@ export async function transformCode(params: TransformCodeParams) {
       return transformJsx(content, filePath, finalEscapeTags);
     } else if (fileType === 'svelte') {
       return transformSvelte(content, filePath, finalEscapeTags);
+    } else if (fileType === 'astro') {
+      return transformAstro(content, filePath, finalEscapeTags);
+    } else if (fileType === 'mdx') {
+      return transformMdx(content, filePath, finalEscapeTags);
     } else {
       return content;
     }

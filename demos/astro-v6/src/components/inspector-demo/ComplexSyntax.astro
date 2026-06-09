@@ -1,0 +1,96 @@
+---
+type SyntaxGroup = {
+  id: string;
+  label: string;
+  level: 'basic' | 'advanced';
+  checks: string[];
+  enabled: boolean;
+};
+
+const sectionTitle = 'Astro syntax targets';
+const shortcutSequence = ['Option', 'Shift'] as const;
+
+const syntaxGroups: SyntaxGroup[] = [
+  {
+    id: 'frontmatter',
+    label: 'Frontmatter variables',
+    level: 'basic',
+    checks: ['typed arrays', 'derived counters', 'object lookups'],
+    enabled: true,
+  },
+  {
+    id: 'template-loop',
+    label: 'Template loops',
+    level: 'advanced',
+    checks: ['nested map()', 'dynamic attributes', 'conditional badges'],
+    enabled: true,
+  },
+  {
+    id: 'disabled-branch',
+    label: 'Conditional fallback',
+    level: 'advanced',
+    checks: ['hidden checklist', 'fallback paragraph'],
+    enabled: false,
+  },
+];
+
+const visibleGroups = syntaxGroups.filter((group) => group.enabled);
+const totalChecks = visibleGroups.reduce(
+  (count, group) => count + group.checks.length,
+  0,
+);
+
+const statusByLevel = {
+  basic: 'Ready',
+  advanced: 'Trace',
+} satisfies Record<SyntaxGroup['level'], string>;
+---
+
+<section class="inspector-complex" aria-labelledby="complex-syntax-title">
+  <div class="inspector-complex__header">
+    <div>
+      <p>{sectionTitle}</p>
+      <h2 id="complex-syntax-title">Complex Astro template coverage</h2>
+    </div>
+    <span>{visibleGroups.length} groups / {totalChecks} checks</span>
+  </div>
+
+  <div class="inspector-complex__shortcuts" aria-label="Complex syntax shortcut keys">
+    {shortcutSequence.map((key) => <kbd>{key}</kbd>)}
+  </div>
+
+  <div class="inspector-complex__grid">
+    {
+      syntaxGroups.map((group, groupIndex) => (
+        <article
+          class:list={[
+            'inspector-complex-card',
+            group.enabled ? 'is-enabled' : 'is-disabled',
+          ]}
+          data-group-id={group.id}
+          data-level={group.level}
+        >
+          <div class="inspector-complex-card__meta">
+            <span>{String(groupIndex + 1).padStart(2, '0')}</span>
+            <strong>{statusByLevel[group.level]}</strong>
+          </div>
+
+          <h3>{group.label}</h3>
+
+          {group.enabled ? (
+            <ul>
+              {group.checks.map((check, checkIndex) => (
+                <li data-check-index={checkIndex}>
+                  <span>{check}</span>
+                  {group.level === 'advanced' && <small>advanced branch</small>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>This disabled branch keeps conditional Astro output available.</p>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</section>

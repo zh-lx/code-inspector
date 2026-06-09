@@ -165,6 +165,98 @@ describe('transformCode', () => {
     });
   });
 
+  describe('astro transformation', () => {
+    it('should transform astro content', async () => {
+      const content = '<div><p>Hello</p></div>';
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.astro',
+        fileType: 'astro',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.astro:1:1:div"');
+      expect(result).toContain('data-insp-path="file.astro:1:6:p"');
+    });
+
+    it('should not transform astro components', async () => {
+      const content = '<Card /><div>Hello</div>';
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.astro',
+        fileType: 'astro',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).not.toContain(':Card"');
+      expect(result).toContain(':div"');
+    });
+
+    it('should not transform escaped tags in astro', async () => {
+      const content = '<script>const html = "<div></div>";</script><div>Hello</div>';
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.astro',
+        fileType: 'astro',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).not.toContain(':script"');
+      expect(result).not.toContain('const html = "<div data-insp-path');
+      expect(result).toContain(':div"');
+    });
+  });
+
+  describe('mdx transformation', () => {
+    it('should transform mdx markdown and jsx content', async () => {
+      const content = [
+        '---',
+        'title: Demo',
+        '---',
+        '# Mdx title',
+        '',
+        '- First target',
+        '- Second target',
+        '',
+        '<section><button type="button">Click</button></section>',
+      ].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.mdx:4:1:h1"');
+      expect(result).toContain('data-insp-path="file.mdx:6:1:ul"');
+      expect(result).toContain('data-insp-path="file.mdx:6:1:li"');
+      expect(result).toContain('data-insp-path="file.mdx:9:1:section"');
+      expect(result).toContain('data-insp-path="file.mdx:9:10:button"');
+    });
+
+    it('should not transform mdx fenced code blocks', async () => {
+      const content = ['```html', '<div>Example</div>', '```', '<div>Target</div>'].join(
+        '\n',
+      );
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).not.toContain('<div data-insp-path="file.mdx:2:1:div"');
+      expect(result).toContain('<div data-insp-path="file.mdx:4:1:div"');
+    });
+  });
+
   describe('isIgnoredFile', () => {
     describe('vue/svelte files', () => {
       it('should ignore vue file with code-inspector-disable comment', async () => {

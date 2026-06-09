@@ -8,6 +8,7 @@ export declare function ViteCodeInspectorPlugin(options: Options): {
         command: any;
     }): boolean;
     configResolved(config: any): void;
+    load(id: string): Promise<string | null>;
     transform(code: string, id: string): Promise<string>;
     transformIndexHtml(html: any): Promise<any>;
     configureServer(server: any): void;
