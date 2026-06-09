@@ -4,11 +4,11 @@ export function TryTargets() {
   return (
     <div style={containerStyle}>
       <button type="button" style={targetStyle}>
-        测试按钮
+        Button Element
       </button>
-      <span style={targetStyle}>文本节点</span>
+      <span style={targetStyle}>Text Element</span>
       <a href="#root" style={targetStyle}>
-        锚点元素
+        Anchor Element
       </a>
     </div>
   );

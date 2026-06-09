@@ -1,9 +1,17 @@
 import * as React from 'react';
 
 const steps = [
-  ['01', '按住组合键', '保持按下组合键，让插件进入可检查状态。'],
-  ['02', '移动鼠标', '移动到标题、按钮、卡片等任意元素，查看页面遮罩提示。'],
-  ['03', '点击元素', '点击当前元素，IDE 会自动打开并跳到对应源码位置。'],
+  [
+    '01',
+    'Hold down the keys',
+    'Hold down the keys to make the plugin enter a inspection state.',
+  ],
+  ['02', 'Move the mouse', 'Move to any  to view the element mask prompt.'],
+  [
+    '03',
+    'Click the element',
+    'Clicking the element will automatically open the IDE and locate to the source code position.',
+  ],
 ];
 
 export function StepCards() {

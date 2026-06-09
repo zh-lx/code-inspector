@@ -3,12 +3,13 @@ export function DemoHero() {
     <div>
       <p class="inspector-badge">code-inspector-plugin demo</p>
       <div class="inspector-hero">
-        <h1 id="inspector-title">按住组合键体验源码定位</h1>
+        <h1 id="inspector-title">Hold down the keys to locate code</h1>
         <p>
-          在页面上按住默认组合键并移动鼠标，DOM 元素会显示定位遮罩；
-          点击任意元素即可打开 IDE 并定位到对应源码。
+          Hold down the keys on the page and move the mouse, and the DOM element
+          will display a positioning mask; click the element will open the
+          IDE{' '}
         </p>
       </div>
     </div>
-  )
+  );
 }
