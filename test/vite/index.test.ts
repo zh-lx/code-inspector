@@ -246,6 +246,18 @@ describe('ViteCodeInspectorPlugin', () => {
   });
 
   describe('load', () => {
+    it('should return null for excluded source files in load', async () => {
+      vi.mocked(isExcludedFile).mockReturnValueOnce(true);
+      const readFileSpy = vi.spyOn(fs, 'readFileSync');
+      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+
+      const result = await plugin.load('/test/file.astro');
+
+      expect(result).toBeNull();
+      expect(readFileSpy).not.toHaveBeenCalled();
+      readFileSpy.mockRestore();
+    });
+
     it('should transform Astro source files before Astro compiles them', async () => {
       const readFileSpy = vi
         .spyOn(fs, 'readFileSync')
@@ -281,6 +293,32 @@ describe('ViteCodeInspectorPlugin', () => {
         }),
       );
       expect(result).toBe('transformed:# Hello\n\n<section>Target</section>');
+      readFileSpy.mockRestore();
+    });
+
+    it('should not transform unsupported source files in load', async () => {
+      const readFileSpy = vi.spyOn(fs, 'readFileSync');
+      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+
+      const result = await plugin.load('/test/file.md');
+
+      expect(result).toBeNull();
+      expect(readFileSpy).not.toHaveBeenCalled();
+      readFileSpy.mockRestore();
+    });
+
+    it('should not transform source files that miss the match option in load', async () => {
+      const readFileSpy = vi.spyOn(fs, 'readFileSync');
+      const plugin = ViteCodeInspectorPlugin({
+        bundler: 'vite',
+        output: '/test',
+        match: /\.astro$/,
+      });
+
+      const result = await plugin.load('/test/file.mdx');
+
+      expect(result).toBeNull();
+      expect(readFileSpy).not.toHaveBeenCalled();
       readFileSpy.mockRestore();
     });
 

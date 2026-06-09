@@ -208,6 +208,50 @@ describe('transformCode', () => {
       expect(result).not.toContain('const html = "<div data-insp-path');
       expect(result).toContain(':div"');
     });
+
+    it('should handle astro scanner edge cases', async () => {
+      const content = [
+        '<div title={"a > b"}>First</div>',
+        '<1>',
+        '<span data-insp-path="manual">Manual</span>',
+        '<broken',
+      ].join('\n');
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.astro',
+        fileType: 'astro',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.astro:1:1:div"');
+      expect(result).toContain('<1>');
+      expect(result).toContain('<span data-insp-path="manual">Manual</span>');
+      expect(result).toContain('<broken');
+      expect(result).not.toContain(':broken"');
+    });
+
+    it('should handle astro frontmatter offsets and escaped block close tags', async () => {
+      const content = [
+        '---',
+        'const value = Promise.resolve<string>("ok");',
+        '---',
+        '<script><div>skip</div></script>',
+        '<div>Target</div>',
+      ].join('\n');
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.astro',
+        fileType: 'astro',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).not.toContain('Promise.resolve<string data-insp-path');
+      expect(result).not.toContain('<script data-insp-path');
+      expect(result).not.toContain('<div data-insp-path="file.astro:4');
+      expect(result).toContain('data-insp-path="file.astro:5:1:div"');
+    });
   });
 
   describe('mdx transformation', () => {
@@ -254,6 +298,100 @@ describe('transformCode', () => {
 
       expect(result).not.toContain('<div data-insp-path="file.mdx:2:1:div"');
       expect(result).toContain('<div data-insp-path="file.mdx:4:1:div"');
+    });
+
+    it('should transform mdx blockquotes and ordered lists', async () => {
+      const content = ['> Quote target', '', '1. First', '2. Second'].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.mdx:1:1:blockquote"');
+      expect(result).toContain('data-insp-path="file.mdx:1:3:p"');
+      expect(result).toContain('data-insp-path="file.mdx:3:1:ol"');
+      expect(result).toContain('data-insp-path="file.mdx:4:1:li"');
+    });
+
+    it('should respect mdx escape tags for markdown blocks and explicit tags', async () => {
+      const content = [
+        '- Escaped list',
+        '',
+        '> Escaped quote',
+        '',
+        '<script><div>skip</div></script>',
+        '<div>Target</div>',
+      ].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: ['ul', 'blockquote'],
+        pathType: 'relative',
+      });
+
+      expect(result).not.toContain(':ul"');
+      expect(result).not.toContain(':li"');
+      expect(result).not.toContain(':blockquote"');
+      expect(result).not.toContain('<script data-insp-path');
+      expect(result).not.toContain('<div data-insp-path="file.mdx:5');
+      expect(result).toContain('data-insp-path="file.mdx:6:1:div"');
+    });
+
+    it('should skip explicit tags inside rewritten markdown ranges', async () => {
+      const content = 'Before\n- <span>Inline item</span>\nAfter';
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.mdx:2:1:ul"');
+      expect(result).toContain('data-insp-path="file.mdx:2:1:li"');
+      expect(result).not.toContain(':span"');
+    });
+
+    it('should handle mdx scanner edge cases', async () => {
+      const content = [
+        '<section data-value={value > 1 ? "high" : "low"} />',
+        '<1>',
+        '<broken',
+      ].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path="file.mdx:1:1:section"');
+      expect(result).toContain('<1>');
+      expect(result).toContain('<broken');
+      expect(result).not.toContain(':broken"');
+    });
+
+    it('should treat unclosed mdx fences as ignored ranges', async () => {
+      const content = ['~~~html', '<div>Example</div>'].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toBe(content);
     });
   });
 
