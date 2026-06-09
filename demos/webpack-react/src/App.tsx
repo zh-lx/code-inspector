@@ -1,33 +1,19 @@
-import React, { Fragment } from 'react';
-import logo from './logo.svg';
+import { DemoHero } from './components/inspector-demo/DemoHero';
+import { ShortcutPanel } from './components/inspector-demo/ShortcutPanel';
+import { StepCards } from './components/inspector-demo/StepCards';
+import { TryTargets } from './components/inspector-demo/TryTargets';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-      <React.Fragment>
-        <p>p1</p>
-        <p>p2</p>
-      </React.Fragment>
-      <Fragment>
-        <p>p1</p>
-        <p>p2</p>
-      </Fragment>
-    </div>
+    <main className="inspector-demo">
+      <section className="inspector-shell" aria-labelledby="inspector-title">
+        <DemoHero />
+        <ShortcutPanel />
+        <StepCards />
+        <TryTargets />
+      </section>
+    </main>
   );
 }
 
