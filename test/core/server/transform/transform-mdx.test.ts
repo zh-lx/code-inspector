@@ -27,6 +27,81 @@ function createMdxFixture(content: string, parserSource: string) {
 }
 
 describe('transformMdx parser path', () => {
+  it('should fall back to scanner when parser package cannot be resolved', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-mdx-missing-'));
+    const filePath = path.join(root, 'src', 'file.mdx');
+
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, '<section>Missing parser</section>');
+
+    try {
+      const result = await transformMdx(
+        '<section>Missing parser</section>',
+        filePath,
+        [],
+      );
+
+      expect(result).toContain(
+        `${PathName}="${filePath}:1:1:section"`,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('should support default-exported MDX parser modules', async () => {
+    const content = '<article>Default parser</article>';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  default: {
+    createProcessor: () => ({
+      parse: () => ({
+        type: 'root',
+        children: [
+          {
+            type: 'mdxJsxFlowElement',
+            name: 'article',
+            attributes: [],
+            children: [],
+            position: { start: { line: 1, column: 1, offset: 0 } },
+          },
+        ],
+      }),
+    }),
+  },
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || "${fixture.filePath}:1:1:article"}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should fall back to scanner when parser module has no processor', async () => {
+    const content = '<main>No processor</main>';
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:main"`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should inject explicit MDX JSX elements from parser AST', async () => {
     const content = [
       'type Props<Card> = { value: Card };',
@@ -176,6 +251,65 @@ module.exports = {
       expect(result).toContain(
         `${PathName}="${fixture.filePath}:1:9:div"`,
       );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should ignore AST nodes that already have source path attrs or invalid positions', async () => {
+    const content = [
+      '<section data-insp-path="manual">Manual</section>',
+      '<aside>Invalid position</aside>',
+      '<nav>Missing offset</nav>',
+    ].join('\n');
+    const asideOffset = content.indexOf('<aside');
+    const navOffset = content.indexOf('<nav');
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({
+      type: 'root',
+      children: [
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'section',
+          attributes: [],
+          children: [],
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'aside',
+          attributes: [],
+          children: [],
+          position: { start: { line: 2, column: ${asideOffset + 1} } },
+        },
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'nav',
+          attributes: [],
+          children: [],
+          position: { start: { line: 3, column: 1, offset: ${navOffset} } },
+        },
+      ],
+    }),
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain('<section data-insp-path="manual">Manual</section>');
+      expect(result).toContain('<aside>Invalid position</aside>');
+      expect(result).toContain(
+        `${PathName}="${fixture.filePath}:3:1:nav"`,
+      );
+      expect(result).not.toContain(':section"');
+      expect(result).not.toContain(':aside"');
     } finally {
       fixture.cleanup();
     }
