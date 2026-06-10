@@ -100,6 +100,20 @@ describe('WebpackCodeInjectLoader', () => {
     expect(normalizePath).toHaveBeenCalledWith('/test/path/to/file.js');
   });
 
+  it('should return a promise when no callback is available', async () => {
+    delete mockContext.async;
+    delete mockContext.callback;
+
+    const result = WebpackCodeInjectLoader.call(
+      mockContext,
+      'const x = 1;',
+      null,
+      null,
+    );
+
+    await expect(result).resolves.toBe('injected:const x = 1;');
+  });
+
   it('should fall back to original content when injection fails', async () => {
     vi.mocked(getCodeWithWebComponent).mockRejectedValueOnce(
       new Error('invalid temporary code'),
