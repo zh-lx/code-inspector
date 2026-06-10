@@ -5,4 +5,4 @@ export const NodeName = 'data-insp-node'; // 注入的节点名称
 export const DefaultPort = 5678;
 export const JsFileExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
 
-export const AstroToolbarFile = '\0astro:dev-toolbar';
+export const AstroToolbarFile = '\0astro:dev-toolbar'
