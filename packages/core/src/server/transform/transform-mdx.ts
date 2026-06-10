@@ -973,7 +973,7 @@ function readLinkDestination(value: string, start: number) {
       continue;
     }
 
-    if (char === ')' && !quote) {
+    if (char === ')') {
       return {
         url: url.trim(),
         title: title.trim(),
