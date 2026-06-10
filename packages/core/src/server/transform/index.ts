@@ -45,6 +45,7 @@ export async function transformCode(params: TransformCodeParams) {
     return content;
   }
   const finalEscapeTags = [...CodeInspectorEscapeTags, ...escapeTags];
+  const resolveFilePath = filePath;
 
   filePath = getRelativeOrAbsolutePath(filePath, pathType);
 
@@ -56,9 +57,14 @@ export async function transformCode(params: TransformCodeParams) {
     } else if (fileType === 'svelte') {
       return transformSvelte(content, filePath, finalEscapeTags);
     } else if (fileType === 'astro') {
-      return transformAstro(content, filePath, finalEscapeTags);
+      return transformAstro(content, filePath, finalEscapeTags, resolveFilePath);
     } else if (fileType === 'mdx') {
-      return transformMdx(content, filePath, finalEscapeTags);
+      return await transformMdx(
+        content,
+        filePath,
+        finalEscapeTags,
+        resolveFilePath,
+      );
     } else {
       return content;
     }

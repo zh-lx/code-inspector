@@ -3,6 +3,13 @@ import path from 'path';
 import { createRequire } from 'module';
 import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
+import {
+  isLikelyTypeScriptGeneric,
+  isNonInjectableScannedTag,
+  isScannableDomTag,
+  isWellFormedScannedTag,
+  shouldSkipScannedTagChildren,
+} from './scan-html-tag';
 
 type AstroCompiler = {
   parse: (
@@ -31,8 +38,9 @@ export async function transformAstro(
   content: string,
   filePath: string,
   escapeTags: EscapeTags,
+  resolveFilePath = filePath,
 ) {
-  const compiler = resolveAstroCompiler(filePath);
+  const compiler = resolveAstroCompiler(resolveFilePath);
   if (!compiler) {
     return transformAstroByScan(content, filePath, escapeTags);
   }
@@ -44,8 +52,16 @@ export async function transformAstro(
     }
 
     const s = new MagicString(content);
+    const dynamicRootOffsets = getAstroDynamicRootOffsets(result.ast, escapeTags);
     walkAstroNodes(result.ast, (node) => {
-      injectAstroNodePath(content, s, node, filePath, escapeTags);
+      injectAstroNodePath(
+        content,
+        s,
+        node,
+        filePath,
+        escapeTags,
+        dynamicRootOffsets,
+      );
     });
     return s.toString();
   } catch (error) {
@@ -77,6 +93,9 @@ function resolveAstroCompiler(filePath: string): AstroCompiler | null {
 
 function walkAstroNodes(node: AstroNode, callback: (node: AstroNode) => void) {
   callback(node);
+  if (node.name && shouldSkipScannedTagChildren(node.name)) {
+    return;
+  }
   node.children?.forEach((child) => walkAstroNodes(child, callback));
 }
 
@@ -86,6 +105,7 @@ function injectAstroNodePath(
   node: AstroNode,
   filePath: string,
   escapeTags: EscapeTags,
+  dynamicRootOffsets = new Set<number>(),
 ) {
   if (!isInjectableAstroNode(node, escapeTags) || hasPathAttribute(node)) {
     return;
@@ -108,22 +128,51 @@ function injectAstroNodePath(
 
   s.prependLeft(
     insertPosition,
-    getAstroPathAttribute(filePath, start.line, start.column, node.name),
+    getAstroPathAttribute(
+      filePath,
+      start.line,
+      start.column,
+      node.name,
+      dynamicRootOffsets.has(start.offset)
+        ? getAstroPropagatedPathExpression()
+        : '',
+    ),
   );
 }
 
 function isInjectableAstroNode(node: AstroNode, escapeTags: EscapeTags) {
   if (
     node.type !== 'element' &&
-    node.type !== 'custom-element'
+    node.type !== 'custom-element' &&
+    node.type !== 'component'
   ) {
     return false;
   }
-  return Boolean(node.name && !isEscapeTags(escapeTags, node.name));
+  return Boolean(
+    node.name &&
+      isScannableDomTag(node.name) &&
+      !isNonInjectableScannedTag(node.name) &&
+      !isEscapeTags(escapeTags, node.name),
+  );
 }
 
 function hasPathAttribute(node: AstroNode) {
   return node.attributes?.some((attr) => attr.name === PathName);
+}
+
+function getAstroDynamicRootOffsets(
+  node: AstroNode,
+  escapeTags: EscapeTags,
+) {
+  const rootTargets = (node.children || []).filter((child) =>
+    isInjectableAstroNode(child, escapeTags),
+  );
+  if (rootTargets.length !== 1) {
+    return new Set<number>();
+  }
+
+  const offset = rootTargets[0].position?.start?.offset;
+  return typeof offset === 'number' ? new Set([offset]) : new Set<number>();
 }
 
 function findOpeningTagInsertPosition(content: string, tagStart: number) {
@@ -169,7 +218,13 @@ function getAstroPathAttribute(
   line: number,
   column: number,
   name: string,
+  propagatedPathExpression = '',
 ) {
+  const pathValue = JSON.stringify(`${filePath}:${line}:${column}:${name}`);
+  if (propagatedPathExpression) {
+    return ` ${PathName}={${propagatedPathExpression} || ${pathValue}}`;
+  }
+
   return ` ${PathName}=${JSON.stringify(
     `${filePath}:${line}:${column}:${name}`,
   )}`;
@@ -182,7 +237,13 @@ function transformAstroByScan(
 ) {
   const s = new MagicString(content);
   const lineStarts = getLineStarts(content);
-  let index = getFrontmatterEndOffset(content);
+  const frontmatterEnd = getFrontmatterEndOffset(content);
+  const dynamicRootOffsets = getScannedDynamicRootOffsets(
+    content,
+    frontmatterEnd,
+    escapeTags,
+  );
+  let index = frontmatterEnd;
 
   while (index < content.length) {
     const tagStart = content.indexOf('<', index);
@@ -203,18 +264,27 @@ function transformAstroByScan(
     }
 
     if (
-      shouldInjectScannedTag(name, escapeTags) &&
+      shouldInjectScannedTag(content, tagStart, insertPosition, name, escapeTags) &&
       !hasPathAttributeInSource(content.slice(tagStart, insertPosition))
     ) {
       const position = getLineColumn(lineStarts, tagStart);
       s.prependLeft(
         insertPosition,
-        getAstroPathAttribute(filePath, position.line, position.column, name),
+        getAstroPathAttribute(
+          filePath,
+          position.line,
+          position.column,
+          name,
+          dynamicRootOffsets.has(tagStart) ? getAstroPropagatedPathExpression() : '',
+        ),
       );
     }
 
     const lowerName = name.toLowerCase();
-    if (isEscapeTags(escapeTags, lowerName)) {
+    if (
+      shouldSkipScannedTagChildren(name) ||
+      isEscapeTags(escapeTags, lowerName)
+    ) {
       const closeTag = `</${lowerName}`;
       const closeIndex = content.toLowerCase().indexOf(closeTag, insertPosition);
       if (closeIndex !== -1) {
@@ -230,6 +300,67 @@ function transformAstroByScan(
   }
 
   return s.toString();
+}
+
+function getAstroPropagatedPathExpression() {
+  const pathName = JSON.stringify(PathName);
+  return `typeof $$props !== 'undefined' && $$props && $$props[${pathName}] || Astro.props && Astro.props[${pathName}]`;
+}
+
+function getScannedDynamicRootOffsets(
+  content: string,
+  startOffset: number,
+  escapeTags: EscapeTags,
+) {
+  const rootOffsets: number[] = [];
+  let index = startOffset;
+
+  while (index < content.length) {
+    const tagStart = content.indexOf('<', index);
+    if (tagStart === -1) {
+      break;
+    }
+
+    const tagInfo = readTagName(content, tagStart);
+    if (!tagInfo) {
+      index = tagStart + 1;
+      continue;
+    }
+
+    const { name } = tagInfo;
+    const insertPosition = findOpeningTagInsertPosition(content, tagStart);
+    if (insertPosition === -1) {
+      break;
+    }
+
+    if (
+      shouldInjectScannedTag(content, tagStart, insertPosition, name, escapeTags)
+    ) {
+      rootOffsets.push(tagStart);
+      if (rootOffsets.length > 1) {
+        return new Set<number>();
+      }
+    }
+
+    const lowerName = name.toLowerCase();
+    const closeIndex = content.toLowerCase().indexOf(
+      `</${lowerName}`,
+      insertPosition,
+    );
+    if (closeIndex !== -1) {
+      const closeEnd = content.indexOf('>', closeIndex);
+      if (closeEnd !== -1) {
+        index = closeEnd + 1;
+        continue;
+      }
+    }
+
+    index = insertPosition + 1;
+  }
+
+  return rootOffsets.length === 1
+    ? new Set<number>(rootOffsets)
+    : new Set<number>();
 }
 
 function readTagName(content: string, tagStart: number) {
@@ -253,8 +384,20 @@ function readTagName(content: string, tagStart: number) {
   return { name: match[0] };
 }
 
-function shouldInjectScannedTag(name: string, escapeTags: EscapeTags) {
-  return name[0] === name[0].toLowerCase() && !isEscapeTags(escapeTags, name);
+function shouldInjectScannedTag(
+  content: string,
+  tagStart: number,
+  insertPosition: number,
+  name: string,
+  escapeTags: EscapeTags,
+) {
+  return (
+    isScannableDomTag(name) &&
+    !isNonInjectableScannedTag(name) &&
+    !isEscapeTags(escapeTags, name) &&
+    !isLikelyTypeScriptGeneric(content, tagStart) &&
+    isWellFormedScannedTag(content, insertPosition, name)
+  );
 }
 
 function hasPathAttributeInSource(openingTag: string) {

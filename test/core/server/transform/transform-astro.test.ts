@@ -5,6 +5,11 @@ import path from 'path';
 import { PathName } from '@/core/src/shared';
 import { transformAstro } from '@/core/src/server/transform/transform-astro';
 
+function getAstroPropagatedPathExpression() {
+  const pathName = JSON.stringify(PathName);
+  return `typeof $$props !== 'undefined' && $$props && $$props[${pathName}] || Astro.props && Astro.props[${pathName}]`;
+}
+
 function createAstroFixture(content: string, compilerSource: string) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-astro-'));
   const srcDir = path.join(root, 'src');
@@ -32,8 +37,11 @@ function createAstroFixture(content: string, compilerSource: string) {
 describe('transformAstro compiler path', () => {
   it('should inject paths from compiler AST nodes and skip non-injectable nodes', async () => {
     const content =
-      '<div title={"a > b"}><p data-insp-path="old">Text</p><custom-el /></div><broken';
+      '<div title={"a > b"}><p data-insp-path="old">Text</p><custom-el /><Card /><svg><path d="M0 0" /></svg></div><broken';
     const customOffset = content.indexOf('<custom-el');
+    const cardOffset = content.indexOf('<Card');
+    const svgOffset = content.indexOf('<svg');
+    const pathOffset = content.indexOf('<path');
     const brokenOffset = content.indexOf('<broken');
     const fixture = createAstroFixture(
       content,
@@ -76,12 +84,42 @@ module.exports = {
                   },
                 },
               },
+              {
+                type: 'component',
+                name: 'Card',
+                position: {
+                  start: {
+                    line: 1,
+                    column: cardOffset + 1,
+                    offset: cardOffset,
+                  },
+                },
+              },
+              {
+                type: 'element',
+                name: 'svg',
+                position: {
+                  start: {
+                    line: 1,
+                    column: svgOffset + 1,
+                    offset: svgOffset,
+                  },
+                },
+                children: [
+                  {
+                    type: 'element',
+                    name: 'path',
+                    position: {
+                      start: {
+                        line: 1,
+                        column: pathOffset + 1,
+                        offset: pathOffset,
+                      },
+                    },
+                  },
+                ],
+              },
             ],
-          },
-          {
-            type: 'component',
-            name: 'Card',
-            position: { start: { line: 1, column: 1, offset: 0 } },
           },
           {
             type: 'element',
@@ -109,12 +147,20 @@ module.exports = {
     try {
       const result = await transformAstro(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:div"`);
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+      );
       expect(result).toContain(
         `${PathName}="${fixture.filePath}:1:${customOffset + 1}:custom-el"`,
       );
+      expect(result).toContain(
+        `${PathName}="${fixture.filePath}:1:${cardOffset + 1}:Card"`,
+      );
+      expect(result).toContain(
+        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+      );
       expect(result).toContain('<p data-insp-path="old">Text</p>');
-      expect(result).not.toContain(':Card"');
+      expect(result).not.toContain(':path"');
       expect(result).not.toContain(':span"');
       expect(result).not.toContain(':broken"');
     } finally {
@@ -132,7 +178,71 @@ module.exports = {
     try {
       const result = await transformAstro(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:div"`);
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should propagate component invocation path to a single root node', async () => {
+    const content = '<div>Root</div>';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'div',
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should propagate component invocation path through scanner fallback for a single root', async () => {
+    const content = [
+      '---',
+      "const title = 'Complex';",
+      '---',
+      '<section class="inspector-complex">{title}</section>',
+    ].join('\n');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => {
+    throw new Error('parse failed');
+  },
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `<section class="inspector-complex" ${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:4:1:section"}`,
+      );
     } finally {
       fixture.cleanup();
     }
@@ -154,7 +264,9 @@ module.exports = {
     try {
       const result = await transformAstro(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:section"`);
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:section"}`,
+      );
     } finally {
       fixture.cleanup();
     }

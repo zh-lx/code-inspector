@@ -1,5 +1,16 @@
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import { pathToFileURL } from 'url';
 import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
+import {
+  isLikelyTypeScriptGeneric,
+  isNonInjectableScannedTag,
+  isScannableDomTag,
+  isWellFormedScannedTag,
+  shouldSkipScannedTagChildren,
+} from './scan-html-tag';
 
 type Range = {
   start: number;
@@ -27,7 +38,123 @@ type ListGroup = {
   items: ListItem[];
 };
 
-export function transformMdx(
+type ScannerState = {
+  quote: string;
+  depth: number;
+};
+
+type MdxParser = {
+  createProcessor?: (options?: Record<string, unknown>) => {
+    parse: (content: string) => MdxNode;
+  };
+};
+
+type MdxNode = {
+  type: string;
+  name?: string | null;
+  attributes?: Array<{ name?: string | null }>;
+  children?: MdxNode[];
+  position?: {
+    start?: {
+      line?: number;
+      column?: number;
+      offset?: number;
+    };
+  };
+};
+
+const mdxParserCache = new Map<string, MdxParser | null>();
+
+export async function transformMdx(
+  content: string,
+  filePath: string,
+  escapeTags: EscapeTags,
+  resolveFilePath = filePath,
+) {
+  const ast = await parseMdxAst(content, resolveFilePath);
+  if (ast) {
+    return transformMdxByAst(content, filePath, escapeTags, ast);
+  }
+
+  return transformMdxByScan(content, filePath, escapeTags);
+}
+
+async function resolveMdxParser(filePath: string): Promise<MdxParser | null> {
+  const resolveDir = fs.existsSync(filePath) ? path.dirname(filePath) : filePath;
+  if (mdxParserCache.has(resolveDir)) {
+    return mdxParserCache.get(resolveDir) || null;
+  }
+
+  try {
+    const requireFromFile = createRequire(path.join(resolveDir, 'noop.js'));
+    const mdxPath = requireFromFile.resolve('@mdx-js/mdx');
+    const mdxModule = await import(pathToFileURL(mdxPath).href);
+    const parser = normalizeMdxParser(mdxModule);
+    mdxParserCache.set(resolveDir, parser);
+    return parser;
+  } catch (error) {
+    mdxParserCache.set(resolveDir, null);
+    return null;
+  }
+}
+
+function normalizeMdxParser(mdxModule: unknown): MdxParser | null {
+  const moduleRecord = mdxModule as MdxParser & { default?: MdxParser };
+  if (typeof moduleRecord.createProcessor === 'function') {
+    return moduleRecord;
+  }
+
+  if (typeof moduleRecord.default?.createProcessor === 'function') {
+    return moduleRecord.default;
+  }
+
+  return null;
+}
+
+async function parseMdxAst(content: string, filePath: string) {
+  const parser = await resolveMdxParser(filePath);
+  if (!parser?.createProcessor) {
+    return null;
+  }
+
+  try {
+    return parser.createProcessor({ jsx: true }).parse(content);
+  } catch (error) {
+    return null;
+  }
+}
+
+function transformMdxByAst(
+  content: string,
+  filePath: string,
+  escapeTags: EscapeTags,
+  ast: MdxNode,
+) {
+  const s = new MagicString(content);
+  const ignoredRanges = getIgnoredRanges(content);
+  const lines = getLines(content);
+  const rewrittenRanges = injectMarkdownBlockPaths(
+    s,
+    lines,
+    ignoredRanges,
+    filePath,
+    escapeTags,
+  );
+
+  injectExplicitAstTagPaths(
+    content,
+    s,
+    [...ignoredRanges, ...rewrittenRanges],
+    ast,
+    filePath,
+    escapeTags,
+    getMdxDynamicRootOffsets(ast, escapeTags),
+  );
+
+  return s.toString();
+}
+
+function transformMdxByScan(
   content: string,
   filePath: string,
   escapeTags: EscapeTags,
@@ -78,7 +205,7 @@ function injectMarkdownBlockPaths(
         item.line.number,
         item.markerColumn,
         'li',
-      )}>${item.text}</li>`;
+      )}>${renderInlineMarkdown(item.text)}</li>`;
 
       if (item === firstItem) {
         replacement = `<${group.kind}${getMdxPathAttribute(
@@ -116,7 +243,7 @@ function injectMarkdownBlockPaths(
           line.number,
           heading.column,
           heading.tag,
-        )}>${heading.text}</${heading.tag}>`,
+        )}>${renderInlineMarkdown(heading.text)}</${heading.tag}>`,
       );
       rewrittenRanges.push({ start: line.start, end: line.end });
       return;
@@ -141,7 +268,7 @@ function injectMarkdownBlockPaths(
           line.number,
           blockquote.textColumn,
           'p',
-        )}>${blockquote.text}</p></blockquote>`,
+        )}>${renderInlineMarkdown(blockquote.text)}</p></blockquote>`,
       );
       rewrittenRanges.push({ start: line.start, end: line.end });
     }
@@ -193,6 +320,118 @@ function collectListGroups(lines: MdxLine[], ignoredRanges: Range[]) {
   return groups;
 }
 
+function injectExplicitAstTagPaths(
+  content: string,
+  s: MagicString,
+  ignoredRanges: Range[],
+  ast: MdxNode,
+  filePath: string,
+  escapeTags: EscapeTags,
+  dynamicRootOffsets = new Set<number>(),
+) {
+  walkMdxNodes(ast, (node) => {
+    injectMdxAstNodePath(
+      content,
+      s,
+      ignoredRanges,
+      node,
+      filePath,
+      escapeTags,
+      dynamicRootOffsets,
+    );
+  });
+}
+
+function walkMdxNodes(node: MdxNode, callback: (node: MdxNode) => void) {
+  callback(node);
+  if (node.name && shouldSkipScannedTagChildren(node.name)) {
+    return;
+  }
+  node.children?.forEach((child) => walkMdxNodes(child, callback));
+}
+
+function injectMdxAstNodePath(
+  content: string,
+  s: MagicString,
+  ignoredRanges: Range[],
+  node: MdxNode,
+  filePath: string,
+  escapeTags: EscapeTags,
+  dynamicRootOffsets = new Set<number>(),
+) {
+  if (!isInjectableMdxAstNode(node, escapeTags) || hasMdxAstPathAttribute(node)) {
+    return;
+  }
+
+  const start = node.position?.start;
+  if (
+    typeof start?.offset !== 'number' ||
+    typeof start.line !== 'number' ||
+    typeof start.column !== 'number' ||
+    !node.name ||
+    isOffsetInRanges(start.offset, ignoredRanges)
+  ) {
+    return;
+  }
+
+  const insertPosition = findOpeningTagInsertPosition(content, start.offset);
+  if (
+    insertPosition === -1 ||
+    hasPathAttributeInSource(content.slice(start.offset, insertPosition))
+  ) {
+    return;
+  }
+
+  s.prependLeft(
+    insertPosition,
+    getMdxPathAttribute(
+      filePath,
+      start.line,
+      start.column,
+      node.name,
+      dynamicRootOffsets.has(start.offset)
+        ? `props && props[${JSON.stringify(PathName)}]`
+        : '',
+    ),
+  );
+}
+
+function isInjectableMdxAstNode(node: MdxNode, escapeTags: EscapeTags) {
+  return Boolean(
+    (node.type === 'mdxJsxFlowElement' ||
+      node.type === 'mdxJsxTextElement') &&
+      node.name &&
+      isScannableDomTag(node.name) &&
+      !isNonInjectableScannedTag(node.name) &&
+      !isEscapeTags(escapeTags, node.name),
+  );
+}
+
+function hasMdxAstPathAttribute(node: MdxNode) {
+  return node.attributes?.some((attr) => attr.name === PathName);
+}
+
+function getMdxDynamicRootOffsets(ast: MdxNode, escapeTags: EscapeTags) {
+  const renderRoots = (ast.children || []).filter(isRenderableMdxRootNode);
+  if (
+    renderRoots.length !== 1 ||
+    !isInjectableMdxAstNode(renderRoots[0], escapeTags)
+  ) {
+    return new Set<number>();
+  }
+
+  const offset = renderRoots[0].position?.start?.offset;
+  return typeof offset === 'number' ? new Set([offset]) : new Set<number>();
+}
+
+function isRenderableMdxRootNode(node: MdxNode) {
+  return (
+    node.type !== 'mdxjsEsm' &&
+    node.type !== 'definition' &&
+    node.type !== 'footnoteDefinition'
+  );
+}
+
 function injectExplicitTagPaths(
   content: string,
   s: MagicString,
@@ -234,7 +473,7 @@ function injectExplicitTagPaths(
     }
 
     if (
-      shouldInjectTag(name, escapeTags) &&
+      shouldInjectTag(content, tagStart, insertPosition, name, escapeTags) &&
       !hasPathAttributeInSource(content.slice(tagStart, insertPosition))
     ) {
       const position = getLineColumn(lineStarts, tagStart);
@@ -250,7 +489,10 @@ function injectExplicitTagPaths(
     }
 
     const lowerName = name.toLowerCase();
-    if (isEscapeTags(escapeTags, lowerName)) {
+    if (
+      shouldSkipScannedTagChildren(name) ||
+      isEscapeTags(escapeTags, lowerName)
+    ) {
       const closeTag = `</${lowerName}`;
       const closeIndex = content.toLowerCase().indexOf(closeTag, insertPosition);
       if (closeIndex !== -1) {
@@ -357,7 +599,8 @@ function getIgnoredRanges(content: string) {
     ranges.push({ start: openFence.start, end: content.length });
   }
 
-  return ranges;
+  ranges.push(...getMdxEsmRanges(getLines(content), ranges, frontmatterEnd));
+  return ranges.sort((a, b) => a.start - b.start);
 }
 
 function readTagName(content: string, tagStart: number) {
@@ -419,8 +662,20 @@ function findOpeningTagInsertPosition(content: string, tagStart: number) {
   return -1;
 }
 
-function shouldInjectTag(name: string, escapeTags: EscapeTags) {
-  return name[0] === name[0].toLowerCase() && !isEscapeTags(escapeTags, name);
+function shouldInjectTag(
+  content: string,
+  tagStart: number,
+  insertPosition: number,
+  name: string,
+  escapeTags: EscapeTags,
+) {
+  return (
+    isScannableDomTag(name) &&
+    !isNonInjectableScannedTag(name) &&
+    !isEscapeTags(escapeTags, name) &&
+    !isLikelyTypeScriptGeneric(content, tagStart) &&
+    isWellFormedScannedTag(content, insertPosition, name)
+  );
 }
 
 function hasPathAttributeInSource(openingTag: string) {
@@ -432,7 +687,13 @@ function getMdxPathAttribute(
   line: number,
   column: number,
   name: string,
+  propagatedPathExpression = '',
 ) {
+  const pathValue = JSON.stringify(`${filePath}:${line}:${column}:${name}`);
+  if (propagatedPathExpression) {
+    return ` ${PathName}={${propagatedPathExpression} || ${pathValue}}`;
+  }
+
   return ` ${PathName}=${JSON.stringify(
     `${filePath}:${line}:${column}:${name}`,
   )}`;
@@ -515,4 +776,323 @@ function findRangeAtOffset(offset: number, ranges: Range[]) {
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderInlineMarkdown(value: string): string {
+  let result = '';
+  let index = 0;
+
+  while (index < value.length) {
+    const char = value[index];
+
+    if (char === '\\' && index + 1 < value.length) {
+      result += value[index + 1];
+      index += 2;
+      continue;
+    }
+
+    if (char === '`') {
+      const code = readInlineCode(value, index);
+      if (code) {
+        result += `<code>${escapeJsxText(code.text)}</code>`;
+        index = code.end;
+        continue;
+      }
+    }
+
+    const image = readInlineImage(value, index);
+    if (image) {
+      result += `<img src=${JSON.stringify(image.url)} alt=${JSON.stringify(
+        image.alt,
+      )}${image.title ? ` title=${JSON.stringify(image.title)}` : ''} />`;
+      index = image.end;
+      continue;
+    }
+
+    const link = readInlineLink(value, index);
+    if (link) {
+      result += `<a href=${JSON.stringify(link.url)}${
+        link.title ? ` title=${JSON.stringify(link.title)}` : ''
+      }>${renderInlineMarkdown(link.label)}</a>`;
+      index = link.end;
+      continue;
+    }
+
+    const strong = readDelimitedInline(value, index, '**', '__');
+    if (strong) {
+      result += `<strong>${renderInlineMarkdown(strong.text)}</strong>`;
+      index = strong.end;
+      continue;
+    }
+
+    const deleteText = readDelimitedInline(value, index, '~~');
+    if (deleteText) {
+      result += `<del>${renderInlineMarkdown(deleteText.text)}</del>`;
+      index = deleteText.end;
+      continue;
+    }
+
+    const emphasis = readDelimitedInline(value, index, '*', '_');
+    if (emphasis) {
+      result += `<em>${renderInlineMarkdown(emphasis.text)}</em>`;
+      index = emphasis.end;
+      continue;
+    }
+
+    result += char;
+    index++;
+  }
+
+  return result;
+}
+
+function readInlineCode(value: string, start: number) {
+  const marker = /^`+/.exec(value.slice(start))?.[0];
+  if (!marker) {
+    return null;
+  }
+
+  const end = value.indexOf(marker, start + marker.length);
+  if (end === -1) {
+    return null;
+  }
+
+  return {
+    text: value.slice(start + marker.length, end),
+    end: end + marker.length,
+  };
+}
+
+function readInlineImage(value: string, start: number) {
+  if (value[start] !== '!' || value[start + 1] !== '[') {
+    return null;
+  }
+
+  const link = readInlineLink(value, start + 1);
+  if (!link) {
+    return null;
+  }
+
+  return {
+    alt: stripMarkdown(link.label),
+    url: link.url,
+    title: link.title,
+    end: link.end,
+  };
+}
+
+function readInlineLink(value: string, start: number) {
+  if (value[start] !== '[') {
+    return null;
+  }
+
+  const labelEnd = findClosingBracket(value, start);
+  if (labelEnd === -1 || value[labelEnd + 1] !== '(') {
+    return null;
+  }
+
+  const destination = readLinkDestination(value, labelEnd + 2);
+  if (!destination) {
+    return null;
+  }
+
+  return {
+    label: value.slice(start + 1, labelEnd),
+    url: destination.url,
+    title: destination.title,
+    end: destination.end,
+  };
+}
+
+function readDelimitedInline(
+  value: string,
+  start: number,
+  ...delimiters: string[]
+) {
+  const delimiter = delimiters.find((item) => value.startsWith(item, start));
+  if (!delimiter) {
+    return null;
+  }
+
+  const contentStart = start + delimiter.length;
+  const end = value.indexOf(delimiter, contentStart);
+  if (end === -1 || end === contentStart) {
+    return null;
+  }
+
+  return {
+    text: value.slice(contentStart, end),
+    end: end + delimiter.length,
+  };
+}
+
+function findClosingBracket(value: string, start: number) {
+  let depth = 0;
+  for (let i = start; i < value.length; i++) {
+    if (value[i] === '\\') {
+      i++;
+      continue;
+    }
+
+    if (value[i] === '[') {
+      depth++;
+    } else if (value[i] === ']') {
+      depth--;
+      if (depth === 0) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+}
+
+function readLinkDestination(value: string, start: number) {
+  let quote = '';
+  let url = '';
+  let title = '';
+  let isTitle = false;
+
+  for (let i = start; i < value.length; i++) {
+    const char = value[i];
+    const prev = value[i - 1];
+
+    if (quote) {
+      if (char === quote && prev !== '\\') {
+        quote = '';
+      } else if (isTitle) {
+        title += char;
+      } else {
+        url += char;
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      isTitle = true;
+      continue;
+    }
+
+    if (char === ')' && !quote) {
+      return {
+        url: url.trim(),
+        title: title.trim(),
+        end: i + 1,
+      };
+    }
+
+    if (/\s/.test(char) && url.trim()) {
+      isTitle = true;
+      continue;
+    }
+
+    if (isTitle) {
+      title += char;
+    } else {
+      url += char;
+    }
+  }
+
+  return null;
+}
+
+function stripMarkdown(value: string) {
+  return value
+    .replace(/\\([\\`*_[\]{}()#+\-.!])/g, '$1')
+    .replace(/[*_`~]/g, '');
+}
+
+function escapeJsxText(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/{/g, '&#123;')
+    .replace(/}/g, '&#125;');
+}
+
+function getMdxEsmRanges(
+  lines: MdxLine[],
+  ignoredRanges: Range[],
+  frontmatterEnd: number,
+) {
+  const ranges: Range[] = [];
+  const state: ScannerState = { quote: '', depth: 0 };
+  let start = -1;
+
+  lines.forEach((line) => {
+    if (
+      line.start < frontmatterEnd ||
+      isOffsetInRanges(line.start, ignoredRanges)
+    ) {
+      return;
+    }
+
+    if (start === -1) {
+      if (!isMdxEsmStart(line.text)) {
+        return;
+      }
+
+      start = line.start;
+      state.quote = '';
+      state.depth = 0;
+    }
+
+    updateJsScannerState(line.text, state);
+    if (isMdxEsmComplete(line.text, state)) {
+      ranges.push({ start, end: line.end });
+      start = -1;
+      state.quote = '';
+      state.depth = 0;
+    }
+  });
+
+  if (start !== -1) {
+    const lastLine = lines[lines.length - 1];
+    ranges.push({ start, end: lastLine ? lastLine.end : start });
+  }
+
+  return ranges;
+}
+
+function isMdxEsmStart(line: string) {
+  return /^\s*(?:import|export)\s/.test(line);
+}
+
+function isMdxEsmComplete(line: string, state: ScannerState) {
+  const trimmed = line.trim();
+  return (
+    !state.quote &&
+    state.depth <= 0 &&
+    !/(?:[=([{,:?]|\|\||&&|=>)\s*$/.test(trimmed)
+  );
+}
+
+function updateJsScannerState(value: string, state: ScannerState) {
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+    const prev = value[i - 1];
+
+    if (state.quote) {
+      if (char === state.quote && prev !== '\\') {
+        state.quote = '';
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === '`') {
+      state.quote = char;
+      continue;
+    }
+
+    if (char === '{' || char === '[' || char === '(') {
+      state.depth++;
+      continue;
+    }
+
+    if (char === '}' || char === ']' || char === ')') {
+      state.depth--;
+    }
+  }
 }
