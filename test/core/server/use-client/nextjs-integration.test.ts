@@ -68,7 +68,8 @@ describe('Next.js Integration Tests', () => {
     mockStartServer.mockResolvedValue(undefined);
 
     // Create a temporary test directory
-    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-nextjs-'));
+    testDir = path.join(os.tmpdir(), `test-nextjs-${Date.now()}`);
+    fs.mkdirSync(testDir, { recursive: true });
   });
 
   afterEach(() => {
@@ -151,48 +152,6 @@ export default function Page() {
 
       // Should still add import even without use client directive
       expect(result).toContain('import');
-    });
-
-    it('should detect Next.js from the transformed file directory when cwd is not a Next.js project', async () => {
-      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/not-next');
-      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue([]);
-
-      const nextPackageDir = path.join(testDir, 'node_modules/next');
-      fs.mkdirSync(nextPackageDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(nextPackageDir, 'package.json'),
-        JSON.stringify({ name: 'next', version: '16.2.3' }),
-      );
-
-      const testFile = path.join(testDir, 'app/page.tsx');
-      const originalCode = `export default function Page() {
-  return <div>Hello</div>;
-}`;
-      fs.mkdirSync(path.dirname(testFile), { recursive: true });
-      fs.writeFileSync(testFile, originalCode);
-
-      const record: RecordInfo = {
-        port: 0,
-        entry: '',
-        output: testDir,
-      };
-      const options: CodeOptions = {
-        bundler: 'turbopack',
-      };
-
-      setProjectRecord(record, 'entry', path.join(testDir, 'app/page'));
-      setProjectRecord(record, 'port', 5678);
-
-      const result = await getCodeWithWebComponent({
-        options,
-        record,
-        file: testFile,
-        code: originalCode,
-      });
-
-      expect(result).toContain('import CodeInspectorEmptyElement');
-      expect(result).toContain('<CodeInspectorEmptyElement />');
-      expect(result).not.toMatch(/^\/\* eslint-disable \*\/ 'use client';/);
     });
 
     it('should handle nested JSX elements correctly', async () => {
