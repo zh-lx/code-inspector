@@ -99,13 +99,18 @@ async function resolveMdxParser(filePath: string): Promise<MdxParser | null> {
 }
 
 function normalizeMdxParser(mdxModule: unknown): MdxParser | null {
-  const moduleRecord = mdxModule as MdxParser & { default?: MdxParser };
-  if (typeof moduleRecord.createProcessor === 'function') {
-    return moduleRecord;
-  }
+  const seen = new Set<unknown>();
+  let current = mdxModule;
 
-  if (typeof moduleRecord.default?.createProcessor === 'function') {
-    return moduleRecord.default;
+  while (current && typeof current === 'object' && !seen.has(current)) {
+    seen.add(current);
+
+    const moduleRecord = current as MdxParser & { default?: unknown };
+    if (typeof moduleRecord.createProcessor === 'function') {
+      return moduleRecord;
+    }
+
+    current = moduleRecord.default;
   }
 
   return null;
