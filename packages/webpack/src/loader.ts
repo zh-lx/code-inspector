@@ -9,11 +9,13 @@ import {
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
-export default async function WebpackCodeInspectorLoader(content: string) {
-  this.cacheable && this.cacheable(true);
-  let filePath = normalizePath(this.resourcePath); // 当前文件的绝对路径
-  let params = new URLSearchParams(this.resource.split('?')?.[1] || '');
-  const options = this.query || {};
+async function transformWebpackCodeInspectorContent(
+  loaderContext: any,
+  content: string,
+) {
+  let filePath = normalizePath(loaderContext.resourcePath); // 当前文件的绝对路径
+  let params = new URLSearchParams(loaderContext.resource.split('?')?.[1] || '');
+  const options = loaderContext.query || {};
   let { escapeTags = [], mappings } = options;
 
   if (isExcludedFile(filePath, options)) {
@@ -98,4 +100,23 @@ export default async function WebpackCodeInspectorLoader(content: string) {
   }
 
   return content;
+}
+
+export default function WebpackCodeInspectorLoader(
+  content: string,
+  source: any,
+  meta: any,
+): Promise<string> | undefined {
+  this.cacheable && this.cacheable(true);
+  const callback = this.async?.();
+  const result = transformWebpackCodeInspectorContent(this, content).catch(
+    () => content,
+  );
+
+  if (callback) {
+    result.then((code) => callback(null, code, source, meta));
+    return undefined;
+  }
+
+  return result;
 }

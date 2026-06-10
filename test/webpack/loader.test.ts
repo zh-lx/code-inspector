@@ -51,6 +51,32 @@ describe('WebpackCodeInspectorLoader', () => {
       const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
       expect(result).toBeDefined();
     });
+
+    it('should use webpack async callback when available', async () => {
+      const source = { map: true };
+      const meta = { info: 'meta' };
+      const callbackResult = await new Promise<any[]>((resolve) => {
+        const callback = vi.fn((...args: any[]) => resolve(args));
+        mockContext.async = vi.fn(() => callback);
+
+        const result = WebpackCodeInspectorLoader.call(
+          mockContext,
+          'const x = 1;',
+          source,
+          meta,
+        );
+
+        expect(result).toBeUndefined();
+      });
+
+      expect(mockContext.async).toHaveBeenCalled();
+      expect(callbackResult).toEqual([
+        null,
+        'transformed:const x = 1;',
+        source,
+        meta,
+      ]);
+    });
   });
 
   describe('excluded files', () => {
