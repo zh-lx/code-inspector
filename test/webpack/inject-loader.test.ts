@@ -16,11 +16,25 @@ import {
 
 describe('WebpackCodeInjectLoader', () => {
   let mockContext: any;
+  const runLoader = async (
+    content = 'const x = 1;',
+    source: any = null,
+    meta: any = null,
+  ) => {
+    await new Promise<void>((resolve) => {
+      const callback = vi.fn((...args: any[]) => {
+        mockContext.callback(...args);
+        resolve();
+      });
+      mockContext.async.mockReturnValueOnce(callback);
+      WebpackCodeInjectLoader.call(mockContext, content, source, meta);
+    });
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockContext = {
-      async: vi.fn().mockReturnValue(() => {}),
+      async: vi.fn(),
       cacheable: vi.fn(),
       callback: vi.fn(),
       resourcePath: '/test/file.js',
@@ -31,18 +45,18 @@ describe('WebpackCodeInjectLoader', () => {
   });
 
   it('should call async to indicate async operation', async () => {
-    await WebpackCodeInjectLoader.call(mockContext, 'const x = 1;', null, null);
+    await runLoader();
     expect(mockContext.async).toHaveBeenCalled();
   });
 
   it('should call cacheable when available', async () => {
-    await WebpackCodeInjectLoader.call(mockContext, 'const x = 1;', null, null);
+    await runLoader();
     expect(mockContext.cacheable).toHaveBeenCalledWith(true);
   });
 
   it('should work when cacheable is not available', async () => {
     delete mockContext.cacheable;
-    await WebpackCodeInjectLoader.call(mockContext, 'const x = 1;', null, null);
+    await runLoader();
     expect(mockContext.callback).toHaveBeenCalled();
   });
 
@@ -52,7 +66,7 @@ describe('WebpackCodeInjectLoader', () => {
     const source = { map: {} };
     const meta = { info: 'meta' };
 
-    await WebpackCodeInjectLoader.call(mockContext, content, source, meta);
+    await runLoader(content, source, meta);
 
     expect(mockContext.callback).toHaveBeenCalledWith(null, content, source, meta);
     expect(getCodeWithWebComponent).not.toHaveBeenCalled();
@@ -63,7 +77,7 @@ describe('WebpackCodeInjectLoader', () => {
     const source = { map: {} };
     const meta = { info: 'meta' };
 
-    await WebpackCodeInjectLoader.call(mockContext, content, source, meta);
+    await runLoader(content, source, meta);
 
     expect(getCodeWithWebComponent).toHaveBeenCalledWith({
       options: mockContext.query,
@@ -81,8 +95,33 @@ describe('WebpackCodeInjectLoader', () => {
 
   it('should normalize file path', async () => {
     mockContext.resourcePath = '/test/path/to/file.js';
-    await WebpackCodeInjectLoader.call(mockContext, 'code', null, null);
+    await runLoader('code');
 
     expect(normalizePath).toHaveBeenCalledWith('/test/path/to/file.js');
+  });
+
+  it('should return a promise when no callback is available', async () => {
+    delete mockContext.async;
+    delete mockContext.callback;
+
+    const result = WebpackCodeInjectLoader.call(
+      mockContext,
+      'const x = 1;',
+      null,
+      null,
+    );
+
+    await expect(result).resolves.toBe('injected:const x = 1;');
+  });
+
+  it('should fall back to original content when injection fails', async () => {
+    vi.mocked(getCodeWithWebComponent).mockRejectedValueOnce(
+      new Error('invalid temporary code'),
+    );
+
+    const content = 'const x = <;';
+    await runLoader(content);
+
+    expect(mockContext.callback).toHaveBeenCalledWith(null, content, null, null);
   });
 });

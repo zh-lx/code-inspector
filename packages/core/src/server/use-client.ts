@@ -93,6 +93,14 @@ function addNextEmptyElementToEntry(content: string) {
   return s.toString();
 }
 
+function tryAddNextEmptyElementToEntry(content: string) {
+  try {
+    return addNextEmptyElementToEntry(content);
+  } catch (error) {
+    return content;
+  }
+}
+
 function addImportToEntry(content: string, webComponentFilePath: string) {
   let hasAddedImport = false;
   const s = new MagicString(content);
@@ -131,6 +139,19 @@ function addImportToEntry(content: string, webComponentFilePath: string) {
     return s.toString();
   } else {
     return `import ${NextEmptyElementName} from '${webComponentFilePath}';${s.toString()}`;
+  }
+}
+
+function tryAddNextInspectorToEntry(
+  content: string,
+  webComponentFilePath: string,
+) {
+  try {
+    return addNextEmptyElementToEntry(
+      addImportToEntry(content, webComponentFilePath),
+    );
+  } catch (error) {
+    return content;
   }
 }
 
@@ -233,7 +254,7 @@ export function getHidePathAttrCode() {
 function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
   if (isNextjs) {
     const content = fs.readFileSync(file, 'utf-8');
-    if (content === addNextEmptyElementToEntry(content)) {
+    if (content === tryAddNextEmptyElementToEntry(content)) {
       return;
     }
   }
@@ -322,7 +343,8 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
-  const isNextjs = isNextjsProject(path.dirname(file));
+  const isNextjs =
+    options.bundler === 'turbopack' || isNextjsProject(path.dirname(file));
 
   recordInjectTo(record, options);
   recordEntry(record, file, isNextjs);
@@ -350,8 +372,7 @@ export async function getCodeWithWebComponent({
           path.relative(path.dirname(file), webComponentFilePath),
         );
         if (isNextjs) {
-          code = addImportToEntry(code, relativePath);
-          code = addNextEmptyElementToEntry(code);
+          code = tryAddNextInspectorToEntry(code, relativePath);
         } else {
           code = `import '${relativePath}';${code}`;
         }
