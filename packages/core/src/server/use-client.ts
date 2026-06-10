@@ -322,7 +322,8 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
-  const isNextjs = isNextjsProject(path.dirname(file));
+  const isNextjs =
+    options.bundler === 'turbopack' || isNextjsProject(path.dirname(file));
 
   recordInjectTo(record, options);
   recordEntry(record, file, isNextjs);
