@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.5.4
+
+- 【fix】修复了在 `turbopack` 中使用时未按 Next.js 项目注入客户端组件的问题 [#530](https://github.com/zh-lx/code-inspector/pull/530)
+- 【fix】修复了在 Next.js 中使用 webpack 时，临时编译错误恢复后热更新失效的问题 [#530](https://github.com/zh-lx/code-inspector/pull/530)
+
 ## 1.5.3
 
 - 【fix】将 `turbopack` 中 `importClient` 的默认值改为 `file`，同时保留用户显式配置 [#525](https://github.com/zh-lx/code-inspector/pull/525)

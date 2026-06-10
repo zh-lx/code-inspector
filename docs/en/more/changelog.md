@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.4
+
+- 【fix】Fixed client component injection for Next.js projects using `turbopack` [#530](https://github.com/zh-lx/code-inspector/pull/530)
+- 【fix】Fixed HMR recovery after temporary compile errors in Next.js projects using webpack [#530](https://github.com/zh-lx/code-inspector/pull/530)
+
 ## 1.5.3
 
 - 【fix】Changed the default `importClient` value to `file` in `turbopack` while preserving explicit user configuration [#525](https://github.com/zh-lx/code-inspector/pull/525)
