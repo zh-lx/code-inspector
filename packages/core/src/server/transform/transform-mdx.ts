@@ -852,11 +852,7 @@ function renderInlineMarkdown(value: string): string {
 }
 
 function readInlineCode(value: string, start: number) {
-  const marker = /^`+/.exec(value.slice(start))?.[0];
-  if (!marker) {
-    return null;
-  }
-
+  const marker = /^`+/.exec(value.slice(start))![0];
   const end = value.indexOf(marker, start + marker.length);
   if (end === -1) {
     return null;
@@ -965,10 +961,8 @@ function readLinkDestination(value: string, start: number) {
     if (quote) {
       if (char === quote && prev !== '\\') {
         quote = '';
-      } else if (isTitle) {
-        title += char;
       } else {
-        url += char;
+        title += char;
       }
       continue;
     }

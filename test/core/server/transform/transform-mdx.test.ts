@@ -49,6 +49,34 @@ describe('transformMdx parser path', () => {
     }
   });
 
+  it('should fall back to scanner when parser package entry is invalid', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-mdx-broken-'));
+    const filePath = path.join(root, 'src', 'file.mdx');
+    const parserDir = path.join(root, 'src/node_modules/@mdx-js/mdx');
+
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.mkdirSync(parserDir, { recursive: true });
+    fs.writeFileSync(filePath, '<article>Broken parser</article>');
+    fs.writeFileSync(
+      path.join(parserDir, 'package.json'),
+      '{"name":"@mdx-js/mdx","main":"missing.cjs"}',
+    );
+
+    try {
+      const result = await transformMdx(
+        '<article>Broken parser</article>',
+        filePath,
+        [],
+      );
+
+      expect(result).toContain(
+        `${PathName}="${filePath}:1:1:article"`,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('should support default-exported MDX parser modules', async () => {
     const content = '<article>Default parser</article>';
     const fixture = createMdxFixture(
@@ -310,6 +338,103 @@ module.exports = {
       );
       expect(result).not.toContain(':section"');
       expect(result).not.toContain(':aside"');
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve inline markdown edge cases in scanner fallback', async () => {
+    const content = [
+      '# Escaped \\*literal\\* image ![**Logo** `raw`](https://img.test/logo.png "Hero title") ~~gone~~ _em_ `open',
+      '# Broken ![missing [dangling [escaped\\]label](https://example.com "Quoted title") [titled](https://example.com Title) [unterminated](https://example.com "Title" **',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain('*literal*');
+      expect(result).toContain(
+        '<img src="https://img.test/logo.png" alt="Logo raw" title="Hero title" />',
+      );
+      expect(result).toContain('<del>gone</del>');
+      expect(result).toContain('<em>em</em>');
+      expect(result).toContain(
+        '<a href="https://example.com" title="Quoted title">escaped]label</a>',
+      );
+      expect(result).toContain(
+        '<a href="https://example.com" title="Title">titled</a>',
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should not scan explicit tags inside rewritten markdown blocks', async () => {
+    const content = [
+      'Plain intro',
+      '# <span>Nested</span>',
+      '<div>Outside</div>',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:2:1:h1"><span>Nested</span></h1>`,
+      );
+      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:div"`);
+      expect(result).not.toContain(`${fixture.filePath}:2:3:span`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should ignore MDX ESM regions while scanning explicit tags', async () => {
+    const content = [
+      'export const config = {',
+      '  label: "quoted <span>",',
+      '  values: [1, 2],',
+      '};',
+      '<section>Visible</section>',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).not.toContain(`${fixture.filePath}:2:18:span`);
+      expect(result).toContain(`${PathName}="${fixture.filePath}:5:1:section"`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should treat unfinished MDX ESM regions as ignored ranges', async () => {
+    const content = [
+      'export const config = {',
+      '  label: "quoted <span>"',
+      '<div>Ignored</div>',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }

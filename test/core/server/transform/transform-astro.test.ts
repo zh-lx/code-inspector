@@ -35,6 +35,34 @@ function createAstroFixture(content: string, compilerSource: string) {
 }
 
 describe('transformAstro compiler path', () => {
+  it('should fall back to scanner when compiler cannot be resolved', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-astro-missing-'));
+    const filePath = path.join(root, 'src', 'file.astro');
+    const astroDir = path.join(root, 'src/node_modules/astro');
+
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.mkdirSync(astroDir, { recursive: true });
+    fs.writeFileSync(filePath, '<main>Missing compiler</main>');
+    fs.writeFileSync(
+      path.join(astroDir, 'package.json'),
+      '{"name":"astro","exports":{}}',
+    );
+
+    try {
+      const result = await transformAstro(
+        '<main>Missing compiler</main>',
+        filePath,
+        [],
+      );
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || "${filePath}:1:1:main"}`,
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('should inject paths from compiler AST nodes and skip non-injectable nodes', async () => {
     const content =
       '<div title={"a > b"}><p data-insp-path="old">Text</p><custom-el /><Card /><svg><path d="M0 0" /></svg></div><broken';
@@ -168,6 +196,93 @@ module.exports = {
     }
   });
 
+  it('should handle non-propagated AST roots and skipped SVG children', async () => {
+    const content = '<div>One</div><svg><path d="M0 0" /></svg>';
+    const svgOffset = content.indexOf('<svg');
+    const pathOffset = content.indexOf('<path');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'div',
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+        {
+          type: 'element',
+          name: 'svg',
+          position: { start: { line: 1, column: ${svgOffset + 1}, offset: ${svgOffset} } },
+          children: [
+            {
+              type: 'element',
+              name: 'path',
+              position: { start: { line: 1, column: ${pathOffset + 1}, offset: ${pathOffset} } },
+            },
+          ],
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:div"`);
+      expect(result).toContain(
+        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+      );
+      expect(result).not.toContain(`${fixture.filePath}:1:${pathOffset + 1}:path`);
+      expect(result).not.toContain(getAstroPropagatedPathExpression());
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should skip AST nodes with invalid positions and malformed opening tags', async () => {
+    const content = '<aside>Invalid position</aside><section';
+    const sectionOffset = content.indexOf('<section');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'aside',
+          position: { start: { line: 1, offset: 0 } },
+        },
+        {
+          type: 'element',
+          name: 'section',
+          position: { start: { line: 1, column: ${sectionOffset + 1}, offset: ${sectionOffset} } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should fall back to scanner when compiler returns no AST', async () => {
     const content = '<div>Fallback</div>';
     const fixture = createAstroFixture(
@@ -267,6 +382,33 @@ module.exports = {
       expect(result).toContain(
         `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:section"}`,
       );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should scan fallback content without root tags', async () => {
+    const content = [
+      '---',
+      "const title = 'No tags';",
+      '---',
+      'Plain text only',
+    ].join('\n');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => {
+    throw new Error('parse failed');
+  },
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }
