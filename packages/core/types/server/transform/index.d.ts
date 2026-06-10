@@ -1,5 +1,5 @@
 import { EscapeTags, PathType } from '../../shared';
-type FileType = 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
+type FileType = 'vue' | 'jsx' | 'svelte' | unknown;
 type TransformCodeParams = {
     content: string;
     filePath: string;
