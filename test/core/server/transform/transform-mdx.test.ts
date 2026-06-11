@@ -373,6 +373,79 @@ module.exports = {
     }
   });
 
+  it('should escape plain less-than text in rewritten markdown blocks', async () => {
+    const content = [
+      '# 1 < 2 and <span>ok</span>',
+      '',
+      '- a < b',
+      '',
+      '> c < d',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">1 &lt; 2 and <span>ok</span></h1>`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:3:1:li">a &lt; b</li>`,
+      );
+      expect(result).toContain(
+        `<p ${PathName}="${fixture.filePath}:5:3:p">c &lt; d</p>`,
+      );
+      expect(result).not.toContain(`${fixture.filePath}:1:13:span`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should leave complex list constructs unchanged in scanner fallback', async () => {
+    const content = [
+      '- parent',
+      '  continuation',
+      '- next',
+      '',
+      '- parent',
+      '  - child',
+      '',
+      '- parent',
+      '  # Nested',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should leave multi-line blockquotes unchanged in scanner fallback', async () => {
+    const content = ['> first', '> second'].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should not scan explicit tags inside rewritten markdown blocks', async () => {
     const content = [
       'Plain intro',

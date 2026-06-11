@@ -36,6 +36,9 @@ type ListGroup = {
   kind: 'ul' | 'ol';
   indent: number;
   items: ListItem[];
+  start: number;
+  end: number;
+  unsafe: boolean;
 };
 
 type ScannerState = {
@@ -195,9 +198,16 @@ function injectMarkdownBlockPaths(
 ) {
   const rewrittenRanges: Range[] = [];
   const listGroups = collectListGroups(lines, ignoredRanges);
+  const skippedMarkdownRanges = listGroups
+    .filter((group) => group.unsafe)
+    .map(({ start, end }) => ({ start, end }));
 
   listGroups.forEach((group) => {
-    if (isEscapeTags(escapeTags, group.kind) || isEscapeTags(escapeTags, 'li')) {
+    if (
+      group.unsafe ||
+      isEscapeTags(escapeTags, group.kind) ||
+      isEscapeTags(escapeTags, 'li')
+    ) {
       return;
     }
 
@@ -230,9 +240,10 @@ function injectMarkdownBlockPaths(
     });
   });
 
-  lines.forEach((line) => {
+  lines.forEach((line, lineIndex) => {
     if (
       isOffsetInRanges(line.start, ignoredRanges) ||
+      isOffsetInRanges(line.start, skippedMarkdownRanges) ||
       isOffsetInRanges(line.start, rewrittenRanges)
     ) {
       return;
@@ -257,6 +268,7 @@ function injectMarkdownBlockPaths(
     const blockquote = readBlockquote(line);
     if (
       blockquote &&
+      isSingleLineMarkdownBlock(lines, lineIndex, ignoredRanges) &&
       !isEscapeTags(escapeTags, 'blockquote') &&
       !isEscapeTags(escapeTags, 'p')
     ) {
@@ -301,28 +313,55 @@ function collectListGroups(lines: MdxLine[], ignoredRanges: Range[]) {
 
     const item = readListItem(line);
     if (!item) {
-      finishCurrent();
+      if (current) {
+        current.unsafe = true;
+        current.end = line.end;
+      }
       return;
     }
 
-    if (
-      !current ||
-      current.kind !== item.kind ||
-      current.indent !== item.indent
-    ) {
+    if (!current) {
+      current = createListGroup(item);
+      return;
+    }
+
+    if (current.unsafe && item.indent >= current.indent) {
+      if (current.kind === item.kind && current.indent === item.indent) {
+        current.items.push(item);
+      }
+      current.end = item.line.end;
+      return;
+    }
+
+    if (item.indent > current.indent) {
+      current.unsafe = true;
+      current.end = item.line.end;
+      return;
+    }
+
+    if (current.kind !== item.kind || current.indent !== item.indent) {
       finishCurrent();
-      current = {
-        kind: item.kind,
-        indent: item.indent,
-        items: [],
-      };
+      current = createListGroup(item);
+      return;
     }
 
     current.items.push(item);
+    current.end = item.line.end;
   });
 
   finishCurrent();
   return groups;
+}
+
+function createListGroup(item: ListItem): ListGroup {
+  return {
+    kind: item.kind,
+    indent: item.indent,
+    items: [item],
+    start: item.line.start,
+    end: item.line.end,
+    unsafe: item.indent > 0,
+  };
 }
 
 function injectExplicitAstTagPaths(
@@ -537,6 +576,25 @@ function readBlockquote(line: MdxLine) {
     textColumn: line.text.indexOf(match[2]) + 1,
     text: match[2],
   };
+}
+
+function isSingleLineMarkdownBlock(
+  lines: MdxLine[],
+  lineIndex: number,
+  ignoredRanges: Range[],
+) {
+  return (
+    isBlankOrBoundaryLine(lines[lineIndex - 1], ignoredRanges) &&
+    isBlankOrBoundaryLine(lines[lineIndex + 1], ignoredRanges)
+  );
+}
+
+function isBlankOrBoundaryLine(line: MdxLine | undefined, ignoredRanges: Range[]) {
+  return (
+    !line ||
+    isOffsetInRanges(line.start, ignoredRanges) ||
+    line.text.trim() === ''
+  );
 }
 
 function readListItem(line: MdxLine): ListItem | null {
@@ -791,7 +849,7 @@ function renderInlineMarkdown(value: string): string {
     const char = value[index];
 
     if (char === '\\' && index + 1 < value.length) {
-      result += value[index + 1];
+      result += renderPlainInlineChar(value[index + 1]);
       index += 2;
       continue;
     }
@@ -803,6 +861,19 @@ function renderInlineMarkdown(value: string): string {
         index = code.end;
         continue;
       }
+    }
+
+    if (char === '<') {
+      const tag = readInlineJsxTag(value, index);
+      if (tag) {
+        result += tag.text;
+        index = tag.end;
+        continue;
+      }
+
+      result += '&lt;';
+      index++;
+      continue;
     }
 
     const image = readInlineImage(value, index);
@@ -849,6 +920,47 @@ function renderInlineMarkdown(value: string): string {
   }
 
   return result;
+}
+
+function renderPlainInlineChar(char: string) {
+  return char === '<' ? '&lt;' : char;
+}
+
+function readInlineJsxTag(value: string, start: number) {
+  if (value[start] !== '<') {
+    return null;
+  }
+
+  if (value.startsWith('<!--', start)) {
+    const end = value.indexOf('-->', start + 4);
+    return end === -1
+      ? null
+      : { text: value.slice(start, end + 3), end: end + 3 };
+  }
+
+  const closingTag = /^<\/[A-Za-z][A-Za-z0-9:_-]*\s*>/.exec(
+    value.slice(start),
+  );
+  if (closingTag) {
+    return {
+      text: closingTag[0],
+      end: start + closingTag[0].length,
+    };
+  }
+
+  if (!readTagName(value, start)) {
+    return null;
+  }
+
+  const insertPosition = findOpeningTagInsertPosition(value, start);
+  if (insertPosition === -1) {
+    return null;
+  }
+
+  const end = value.indexOf('>', insertPosition);
+  return end === -1
+    ? null
+    : { text: value.slice(start, end + 1), end: end + 1 };
 }
 
 function readInlineCode(value: string, start: number) {

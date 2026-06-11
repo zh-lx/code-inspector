@@ -134,8 +134,15 @@ export function ViteCodeInspectorPlugin(options: Options) {
         return null;
       }
 
+      let content: string;
+      try {
+        content = fs.readFileSync(completePath, 'utf-8');
+      } catch (error) {
+        return null;
+      }
+
       return await transformCode({
-        content: fs.readFileSync(completePath, 'utf-8'),
+        content,
         filePath: mappedFilePath,
         fileType,
         escapeTags: options.escapeTags || [],

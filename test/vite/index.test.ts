@@ -296,6 +296,19 @@ describe('ViteCodeInspectorPlugin', () => {
       readFileSpy.mockRestore();
     });
 
+    it('should return null when source files cannot be read in load', async () => {
+      const readFileSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
+        throw new Error('read failed');
+      });
+      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+
+      const result = await plugin.load('/test/file.mdx');
+
+      expect(result).toBeNull();
+      expect(transformCode).not.toHaveBeenCalled();
+      readFileSpy.mockRestore();
+    });
+
     it('should not transform unsupported source files in load', async () => {
       const readFileSpy = vi.spyOn(fs, 'readFileSync');
       const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });

@@ -410,7 +410,7 @@ describe('transformCode', () => {
     });
 
     it('should skip explicit tags inside rewritten markdown ranges', async () => {
-      const content = 'Before\n- <span>Inline item</span>\nAfter';
+      const content = 'Before\n\n- <span>Inline item</span>\n\nAfter';
 
       const result = await transformCode({
         content,
@@ -420,8 +420,8 @@ describe('transformCode', () => {
         pathType: 'relative',
       });
 
-      expect(result).toContain('data-insp-path="file.mdx:2:1:ul"');
-      expect(result).toContain('data-insp-path="file.mdx:2:1:li"');
+      expect(result).toContain('data-insp-path="file.mdx:3:1:ul"');
+      expect(result).toContain('data-insp-path="file.mdx:3:1:li"');
       expect(result).not.toContain(':span"');
     });
 
