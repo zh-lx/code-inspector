@@ -12,7 +12,7 @@ export default defineConfig({
     minify: true,
     emptyOutDir: false,
     rollupOptions: {
-      external: ['@code-inspector/core', 'path', 'chalk'],
+      external: ['@code-inspector/core', 'path', 'chalk', 'fs'],
     },
     target: ['node8', 'es2015'],
   },
