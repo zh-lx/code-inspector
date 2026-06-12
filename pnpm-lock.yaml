@@ -1062,7 +1062,7 @@ importers:
     optionalDependencies:
       '@anthropic-ai/claude-agent-sdk':
         specifier: ^0.2.29
-        version: 0.2.29(zod@4.1.12)
+        version: 0.2.29(zod@4.4.3)
       '@openai/codex-sdk':
         specifier: ^0.106.0
         version: 0.106.0
@@ -15255,6 +15255,9 @@ packages:
   node-libs-browser@2.2.1:
     resolution: {integrity: sha512-h/zcD8H9kaDZ9ALUWwlBUDo6TKF8a7qBSCSEGfjTVIYeqsioSKaAX+BN7NgiMGp6iSIXZ3PxgCu8KS3b71YK5Q==}
 
+  node-mock-http@1.0.4:
+    resolution: {integrity: sha512-8DY+kFsDkNXy1sJglUfuODx1/opAGJGyrTuFqEoN90oRc2Vk0ZbD4K2qmKXBBEhZQzdKHIVfEJpDU8Ak2NJEvQ==}
+
   node-pty@1.1.0:
     resolution: {integrity: sha512-20JqtutY6JPXTUnL0ij1uad7Qe1baT46lyolh2sSENDd4sTzKZ4nmAFkeAARDKwmlLjPx6XKRlwRUxwjOy+lUg==}
 
@@ -22348,9 +22351,9 @@ snapshots:
 
   '@antfu/utils@0.7.8': {}
 
-  '@anthropic-ai/claude-agent-sdk@0.2.29(zod@4.1.12)':
+  '@anthropic-ai/claude-agent-sdk@0.2.29(zod@4.4.3)':
     dependencies:
-      zod: 4.1.12
+      zod: 4.4.3
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -28619,7 +28622,7 @@ snapshots:
       graphemer: 1.4.0
       ignore: 5.3.1
       natural-compare-lite: 1.4.0
-      semver: 7.7.2
+      semver: 7.8.3
       tsutils: 3.21.0(typescript@5.8.2)
     optionalDependencies:
       typescript: 5.8.2
@@ -33505,7 +33508,7 @@ snapshots:
       postcss-modules-scope: 3.0.0(postcss@8.5.3)
       postcss-modules-values: 4.0.0(postcss@8.5.3)
       postcss-value-parser: 4.2.0
-      semver: 7.7.2
+      semver: 7.8.3
       webpack: 5.91.0(@swc/core@1.11.13(@swc/helpers@0.5.15))
 
   css-minimizer-webpack-plugin@3.2.0(webpack@5.64.4(@swc/core@1.11.13(@swc/helpers@0.5.15))):
@@ -36502,7 +36505,7 @@ snapshots:
       minimatch: 3.1.2
       node-abort-controller: 3.1.1
       schema-utils: 3.3.0
-      semver: 7.7.2
+      semver: 7.8.3
       tapable: 2.2.1
       typescript: 5.8.2
       webpack: 5.91.0(@swc/core@1.11.13(@swc/helpers@0.5.15))
@@ -40655,6 +40658,8 @@ snapshots:
       url: 0.11.0
       util: 0.11.1
       vm-browserify: 1.1.2
+
+  node-mock-http@1.0.4: {}
 
   node-pty@1.1.0:
     dependencies:
