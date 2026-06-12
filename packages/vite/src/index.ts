@@ -8,8 +8,10 @@ import {
   isDev,
   getMappingFilePath,
   isExcludedFile,
+  isAstroToolbarFile,
 } from '@code-inspector/core';
 import chalk from 'chalk';
+import fs from 'fs';
 
 const PluginName = '@code-inspector/vite';
 
@@ -54,6 +56,27 @@ const OrderedPlugins = [
 
 const jsxParamList = ['isJsx', 'isTsx', 'lang.jsx', 'lang.tsx'];
 
+function splitId(id: string) {
+  const [_completePath, query = ''] = id.split('?', 2);
+  return { completePath: _completePath, query };
+}
+
+function getSourceFileType(filePath: string, query: string): 'astro' | 'mdx' | '' {
+  if (query) {
+    return '';
+  }
+
+  if (filePath.endsWith('.astro')) {
+    return 'astro';
+  }
+
+  if (filePath.endsWith('.mdx')) {
+    return 'mdx';
+  }
+
+  return '';
+}
+
 function printOrderWarning(plugins: { name: string }[] = []) {
   const pluginIndex = plugins.findIndex((plugin) => plugin.name === PluginName);
   OrderedPlugins.forEach((p) => {
@@ -94,8 +117,44 @@ export function ViteCodeInspectorPlugin(options: Options) {
       record.envDir = config.envDir || config.root;
       record.root = config.root;
     },
-    async transform(code: string, id: string) {
+    async load(id: string): Promise<string | null> {
       if (isExcludedFile(id, options)) {
+        return null;
+      }
+
+      const { completePath, query } = splitId(id);
+      const filePath = normalizePath(completePath);
+      const fileType = getSourceFileType(filePath, query);
+      if (!fileType) {
+        return null;
+      }
+      if (fileType === 'mdx' && !options.mdx) {
+        return null;
+      }
+
+      const mappedFilePath = getMappingFilePath(filePath, options.mappings);
+      if (options.match && !options.match.test(mappedFilePath)) {
+        return null;
+      }
+
+      let content: string;
+      try {
+        content = fs.readFileSync(completePath, 'utf-8');
+      } catch (error) {
+        return null;
+      }
+
+      return await transformCode({
+        content,
+        filePath: mappedFilePath,
+        fileType,
+        escapeTags: options.escapeTags || [],
+        pathType: options.pathType,
+        mdx: options.mdx,
+      });
+    },
+    async transform(code: string, id: string) {
+      if (isExcludedFile(id, options) && !isAstroToolbarFile(id)) {
         return code;
       }
 
@@ -108,8 +167,8 @@ export function ViteCodeInspectorPlugin(options: Options) {
 
       const { escapeTags = [], mappings } = options;
 
-      const [_completePath, query] = id.split('?', 2); // 当前文件的绝对路径
-      let filePath = normalizePath(_completePath);
+      const { completePath, query } = splitId(id); // 当前文件的绝对路径
+      let filePath = normalizePath(completePath);
       filePath = getMappingFilePath(filePath, mappings);
       const params = new URLSearchParams(query);
       // 仅对符合正则的生效
@@ -153,6 +212,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
           fileType,
           escapeTags,
           pathType: options.pathType,
+          mdx: options.mdx,
         });
       }
 

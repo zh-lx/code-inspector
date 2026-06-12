@@ -18,7 +18,6 @@ import {
   PathName,
   isJsTypeFile,
   getFilePathWithoutExt,
-  AstroToolbarFile,
   getIP,
   getDependencies,
   normalizePath,
@@ -26,6 +25,7 @@ import {
   setProjectRecord,
   getDependenciesMap,
   hasWritePermission,
+  isAstroToolbarFile,
 } from '../shared';
 
 const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
@@ -278,7 +278,7 @@ async function isTargetFileToInject(file: string, record: RecordInfo) {
   const normalizedFile = normalizePath(file);
   return (
     (isJsTypeFile(file) && getFilePathWithoutExt(file) === recordInfo?.entry) ||
-    file === AstroToolbarFile ||
+    isAstroToolbarFile(file) ||
     (recordInfo?.injectTo || []).includes(normalizedFile) ||
     inputs.includes(normalizedFile)
   );
@@ -332,7 +332,11 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
   server?: boolean;
 }) {
-  if (!fs.existsSync(file) && !file.startsWith('virtual:nuxt:')) {
+  if (
+    !fs.existsSync(file) &&
+    !file.startsWith('virtual:nuxt:') &&
+    !isAstroToolbarFile(file)
+  ) {
     if (server) {
       await startServer(options, record);
     }

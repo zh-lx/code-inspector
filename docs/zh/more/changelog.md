@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.0
+
+- 【feat】新增 `mdx` 参数（1.6.0+），用于开启整个 MDX 文件的源码定位编译。设置为 `true` 时会在 MDX 编译前重写文件内容，让 Markdown 块和显式 JSX/HTML 标签都可定位；由于不同项目的 MDX、remark、rehype 插件和复杂语法存在差异，开启后有一定编译失败风险。
+
 ## 1.5.4
 
 - 【fix】修复了在 `turbopack` 中使用时未按 Next.js 项目注入客户端组件的问题 [#530](https://github.com/zh-lx/code-inspector/pull/530)

@@ -36,6 +36,7 @@ async function transformWebpackCodeInspectorContent(
       fileType: 'jsx',
       escapeTags,
       pathType: options.pathType,
+      mdx: options.mdx,
     });
   }
 
@@ -61,6 +62,7 @@ async function transformWebpackCodeInspectorContent(
         fileType: 'jsx',
         escapeTags,
         pathType: options.pathType,
+        mdx: options.mdx,
       });
       content = content.replace(script, () => newScript);
     }
@@ -84,6 +86,7 @@ async function transformWebpackCodeInspectorContent(
       fileType: 'vue',
       escapeTags,
       pathType: options.pathType,
+      mdx: options.mdx,
     });
   }
 
@@ -96,6 +99,7 @@ async function transformWebpackCodeInspectorContent(
       fileType: 'svelte',
       escapeTags,
       pathType: options.pathType,
+      mdx: options.mdx,
     });
   }
 

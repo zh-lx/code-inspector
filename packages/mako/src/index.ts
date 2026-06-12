@@ -64,6 +64,7 @@ export function MakoCodeInspectorPlugin(options: Options): Record<string, any> {
           fileType: 'jsx',
           escapeTags,
           pathType: options.pathType,
+          mdx: options.mdx,
         });
         return { content: result, type: ext };
       }

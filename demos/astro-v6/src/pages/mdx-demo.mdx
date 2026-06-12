@@ -1,0 +1,132 @@
+---
+title: Code Inspector MDX Demo
+---
+
+import Layout from '../layouts/Layout.astro';
+
+export const shortcutKeys = ['Option', 'Shift'];
+
+export const featureGroups = [
+  {
+    id: 'markdown-blocks',
+    title: 'Markdown blocks',
+    level: 'core',
+    enabled: true,
+    checks: ['headings', 'lists', 'blockquotes'],
+  },
+  {
+    id: 'jsx-islands',
+    title: 'MDX JSX output',
+    level: 'advanced',
+    enabled: true,
+    checks: ['map loops', 'dynamic props', 'conditional children'],
+  },
+  {
+    id: 'fallback',
+    title: 'Fallback branch',
+    level: 'edge',
+    enabled: false,
+    checks: ['disabled state', 'alternate copy'],
+  },
+];
+
+export const visibleGroups = featureGroups.filter((group) => group.enabled);
+
+export const inlineExpressionProbe = {
+  label: 'brace } inside text',
+  format(input) {
+    return `${input.label}: ${input.items.length}`;
+  },
+};
+
+<Layout title="Code Inspector MDX Demo">
+  <main class="mdx-demo">
+    <section class="mdx-demo__shell" aria-labelledby="mdx-title">
+      # Inspect MDX source locations
+
+      > This page keeps Markdown syntax, MDX variables, loops, and JSX branches in the same source file.
+
+      <div class="mdx-demo__summary" data-active-count={visibleGroups.length}>
+        <span>Astro v6 MDX</span>
+        <strong>{visibleGroups.length} active groups</strong>
+        <div class="mdx-demo__keys" aria-label="Shortcut keys">
+          {shortcutKeys.map((key) => (
+            <kbd>{key}</kbd>
+          ))}
+        </div>
+      </div>
+
+      <section class="mdx-demo__panel" aria-labelledby="mdx-loop-title">
+        <header>
+          <p>Loop output</p>
+          <h2 id="mdx-loop-title">Generated inspection targets</h2>
+        </header>
+
+        <div class="mdx-demo__grid">
+          {featureGroups.map((group, index) => (
+            <article
+              class={`mdx-demo-card ${group.enabled ? 'is-enabled' : 'is-disabled'}`}
+              data-group-id={group.id}
+              data-level={group.level}
+            >
+              <div class="mdx-demo-card__meta">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong>{group.level}</strong>
+              </div>
+
+              <h3>{group.title}</h3>
+
+              {group.enabled ? (
+                <ul>
+                  {group.checks.map((check, checkIndex) => (
+                    <li data-check-index={checkIndex}>
+                      <span>{check}</span>
+                      {group.level === 'advanced' && <small>nested branch</small>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>This card renders the disabled conditional branch.</p>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      ## Markdown-generated targets
+
+      - Markdown headings receive source attributes before MDX compiles.
+      - Markdown list items keep their original `.mdx` line numbers.
+      - Explicit JSX tags still resolve through the same inspector path.
+
+      ## Plugin-sensitive Markdown syntax
+
+      - [x] GFM task markers stay visible when this pre-render rewrite runs.
+      - Heading/link plugins can compare this source line with explicit JSX targets.
+
+      ## Inline Markdown stress cases
+
+      - [Nested [label] link](https://example.com/docs/(section) "Nested title") keeps bracketed text.
+      - ![**Decorated** `alt` text](https://example.com/assets/(demo).png "Asset title") keeps rendered alt text.
+      - **Strong < text >** and `code <tag> {value}` stay valid inside rewritten Markdown.
+
+      ## MDX expression stress cases
+
+      - Expression result: {inlineExpressionProbe.format({ label: inlineExpressionProbe.label, items: visibleGroups })}
+      - Regex expression: {(/value\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}
+
+      <section class="mdx-demo__panel mdx-demo__panel--compact">
+        <header>
+          <p>Mixed syntax</p>
+          <h2>Plain JSX section inside MDX</h2>
+        </header>
+        <p>
+          Click this paragraph, the nested button, or the generated cards to
+          verify that the inspector opens the MDX file instead of generated code.
+        </p>
+        <button type="button">Inspect MDX button</button>
+      </section>
+    </section>
+
+  </main>
+</Layout>

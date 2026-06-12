@@ -1,0 +1,260 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Code inspector Astro v6 demo" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color: #17202f;
+    background: #f7f9fc;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    min-height: 100vh;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  .mdx-demo {
+    min-height: 100vh;
+    padding: 48px 24px;
+    background:
+      radial-gradient(circle at top right, rgba(183, 121, 31, 0.16), transparent 30%),
+      linear-gradient(135deg, #f7f9fc 0%, #eef6f3 52%, #fff7e8 100%);
+  }
+
+  .mdx-demo__shell {
+    width: min(1040px, 100%);
+    margin: 0 auto;
+  }
+
+  .mdx-demo h1 {
+    max-width: 760px;
+    margin: 0;
+    color: #111827;
+    font-size: clamp(36px, 6vw, 60px);
+    line-height: 1.06;
+    letter-spacing: 0;
+  }
+
+  .mdx-demo blockquote {
+    max-width: 760px;
+    margin: 20px 0 0;
+    padding: 0 0 0 18px;
+    border-left: 4px solid #1c6b73;
+    color: #4b5563;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+
+  .mdx-demo blockquote p {
+    margin: 0;
+  }
+
+  .mdx-demo__summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .mdx-demo__summary > span,
+  .mdx-demo__summary > strong {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px solid #d7e1df;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .mdx-demo__summary > span {
+    color: #1c6b73;
+  }
+
+  .mdx-demo__summary > strong {
+    color: #694200;
+  }
+
+  .mdx-demo__keys {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mdx-demo__keys kbd {
+    min-width: 64px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: #ffffff;
+    background: #17202f;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .mdx-demo__panel {
+    margin-top: 24px;
+    padding: 22px;
+    border: 1px solid #dfe8e5;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 16px 40px rgba(23, 32, 47, 0.08);
+  }
+
+  .mdx-demo__panel header p {
+    margin: 0 0 6px;
+    color: #1c6b73;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .mdx-demo__panel header h2,
+  .mdx-demo h2 {
+    margin: 0;
+    color: #17202f;
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .mdx-demo__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .mdx-demo-card {
+    min-height: 236px;
+    padding: 18px;
+    border: 1px solid #d7e1df;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .mdx-demo-card.is-disabled {
+    background: #f5f7fa;
+  }
+
+  .mdx-demo-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .mdx-demo-card__meta span,
+  .mdx-demo-card__meta strong {
+    color: #b7791f;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .mdx-demo-card h3 {
+    margin: 14px 0 12px;
+    color: #17202f;
+    font-size: 18px;
+    line-height: 1.35;
+  }
+
+  .mdx-demo-card ul,
+  .mdx-demo__shell > ul {
+    display: grid;
+    gap: 9px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mdx-demo-card li,
+  .mdx-demo__shell > ul li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f7f9fc;
+    color: #5b6472;
+    line-height: 1.6;
+  }
+
+  .mdx-demo-card p,
+  .mdx-demo__panel > p {
+    margin: 0;
+    color: #5b6472;
+    line-height: 1.7;
+  }
+
+  .mdx-demo-card small {
+    color: #1c6b73;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .mdx-demo__shell > h2 {
+    margin-top: 30px;
+  }
+
+  .mdx-demo__panel--compact {
+    display: grid;
+    gap: 16px;
+  }
+
+  .mdx-demo button {
+    width: fit-content;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid #cad8d4;
+    border-radius: 8px;
+    color: #17202f;
+    background: #ffffff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  @media (max-width: 760px) {
+    .mdx-demo {
+      padding: 32px 16px;
+    }
+
+    .mdx-demo__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
