@@ -26,6 +26,14 @@ function createMdxFixture(content: string, parserSource: string) {
   };
 }
 
+function transformWholeMdx(
+  content: string,
+  filePath: string,
+  escapeTags = [],
+) {
+  return transformMdx(content, filePath, escapeTags, filePath);
+}
+
 describe('transformMdx parser path', () => {
   it('should fall back to scanner when parser package cannot be resolved', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-mdx-missing-'));
@@ -122,9 +130,35 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:main"`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should transform markdown blocks and explicit tags', async () => {
+    const content = [
+      '# Title',
+      '',
+      '- First',
+      '- Second',
+      '',
+      '<section>Target</section>',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:h1"`);
+      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:ul"`);
+      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:li"`);
+      expect(result).toContain(`${PathName}="${fixture.filePath}:6:1:section"`);
     } finally {
       fixture.cleanup();
     }
@@ -200,7 +234,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
         `${PathName}="${fixture.filePath}:5:1:Card"`,
@@ -245,7 +279,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
         `${PathName}={props && props[${JSON.stringify(PathName)}] || "${fixture.filePath}:1:1:div"}`,
@@ -271,7 +305,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
         `${PathName}="${fixture.filePath}:1:1:Card"`,
@@ -329,7 +363,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain('<section data-insp-path="manual">Manual</section>');
       expect(result).toContain('<aside>Invalid position</aside>');
@@ -354,7 +388,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain('*literal*');
       expect(result).toContain(
@@ -373,13 +407,13 @@ module.exports = {
     }
   });
 
-  it('should escape plain less-than text in rewritten markdown blocks', async () => {
+  it('should escape structural text characters in rewritten markdown blocks', async () => {
     const content = [
-      '# 1 < 2 and <span>ok</span>',
+      '# 1 < 2 and 3 > 2 and <span>ok</span>',
       '',
-      '- a < b',
+      '- a < b > c',
       '',
-      '> c < d',
+      '> c < d > e',
     ].join('\n');
     const fixture = createMdxFixture(
       content,
@@ -387,18 +421,162 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">1 &lt; 2 and <span>ok</span></h1>`,
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">1 &lt; 2 and 3 &gt; 2 and <span>ok</span></h1>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:3:1:li">a &lt; b</li>`,
+        `<li ${PathName}="${fixture.filePath}:3:1:li">a &lt; b &gt; c</li>`,
       );
       expect(result).toContain(
-        `<p ${PathName}="${fixture.filePath}:5:3:p">c &lt; d</p>`,
+        `<p ${PathName}="${fixture.filePath}:5:3:p">c &lt; d &gt; e</p>`,
       );
       expect(result).not.toContain(`${fixture.filePath}:1:13:span`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve mdx expressions and markdown-sensitive inline text', async () => {
+    const content = [
+      '# C# and &copy;',
+      '',
+      '# Escaped \\{literal\\} and {value}',
+      '',
+      '# Keep closing marker ###',
+      '',
+      '# **bold #** and \\- marker',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">C# and &copy;</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Escaped &#123;literal&#125; and {value}</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Keep closing marker</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:7:1:h1"><strong>bold #</strong> and - marker</h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should render plugin-sensitive markdown syntax as pre-rewritten jsx', async () => {
+    const content = [
+      '- [x] Completed task from remark-gfm syntax',
+      '- [ ] Pending task from remark-gfm syntax',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<ul ${PathName}="${fixture.filePath}:1:1:ul">`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:1:1:li">[x] Completed task from remark-gfm syntax</li>`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:2:1:li">[ ] Pending task from remark-gfm syntax</li>`,
+      );
+      expect(result).not.toContain('type="checkbox"');
+      expect(result).not.toContain('<input');
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve complex inline markdown links and image destinations', async () => {
+    const content = [
+      '# [Nested [label] link](https://example.com/docs/(section) "Nested title") and ![**Decorated** `alt` text](https://example.com/assets/(demo).png "Asset title")',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1"><a href="https://example.com/docs/(section)" title="Nested title">Nested [label] link</a> and <img src="https://example.com/assets/(demo).png" alt="Decorated alt text" title="Asset title" /></h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve mdx expressions with comments, regex, and quoted braces', async () => {
+    const content = [
+      "# Result {format({ label: 'brace } text', meta: { count: visibleGroups.length }, template: `value ${visibleGroups[0]?.id}` })}",
+      '',
+      "# Regex {(/value\\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}",
+      '',
+      "# Comment {value /* comment } */ ?? 'fallback'}",
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">Result {format({ label: 'brace } text', meta: { count: visibleGroups.length }, template: \`value \${visibleGroups[0]?.id}\` })}</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Regex {(/value\\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Comment {value /* comment } */ ?? 'fallback'}</h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should escape structural text characters inside nested inline markdown', async () => {
+    const content = [
+      '# **strong < text >** _em \\{ text \\}_ ~~del < text~~ [`code < > { }`](https://example.com)',
+      '',
+      '- **# label < 2** and \\- literal',
+      '',
+      '> [label < value >](https://example.com) and `code <tag> {x}`',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1"><strong>strong &lt; text &gt;</strong> <em>em &#123; text &#125;</em> <del>del &lt; text</del> <a href="https://example.com"><code>code &lt; &gt; &#123; &#125;</code></a></h1>`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:3:1:li"><strong># label &lt; 2</strong> and - literal</li>`,
+      );
+      expect(result).toContain(
+        `<p ${PathName}="${fixture.filePath}:5:3:p"><a href="https://example.com">label &lt; value &gt;</a> and <code>code &lt;tag&gt; &#123;x&#125;</code></p>`,
+      );
     } finally {
       fixture.cleanup();
     }
@@ -422,7 +600,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toBe(content);
     } finally {
@@ -438,7 +616,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toBe(content);
     } finally {
@@ -458,7 +636,7 @@ module.exports = {
     );
 
     try {
-      const result = await transformMdx(content, fixture.filePath, []);
+      const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
         `<h1 ${PathName}="${fixture.filePath}:2:1:h1"><span>Nested</span></h1>`,

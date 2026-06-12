@@ -15,6 +15,7 @@ type TransformCodeParams = {
   fileType: FileType;
   escapeTags: EscapeTags;
   pathType: PathType;
+  mdx?: boolean;
 };
 
 const CodeInspectorEscapeTags = [
@@ -40,6 +41,7 @@ export async function transformCode(params: TransformCodeParams) {
     fileType,
     escapeTags = [],
     pathType = 'relative',
+    mdx = false,
   } = params;
   if (!fs.existsSync(filePath) || isIgnoredFile({ content, fileType })) {
     return content;
@@ -59,6 +61,10 @@ export async function transformCode(params: TransformCodeParams) {
     } else if (fileType === 'astro') {
       return transformAstro(content, filePath, finalEscapeTags, resolveFilePath);
     } else if (fileType === 'mdx') {
+      if (!mdx) {
+        return content;
+      }
+
       return await transformMdx(
         content,
         filePath,

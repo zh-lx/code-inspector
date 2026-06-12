@@ -81,6 +81,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
                 fileType,
                 escapeTags,
                 pathType: options.pathType,
+                mdx: options.mdx,
               });
             } else if (filePath.endsWith('.vue')) {
               // vue 文件处理
@@ -94,6 +95,7 @@ export function EsbuildCodeInspectorPlugin(options: Options) {
                 fileType,
                 escapeTags,
                 pathType: options.pathType,
+                mdx: options.mdx,
               });
               code = code.replace(descriptor.template.content, templateContent);
             }

@@ -9,6 +9,7 @@ export default defineConfig({
     plugins: [
       codeInspectorPlugin({
         bundler: 'vite',
+        mdx: true,
       }),
     ],
   },

@@ -177,6 +177,11 @@ window.addEventListener('code-inspector:trackCode', () => {
 - 类型：`(string | RegExp)[]`
 - 说明：对于满足上述条件的标签，不会在编译时注入 `data-insp-path` 属性
 
+## mdx <Badge type="tip" text="1.6.0+" vertical="middle" />
+
+- 可选项
+- 类型：`boolean`，默认值为 `false`
+- 说明：是否转换整个 MDX 文件并注入 `data-insp-path`。默认不会处理 `.mdx` 文件；设置为 `true` 时会在 MDX 编译前重写文件内容，让 Markdown 块和显式 JSX/HTML 标签都可定位。由于不同项目的 MDX、remark、rehype 插件和复杂语法存在差异，开启后有一定编译失败风险。
 
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 

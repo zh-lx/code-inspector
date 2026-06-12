@@ -6,6 +6,7 @@ type TransformCodeParams = {
     fileType: FileType;
     escapeTags: EscapeTags;
     pathType: PathType;
+    mdx?: boolean;
 };
 export declare function transformCode(params: TransformCodeParams): Promise<string>;
 export {};

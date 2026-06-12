@@ -553,7 +553,7 @@ function injectExplicitTagPaths(
 }
 
 function readHeading(line: MdxLine) {
-  const match = /^(\s*)(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line.text);
+  const match = /^(\s*)(#{1,6})[ \t]+(.+?)[ \t]*$/.exec(line.text);
   if (!match) {
     return null;
   }
@@ -561,8 +561,13 @@ function readHeading(line: MdxLine) {
   return {
     tag: `h${match[2].length}`,
     column: match[1].length + 1,
-    text: match[3],
+    text: stripAtxClosingSequence(match[3]),
   };
+}
+
+function stripAtxClosingSequence(value: string) {
+  const match = /^(.*?)[ \t]+#{1,}[ \t]*$/.exec(value);
+  return match ? match[1] : value;
 }
 
 function readBlockquote(line: MdxLine) {
@@ -871,9 +876,18 @@ function renderInlineMarkdown(value: string): string {
         continue;
       }
 
-      result += '&lt;';
+      result += renderPlainInlineChar(char);
       index++;
       continue;
+    }
+
+    if (char === '{') {
+      const expression = readInlineMdxExpression(value, index);
+      if (expression) {
+        result += expression.text;
+        index = expression.end;
+        continue;
+      }
     }
 
     const image = readInlineImage(value, index);
@@ -915,7 +929,7 @@ function renderInlineMarkdown(value: string): string {
       continue;
     }
 
-    result += char;
+    result += renderPlainInlineChar(char);
     index++;
   }
 
@@ -923,7 +937,18 @@ function renderInlineMarkdown(value: string): string {
 }
 
 function renderPlainInlineChar(char: string) {
-  return char === '<' ? '&lt;' : char;
+  switch (char) {
+    case '<':
+      return '&lt;';
+    case '>':
+      return '&gt;';
+    case '{':
+      return '&#123;';
+    case '}':
+      return '&#125;';
+    default:
+      return char;
+  }
 }
 
 function readInlineJsxTag(value: string, start: number) {
@@ -961,6 +986,122 @@ function readInlineJsxTag(value: string, start: number) {
   return end === -1
     ? null
     : { text: value.slice(start, end + 1), end: end + 1 };
+}
+
+function readInlineMdxExpression(value: string, start: number) {
+  if (value[start] !== '{') {
+    return null;
+  }
+
+  let quote = '';
+  let comment: 'line' | 'block' | '' = '';
+  let regex = false;
+  let regexCharClass = false;
+  let depth = 0;
+
+  for (let i = start; i < value.length; i++) {
+    const char = value[i];
+    const prev = value[i - 1];
+
+    if (comment === 'line') {
+      if (char === '\n' || char === '\r') {
+        comment = '';
+      }
+      continue;
+    }
+
+    if (comment === 'block') {
+      if (prev === '*' && char === '/') {
+        comment = '';
+      }
+      continue;
+    }
+
+    if (regex) {
+      if (char === '[' && prev !== '\\') {
+        regexCharClass = true;
+        continue;
+      }
+
+      if (char === ']' && prev !== '\\') {
+        regexCharClass = false;
+        continue;
+      }
+
+      if (char === '/' && prev !== '\\' && !regexCharClass) {
+        regex = false;
+      }
+      continue;
+    }
+
+    if (quote) {
+      if (char === quote && prev !== '\\') {
+        quote = '';
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+
+    if (char === '/' && value[i + 1] === '/') {
+      comment = 'line';
+      i++;
+      continue;
+    }
+
+    if (char === '/' && value[i + 1] === '*') {
+      comment = 'block';
+      i++;
+      continue;
+    }
+
+    if (char === '/' && shouldStartInlineRegex(value, start, i)) {
+      regex = true;
+      regexCharClass = false;
+      continue;
+    }
+
+    if (char === '{') {
+      depth++;
+      continue;
+    }
+
+    if (char === '}') {
+      depth--;
+      if (depth === 0) {
+        return {
+          text: value.slice(start, i + 1),
+          end: i + 1,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function shouldStartInlineRegex(value: string, expressionStart: number, index: number) {
+  let cursor = index - 1;
+  while (cursor > expressionStart && /\s/.test(value[cursor])) {
+    cursor--;
+  }
+
+  if (cursor <= expressionStart) {
+    return true;
+  }
+
+  const prev = value[cursor];
+  if ('([{=,:;!?&|+-*~^<>'.includes(prev)) {
+    return true;
+  }
+
+  const before = value.slice(expressionStart + 1, cursor + 1);
+  return /(?:^|[^\w$])(?:return|throw|case|typeof|delete|void|in|of)\s*$/.test(
+    before,
+  );
 }
 
 function readInlineCode(value: string, start: number) {
@@ -1065,10 +1206,21 @@ function readLinkDestination(value: string, start: number) {
   let url = '';
   let title = '';
   let isTitle = false;
+  let parenDepth = 0;
 
   for (let i = start; i < value.length; i++) {
     const char = value[i];
     const prev = value[i - 1];
+
+    if (char === '\\' && i + 1 < value.length) {
+      if (isTitle) {
+        title += value.slice(i, i + 2);
+      } else {
+        url += value.slice(i, i + 2);
+      }
+      i++;
+      continue;
+    }
 
     if (quote) {
       if (char === quote && prev !== '\\') {
@@ -1085,6 +1237,18 @@ function readLinkDestination(value: string, start: number) {
       continue;
     }
 
+    if (!isTitle && char === '(') {
+      parenDepth++;
+      url += char;
+      continue;
+    }
+
+    if (char === ')' && parenDepth > 0) {
+      parenDepth--;
+      url += char;
+      continue;
+    }
+
     if (char === ')') {
       return {
         url: url.trim(),
@@ -1093,7 +1257,7 @@ function readLinkDestination(value: string, start: number) {
       };
     }
 
-    if (/\s/.test(char) && url.trim()) {
+    if (/\s/.test(char) && url.trim() && parenDepth === 0) {
       isTitle = true;
       continue;
     }

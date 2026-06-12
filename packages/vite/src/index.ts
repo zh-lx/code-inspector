@@ -128,6 +128,9 @@ export function ViteCodeInspectorPlugin(options: Options) {
       if (!fileType) {
         return null;
       }
+      if (fileType === 'mdx' && !options.mdx) {
+        return null;
+      }
 
       const mappedFilePath = getMappingFilePath(filePath, options.mappings);
       if (options.match && !options.match.test(mappedFilePath)) {
@@ -147,6 +150,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
         fileType,
         escapeTags: options.escapeTags || [],
         pathType: options.pathType,
+        mdx: options.mdx,
       });
     },
     async transform(code: string, id: string) {
@@ -208,6 +212,7 @@ export function ViteCodeInspectorPlugin(options: Options) {
           fileType,
           escapeTags,
           pathType: options.pathType,
+          mdx: options.mdx,
         });
       }
 

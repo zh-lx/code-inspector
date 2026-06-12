@@ -321,6 +321,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain('data-insp-path="file.mdx:4:1:h1"');
@@ -328,6 +329,26 @@ describe('transformCode', () => {
       expect(result).toContain('data-insp-path="file.mdx:6:1:li"');
       expect(result).toContain('data-insp-path="file.mdx:9:1:section"');
       expect(result).toContain('data-insp-path="file.mdx:9:10:button"');
+    });
+
+    it('should not transform mdx files by default', async () => {
+      const content = [
+        '# Mdx title',
+        '',
+        '- First target',
+        '',
+        '<section>Target</section>',
+      ].join('\n');
+
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.mdx',
+        fileType: 'mdx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toBe(content);
     });
 
     it('should preserve inline markdown semantics in rewritten mdx blocks', async () => {
@@ -340,6 +361,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain(
@@ -360,6 +382,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).not.toContain('<div data-insp-path="file.mdx:2:1:div"');
@@ -375,6 +398,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain('data-insp-path="file.mdx:1:1:blockquote"');
@@ -399,6 +423,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: ['ul', 'blockquote'],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).not.toContain(':ul"');
@@ -418,6 +443,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain('data-insp-path="file.mdx:3:1:ul"');
@@ -438,6 +464,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain('data-insp-path="file.mdx:1:1:section"');
@@ -460,6 +487,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toContain('data-insp-path="file.mdx:1:1:Card"');
@@ -487,6 +515,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).not.toContain('Array<string data-insp-path');
@@ -505,6 +534,7 @@ describe('transformCode', () => {
         fileType: 'mdx',
         escapeTags: [],
         pathType: 'relative',
+        mdx: true,
       });
 
       expect(result).toBe(content);

@@ -32,6 +32,13 @@ export const featureGroups = [
 
 export const visibleGroups = featureGroups.filter((group) => group.enabled);
 
+export const inlineExpressionProbe = {
+  label: 'brace } inside text',
+  format(input) {
+    return `${input.label}: ${input.items.length}`;
+  },
+};
+
 <Layout title="Code Inspector MDX Demo">
   <main class="mdx-demo">
     <section class="mdx-demo__shell" aria-labelledby="mdx-title">
@@ -91,6 +98,22 @@ export const visibleGroups = featureGroups.filter((group) => group.enabled);
       - Markdown headings receive source attributes before MDX compiles.
       - Markdown list items keep their original `.mdx` line numbers.
       - Explicit JSX tags still resolve through the same inspector path.
+
+      ## Plugin-sensitive Markdown syntax
+
+      - [x] GFM task markers stay visible when this pre-render rewrite runs.
+      - Heading/link plugins can compare this source line with explicit JSX targets.
+
+      ## Inline Markdown stress cases
+
+      - [Nested [label] link](https://example.com/docs/(section) "Nested title") keeps bracketed text.
+      - ![**Decorated** `alt` text](https://example.com/assets/(demo).png "Asset title") keeps rendered alt text.
+      - **Strong < text >** and `code <tag> {value}` stay valid inside rewritten Markdown.
+
+      ## MDX expression stress cases
+
+      - Expression result: {inlineExpressionProbe.format({ label: inlineExpressionProbe.label, items: visibleGroups })}
+      - Regex expression: {(/value\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}
 
       <section class="mdx-demo__panel mdx-demo__panel--compact">
         <header>

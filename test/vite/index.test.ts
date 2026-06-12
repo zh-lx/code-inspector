@@ -281,7 +281,11 @@ describe('ViteCodeInspectorPlugin', () => {
       const readFileSpy = vi
         .spyOn(fs, 'readFileSync')
         .mockReturnValue('# Hello\n\n<section>Target</section>');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+      const plugin = ViteCodeInspectorPlugin({
+        bundler: 'vite',
+        output: '/test',
+        mdx: true,
+      });
 
       const result = await plugin.load('/test/file.mdx');
 
@@ -290,9 +294,22 @@ describe('ViteCodeInspectorPlugin', () => {
           content: '# Hello\n\n<section>Target</section>',
           filePath: '/test/file.mdx',
           fileType: 'mdx',
+          mdx: true,
         }),
       );
       expect(result).toBe('transformed:# Hello\n\n<section>Target</section>');
+      readFileSpy.mockRestore();
+    });
+
+    it('should skip MDX source files when mdx is not enabled', async () => {
+      const readFileSpy = vi.spyOn(fs, 'readFileSync');
+      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+
+      const result = await plugin.load('/test/file.mdx');
+
+      expect(result).toBeNull();
+      expect(readFileSpy).not.toHaveBeenCalled();
+      expect(transformCode).not.toHaveBeenCalled();
       readFileSpy.mockRestore();
     });
 
@@ -300,7 +317,11 @@ describe('ViteCodeInspectorPlugin', () => {
       const readFileSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
         throw new Error('read failed');
       });
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
+      const plugin = ViteCodeInspectorPlugin({
+        bundler: 'vite',
+        output: '/test',
+        mdx: true,
+      });
 
       const result = await plugin.load('/test/file.mdx');
 

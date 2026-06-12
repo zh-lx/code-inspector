@@ -120,6 +120,11 @@ export type CodeOptions = {
    */
   escapeTags?: EscapeTags;
   /**
+   * @zh 是否转换 MDX 文件以注入 `data-insp-path`，默认值为 `false`
+   * @en Whether to transform MDX files to inject `data-insp-path`, defaults to `false`
+   */
+  mdx?: boolean;
+  /**
    * @zh 是否隐藏控制台中 dom 的 `data-insp-path` 属性
    * @en Whether to hide the `data-insp-path` attribute of DOM in the console
    */
