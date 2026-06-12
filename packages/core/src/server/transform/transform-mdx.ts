@@ -952,10 +952,6 @@ function renderPlainInlineChar(char: string) {
 }
 
 function readInlineJsxTag(value: string, start: number) {
-  if (value[start] !== '<') {
-    return null;
-  }
-
   if (value.startsWith('<!--', start)) {
     const end = value.indexOf('-->', start + 4);
     return end === -1
@@ -983,18 +979,12 @@ function readInlineJsxTag(value: string, start: number) {
   }
 
   const end = value.indexOf('>', insertPosition);
-  return end === -1
-    ? null
-    : { text: value.slice(start, end + 1), end: end + 1 };
+  return { text: value.slice(start, end + 1), end: end + 1 };
 }
 
 function readInlineMdxExpression(value: string, start: number) {
-  if (value[start] !== '{') {
-    return null;
-  }
-
   let quote = '';
-  let comment: 'line' | 'block' | '' = '';
+  let comment: 'block' | '' = '';
   let regex = false;
   let regexCharClass = false;
   let depth = 0;
@@ -1002,13 +992,6 @@ function readInlineMdxExpression(value: string, start: number) {
   for (let i = start; i < value.length; i++) {
     const char = value[i];
     const prev = value[i - 1];
-
-    if (comment === 'line') {
-      if (char === '\n' || char === '\r') {
-        comment = '';
-      }
-      continue;
-    }
 
     if (comment === 'block') {
       if (prev === '*' && char === '/') {
@@ -1047,9 +1030,7 @@ function readInlineMdxExpression(value: string, start: number) {
     }
 
     if (char === '/' && value[i + 1] === '/') {
-      comment = 'line';
-      i++;
-      continue;
+      return null;
     }
 
     if (char === '/' && value[i + 1] === '*') {

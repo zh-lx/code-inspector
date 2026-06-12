@@ -407,6 +407,33 @@ module.exports = {
     }
   });
 
+  it('should split adjacent list groups when marker kinds change', async () => {
+    const content = ['- Bullet', '1. Ordered'].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<ul ${PathName}="${fixture.filePath}:1:1:ul">`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:1:1:li">Bullet</li>`,
+      );
+      expect(result).toContain(
+        `<ol ${PathName}="${fixture.filePath}:2:1:ol">`,
+      );
+      expect(result).toContain(
+        `<li ${PathName}="${fixture.filePath}:2:1:li">Ordered</li>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should escape structural text characters in rewritten markdown blocks', async () => {
     const content = [
       '# 1 < 2 and 3 > 2 and <span>ok</span>',
@@ -552,6 +579,91 @@ module.exports = {
     }
   });
 
+  it('should preserve mdx expressions with regex character classes and regex keyword prefixes', async () => {
+    const content = [
+      '# Regex {/[\\]}]/.test(value)}',
+      '',
+      '# Leading regex { /abc/.test(value) }',
+      '',
+      '# Return regex {(() => { return /abc/.test(value) })()}',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">Regex {/[\\]}]/.test(value)}</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Leading regex { /abc/.test(value) }</h1>`,
+      );
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Return regex {(() => { return /abc/.test(value) })()}</h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should render malformed inline jsx and mdx expressions as text', async () => {
+    const content = [
+      '# Closed <!-- note --> and open <!-- note',
+      '',
+      '# Broken tag <span title="broken"',
+      '',
+      '# Broken expression {value',
+      '',
+      '# Line comment {value // comment}',
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain('Closed <!-- note --> and open &lt;!-- note');
+      expect(result).toContain('Broken tag &lt;span title="broken"');
+      expect(result).toContain('Broken expression &#123;value');
+      expect(result).toContain('Line comment &#123;value // comment&#125;');
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve escaped link destinations and images without titles', async () => {
+    const escapedUrl = 'https://example.com/a\\)b';
+    const escapedTitle = 'A \\"quoted\\" title';
+    const content = [
+      `# ![Plain alt](https://img.test/plain.png) [url](${escapedUrl}) [title](https://example.com "${escapedTitle}")`,
+    ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformWholeMdx(content, fixture.filePath);
+
+      expect(result).toContain(
+        '<img src="https://img.test/plain.png" alt="Plain alt" />',
+      );
+      expect(result).toContain(
+        `<a href=${JSON.stringify(escapedUrl)}>url</a>`,
+      );
+      expect(result).toContain(
+        `<a href="https://example.com" title=${JSON.stringify(escapedTitle)}>title</a>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should escape structural text characters inside nested inline markdown', async () => {
     const content = [
       '# **strong < text >** _em \\{ text \\}_ ~~del < text~~ [`code < > { }`](https://example.com)',
@@ -666,6 +778,25 @@ module.exports = {
 
       expect(result).not.toContain(`${fixture.filePath}:2:18:span`);
       expect(result).toContain(`${PathName}="${fixture.filePath}:5:1:section"`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should preserve frontmatter while transforming markdown after it', async () => {
+    const content = ['---', 'title: Demo', '---', '# Title'].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain('title: Demo');
+      expect(result).toContain(
+        `<h1 ${PathName}="${fixture.filePath}:4:1:h1">Title</h1>`,
+      );
     } finally {
       fixture.cleanup();
     }

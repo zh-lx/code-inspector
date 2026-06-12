@@ -346,10 +346,10 @@ describe('ViteCodeInspectorPlugin', () => {
       const plugin = ViteCodeInspectorPlugin({
         bundler: 'vite',
         output: '/test',
-        match: /\.astro$/,
+        match: /\.mdx$/,
       });
 
-      const result = await plugin.load('/test/file.mdx');
+      const result = await plugin.load('/test/file.astro');
 
       expect(result).toBeNull();
       expect(readFileSpy).not.toHaveBeenCalled();
