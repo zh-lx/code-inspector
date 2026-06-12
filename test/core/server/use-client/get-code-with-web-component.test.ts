@@ -445,7 +445,7 @@ describe('getCodeWithWebComponent', () => {
       expect(result).toContain("'use client'");
     });
 
-    it('should handle Astro toolbar file', async () => {
+    it('should inject code into Astro toolbar virtual file', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/astro');
 
       const record: RecordInfo = {
@@ -464,11 +464,60 @@ describe('getCodeWithWebComponent', () => {
         record,
         file: '\0astro:dev-toolbar',
         code: 'export default {};',
-        inject: true,
       });
 
-      // The result should be returned (may or may not be modified depending on conditions)
-      expect(result).toBeDefined();
+      expect(result).toContain("'use client'");
+      expect(result).toContain('export default {};');
+    });
+
+    it('should inject code into encoded Astro toolbar virtual id', async () => {
+      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/astro-encoded');
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: testDir,
+      };
+      const options: CodeOptions = {
+        bundler: 'vite',
+      };
+
+      setProjectRecord(record, 'port', 5678);
+
+      const result = await getCodeWithWebComponent({
+        options,
+        record,
+        file: '/@id/__x00__astro:dev-toolbar',
+        code: 'export default {};',
+      });
+
+      expect(result).toContain("'use client'");
+      expect(result).toContain('export default {};');
+    });
+
+    it('should inject code into Astro v6 toolbar internal virtual id', async () => {
+      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/astro-v6');
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: testDir,
+      };
+      const options: CodeOptions = {
+        bundler: 'vite',
+      };
+
+      setProjectRecord(record, 'port', 5678);
+
+      const result = await getCodeWithWebComponent({
+        options,
+        record,
+        file: '/@id/__x00__astro:toolbar:internal',
+        code: 'export const loadDevToolbarApps = async () => [];',
+      });
+
+      expect(result).toContain("'use client'");
+      expect(result).toContain('export const loadDevToolbarApps');
     });
 
     it('should inject code via injectTo file match', async () => {

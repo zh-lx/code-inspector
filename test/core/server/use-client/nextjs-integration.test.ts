@@ -165,7 +165,7 @@ export default function Page() {
         output: testDir,
       };
       const options: CodeOptions = {
-        bundler: 'vite',
+        bundler: 'webpack',
       };
 
       setProjectRecord(record, 'entry', path.join(testDir, 'component'));
@@ -491,6 +491,40 @@ export default Header;`;
       const matches = result.match(/CodeInspectorEmptyElement/g);
       // At least 2 occurrences (import and element), but only one element insertion
       expect(matches).toBeDefined();
+    });
+
+    it('should return original code for temporarily invalid Next.js TSX', async () => {
+      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nextjs-invalid-tsx');
+      vi.spyOn(sharedUtils, 'getDependencies').mockReturnValue(['next', 'react']);
+
+      const testFile = path.join(testDir, 'app', 'page.tsx');
+      const originalCode = `'use client';
+export default function Page() {
+  return <h2>Learn<{" "}</h2>;
+}`;
+      fs.mkdirSync(path.dirname(testFile), { recursive: true });
+      fs.writeFileSync(testFile, originalCode);
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: testDir,
+      };
+      const options: CodeOptions = {
+        bundler: 'webpack',
+      };
+
+      setProjectRecord(record, 'entry', path.join(testDir, 'app/page'));
+      setProjectRecord(record, 'port', 5678);
+
+      const result = await getCodeWithWebComponent({
+        options,
+        record,
+        file: testFile,
+        code: originalCode,
+      });
+
+      expect(result).toBe(originalCode);
     });
   });
 

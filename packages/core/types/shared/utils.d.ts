@@ -3,6 +3,7 @@ export declare function getIP(ip: boolean | string): string;
 export declare function isJsTypeFile(file: string): boolean;
 export declare function getFilePathWithoutExt(filePath: string): string;
 export declare function normalizePath(filepath: string): string;
+export declare function isAstroToolbarFile(file: string): boolean;
 export declare function isEscapeTags(escapeTags: EscapeTags, tag: string): boolean;
 export declare function getDependenciesMap(): any;
 export declare function getDependencies(): string[];
@@ -127,11 +128,11 @@ export declare function hasWritePermission(filePath: string): boolean;
 /**
  * Check if a file should be ignored based on special directives in comments
  * @param content - The file content to check
- * @param fileType - The type of file ('vue', 'jsx', 'svelte', or unknown)
+ * @param fileType - The type of file ('vue', 'jsx', 'svelte', 'astro', 'mdx', or unknown)
  * @returns true if the file should be ignored, false otherwise
  */
 export declare function isIgnoredFile({ content, fileType, }: {
     content: string;
-    fileType: 'vue' | 'jsx' | 'svelte' | unknown;
+    fileType: 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
 }): boolean;
 export {};

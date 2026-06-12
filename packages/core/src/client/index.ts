@@ -38,8 +38,6 @@ import {
 } from './i18n';
 
 const styleId = '__code-inspector-unique-id';
-const AstroFile = 'data-astro-source-file';
-const AstroLocation = 'data-astro-source-loc';
 
 const MacHotKeyMap = {
   ctrlKey: '^control',
@@ -606,20 +604,10 @@ export class CodeInspectorComponent extends LitElement {
     }
   };
 
-  getAstroFilePath = (target: HTMLElement): string => {
-    if (target.getAttribute?.(AstroFile)) {
-      return `${target.getAttribute(AstroFile)}:${target.getAttribute(
-        AstroLocation
-      )}:${target.tagName.toLowerCase()}`;
-    }
-    return '';
-  };
-
   getSourceInfo = (target: HTMLElement): SourceInfo | null => {
     let paths =
       target.getAttribute?.(PathName) ||
-      (target as CodeInspectorHtmlElement)[PathName] ||
-      this.getAstroFilePath(target); // Todo: transform astro inside
+      (target as CodeInspectorHtmlElement)[PathName];
 
     if (!paths) {
       return null;
@@ -915,12 +903,10 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   getValidNodeList = (nodePath: HTMLElement[]) => {
-    const validNodeList: { node: HTMLElement; isAstro: boolean }[] = [];
+    const validNodeList: HTMLElement[] = [];
     for (const node of nodePath) {
-      if (node.hasAttribute && node.hasAttribute(AstroFile)) {
-        validNodeList.push({ node, isAstro: true });
-      } else if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
-        validNodeList.push({ node, isAstro: false });
+      if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
+        validNodeList.push(node);
       }
     }
     return validNodeList;
@@ -950,11 +936,7 @@ export class CodeInspectorComponent extends LitElement {
       const nodePath = e.composedPath() as HTMLElement[];
       const validNodeList = this.getValidNodeList(nodePath);
       let targetNode;
-      for (const { node, isAstro } of validNodeList) {
-        if (isAstro) {
-          targetNode = node;
-          break;
-        }
+      for (const node of validNodeList) {
         if (!targetNode) {
           targetNode = node;
         } else if (this.isSamePositionNode(targetNode, node)) {
@@ -987,7 +969,7 @@ export class CodeInspectorComponent extends LitElement {
 
     const nodePath = e.composedPath() as HTMLElement[];
     const validNodeList = this.getValidNodeList(nodePath);
-    let targetNodeIndex = validNodeList.findIndex(({ node }) => node === this.targetNode);
+    let targetNodeIndex = validNodeList.findIndex((node) => node === this.targetNode);
     if (targetNodeIndex === -1) {
       this.wheelThrottling = false;
       return;
@@ -999,7 +981,7 @@ export class CodeInspectorComponent extends LitElement {
       targetNodeIndex++;
     }
     if (targetNodeIndex >= 0 && targetNodeIndex < validNodeList.length) {
-      this.renderCover(validNodeList[targetNodeIndex].node);
+      this.renderCover(validNodeList[targetNodeIndex]);
     }
 
     // mac 触摸板太灵敏，添加节流

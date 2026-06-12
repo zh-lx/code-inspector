@@ -190,6 +190,12 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Type: `(string | RegExp)[]`
 - Description: For tags matching these conditions, the `data-insp-path` attribute will not be injected during compilation
 
+## mdx <Badge type="tip" text="1.6.0+" vertical="middle" />
+
+- Optional
+- Type: `boolean`, default value is `false`
+- Description: Whether to transform the whole MDX file and inject `data-insp-path`. `.mdx` files are not processed by default. When set to `true`, the file content is rewritten before MDX compilation so both Markdown blocks and explicit JSX/HTML tags can be located. Because MDX, remark, rehype plugins, and complex syntax can vary across projects, enabling this option carries some risk of compilation failures.
+
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 
 - Optional

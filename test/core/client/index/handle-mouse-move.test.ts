@@ -4,9 +4,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CodeInspectorComponent } from '@/core/src/client';
 import { PathName } from '@/core/src/shared';
 
-const AstroFile = 'data-astro-source-file';
-const AstroLocation = 'data-astro-source-loc';
-
 describe('handleMouseMove', () => {
   let component: CodeInspectorComponent;
 
@@ -25,13 +22,6 @@ describe('handleMouseMove', () => {
   const createElementWithPath = (tagName: string, path: string) => {
     const element = document.createElement(tagName);
     element.setAttribute(PathName, path);
-    return element;
-  };
-
-  const createAstroElement = (tagName: string, file: string, loc: string) => {
-    const element = document.createElement(tagName);
-    element.setAttribute(AstroFile, file);
-    element.setAttribute(AstroLocation, loc);
     return element;
   };
 
@@ -117,24 +107,6 @@ describe('handleMouseMove', () => {
       await component.handleMouseMove(event);
 
       expect(removeCoverSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('Astro Elements', () => {
-    it('should prioritize Astro elements', async () => {
-      const astroElement = createAstroElement('div', '/path/astro.astro', '5:3');
-      const normalElement = createElementWithPath('span', '/path/file.ts:10:5:span');
-      const event = createMouseEvent([normalElement, astroElement, document.body]);
-
-      component.isTracking = vi.fn().mockReturnValue(true);
-      component.dragging = false;
-      component.hoverSwitch = false;
-
-      const renderCoverSpy = vi.spyOn(component, 'renderCover').mockImplementation(async () => {});
-
-      await component.handleMouseMove(event);
-
-      expect(renderCoverSpy).toHaveBeenCalledWith(astroElement);
     });
   });
 
@@ -249,19 +221,7 @@ describe('getValidNodeList', () => {
     const result = component.getValidNodeList([validNode, invalidNode]);
 
     expect(result.length).toBe(1);
-    expect(result[0].node).toBe(validNode);
-    expect(result[0].isAstro).toBe(false);
-  });
-
-  it('should mark Astro nodes correctly', () => {
-    const astroNode = document.createElement('div');
-    astroNode.setAttribute(AstroFile, '/path/file.astro');
-    astroNode.setAttribute(AstroLocation, '5:3');
-
-    const result = component.getValidNodeList([astroNode]);
-
-    expect(result.length).toBe(1);
-    expect(result[0].isAstro).toBe(true);
+    expect(result[0]).toBe(validNode);
   });
 
   it('should return nodes with PathName property', () => {
@@ -271,6 +231,6 @@ describe('getValidNodeList', () => {
     const result = component.getValidNodeList([nodeWithProperty]);
 
     expect(result.length).toBe(1);
-    expect(result[0].isAstro).toBe(false);
+    expect(result[0]).toBe(nodeWithProperty);
   });
 });

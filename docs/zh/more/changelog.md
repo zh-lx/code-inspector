@@ -1,5 +1,15 @@
 # 更新日志
 
+## 1.6.0
+
+- 【feat】新增对 Astro（`.astro`）文件的源码定位支持，在框架编译前注入 `data-insp-path`，优先使用 `@astrojs/compiler` 的 AST 定位，无法解析时回退到安全的源码扫描 [#531](https://github.com/zh-lx/code-inspector/pull/531)
+- 【feat】新增 `mdx` 参数（1.6.0+），用于开启整个 MDX 文件的源码定位编译。设置为 `true` 时会在 MDX 编译前重写文件内容，让 Markdown 块和显式 JSX/HTML 标签都可定位；由于不同项目的 MDX、remark、rehype 插件和复杂语法存在差异，开启后有一定编译失败风险 [#531](https://github.com/zh-lx/code-inspector/pull/531)
+
+## 1.5.4
+
+- 【fix】修复了在 `turbopack` 中使用时未按 Next.js 项目注入客户端组件的问题 [#530](https://github.com/zh-lx/code-inspector/pull/530)
+- 【fix】修复了在 Next.js 中使用 webpack 时，临时编译错误恢复后热更新失效的问题 [#530](https://github.com/zh-lx/code-inspector/pull/530)
+
 ## 1.5.3
 
 - 【fix】将 `turbopack` 中 `importClient` 的默认值改为 `file`，同时保留用户显式配置 [#525](https://github.com/zh-lx/code-inspector/pull/525)

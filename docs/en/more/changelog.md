@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0
+
+- 【feat】Added source-location support for Astro (`.astro`) files by injecting `data-insp-path` before framework compilation, preferring `@astrojs/compiler` AST positions and falling back to a safe source scanner when it cannot be resolved [#531](https://github.com/zh-lx/code-inspector/pull/531)
+- 【feat】Added the `mdx` option (1.6.0+) to enable source-location compilation for whole MDX files. When set to `true`, file content is rewritten before MDX compilation so both Markdown blocks and explicit JSX/HTML tags can be located. Because MDX, remark, rehype plugins, and complex syntax can vary across projects, enabling this option carries some risk of compilation failures [#531](https://github.com/zh-lx/code-inspector/pull/531)
+
+## 1.5.4
+
+- 【fix】Fixed client component injection for Next.js projects using `turbopack` [#530](https://github.com/zh-lx/code-inspector/pull/530)
+- 【fix】Fixed HMR recovery after temporary compile errors in Next.js projects using webpack [#530](https://github.com/zh-lx/code-inspector/pull/530)
+
 ## 1.5.3
 
 - 【fix】Changed the default `importClient` value to `file` in `turbopack` while preserving explicit user configuration [#525](https://github.com/zh-lx/code-inspector/pull/525)
