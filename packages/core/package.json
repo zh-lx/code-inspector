@@ -1,12 +1,13 @@
 {
   "name": "@code-inspector/core",
-  "version": "1.6.0",
+  "version": "2.0.0-beta.6",
   "main": "dist/index.js",
   "module": "./dist/index.mjs",
   "types": "types/index.d.ts",
   "files": [
     "dist",
-    "types"
+    "types",
+    "scripts"
   ],
   "exports": {
     ".": {
@@ -44,14 +45,19 @@
     "build:client:watch": " vite build --config ./vite.client.config.ts --watch",
     "clear": "rimraf ./dist && rimraf ./types",
     "build": "pnpm clear && tsc && pnpm build:server && pnpm build:client",
+    "postinstall": "node ./scripts/verify-terminal-runtime.js",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   },
   "dependencies": {
     "@vue/compiler-dom": "^3.5.13",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
     "launch-ide": "1.4.3",
+    "marked": "^17.0.1",
     "portfinder": "^1.0.28"
   },
   "devDependencies": {
@@ -59,6 +65,7 @@
     "@babel/plugin-proposal-decorators": "^7.22.7",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-typescript": "^7.21.3",
+    "@floating-ui/dom": "^1.7.5",
     "@types/node": "^18.14.1",
     "@vue/babel-plugin-jsx": "^1.1.1",
     "@vue/compiler-sfc": "^3.3.4",
@@ -70,5 +77,12 @@
     "vite": "^4.3.9",
     "vite-plugin-node-stdlib-browser": "^0.2.1",
     "volar-service-pug": "^0.0.63"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.29",
+    "@openai/codex-sdk": "^0.106.0",
+    "@opencode-ai/sdk": "^1.2.24",
+    "node-pty": "^1.0.0",
+    "ws": "^8.18.0"
   }
 }

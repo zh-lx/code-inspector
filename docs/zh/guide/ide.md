@@ -34,8 +34,7 @@ codeInspectorPlugin({
 
 ## 支持的 IDE 列表
 
-支持自动识别的 IDE、对应的 IDE 编码名称及支持的系统可以参考: [launch-ide]
-(https://github.com/zh-lx/launch-ide)
+支持自动识别的 IDE、对应的 IDE 编码名称及支持的系统可以参考: [launch-ide](https://github.com/zh-lx/launch-ide)
 
 ## 其他 IDE
 
@@ -43,16 +42,14 @@ codeInspectorPlugin({
 
 ### MAC 系统
 
-以 VSCodium 为例（其他的 IDE 步骤相同），要在 MAC 系统中获取 IDE 可执行程序路径，步骤如下：
+以 Cursor 为例（其他的 IDE 步骤相同），要在 MAC 系统中获取 IDE 可执行程序路径，步骤如下：
 
-1. 打开 IDE 程序 VSCodium
-2. 打开 MAC 自带的活动监视器，在进程中找到 VSCodium 并双击：
-
-   ![Active_Monitor](https://github.com/zh-lx/code-inspector/assets/73059627/17d65dc1-82ff-439f-aeba-8e3056cd2a1b)
-3. 双击后，在窗口的【打开文件和端口】Tab 中，找到第一个 txt 下面对应的路径，即为 IDE 可执行程序路径：
-
-   ![Open_Files](https://github.com/zh-lx/code-inspector/assets/73059627/f27a61f4-1c57-4687-83c7-6078533d62b4)
-4. 将 IDE 可执行路径程序复制到 `.env.local` 文件中即可：
+1. 打开 IDE 程序 Cursor
+2. 打开 MAC 自带的活动监视器，在进程中找到 Cursor 并双击：
+   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/cursor.jpg" style="max-width: 400px" />
+3. 双击后，找到 Cursor 的`可执行路径(Executable Path)`：
+   <img src="https://cdn.jsdelivr.net/gh/zh-lx/static-img/code-inspector/executable-path.jpg" style="max-width: 400px" />
+4. 将 `可执行路径(Executable Path)` 复制到 `.env.local` 文件中即可：
 
 ```perl
 # .env.local
@@ -63,13 +60,13 @@ CODE_EDITOR=/Applications/VSCodium.app/Contents/MacOS/Electron
 
 以 Webstorm 为例（其他的 IDE 步骤相同），要在 Windows 系统中获取 IDE 可执行程序路径，步骤如下：
 
-1. 找到 IDE 的快捷方式（如果没有则创建一个），右键点击快捷方式，选择【属性】：
+1. 找到 Webstorm 的快捷方式（如果没有则创建一个），右键点击快捷方式，选择【属性】：
 
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/6db6899f-fec5-474a-bffb-de8a394df777" style="max-width: 400px" />
-2. 打开后，在【快捷】Tab 找到【目标】，去掉【目标】中的双引号即为 IDE 可执行路径：
+2. 打开后，在【快捷】Tab 找到【目标】，去掉【目标】中的双引号即为 Webstorm 可执行路径：
 
    <img src="https://github.com/zh-lx/code-inspector/assets/73059627/f5067697-a246-4566-a530-ca83f9803bf5" style="max-width: 400px" />
-3. 将 IDE 可执行路径程序复制到 `.env.local` 文件中即可：
+3. 将 Webstorm 可执行路径程序复制到 `.env.local` 文件中即可：
 
 ```perl
 # .env.local

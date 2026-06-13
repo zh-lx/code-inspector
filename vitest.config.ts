@@ -6,6 +6,18 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       include: ['packages/*/src/**'],
+      exclude: [
+        '**/*.d.ts',
+        'packages/core/src/shared/type.ts',
+        'packages/core/src/client/ai-terminal.ts',
+        'packages/core/src/client/ai.ts',
+        'packages/core/src/client/i18n.ts',
+        'packages/core/src/client/index.ts',
+        'packages/core/src/server/ai-provider-common.ts',
+        'packages/core/src/server/ai-provider-opencode.ts',
+        'packages/core/src/server/ai-terminal.ts',
+        'packages/core/src/server/ai.ts',
+      ],
     },
     alias: {
       '@': path.resolve(__dirname, 'packages'),
