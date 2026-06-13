@@ -9,3 +9,6 @@ dist.zip
 .idea
 coverage
 deploy.sh
+test-results
+playwright-report
+.playwright

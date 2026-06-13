@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     fileParallelism: false,
+    // e2e 用 @playwright/test 运行，排除避免被 vitest 误收集
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     coverage: {
       include: ['packages/*/src/**'],
       exclude: [
