@@ -2,7 +2,7 @@ name: E2E Tests
 
 on:
   pull_request:
-    branches: [main]
+    # 对所有分支的 PR 生效
   push:
     branches: [main]
   workflow_call:
