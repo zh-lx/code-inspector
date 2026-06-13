@@ -23,6 +23,20 @@ Below are configurations for some non-standard scenarios.
      * String type, can use {file}, {line}, {column} templates to replace code location information.
      */
     target?: string;
+    /**
+     * AI assistant configuration, see AI Assistant docs for details
+     */
+    ai?: {
+      claudeCode?: boolean | ClaudeCodeOptions;
+      codex?: boolean | CodexOptions;
+      opencode?: boolean | OpenCodeOptions;
+      /** Conversation history expiration in days, defaults to 0 (no auto-cleanup) */
+      expireDays?: number;
+    };
+    /**
+     * Default click action: 'copy' | 'locate' | 'target' | 'ai'
+     */
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
   };
   ```
 - Description: In some scenarios, if you don't need to locate code when clicking elements and only need to copy the source code location information, you can set `locate: false` and `copy: true`. In this case, clicking elements will only copy the source code location information.
@@ -175,12 +189,6 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Optional
 - Type: `(string | RegExp)[]`
 - Description: For tags matching these conditions, the `data-insp-path` attribute will not be injected during compilation
-
-## mdx <Badge type="tip" text="1.6.0+" vertical="middle" />
-
-- Optional
-- Type: `boolean`, default value is `false`
-- Description: Whether to transform the whole MDX file and inject `data-insp-path`. `.mdx` files are not processed by default. When set to `true`, the file content is rewritten before MDX compilation so both Markdown blocks and explicit JSX/HTML tags can be located. Because MDX, remark, rehype plugins, and complex syntax can vary across projects, enabling this option carries some risk of compilation failures.
 
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 

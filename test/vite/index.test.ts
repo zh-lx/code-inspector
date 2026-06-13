@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import fs from 'fs';
 
 // Mock core module before imports
 vi.mock('@code-inspector/core', () => ({
@@ -12,7 +11,6 @@ vi.mock('@code-inspector/core', () => ({
   isDev: vi.fn((dev: boolean | undefined, condition: boolean) => dev ?? condition),
   getMappingFilePath: vi.fn((file: string) => file),
   isExcludedFile: vi.fn(() => false),
-  isAstroToolbarFile: vi.fn((file: string) => file.includes('astro:toolbar:internal')),
 }));
 
 // Mock chalk
@@ -30,7 +28,6 @@ import {
   isDev,
   isJsTypeFile,
   isExcludedFile,
-  isAstroToolbarFile,
 } from '@code-inspector/core';
 
 describe('ViteCodeInspectorPlugin', () => {
@@ -108,23 +105,9 @@ describe('ViteCodeInspectorPlugin', () => {
   describe('transform', () => {
     it('should return original code for excluded files', async () => {
       vi.mocked(isExcludedFile).mockReturnValueOnce(true);
-      vi.mocked(isAstroToolbarFile).mockReturnValueOnce(false);
       const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
       const result = await plugin.transform('const x = 1;', '/test/file.tsx');
       expect(result).toBe('const x = 1;');
-    });
-
-    it('should still inject Astro toolbar virtual files when excluded', async () => {
-      vi.mocked(isExcludedFile).mockReturnValueOnce(true);
-      vi.mocked(isAstroToolbarFile).mockReturnValueOnce(true);
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-      const result = await plugin.transform(
-        'export const loadDevToolbarApps = async () => [];',
-        '/@id/__x00__astro:toolbar:internal',
-      );
-
-      expect(getCodeWithWebComponent).toHaveBeenCalled();
-      expect(result).toBe('injected-code');
     });
 
     it('should transform JSX files', async () => {
@@ -242,129 +225,6 @@ describe('ViteCodeInspectorPlugin', () => {
       // but no transformCode is called
       expect(result).toBe('injected-code');
       expect(transformCode).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('load', () => {
-    it('should return null for excluded source files in load', async () => {
-      vi.mocked(isExcludedFile).mockReturnValueOnce(true);
-      const readFileSpy = vi.spyOn(fs, 'readFileSync');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-
-      const result = await plugin.load('/test/file.astro');
-
-      expect(result).toBeNull();
-      expect(readFileSpy).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
-    });
-
-    it('should transform Astro source files before Astro compiles them', async () => {
-      const readFileSpy = vi
-        .spyOn(fs, 'readFileSync')
-        .mockReturnValue('<div>Hello</div>');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-
-      const result = await plugin.load('/test/file.astro');
-
-      expect(transformCode).toHaveBeenCalledWith(
-        expect.objectContaining({
-          content: '<div>Hello</div>',
-          filePath: '/test/file.astro',
-          fileType: 'astro',
-        }),
-      );
-      expect(result).toBe('transformed:<div>Hello</div>');
-      readFileSpy.mockRestore();
-    });
-
-    it('should transform MDX source files before MDX compiles them', async () => {
-      const readFileSpy = vi
-        .spyOn(fs, 'readFileSync')
-        .mockReturnValue('# Hello\n\n<section>Target</section>');
-      const plugin = ViteCodeInspectorPlugin({
-        bundler: 'vite',
-        output: '/test',
-        mdx: true,
-      });
-
-      const result = await plugin.load('/test/file.mdx');
-
-      expect(transformCode).toHaveBeenCalledWith(
-        expect.objectContaining({
-          content: '# Hello\n\n<section>Target</section>',
-          filePath: '/test/file.mdx',
-          fileType: 'mdx',
-          mdx: true,
-        }),
-      );
-      expect(result).toBe('transformed:# Hello\n\n<section>Target</section>');
-      readFileSpy.mockRestore();
-    });
-
-    it('should skip MDX source files when mdx is not enabled', async () => {
-      const readFileSpy = vi.spyOn(fs, 'readFileSync');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-
-      const result = await plugin.load('/test/file.mdx');
-
-      expect(result).toBeNull();
-      expect(readFileSpy).not.toHaveBeenCalled();
-      expect(transformCode).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
-    });
-
-    it('should return null when source files cannot be read in load', async () => {
-      const readFileSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
-        throw new Error('read failed');
-      });
-      const plugin = ViteCodeInspectorPlugin({
-        bundler: 'vite',
-        output: '/test',
-        mdx: true,
-      });
-
-      const result = await plugin.load('/test/file.mdx');
-
-      expect(result).toBeNull();
-      expect(transformCode).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
-    });
-
-    it('should not transform unsupported source files in load', async () => {
-      const readFileSpy = vi.spyOn(fs, 'readFileSync');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-
-      const result = await plugin.load('/test/file.md');
-
-      expect(result).toBeNull();
-      expect(readFileSpy).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
-    });
-
-    it('should not transform source files that miss the match option in load', async () => {
-      const readFileSpy = vi.spyOn(fs, 'readFileSync');
-      const plugin = ViteCodeInspectorPlugin({
-        bundler: 'vite',
-        output: '/test',
-        match: /\.mdx$/,
-      });
-
-      const result = await plugin.load('/test/file.astro');
-
-      expect(result).toBeNull();
-      expect(readFileSpy).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
-    });
-
-    it('should not transform Astro virtual style requests in load', async () => {
-      const readFileSpy = vi.spyOn(fs, 'readFileSync');
-      const plugin = ViteCodeInspectorPlugin({ bundler: 'vite', output: '/test' });
-
-      const result = await plugin.load('/test/file.astro?astro&type=style');
-
-      expect(result).toBeNull();
-      expect(readFileSpy).not.toHaveBeenCalled();
-      readFileSpy.mockRestore();
     });
   });
 

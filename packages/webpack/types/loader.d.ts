@@ -1,1 +1,1 @@
-export default function WebpackCodeInspectorLoader(content: string, source: any, meta: any): Promise<string> | undefined;
+export default function WebpackCodeInspectorLoader(content: string): Promise<string>;

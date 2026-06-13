@@ -23,7 +23,7 @@ describe('properties', () => {
     expect(component.autoToggle).toBe(false);
     expect(component.hideConsole).toBe(false);
     expect(component.locate).toBe(true);
-    expect(component.copy).toBe(false);
+    expect(component.copy).toBe(undefined);
     expect(component.target).toBe('');
     expect(component.ip).toBe('localhost');
   });

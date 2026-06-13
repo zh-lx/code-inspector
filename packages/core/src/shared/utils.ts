@@ -50,15 +50,6 @@ export function normalizePath(filepath: string) {
   return normalizedPath;
 }
 
-export function isAstroToolbarFile(file: string) {
-  const normalizedFile = normalizePath(file).replace(/\0/g, '__x00__');
-  return (
-    normalizedFile.includes('astro:dev-toolbar') ||
-    normalizedFile.includes('astro:toolbar:internal') ||
-    normalizedFile.includes('astro/runtime/client/dev-toolbar/entrypoint.js')
-  );
-}
-
 export function isEscapeTags(escapeTags: EscapeTags, tag: string) {
   return escapeTags.some((escapeTag) => {
     if (typeof escapeTag === 'string') {
@@ -353,7 +344,7 @@ export function hasWritePermission(filePath: string): boolean {
 /**
  * Check if a file should be ignored based on special directives in comments
  * @param content - The file content to check
- * @param fileType - The type of file ('vue', 'jsx', 'svelte', 'astro', 'mdx', or unknown)
+ * @param fileType - The type of file ('vue', 'jsx', 'svelte', or unknown)
  * @returns true if the file should be ignored, false otherwise
  */
 export function isIgnoredFile({
@@ -361,7 +352,7 @@ export function isIgnoredFile({
   fileType,
 }: {
   content: string;
-  fileType: 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
+  fileType: 'vue' | 'jsx' | 'svelte' | unknown;
 }): boolean {
   if (!content) {
     return false;
@@ -369,13 +360,8 @@ export function isIgnoredFile({
   const trimmed = content.trimStart();
   const directives = ['code-inspector-disable', 'code-inspector-ignore'];
 
-  // Vue / Svelte / Astro / MDX - check HTML comments
-  if (
-    fileType === 'vue' ||
-    fileType === 'svelte' ||
-    fileType === 'astro' ||
-    fileType === 'mdx'
-  ) {
+  // Vue / Svelte - check HTML comments
+  if (fileType === 'vue' || fileType === 'svelte') {
     if (trimmed.startsWith('<!--')) {
       const endIndex = trimmed.indexOf('-->');
       if (endIndex !== -1) {

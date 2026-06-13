@@ -12,6 +12,7 @@ export default defineComponent({
           border: '1px solid orange',
           padding: '8px',
           marginTop: '20px',
+          color: 'red',
         }}
       >
         this is jsx root element

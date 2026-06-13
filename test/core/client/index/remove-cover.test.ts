@@ -64,61 +64,6 @@ describe('removeCover', () => {
   });
 
   describe('State Changes', () => {
-    it('should not remove cover when nodeTree exists and force is not true', () => {
-      component.show = true;
-      component.targetNode = document.createElement('div');
-      component.nodeTree = {
-        name: 'div',
-        path: '/path/file.ts',
-        line: 10,
-        column: 5,
-        children: [],
-        element: document.createElement('div'),
-        depth: 1,
-      };
-
-      component.removeCover();
-
-      expect(component.show).toBe(true);
-    });
-
-    it('should remove cover when nodeTree exists but force is true', () => {
-      component.show = true;
-      component.targetNode = document.createElement('div');
-      component.nodeTree = {
-        name: 'div',
-        path: '/path/file.ts',
-        line: 10,
-        column: 5,
-        children: [],
-        element: document.createElement('div'),
-        depth: 1,
-      };
-
-      component.removeCover(true);
-
-      expect(component.show).toBe(false);
-    });
-
-    it('should not remove cover when force is MouseEvent and nodeTree exists', () => {
-      component.show = true;
-      component.targetNode = document.createElement('div');
-      component.nodeTree = {
-        name: 'div',
-        path: '/path/file.ts',
-        line: 10,
-        column: 5,
-        children: [],
-        element: document.createElement('div'),
-        depth: 1,
-      };
-
-      const mouseEvent = new MouseEvent('mouseleave');
-      component.removeCover(mouseEvent);
-
-      expect(component.show).toBe(true);
-    });
-
     it('should handle multiple calls correctly', () => {
       // 设置初始状态
       component.show = true;

@@ -2,11 +2,295 @@
 import { Server } from 'http';
 import type { Editor } from 'launch-ide';
 export type HotKey = 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey';
+/**
+ * @zh Claude Code CLI 配置项
+ * @en Claude Code CLI options
+ */
+export type ClaudeCliOptions = {
+    /** 允许自动执行的工具列表 */
+    allowedTools?: string[];
+    /** 禁止的工具列表 */
+    disallowedTools?: string[];
+    /** 使用的模型 */
+    model?: string;
+    /** 可切换模型列表（用于前端对话框切换） */
+    models?: string[];
+    /** 最大执行轮数，默认为 20 */
+    maxTurns?: number;
+    /**
+     * 权限模式。默认为 'bypassPermissions'
+     * - 'default' 需要用户确认
+     * - 'acceptEdits' 自动接受编辑
+     * - 'bypassPermissions' 绕过所有权限检查
+     */
+    permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+    /** 系统提示 */
+    systemPrompt?: string | {
+        type: 'preset';
+        preset: 'claude_code';
+        append?: string;
+    };
+    /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
+    env?: Record<string, string | undefined>;
+    /** MCP 服务器配置 */
+    mcpServers?: Record<string, any>;
+    /** CLI 最大成本（美元），等价于 `--max-cost` */
+    maxCost?: number;
+};
+/**
+ * @zh Claude Code SDK 配置项
+ * @en Claude Code SDK options
+ */
+export type ClaudeSdkOptions = {
+    /** 允许自动执行的工具列表 */
+    allowedTools?: string[];
+    /** 禁止的工具列表 */
+    disallowedTools?: string[];
+    /** 使用的模型 */
+    model?: string;
+    /** 可切换模型列表（用于前端对话框切换） */
+    models?: string[];
+    /** 最大执行轮数，默认为 20 */
+    maxTurns?: number;
+    /**
+     * 权限模式。默认为 'bypassPermissions'
+     * - 'default' 需要用户确认
+     * - 'acceptEdits' 自动接受编辑
+     * - 'bypassPermissions' 绕过所有权限检查
+     */
+    permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions';
+    /** 系统提示 */
+    systemPrompt?: string | {
+        type: 'preset';
+        preset: 'claude_code';
+        append?: string;
+    };
+    /** 环境变量，传递给 Claude Code 进程。默认为 process.env */
+    env?: Record<string, string | undefined>;
+    /** MCP 服务器配置 */
+    mcpServers?: Record<string, any>;
+    /** 最大思考 token 数 */
+    maxThinkingTokens?: number;
+    /** SDK 最大预算（美元） */
+    maxBudgetUsd?: number;
+    /** 当 permissionMode='bypassPermissions' 时需要显式开启 */
+    allowDangerouslySkipPermissions?: boolean;
+    /** 控制读取哪些 settings 文件。默认读取 user/project/local */
+    settingSources?: Array<'user' | 'project' | 'local'>;
+    /** 透传给 Claude CLI 的额外参数（key 不带 --，null 表示布尔 flag） */
+    extraArgs?: Record<string, string | null>;
+};
+export type ClaudeAgentOptions = ClaudeCliOptions | ClaudeSdkOptions;
+export type ClaudeCodeOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Claude Code CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local Claude Code CLI. Defaults to 'cli'
+     */
+    type?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: ClaudeCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 Claude Agent SDK
+     * @en Specify the agent type to use. 'sdk' uses Claude Agent SDK
+     */
+    type: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: ClaudeSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: ClaudeCliOptions;
+};
+/**
+ * @zh Codex CLI 配置项
+ * @en Codex CLI options
+ */
+export type CodexCliOptions = {
+    /** 指定 Codex 模型，等价于 `codex exec -m` */
+    model?: string;
+    /** 可切换模型列表（用于前端对话框切换） */
+    models?: string[];
+    /** 指定 Codex profile，等价于 `codex exec -p` */
+    profile?: string;
+    /** 指定 sandbox 模式，等价于 `codex exec -s` */
+    sandbox?: 'read-only' | 'workspace-write' | 'danger-full-access';
+    /** 是否启用 `--full-auto` */
+    fullAuto?: boolean;
+    /** 是否启用 `--skip-git-repo-check` */
+    skipGitRepoCheck?: boolean;
+    /** 是否启用 `--ephemeral` */
+    ephemeral?: boolean;
+    /** 通过 `-c key=value` 透传给 codex cli 的配置 */
+    config?: Record<string, string | number | boolean>;
+    /** 环境变量，传递给 Codex CLI 进程 */
+    env?: Record<string, string | undefined>;
+};
+/**
+ * @zh Codex SDK 配置项
+ * @en Codex SDK options
+ */
+export type CodexSdkOptions = {
+    /** 指定 Codex 模型 */
+    model?: string;
+    /** 可切换模型列表（用于前端对话框切换） */
+    models?: string[];
+    /** 指定 Codex profile */
+    profile?: string;
+    /** 透传 Codex 配置 */
+    config?: Record<string, string | number | boolean>;
+    /** 环境变量 */
+    env?: Record<string, string | undefined>;
+    /** 是否跳过 git 仓库检查 */
+    skipGitRepoCheck?: boolean;
+    /** Codex SDK 可执行路径覆盖，等价于 `new Codex({ codexPathOverride })` */
+    codexPathOverride?: string;
+    /** Codex SDK baseUrl，等价于 `new Codex({ baseUrl })` */
+    baseUrl?: string;
+    /** Codex SDK apiKey，等价于 `new Codex({ apiKey })` */
+    apiKey?: string;
+    /** SDK 线程沙箱模式，等价于 `startThread({ sandboxMode })` */
+    sandboxMode?: 'read-only' | 'workspace-write' | 'danger-full-access' | {
+        type: 'workspace-write';
+        writableRoots: string[];
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+    } | {
+        type: 'danger-full-access';
+        networkAccess?: boolean;
+        excludeTmpdirEnvVar?: boolean;
+    };
+    /** SDK 线程工作目录（cwd），默认使用当前项目根目录 */
+    cwd?: string;
+    /** SDK 推理强度 */
+    modelReasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+    /** SDK web 搜索请求参数 */
+    webSearchRequest?: {
+        searchContextSize?: 'low' | 'medium' | 'high';
+        userLocation?: {
+            country?: string;
+            region?: string;
+            city?: string;
+            timezone?: string;
+        };
+    };
+    /** SDK 是否启用 web 搜索 */
+    enableWebSearch?: boolean;
+    /** SDK 审批策略 */
+    approvalPolicy?: 'on-request' | 'on-failure' | 'never' | 'untrusted';
+    /** SDK 额外可写目录 */
+    additionalWritableRoots?: string[];
+};
+export type CodexAgentOptions = CodexCliOptions | CodexSdkOptions;
+export type CodexOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 Codex CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local Codex CLI. Defaults to 'cli'
+     */
+    type?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: CodexCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 Codex SDK
+     * @en Specify the agent type to use. 'sdk' uses Codex SDK
+     */
+    type: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: CodexSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: CodexCliOptions;
+};
+/**
+ * @zh OpenCode CLI 配置项
+ * @en OpenCode CLI options
+ */
+export type OpenCodeCliOptions = CodexCliOptions;
+/**
+ * @zh OpenCode SDK 配置项
+ * @en OpenCode SDK options
+ */
+export type OpenCodeSdkOptions = Omit<CodexSdkOptions, 'config'> & {
+    /** 透传 OpenCode SDK/server 配置 */
+    config?: Record<string, any>;
+    /** OpenCode SDK 可执行路径覆盖 */
+    opencodePathOverride?: string;
+};
+export type OpenCodeAgentOptions = OpenCodeCliOptions | OpenCodeSdkOptions;
+export type OpenCodeOptions = {
+    /**
+     * @zh 指定使用的 Agent 类型。'cli' 使用本地 OpenCode CLI。默认为 'cli'
+     * @en Specify the agent type to use. 'cli' uses local OpenCode CLI. Defaults to 'cli'
+     */
+    type?: 'cli';
+    /**
+     * @zh CLI 模式参数
+     * @en CLI options
+     */
+    options?: OpenCodeCliOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'sdk' 使用 OpenCode SDK
+     * @en Specify the agent type to use. 'sdk' uses OpenCode SDK
+     */
+    type: 'sdk';
+    /**
+     * @zh SDK 模式参数
+     * @en SDK options
+     */
+    options?: OpenCodeSdkOptions;
+} | {
+    /**
+     * @zh 指定使用的 Agent 类型。'terminal' 使用原生 CLI 终端（基于 xterm.js + node-pty）
+     * @en Specify the agent type to use. 'terminal' uses native CLI terminal (xterm.js + node-pty)
+     */
+    type: 'terminal';
+    /**
+     * @zh Terminal 模式参数（与 CLI 相同）
+     * @en Terminal mode options (same as CLI)
+     */
+    options?: OpenCodeCliOptions;
+};
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
     target?: string;
-    defaultAction?: 'copy' | 'locate' | 'target' | 'all';
+    ai?: {
+        claudeCode?: boolean | ClaudeCodeOptions;
+        codex?: boolean | CodexOptions;
+        opencode?: boolean | OpenCodeOptions;
+        /** 对话历史过期天数，默认 0 不自动清理 */
+        expireDays?: number;
+    };
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
 };
 export type RecordInfo = {
     port: number;
@@ -58,6 +342,11 @@ export type CodeOptions = {
      * @en Whether hide the tips of combination keys on console.
      */
     hideConsole?: boolean;
+    /**
+     * @zh 客户端界面语言。可选 `en` 和 `zh`，默认值为 `en`
+     * @en Client UI language. Available values are `en` and `zh`, defaults to `en`
+     */
+    lang?: 'en' | 'zh';
     /**
      * @cn 打开功能开关的情况下，点击触发跳转编辑器时是否自动关闭开关
      * @en When opening the function switch, whether automatically close the switch when triggering the jump editor function.
@@ -114,11 +403,6 @@ export type CodeOptions = {
      * @en tags without injecting data-insp-path
      */
     escapeTags?: EscapeTags;
-    /**
-     * @zh 是否转换 MDX 文件以注入 `data-insp-path`，默认值为 `false`
-     * @en Whether to transform MDX files to inject `data-insp-path`, defaults to `false`
-     */
-    mdx?: boolean;
     /**
      * @zh 是否隐藏控制台中 dom 的 `data-insp-path` 属性
      * @en Whether to hide the `data-insp-path` attribute of DOM in the console

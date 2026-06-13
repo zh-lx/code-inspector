@@ -23,6 +23,20 @@
      * 字符串类型，可通过 {file}、{line}、{column} 模版代替源码位置信息，跳转前会将模板替换为对应的值
      */
     target?: string;
+    /**
+     * AI 助手配置，详见 AI 助手文档
+     */
+    ai?: {
+      claudeCode?: boolean | ClaudeCodeOptions;
+      codex?: boolean | CodexOptions;
+      opencode?: boolean | OpenCodeOptions;
+      /** 对话历史过期天数，默认 0 不自动清理 */
+      expireDays?: number;
+    };
+    /**
+     * 默认点击行为：'copy' | 'locate' | 'target' | 'ai'
+     */
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
   };
   ```
 - 说明：在某些场景下，如果你在点击元素时不需要定位代码，仅需要复制元素的源码位置信息，则可以设置 `locate: false` 和 `copy: true`，此时点击元素仅会复制源码位置信息。
@@ -177,11 +191,6 @@ window.addEventListener('code-inspector:trackCode', () => {
 - 类型：`(string | RegExp)[]`
 - 说明：对于满足上述条件的标签，不会在编译时注入 `data-insp-path` 属性
 
-## mdx <Badge type="tip" text="1.6.0+" vertical="middle" />
-
-- 可选项
-- 类型：`boolean`，默认值为 `false`
-- 说明：是否转换整个 MDX 文件并注入 `data-insp-path`。默认不会处理 `.mdx` 文件；设置为 `true` 时会在 MDX 编译前重写文件内容，让 Markdown 块和显式 JSX/HTML 标签都可定位。由于不同项目的 MDX、remark、rehype 插件和复杂语法存在差异，开启后有一定编译失败风险。
 
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 

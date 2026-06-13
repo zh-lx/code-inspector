@@ -18,6 +18,7 @@ import {
   PathName,
   isJsTypeFile,
   getFilePathWithoutExt,
+  AstroToolbarFile,
   getIP,
   getDependencies,
   normalizePath,
@@ -25,7 +26,6 @@ import {
   setProjectRecord,
   getDependenciesMap,
   hasWritePermission,
-  isAstroToolbarFile,
 } from '../shared';
 
 const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,14 +93,6 @@ function addNextEmptyElementToEntry(content: string) {
   return s.toString();
 }
 
-function tryAddNextEmptyElementToEntry(content: string) {
-  try {
-    return addNextEmptyElementToEntry(content);
-  } catch (error) {
-    return content;
-  }
-}
-
 function addImportToEntry(content: string, webComponentFilePath: string) {
   let hasAddedImport = false;
   const s = new MagicString(content);
@@ -142,48 +134,47 @@ function addImportToEntry(content: string, webComponentFilePath: string) {
   }
 }
 
-function tryAddNextInspectorToEntry(
-  content: string,
-  webComponentFilePath: string,
-) {
-  try {
-    return addNextEmptyElementToEntry(
-      addImportToEntry(content, webComponentFilePath),
-    );
-  } catch (error) {
-    return content;
-  }
-}
-
 export function getWebComponentCode(options: CodeOptions, port: number) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
     hideConsole = false,
+    lang = 'en',
     autoToggle = true,
     behavior = {},
     ip = false,
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '' } = behavior;
+  const {
+    locate = true,
+    copy = false,
+    target = '',
+    defaultAction = '',
+  } = behavior;
+  const aiEnabled = Boolean(
+    behavior.ai?.codex || behavior.ai?.claudeCode || behavior.ai?.opencode,
+  );
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
       ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
-      
+
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
+      inspector.lang = '${lang === 'zh' ? 'zh' : 'en'}';
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
+      inspector.ai = ${aiEnabled};
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
+      inspector.defaultAction = '${defaultAction}';
       document.documentElement.append(inspector);
     }
   }
@@ -254,7 +245,7 @@ export function getHidePathAttrCode() {
 function recordEntry(record: RecordInfo, file: string, isNextjs: boolean) {
   if (isNextjs) {
     const content = fs.readFileSync(file, 'utf-8');
-    if (content === tryAddNextEmptyElementToEntry(content)) {
+    if (content === addNextEmptyElementToEntry(content)) {
       return;
     }
   }
@@ -278,7 +269,7 @@ async function isTargetFileToInject(file: string, record: RecordInfo) {
   const normalizedFile = normalizePath(file);
   return (
     (isJsTypeFile(file) && getFilePathWithoutExt(file) === recordInfo?.entry) ||
-    isAstroToolbarFile(file) ||
+    file === AstroToolbarFile ||
     (recordInfo?.injectTo || []).includes(normalizedFile) ||
     inputs.includes(normalizedFile)
   );
@@ -332,11 +323,7 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
   server?: boolean;
 }) {
-  if (
-    !fs.existsSync(file) &&
-    !file.startsWith('virtual:nuxt:') &&
-    !isAstroToolbarFile(file)
-  ) {
+  if (!fs.existsSync(file) && !file.startsWith('virtual:nuxt:')) {
     if (server) {
       await startServer(options, record);
     }
@@ -347,8 +334,7 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
-  const isNextjs =
-    options.bundler === 'turbopack' || isNextjsProject(path.dirname(file));
+  const isNextjs = isNextjsProject(path.dirname(file));
 
   recordInjectTo(record, options);
   recordEntry(record, file, isNextjs);
@@ -376,7 +362,8 @@ export async function getCodeWithWebComponent({
           path.relative(path.dirname(file), webComponentFilePath),
         );
         if (isNextjs) {
-          code = tryAddNextInspectorToEntry(code, relativePath);
+          code = addImportToEntry(code, relativePath);
+          code = addNextEmptyElementToEntry(code);
         } else {
           code = `import '${relativePath}';${code}`;
         }
