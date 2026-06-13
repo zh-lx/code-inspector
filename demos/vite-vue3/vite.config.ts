@@ -25,7 +25,6 @@ export default defineConfig({
             // },
           },
         },
-        defaultAction: 'ai',
       },
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),
