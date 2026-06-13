@@ -20,6 +20,10 @@
   },
   "scripts": {
     "test": "vitest run --coverage",
+    "pretest:e2e": "pnpm build",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "test:e2e:l1": "playwright test -c e2e/playwright.config.ts l1-smoke",
+    "test:e2e:l2": "playwright test -c e2e/playwright.config.ts l2-locate",
     "build": "pnpm --filter \"./packages/*\" run build",
     "build:docs": "pnpm --filter \"./docs/*\" run docs:build && node ./scripts/zip",
     "deploy:docs": "pnpm build:docs && bash ./deploy.sh",
@@ -35,12 +39,15 @@
   "private": true,
   "main": "index.js",
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^20.14.0",
     "@vitest/coverage-v8": "2.1.4",
     "fs-extra": "^10.0.0",
     "husky": "^8.0.3",
     "jsdom": "^25.0.1",
     "launch-ide": "1.4.3",
     "rimraf": "^5.0.5",
+    "tree-kill": "^1.2.2",
     "vitest": "^2.1.4",
     "zip-a-folder": "^3.1.7"
   },

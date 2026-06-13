@@ -15,5 +15,8 @@
     "astro": "^6.4.4",
     "code-inspector-plugin": "workspace:*",
     "typescript": "^5.9.3"
+  },
+  "volta": {
+    "node": "22.12.0"
   }
 }
