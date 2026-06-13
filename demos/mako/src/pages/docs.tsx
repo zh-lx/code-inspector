@@ -1,9 +1,17 @@
-const DocsPage = () => {
-  return (
-    <div>
-      <p>This is umi docs.</p>
-    </div>
-  );
-};
+import { DemoHero } from '../components/inspector-demo/DemoHero';
+import { ShortcutPanel } from '../components/inspector-demo/ShortcutPanel';
+import { StepCards } from '../components/inspector-demo/StepCards';
+import { TryTargets } from '../components/inspector-demo/TryTargets';
 
-export default DocsPage;
+export default function DocsPage() {
+  return (
+    <main className="inspector-demo">
+      <section className="inspector-shell" aria-labelledby="inspector-title">
+        <DemoHero />
+        <ShortcutPanel />
+        <StepCards />
+        <TryTargets />
+      </section>
+    </main>
+  );
+}

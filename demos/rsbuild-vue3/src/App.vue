@@ -1,32 +1,17 @@
-<script setup>
-import { ref } from "vue";
-import HelloWorld from "./components/HelloWorld.vue";
-
-const title = ref("Rspack + Vue");
+<script setup lang="ts">
+import DemoHero from './components/inspector-demo/DemoHero.vue';
+import ShortcutPanel from './components/inspector-demo/ShortcutPanel.vue';
+import StepCards from './components/inspector-demo/StepCards.vue';
+import TryTargets from './components/inspector-demo/TryTargets.vue';
 </script>
 
 <template>
-  <div>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld :msg="title" />
+  <main class="inspector-demo">
+    <section class="inspector-shell" aria-labelledby="inspector-title">
+      <DemoHero />
+      <ShortcutPanel />
+      <StepCards />
+      <TryTargets />
+    </section>
+  </main>
 </template>
-
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>

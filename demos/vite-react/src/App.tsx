@@ -1,17 +1,20 @@
-/* eslint-disable no-undef */
-import { Suspense } from 'react';
-import { RouterProvider } from 'react-router-dom';
-import router from '@/router/index';
-import Loading from '@/components/Loading';
-import useGlobalTips from '@/hooks/useGlobalTips';
+import { DemoHero } from './components/inspector-demo/DemoHero';
+import { ShortcutPanel } from './components/inspector-demo/ShortcutPanel';
+import { StepCards } from './components/inspector-demo/StepCards';
+import { TryTargets } from './components/inspector-demo/TryTargets';
+import './App.css';
 
-function MyApp() {
-  useGlobalTips();
+function App() {
   return (
-    <Suspense fallback={<Loading />}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <main className="inspector-demo">
+      <section className="inspector-shell" aria-labelledby="inspector-title">
+        <DemoHero />
+        <ShortcutPanel />
+        <StepCards />
+        <TryTargets />
+      </section>
+    </main>
   );
 }
 
-export default MyApp;
+export default App;
