@@ -23,6 +23,20 @@
      * 字符串类型，可通过 {file}、{line}、{column} 模版代替源码位置信息，跳转前会将模板替换为对应的值
      */
     target?: string;
+    /**
+     * AI 助手配置，详见 AI 助手文档
+     */
+    ai?: {
+      claudeCode?: boolean | ClaudeCodeOptions;
+      codex?: boolean | CodexOptions;
+      opencode?: boolean | OpenCodeOptions;
+      /** 对话历史过期天数，默认 0 不自动清理 */
+      expireDays?: number;
+    };
+    /**
+     * 默认点击行为：'copy' | 'locate' | 'target' | 'ai'
+     */
+    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
   };
   ```
 - 说明：在某些场景下，如果你在点击元素时不需要定位代码，仅需要复制元素的源码位置信息，则可以设置 `locate: false` 和 `copy: true`，此时点击元素仅会复制源码位置信息。

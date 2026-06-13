@@ -1,4 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
+import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall, HistoryEntry } from './ai';
 interface Position {
     left?: string;
     right?: string;
@@ -35,6 +36,9 @@ interface ActiveNode {
     visibility?: 'visible' | 'hidden';
     class?: 'tooltip-top' | 'tooltip-bottom';
 }
+interface PendingChatImageAttachment extends ChatImageAttachment {
+    dataUrl: string;
+}
 export declare class CodeInspectorComponent extends LitElement {
     hotKeys: string;
     port: number;
@@ -42,12 +46,15 @@ export declare class CodeInspectorComponent extends LitElement {
     autoToggle: boolean;
     hideConsole: boolean;
     locate: boolean;
-    copy: boolean | string;
+    copy: boolean | undefined | string;
     target: string;
     targetNode: HTMLElement | null;
     ip: string;
+    ai: boolean;
+    lang: 'en' | 'zh';
     private wheelThrottling;
     modeKey: string;
+    defaultAction: string;
     position: {
         top: number;
         right: number;
@@ -101,18 +108,63 @@ export declare class CodeInspectorComponent extends LitElement {
     internalLocate: boolean;
     internalCopy: boolean;
     internalTarget: boolean;
+    internalAI: boolean;
+    showChatModal: boolean;
+    showCloseConfirm: boolean;
+    showTerminalSwitchConfirm: boolean;
+    chatMessages: ChatMessage[];
+    chatInput: string;
+    chatPastedImages: PendingChatImageAttachment[];
+    chatImageProcessing: boolean;
+    chatLoading: boolean;
+    chatContext: ChatContext | null;
+    currentTools: Map<string, ToolCall>;
+    chatSessionId: string | null;
+    runtimeSessionId: string | null;
+    runtimeSessionKind: 'agent-turn' | 'terminal' | null;
+    runtimeCursor: number;
+    chatTheme: 'light' | 'dark';
+    turnStatus: 'idle' | 'running' | 'done' | 'interrupt';
+    turnDuration: number;
+    chatModel: string;
+    availableAIModels: string[];
+    chatProvider: ChatProvider | null;
+    availableAIProviders: ChatProvider[];
+    showProviderMenu: boolean;
+    showModelMenu: boolean;
+    revertedToolIds: Set<string>;
+    revertingToolIds: Set<string>;
+    conversationId: string | null;
+    showHistoryPanel: boolean;
+    historyList: HistoryEntry[];
+    historyLoading: boolean;
+    terminalMode: boolean;
+    terminalExitCode: number | null;
+    private terminalManager;
+    private _projectRoot;
+    private chatAbortController;
+    private turnTimerInterval;
+    private turnStartTime;
+    isDragging: boolean;
+    private dragStartX;
+    private dragStartY;
+    private modalStartX;
+    private modalStartY;
+    private wasDragging;
+    private chatPositionCleanup;
+    private pendingTerminalSwitchAction;
     inspectorSwitchRef: HTMLDivElement;
     codeInspectorContainerRef: HTMLDivElement;
     elementInfoRef: HTMLDivElement;
     nodeTreeRef: HTMLDivElement;
     nodeTreeTitleRef: HTMLDivElement;
     nodeTreeTooltipRef: HTMLDivElement;
-    features: {
-        label: string;
-        description: string;
-        checked: () => boolean;
-        onChange: () => void;
-    }[];
+    private getCurrentLang;
+    private t;
+    private featuresOverride;
+    get features(): any[];
+    set features(value: any[]);
+    private getFeatures;
     private eventListeners;
     isTracking: (e: any) => boolean | "";
     getDomPropertyValue: (target: HTMLElement, property: string) => number;
@@ -146,6 +198,10 @@ export declare class CodeInspectorComponent extends LitElement {
     sendXHR: () => void;
     sendImg: () => void;
     buildTargetUrl: () => string;
+    locateCode: () => void;
+    copyCode: () => void;
+    targetCode: () => void;
+    dispatchCustomEvent: (action: 'locate' | 'copy' | 'target' | 'chat' | string) => void;
     trackCode: () => void;
     private handleModeShortcut;
     showNotification(message: string, type?: 'success' | 'error'): void;
@@ -174,9 +230,78 @@ export declare class CodeInspectorComponent extends LitElement {
     handleMouseLeaveNode: () => void;
     toggleSettingsModal: () => void;
     closeSettingsModal: () => void;
+    private clearAllActions;
     toggleLocate: () => void;
     toggleCopy: () => void;
     toggleTarget: () => void;
+    toggleAICode: () => void;
+    private persistAIState;
+    private clearRuntimeSessionState;
+    private revokeObjectUrl;
+    private revokeMessageImageUrls;
+    private clearPendingPastedImages;
+    private readFileAsDataUrl;
+    private formatBytes;
+    private buildMessageWithPastedImages;
+    private buildChatHistoryForModel;
+    private resolveActiveChatContext;
+    private refreshChatProviderAndModel;
+    private hasLiveTerminal;
+    private promptTerminalSwitch;
+    private performSwitchChatProvider;
+    switchChatProvider: (provider: ChatProvider) => void;
+    toggleProviderMenu: () => void;
+    private performSwitchChatModel;
+    switchChatModel: (model: string) => void;
+    toggleModelMenu: () => void;
+    openChatModal: (forceGlobal?: boolean) => void;
+    private performCloseChatModal;
+    private isTurnRunning;
+    closeChatModal: () => void;
+    confirmCloseChatModal: () => void;
+    cancelCloseChatModal: () => void;
+    keepCurrentTerminal: () => void;
+    killAndSwitchTerminal: () => void;
+    terminateAndCloseChatModal: () => void;
+    clearChatMessages: () => void;
+    toggleTheme: () => void;
+    handleChatInput: (e: Event) => void;
+    handleChatKeyDown: (e: KeyboardEvent) => void;
+    handleChatPaste: (e: ClipboardEvent) => Promise<void>;
+    removePastedImage: (id: string) => void;
+    private scrollPending;
+    private scrollChatToBottom;
+    private startTurnTimer;
+    private stopTurnTimer;
+    private autoSaveConversation;
+    interruptChat: () => void;
+    /**
+     * 确保终端在当前弹窗容器中可见
+     */
+    private ensureTerminalMounted;
+    /**
+     * 初始化终端模式：挂载 xterm 并启动交互式 CLI
+     */
+    private initTerminal;
+    /**
+     * 从“会话已结束”卡片重新启动一个交互式终端会话
+     */
+    restartTerminal: () => Promise<void>;
+    sendTerminalMessage: () => Promise<void>;
+    handleRevertEdit: (tool: ToolCall) => Promise<void>;
+    private extractRevertEdits;
+    handleRevertAllEdits: () => Promise<void>;
+    toggleHistoryPanel: () => Promise<void>;
+    handleLoadConversation: (id: string) => Promise<void>;
+    handleDeleteConversation: (id: string) => Promise<void>;
+    handleStartNewConversation: () => void;
+    handleChatDragStart: (e: MouseEvent) => void;
+    handleChatDragMove: (e: MouseEvent) => void;
+    handleChatDragEnd: () => void;
+    handleOverlayClick: () => void;
+    handleChatModalClick: (e: MouseEvent) => void;
+    sendChatMessage: () => Promise<void>;
+    private resumeAITask;
     /**
      * Attach all event listeners
      */
@@ -189,6 +314,6 @@ export declare class CodeInspectorComponent extends LitElement {
     disconnectedCallback(): void;
     renderNodeTree: (node: TreeNode) => TemplateResult;
     render(): TemplateResult<1>;
-    static styles: import("lit").CSSResult;
+    static styles: import("lit").CSSResult[];
 }
 export {};

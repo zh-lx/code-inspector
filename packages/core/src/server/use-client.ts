@@ -160,30 +160,42 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
     hideConsole = false,
+    lang = 'en',
     autoToggle = true,
     behavior = {},
     ip = false,
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '' } = behavior;
+  const {
+    locate = true,
+    copy = false,
+    target = '',
+    defaultAction = '',
+  } = behavior;
+  const aiEnabled = Boolean(
+    behavior.ai?.codex || behavior.ai?.claudeCode || behavior.ai?.opencode,
+  );
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
       ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
-      
+
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
+      inspector.lang = '${lang === 'zh' ? 'zh' : 'en'}';
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
+      inspector.ai = ${aiEnabled};
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
+      inspector.defaultAction = '${defaultAction}';
       document.documentElement.append(inspector);
     }
   }
