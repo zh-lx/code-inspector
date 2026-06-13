@@ -5,10 +5,23 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../shared';
-import { handleClaudeRequest, getModelInfo as getClaudeModelInfo } from './ai-provider-claude';
-import { handleCodexRequest, getModelInfo as getCodexModelInfo } from './ai-provider-codex';
-import { handleOpenCodeRequest, getModelInfo as getOpenCodeModelInfo } from './ai-provider-opencode';
+import type {
+  ClaudeCodeOptions,
+  CodexOptions,
+  OpenCodeOptions,
+} from '../shared';
+import {
+  handleClaudeRequest,
+  getModelInfo as getClaudeModelInfo,
+} from './ai-provider-claude';
+import {
+  handleCodexRequest,
+  getModelInfo as getCodexModelInfo,
+} from './ai-provider-codex';
+import {
+  handleOpenCodeRequest,
+  getModelInfo as getOpenCodeModelInfo,
+} from './ai-provider-opencode';
 import type { ProviderResult } from './ai-provider-claude';
 import { isTerminalAvailable } from './ai-terminal';
 import {
@@ -86,27 +99,28 @@ const PROVIDER_PRIORITY: AIProviderType[] = ['codex', 'opencode', 'claudeCode'];
 /**
  * 从 behavior 配置中提取 AI 选项
  */
-export function getAIOptions(
-  behavior?: {
-    ai?: {
-      claudeCode?: boolean | ClaudeCodeOptions;
-      codex?: boolean | CodexOptions;
-      opencode?: boolean | OpenCodeOptions;
-    };
-  }
-): ResolvedAIOptions | undefined {
+export function getAIOptions(behavior?: {
+  ai?: {
+    claudeCode?: boolean | ClaudeCodeOptions;
+    codex?: boolean | CodexOptions;
+    opencode?: boolean | OpenCodeOptions;
+  };
+}): ResolvedAIOptions | undefined {
   const resolved: ResolvedAIOptions = {};
 
   if (behavior?.ai?.codex) {
-    resolved.codex = typeof behavior.ai.codex === 'boolean' ? {} : behavior.ai.codex;
+    resolved.codex =
+      typeof behavior.ai.codex === 'boolean' ? {} : behavior.ai.codex;
   }
 
   if (behavior?.ai?.claudeCode) {
-    resolved.claudeCode = typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode;
+    resolved.claudeCode =
+      typeof behavior.ai.claudeCode === 'boolean' ? {} : behavior.ai.claudeCode;
   }
 
   if (behavior?.ai?.opencode) {
-    resolved.opencode = typeof behavior.ai.opencode === 'boolean' ? {} : behavior.ai.opencode;
+    resolved.opencode =
+      typeof behavior.ai.opencode === 'boolean' ? {} : behavior.ai.opencode;
   }
 
   return Object.keys(resolved).length > 0 ? resolved : undefined;
@@ -115,14 +129,20 @@ export function getAIOptions(
 /**
  * 从 behavior 配置中提取 expireDays
  */
-export function getExpireDays(
-  behavior?: { ai?: { expireDays?: number } }
-): number {
+export function getExpireDays(behavior?: {
+  ai?: { expireDays?: number };
+}): number {
   return behavior?.ai?.expireDays ?? 0;
 }
 
-function normalizeAIProviderType(provider?: string | null): AIProviderType | undefined {
-  if (provider === 'codex' || provider === 'claudeCode' || provider === 'opencode') {
+function normalizeAIProviderType(
+  provider?: string | null,
+): AIProviderType | undefined {
+  if (
+    provider === 'codex' ||
+    provider === 'claudeCode' ||
+    provider === 'opencode'
+  ) {
     return provider;
   }
   return undefined;
@@ -149,16 +169,16 @@ function dedupeModels(models: string[]): string[] {
 }
 
 function getConfiguredModels(aiOption: ActiveAIOptions): string[] {
-  const options = (aiOption.options as { options?: { model?: string; models?: string[] } })?.options || {};
+  const options =
+    (aiOption.options as { options?: { model?: string; models?: string[] } })
+      ?.options || {};
   return dedupeModels([
     ...(Array.isArray(options.models) ? options.models : []),
     ...(options.model ? [options.model] : []),
   ]);
 }
 
-function resolveProviderType(
-  type?: string,
-): 'cli' | 'sdk' | 'terminal' {
+function resolveProviderType(type?: string): 'cli' | 'sdk' | 'terminal' {
   if (type === 'sdk') {
     return 'sdk';
   }
@@ -168,13 +188,19 @@ function resolveProviderType(
   return 'cli';
 }
 
-function resolveRequestedModel(aiOption: ActiveAIOptions, requestedModel?: string): string | undefined {
+function resolveRequestedModel(
+  aiOption: ActiveAIOptions,
+  requestedModel?: string,
+): string | undefined {
   const normalizedRequestedModel = normalizeModelName(requestedModel);
   if (!normalizedRequestedModel) {
     return undefined;
   }
   const configuredModels = getConfiguredModels(aiOption);
-  if (configuredModels.length === 0 || configuredModels.includes(normalizedRequestedModel)) {
+  if (
+    configuredModels.length === 0 ||
+    configuredModels.includes(normalizedRequestedModel)
+  ) {
     return normalizedRequestedModel;
   }
   return undefined;
@@ -182,7 +208,7 @@ function resolveRequestedModel(aiOption: ActiveAIOptions, requestedModel?: strin
 
 function withModelOverride<T extends AIProviderType>(
   aiOption: ActiveAIOptions<T>,
-  model?: string
+  model?: string,
 ): ActiveAIOptions<T> {
   const normalizedModel = normalizeModelName(model);
   if (!normalizedModel) {
@@ -192,7 +218,8 @@ function withModelOverride<T extends AIProviderType>(
   const nextOptions = {
     ...(aiOption.options as Record<string, unknown>),
     options: {
-      ...(((aiOption.options as { options?: Record<string, unknown> })?.options) || {}),
+      ...((aiOption.options as { options?: Record<string, unknown> })
+        ?.options || {}),
       model: normalizedModel,
     },
   } as AIProviderOptionsMap[T];
@@ -203,14 +230,16 @@ function withModelOverride<T extends AIProviderType>(
   };
 }
 
-export function getAvailableAIProviders(aiOptions?: ResolvedAIOptions): AIProviderType[] {
+export function getAvailableAIProviders(
+  aiOptions?: ResolvedAIOptions,
+): AIProviderType[] {
   if (!aiOptions) return [];
   return PROVIDER_PRIORITY.filter((provider) => Boolean(aiOptions[provider]));
 }
 
 export function resolveAIOptions(
   aiOptions: ResolvedAIOptions | undefined,
-  requestedProvider?: AIProviderType
+  requestedProvider?: AIProviderType,
 ): ActiveAIOptions | undefined {
   if (!aiOptions) {
     return undefined;
@@ -219,7 +248,9 @@ export function resolveAIOptions(
   if (requestedProvider && aiOptions[requestedProvider]) {
     return {
       provider: requestedProvider,
-      options: aiOptions[requestedProvider] as AIProviderOptionsMap[AIProviderType],
+      options: aiOptions[
+        requestedProvider
+      ] as AIProviderOptionsMap[AIProviderType],
     };
   }
 
@@ -258,7 +289,7 @@ export async function handleAIRequest(
   res: http.ServerResponse,
   corsHeaders: Record<string, string>,
   aiOptions: ResolvedAIOptions | undefined,
-  projectRootPath: string
+  projectRootPath: string,
 ): Promise<void> {
   // 读取请求体
   let body = '';
@@ -326,7 +357,12 @@ export async function handleAIRequest(
     }
   };
 
-  subscribeRuntimeSession(runtimeSession.id, subscriberId, 0, sendRuntimeEventToResponse);
+  subscribeRuntimeSession(
+    runtimeSession.id,
+    subscriberId,
+    0,
+    sendRuntimeEventToResponse,
+  );
   markRuntimeSessionRunning(runtimeSession.id);
   emitRuntimeEvent(runtimeSession.id, {
     type: 'runtime_session',
@@ -342,11 +378,7 @@ export async function handleAIRequest(
     }
 
     emitRuntimeEvent(runtimeSession.id, data as Record<string, unknown>);
-    if (
-      typeof (data as { sessionId?: unknown }).sessionId === 'string' ||
-      typeof (data as { type?: unknown; sessionId?: unknown }).sessionId ===
-        'string'
-    ) {
+    if (typeof (data as { sessionId?: unknown }).sessionId === 'string') {
       updateRuntimeSessionMetadata(runtimeSession.id, {
         providerSessionId: (data as { sessionId?: string }).sessionId || null,
       });
@@ -500,9 +532,7 @@ export async function handleAIRuntimeAbortRequest(
   }
 
   const runtimeSessionId =
-    typeof parsed.runtimeSessionId === 'string'
-      ? parsed.runtimeSessionId
-      : '';
+    typeof parsed.runtimeSessionId === 'string' ? parsed.runtimeSessionId : '';
   if (!runtimeSessionId) {
     res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'missing_runtime_session_id' }));
@@ -528,12 +558,14 @@ export async function handleAIModelRequest(
   const availableProviders = getAvailableAIProviders(aiOptions);
   if (!activeAIOptions) {
     res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      model: '',
-      models: [],
-      provider: null,
-      providers: availableProviders,
-    }));
+    res.end(
+      JSON.stringify({
+        model: '',
+        models: [],
+        provider: null,
+        providers: availableProviders,
+      }),
+    );
     return;
   }
 
@@ -543,23 +575,24 @@ export async function handleAIModelRequest(
       ? await getCodexModelInfo(activeAIOptions.options as CodexOptions)
       : activeAIOptions.provider === 'opencode'
         ? await getOpenCodeModelInfo(activeAIOptions.options as OpenCodeOptions)
-        : await getClaudeModelInfo(activeAIOptions.options as ClaudeCodeOptions | undefined);
+        : await getClaudeModelInfo(
+            activeAIOptions.options as ClaudeCodeOptions | undefined,
+          );
   const model = normalizeModelName(detectedModel) || configuredModels[0] || '';
-  const models = dedupeModels([
-    ...configuredModels,
-    ...(model ? [model] : []),
-  ]);
+  const models = dedupeModels([...configuredModels, ...(model ? [model] : [])]);
   const providerType = resolveProviderType(
     (activeAIOptions.options as any)?.type,
   );
   res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({
-    model,
-    models,
-    provider: activeAIOptions.provider,
-    providers: availableProviders,
-    providerType,
-  }));
+  res.end(
+    JSON.stringify({
+      model,
+      models,
+      provider: activeAIOptions.provider,
+      providers: availableProviders,
+      providerType,
+    }),
+  );
 }
 
 /**
@@ -593,15 +626,25 @@ export async function handleAIRevertRequest(
     return;
   }
 
-  const results: Array<{ file_path: string; success: boolean; error?: string }> = [];
+  const results: Array<{
+    file_path: string;
+    success: boolean;
+    error?: string;
+  }> = [];
 
   for (const edit of edits) {
     const filePath = typeof edit?.file_path === 'string' ? edit.file_path : '';
-    const oldString = typeof edit?.old_string === 'string' ? edit.old_string : '';
-    const newString = typeof edit?.new_string === 'string' ? edit.new_string : '';
+    const oldString =
+      typeof edit?.old_string === 'string' ? edit.old_string : '';
+    const newString =
+      typeof edit?.new_string === 'string' ? edit.new_string : '';
 
     if (!filePath) {
-      results.push({ file_path: filePath, success: false, error: 'missing_file_path' });
+      results.push({
+        file_path: filePath,
+        success: false,
+        error: 'missing_file_path',
+      });
       continue;
     }
 
@@ -625,7 +668,11 @@ export async function handleAIRevertRequest(
     }
 
     if (!fs.existsSync(absolutePath)) {
-      results.push({ file_path: filePath, success: false, error: 'file_not_found' });
+      results.push({
+        file_path: filePath,
+        success: false,
+        error: 'file_not_found',
+      });
       continue;
     }
 
@@ -638,14 +685,22 @@ export async function handleAIRevertRequest(
       } else if (newString && currentContent.includes(newString)) {
         revertedContent = currentContent.replace(newString, oldString);
       } else {
-        results.push({ file_path: filePath, success: false, error: 'content_mismatch' });
+        results.push({
+          file_path: filePath,
+          success: false,
+          error: 'content_mismatch',
+        });
         continue;
       }
 
       fs.writeFileSync(absolutePath, revertedContent, 'utf-8');
       results.push({ file_path: filePath, success: true });
     } catch {
-      results.push({ file_path: filePath, success: false, error: 'write_error' });
+      results.push({
+        file_path: filePath,
+        success: false,
+        error: 'write_error',
+      });
     }
   }
 

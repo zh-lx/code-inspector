@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onMounted } from 'vue';
 
 export default defineComponent({
   setup(props, { emit }) {

@@ -909,12 +909,10 @@ function setupSdkEnvironment(aiOptions?: ClaudeCodeOptions): () => void {
     process.env = {};
   }
   const savedValues: Record<string, string | undefined> = {};
-  if (env) {
-    for (const [key, value] of Object.entries(env)) {
-      if (value !== undefined) {
-        savedValues[key] = process.env[key];
-        process.env[key] = value;
-      }
+  for (const [key, value] of Object.entries(env)) {
+    if (value !== undefined) {
+      savedValues[key] = process.env[key];
+      process.env[key] = value;
     }
   }
   return () => {
@@ -998,254 +996,257 @@ async function queryViaSdk(
   const restoreEnv = setupSdkEnvironment(aiOptions);
 
   try {
-  const query = await getClaudeQuery();
-  if (!query) {
-    console.log(
-      chalk.blue('[code-inspector-plugin]'),
-      chalk.yellow('Claude Agent SDK not found.'),
-      'Install it with:',
-      chalk.green('npm install @anthropic-ai/claude-agent-sdk'),
-    );
-    sendSSE({
-      type: 'text',
-      content:
-        '**Claude Agent SDK not installed.**\n\n' +
-        'Please install it in your project:\n\n' +
-        '```bash\n' +
-        'npm install @anthropic-ai/claude-agent-sdk\n' +
-        '```\n\n' +
-        "Or use CLI mode by setting `type: 'cli'` in your config.",
-    });
-    return { timedOut: false };
-  }
+    const query = await getClaudeQuery();
+    if (!query) {
+      console.log(
+        chalk.blue('[code-inspector-plugin]'),
+        chalk.yellow('Claude Agent SDK not found.'),
+        'Install it with:',
+        chalk.green('npm install @anthropic-ai/claude-agent-sdk'),
+      );
+      sendSSE({
+        type: 'text',
+        content:
+          '**Claude Agent SDK not installed.**\n\n' +
+          'Please install it in your project:\n\n' +
+          '```bash\n' +
+          'npm install @anthropic-ai/claude-agent-sdk\n' +
+          '```\n\n' +
+          "Or use CLI mode by setting `type: 'cli'` in your config.",
+      });
+      return { timedOut: false };
+    }
 
-  const queryOptions = buildSdkQueryOptions(aiOptions, cwd, sessionId);
-  if (typeof queryOptions.stderr !== 'function') {
-    queryOptions.stderr = (data: string) => {
-      const text = String(data || '').trim();
-      if (text) {
-        sendSSE({ type: 'info', message: text });
+    const queryOptions = buildSdkQueryOptions(aiOptions, cwd, sessionId);
+    if (typeof queryOptions.stderr !== 'function') {
+      queryOptions.stderr = (data: string) => {
+        const text = String(data || '').trim();
+        if (text) {
+          sendSSE({ type: 'info', message: text });
+        }
+      };
+    }
+    const conversation = query({
+      prompt,
+      options: queryOptions,
+    });
+
+    let hasStreamContent = false;
+    let hasBusinessEvent = false;
+    let timedOut = false;
+    let emittedSessionId = '';
+    const toolInputBuffers: Map<number, string> = new Map();
+    const assistantTextBuffers: Map<string, string> = new Map();
+    // Track tool IDs already emitted via stream_event to avoid duplicating
+    // them when the same tools appear in the assistant snapshot message.
+    const emittedToolIds = new Set<string>();
+    const sdkIdleTimeoutMs = 100000;
+    const idleTimer = setTimeout(() => {
+      if (!hasBusinessEvent && !isAborted()) {
+        timedOut = true;
+        sendSSE({
+          error:
+            `Claude SDK timeout: no response after ${Math.floor(sdkIdleTimeoutMs / 1000)}s. ` +
+            'This is usually caused by gateway/network issues.',
+        });
+        conversation.interrupt();
+      }
+    }, sdkIdleTimeoutMs);
+
+    const emitSessionId = (msg: any) => {
+      const sid = msg?.session_id;
+      if (typeof sid === 'string' && sid && sid !== emittedSessionId) {
+        emittedSessionId = sid;
+        sendSSE({ type: 'session', sessionId: sid });
       }
     };
-  }
-  const conversation = query({
-    prompt,
-    options: queryOptions,
-  });
 
-  let hasStreamContent = false;
-  let hasBusinessEvent = false;
-  let timedOut = false;
-  let emittedSessionId = '';
-  const toolInputBuffers: Map<number, string> = new Map();
-  const assistantTextBuffers: Map<string, string> = new Map();
-  // Track tool IDs already emitted via stream_event to avoid duplicating
-  // them when the same tools appear in the assistant snapshot message.
-  const emittedToolIds = new Set<string>();
-  const sdkIdleTimeoutMs = 100000;
-  const idleTimer = setTimeout(() => {
-    if (!hasBusinessEvent && !isAborted()) {
-      timedOut = true;
-      sendSSE({
-        error:
-          `Claude SDK timeout: no response after ${Math.floor(sdkIdleTimeoutMs / 1000)}s. ` +
-          'This is usually caused by gateway/network issues.',
-      });
-      conversation.interrupt();
-    }
-  }, sdkIdleTimeoutMs);
-
-  const emitSessionId = (msg: any) => {
-    const sid = msg?.session_id;
-    if (typeof sid === 'string' && sid && sid !== emittedSessionId) {
-      emittedSessionId = sid;
-      sendSSE({ type: 'session', sessionId: sid });
-    }
-  };
-
-  try {
-    for await (const sdkMessage of conversation) {
-      if (isAborted()) {
-        conversation.interrupt();
-        break;
-      }
-      emitSessionId(sdkMessage);
-
-      if (sdkMessage.type === 'stream_event') {
-        hasBusinessEvent = true;
-        const event = sdkMessage.event as any;
-
-        if (
-          event.type === 'content_block_delta' &&
-          event.delta?.type === 'text_delta'
-        ) {
-          hasStreamContent = true;
-          sendSSE({ type: 'text', content: event.delta.text });
+    try {
+      for await (const sdkMessage of conversation) {
+        if (isAborted()) {
+          conversation.interrupt();
+          break;
         }
+        emitSessionId(sdkMessage);
 
-        if (
-          event.type === 'content_block_start' &&
-          event.content_block?.type === 'tool_use'
-        ) {
-          const toolUse = event.content_block;
-          toolInputBuffers.set(event.index, '');
-          if (!emittedToolIds.has(toolUse.id)) {
-            emittedToolIds.add(toolUse.id);
-            sendSSE({
-              type: 'tool_start',
-              toolId: toolUse.id,
-              toolName: toolUse.name,
-              index: event.index,
-            });
+        if (sdkMessage.type === 'stream_event') {
+          hasBusinessEvent = true;
+          const event = sdkMessage.event as any;
+
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta?.type === 'text_delta'
+          ) {
+            hasStreamContent = true;
+            sendSSE({ type: 'text', content: event.delta.text });
           }
-        }
 
-        if (
-          event.type === 'content_block_delta' &&
-          event.delta?.type === 'input_json_delta'
-        ) {
-          const partial = event.delta.partial_json || '';
-          const current = toolInputBuffers.get(event.index) || '';
-          toolInputBuffers.set(event.index, current + partial);
-        }
-
-        if (event.type === 'content_block_stop') {
-          const inputJson = toolInputBuffers.get(event.index);
-          if (inputJson !== undefined) {
-            try {
-              const input = JSON.parse(inputJson);
-              sendSSE({
-                type: 'tool_input',
-                index: event.index,
-                input,
-              });
-            } catch {
-              // 忽略解析错误
-            }
-            toolInputBuffers.delete(event.index);
-          }
-        }
-      } else if (sdkMessage.type === 'assistant') {
-        hasBusinessEvent = true;
-        const message = sdkMessage as any;
-        if (message.message?.content) {
-          let combinedText = '';
-          for (const block of message.message.content) {
-            if (block.type === 'text' && typeof block.text === 'string') {
-              combinedText += block.text;
-            }
-            if (block.type === 'tool_use') {
-              // Skip tools already emitted via stream_event to avoid duplicates
-              if (emittedToolIds.has(block.id)) continue;
-              emittedToolIds.add(block.id);
+          if (
+            event.type === 'content_block_start' &&
+            event.content_block?.type === 'tool_use'
+          ) {
+            const toolUse = event.content_block;
+            toolInputBuffers.set(event.index, '');
+            if (!emittedToolIds.has(toolUse.id)) {
+              emittedToolIds.add(toolUse.id);
               sendSSE({
                 type: 'tool_start',
-                toolId: block.id,
-                toolName: block.name,
+                toolId: toolUse.id,
+                toolName: toolUse.name,
+                index: event.index,
               });
-              if (block.input) {
+            }
+          }
+
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta?.type === 'input_json_delta'
+          ) {
+            const partial = event.delta.partial_json || '';
+            const current = toolInputBuffers.get(event.index) || '';
+            toolInputBuffers.set(event.index, current + partial);
+          }
+
+          if (event.type === 'content_block_stop') {
+            const inputJson = toolInputBuffers.get(event.index);
+            if (inputJson !== undefined) {
+              try {
+                const input = JSON.parse(inputJson);
                 sendSSE({
                   type: 'tool_input',
+                  index: event.index,
+                  input,
+                });
+              } catch {
+                // 忽略解析错误
+              }
+              toolInputBuffers.delete(event.index);
+            }
+          }
+        } else if (sdkMessage.type === 'assistant') {
+          hasBusinessEvent = true;
+          const message = sdkMessage as any;
+          if (message.message?.content) {
+            let combinedText = '';
+            for (const block of message.message.content) {
+              if (block.type === 'text' && typeof block.text === 'string') {
+                combinedText += block.text;
+              }
+              if (block.type === 'tool_use') {
+                // Skip tools already emitted via stream_event to avoid duplicates
+                if (emittedToolIds.has(block.id)) continue;
+                emittedToolIds.add(block.id);
+                sendSSE({
+                  type: 'tool_start',
                   toolId: block.id,
-                  input: block.input,
+                  toolName: block.name,
+                });
+                if (block.input) {
+                  sendSSE({
+                    type: 'tool_input',
+                    toolId: block.id,
+                    input: block.input,
+                  });
+                }
+              }
+              if (block.type === 'tool_result') {
+                sendSSE({
+                  type: 'tool_result',
+                  toolUseId: block.tool_use_id,
+                  content:
+                    typeof block.content === 'string'
+                      ? block.content
+                      : JSON.stringify(block.content),
+                  isError: block.is_error,
                 });
               }
             }
-            if (block.type === 'tool_result') {
-              sendSSE({
-                type: 'tool_result',
-                toolUseId: block.tool_use_id,
-                content:
-                  typeof block.content === 'string'
-                    ? block.content
-                    : JSON.stringify(block.content),
-                isError: block.is_error,
-              });
-            }
-          }
 
-          if (combinedText) {
-            const messageId = String(message.uuid || '');
-            const previous = assistantTextBuffers.get(messageId) || '';
-            const delta = combinedText.startsWith(previous)
-              ? combinedText.slice(previous.length)
-              : combinedText;
-            // When this is the first snapshot for a message (previous is empty)
-            // and text was already streamed via stream_event, skip emitting to
-            // avoid duplicate text on the client.
-            if (delta && (previous || !hasStreamContent)) {
-              hasStreamContent = true;
-              sendSSE({ type: 'text', content: delta });
-            }
-            if (messageId) {
-              assistantTextBuffers.set(messageId, combinedText);
+            if (combinedText) {
+              const messageId = String(message.uuid || '');
+              const previous = assistantTextBuffers.get(messageId) || '';
+              const delta = combinedText.startsWith(previous)
+                ? combinedText.slice(previous.length)
+                : combinedText;
+              // When this is the first snapshot for a message (previous is empty)
+              // and text was already streamed via stream_event, skip emitting to
+              // avoid duplicate text on the client.
+              if (delta && (previous || !hasStreamContent)) {
+                hasStreamContent = true;
+                sendSSE({ type: 'text', content: delta });
+              }
+              if (messageId) {
+                assistantTextBuffers.set(messageId, combinedText);
+              }
             }
           }
-        }
-      } else if (sdkMessage.type === 'user') {
-        hasBusinessEvent = true;
-        const message = sdkMessage as any;
-        if (message.message?.content) {
-          for (const block of message.message.content) {
-            if (block.type === 'tool_result') {
+        } else if (sdkMessage.type === 'user') {
+          hasBusinessEvent = true;
+          const message = sdkMessage as any;
+          if (message.message?.content) {
+            for (const block of message.message.content) {
+              if (block.type === 'tool_result') {
+                sendSSE({
+                  type: 'tool_result',
+                  toolUseId: block.tool_use_id,
+                  content:
+                    typeof block.content === 'string'
+                      ? block.content
+                      : JSON.stringify(block.content),
+                  isError: block.is_error,
+                });
+              }
+            }
+          }
+        } else if (sdkMessage.type === 'system') {
+          const systemMessage = sdkMessage as any;
+          if (
+            systemMessage.subtype === 'init' &&
+            typeof systemMessage.model === 'string'
+          ) {
+            sendSSE({ type: 'info', model: systemMessage.model });
+            if (typeof systemMessage.apiKeySource === 'string') {
               sendSSE({
-                type: 'tool_result',
-                toolUseId: block.tool_use_id,
-                content:
-                  typeof block.content === 'string'
-                    ? block.content
-                    : JSON.stringify(block.content),
-                isError: block.is_error,
+                type: 'info',
+                message: `Claude auth source: ${systemMessage.apiKeySource}`,
               });
             }
           }
-        }
-      } else if (sdkMessage.type === 'system') {
-        const systemMessage = sdkMessage as any;
-        if (
-          systemMessage.subtype === 'init' &&
-          typeof systemMessage.model === 'string'
-        ) {
-          sendSSE({ type: 'info', model: systemMessage.model });
-          if (typeof systemMessage.apiKeySource === 'string') {
+        } else if (sdkMessage.type === 'auth_status') {
+          const authStatus = sdkMessage as any;
+          if (
+            Array.isArray(authStatus.output) &&
+            authStatus.output.length > 0
+          ) {
+            sendSSE({ type: 'info', message: authStatus.output.join('\n') });
+          }
+          if (authStatus.error) {
+            sendSSE({ error: `Claude auth error: ${authStatus.error}` });
+          }
+        } else if (sdkMessage.type === 'result') {
+          hasBusinessEvent = true;
+          if (
+            !hasStreamContent &&
+            sdkMessage.subtype === 'success' &&
+            (sdkMessage as any).result
+          ) {
+            sendSSE({ type: 'text', content: (sdkMessage as any).result });
+          } else if (sdkMessage.subtype !== 'success') {
+            const errorDetails = Array.isArray((sdkMessage as any).errors)
+              ? (sdkMessage as any).errors.filter(Boolean).join('\n')
+              : '';
             sendSSE({
-              type: 'info',
-              message: `Claude auth source: ${systemMessage.apiKeySource}`,
+              error:
+                errorDetails ||
+                `Claude SDK request failed: ${sdkMessage.subtype}`,
             });
           }
         }
-      } else if (sdkMessage.type === 'auth_status') {
-        const authStatus = sdkMessage as any;
-        if (Array.isArray(authStatus.output) && authStatus.output.length > 0) {
-          sendSSE({ type: 'info', message: authStatus.output.join('\n') });
-        }
-        if (authStatus.error) {
-          sendSSE({ error: `Claude auth error: ${authStatus.error}` });
-        }
-      } else if (sdkMessage.type === 'result') {
-        hasBusinessEvent = true;
-        if (
-          !hasStreamContent &&
-          sdkMessage.subtype === 'success' &&
-          (sdkMessage as any).result
-        ) {
-          sendSSE({ type: 'text', content: (sdkMessage as any).result });
-        } else if (sdkMessage.subtype !== 'success') {
-          const errorDetails = Array.isArray((sdkMessage as any).errors)
-            ? (sdkMessage as any).errors.filter(Boolean).join('\n')
-            : '';
-          sendSSE({
-            error:
-              errorDetails ||
-              `Claude SDK request failed: ${sdkMessage.subtype}`,
-          });
-        }
       }
+    } finally {
+      clearTimeout(idleTimer);
     }
-  } finally {
-    clearTimeout(idleTimer);
-  }
-  return { timedOut };
+    return { timedOut };
   } finally {
     restoreEnv();
   }
