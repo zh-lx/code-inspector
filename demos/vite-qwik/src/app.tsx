@@ -1,29 +1,19 @@
-import { component$, useSignal } from '@builder.io/qwik'
-
-import qwikLogo from './assets/qwik.svg'
-import viteLogo from '/vite.svg'
+import { component$ } from '@builder.io/qwik'
+import { DemoHero } from './components/inspector-demo/DemoHero'
+import { ShortcutPanel } from './components/inspector-demo/ShortcutPanel'
+import { StepCards } from './components/inspector-demo/StepCards'
+import { TryTargets } from './components/inspector-demo/TryTargets'
 import './app.css'
 
 export const App = component$(() => {
-  const count = useSignal(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://qwik.builder.io" target="_blank">
-          <img src={qwikLogo} class="logo qwik" alt="Qwik logo" />
-        </a>
-      </div>
-      <h1>Vite + Qwik</h1>
-      <div class="card">
-        <button onClick$={() => count.value++}>count is {count.value}</button>
-      </div>
-      <p class="read-the-docs">
-        Click on the Vite and Qwik logos to learn more
-      </p>
-    </>
+    <main class="inspector-demo">
+      <section class="inspector-shell" aria-labelledby="inspector-title">
+        <DemoHero />
+        <ShortcutPanel />
+        <StepCards />
+        <TryTargets />
+      </section>
+    </main>
   )
 })
