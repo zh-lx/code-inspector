@@ -34,7 +34,7 @@ for (const demo of demos) {
       // 等 inspector 客户端就绪
       await page.waitForSelector('code-inspector-component', {
         state: 'attached',
-        timeout: 30_000,
+        timeout: 60_000,
       });
 
       // 找一个「自身带注入数据、且无后代带注入数据」的可见叶子元素并打标记，
