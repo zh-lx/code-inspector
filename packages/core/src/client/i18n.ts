@@ -73,6 +73,10 @@ const MESSAGES = defineMessages({
     zh: '发送消息失败',
   },
   'settings.modeSettings': { en: 'Mode Settings', zh: '模式设置' },
+  'inspector.clickToOpen': {
+    en: 'Click to open in editor',
+    zh: '点击在编辑器中打开',
+  },
   'tree.clickNodeToLocate': {
     en: 'Click node to locate',
     zh: '点击节点进行定位',

@@ -621,6 +621,29 @@ export class CodeInspectorComponent extends LitElement {
     return { name, path, line, column };
   };
 
+  // 生成元素选择器的 HTML，格式如 div#myid.class1.class2，带颜色标记
+  getElementSelectorHtml = (target: HTMLElement, tagName: string): TemplateResult => {
+    const parts: TemplateResult[] = [];
+
+    // 标签名
+    parts.push(html`<span class="tag-name">${tagName}</span>`);
+
+    // 添加 id
+    if (target.id) {
+      parts.push(html`<span class="tag-id">#${target.id}</span>`);
+    }
+
+    // 添加 class
+    if (target.className && typeof target.className === 'string') {
+      const classes = target.className.trim().split(/\s+/).filter(Boolean);
+      classes.forEach(cls => {
+        parts.push(html`<span class="tag-class">.${cls}</span>`);
+      });
+    }
+
+    return html`${parts}`;
+  };
+
   removeCover = (force?: boolean | MouseEvent) => {
     if (force !== true && this.nodeTree) {
       return;
@@ -3167,13 +3190,17 @@ export class CodeInspectorComponent extends LitElement {
         })}
         >
           <div class="element-info-content">
-            <div class="name-line">
-              <div class="element-name">
-                <span class="element-title">&lt;${this.element.name}&gt;</span>
+            <div class="inspector-info-header">
+              <div class="element-tag-info">
+                ${this.targetNode ? this.getElementSelectorHtml(this.targetNode, this.element.name) : html`<span class="tag-name">${this.element.name}</span>`}
+              </div>
+              <div class="element-dimensions">
+                ${((this.position.right - this.position.left).toFixed(2))} × ${((this.position.bottom - this.position.top).toFixed(2))}
               </div>
             </div>
-            <div class="path-line">
-              ${this.element.path}:${this.element.line}:${this.element.column}
+            <div class="inspector-info-footer">
+              <div class="inspector-path">${this.element.path}:${this.element.line}:${this.element.column}</div>
+              <div class="inspector-tip">${this.t('inspector.clickToOpen')}</div>
             </div>
           </div>
         </div>
@@ -3493,8 +3520,9 @@ export class CodeInspectorComponent extends LitElement {
       word-break: break-all;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
       box-sizing: border-box;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 6px 8px;
+      border-radius: 2px;
+      font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }
     .element-info-top {
       top: -4px;
@@ -3519,14 +3547,58 @@ export class CodeInspectorComponent extends LitElement {
       display: flex;
       justify-content: flex-end;
     }
-    .element-name .element-title {
-      color: coral;
+    .inspector-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      line-height: 16px;
+    }
+    .element-tag-info {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: break-word;
+      word-break: break-all;
       font-weight: bold;
     }
-    .path-line {
-      color: #333;
-      line-height: 12px;
+    .element-tag-name {
+      color: #881280;
+      font-weight: 500;
+    }
+    .tag-name {
+      color: #881280;
+      font-weight: bold;
+    }
+    .tag-id {
+      color: #1a1aa6;
+      font-weight: bold;
+    }
+    .tag-class {
+      color: #c25e00;
+      font-weight: bold;
+    }
+    .element-dimensions {
+      flex-shrink: 0;
+      color: #222;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+    .inspector-info-footer {
       margin-top: 4px;
+      font-size: 11px;
+      overflow-wrap: break-word;
+      word-break: break-all;
+    }
+    .inspector-path {
+      color: #333;
+      line-height: 14px;
+      font-size: 11px;
+    }
+    .inspector-tip {
+      color: #888;
+      line-height: 14px;
+      margin-top: 2px;
+      font-size: 11px;
     }
     .inspector-switch {
       position: fixed;
