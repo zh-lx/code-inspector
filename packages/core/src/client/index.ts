@@ -1476,12 +1476,12 @@ export class CodeInspectorComponent extends LitElement {
     .element-info-left {
       right: 0;
       display: flex;
-      justify-content: flex-start;
+      justify-content: flex-end;
     }
     .element-info-right {
       left: 0;
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
     .element-name .element-title {
       color: coral;
