@@ -347,27 +347,35 @@ export class CodeInspectorComponent extends LitElement {
     };
 
     for (const pos of positions) {
-      const browserWidth = document.documentElement.clientWidth;
-      if (pos.horizon.endsWith('left')) {
+      if (!isOutOfScreen(pos) && pos.isExternal) {
+        return pos;
+      }
+    }
+
+    for (const pos of positions) {
+      const finalPos = { ...pos };
+      if (pos.horizon.endsWith('right')) {
         const overflowWidth = containerLeft + width - browserWidth;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(-${overflowWidth}px) ${
+            transform: `translateX(-${(overflowWidth + 4)}px) ${
               pos.additionStyle?.transform || ''
             }`,
           };
+          finalPos.left -= (overflowWidth + 4);
         }
       } else {
         const overflowWidth = width - containerRight;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(${overflowWidth}px) ${
+            transform: `translateX(${(overflowWidth + 4)}px) ${
               pos.additionStyle?.transform || ''
             }`,
           };
+          finalPos.left += (overflowWidth + 4);
         }
       }
-      if (!isOutOfScreen(pos)) {
+      if (!isOutOfScreen(finalPos)) {
         return pos;
       }
     }
@@ -1466,12 +1474,12 @@ export class CodeInspectorComponent extends LitElement {
       bottom: 4px;
     }
     .element-info-left {
-      left: 0;
+      right: 0;
       display: flex;
       justify-content: flex-start;
     }
     .element-info-right {
-      right: 0;
+      left: 0;
       display: flex;
       justify-content: flex-end;
     }
