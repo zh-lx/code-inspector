@@ -187,6 +187,7 @@ export declare class CodeInspectorComponent extends LitElement {
     }>;
     renderCover: (target: HTMLElement) => Promise<void>;
     getSourceInfo: (target: HTMLElement) => SourceInfo | null;
+    getElementSelectorHtml: (target: HTMLElement, tagName: string) => TemplateResult;
     removeCover: (force?: boolean | MouseEvent) => void;
     renderLayerPanel: (nodeTree: TreeNode, { x, y }: {
         x: number;

@@ -93,6 +93,10 @@ declare const MESSAGES: {
         readonly en: "Mode Settings";
         readonly zh: "模式设置";
     };
+    readonly 'inspector.clickToOpen': {
+        readonly en: "Click to open in editor";
+        readonly zh: "点击在编辑器中打开";
+    };
     readonly 'tree.clickNodeToLocate': {
         readonly en: "Click node to locate";
         readonly zh: "点击节点进行定位";
