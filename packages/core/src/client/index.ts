@@ -312,10 +312,7 @@ export class CodeInspectorComponent extends LitElement {
     return normalizeClientLang(this.lang);
   }
 
-  private t<K extends ClientTextKey>(
-    key: K,
-    vars?: ClientTextVars<K>,
-  ): string {
+  private t<K extends ClientTextKey>(key: K, vars?: ClientTextVars<K>): string {
     return getClientText(this.getCurrentLang(), key, vars);
   }
 
@@ -331,47 +328,47 @@ export class CodeInspectorComponent extends LitElement {
 
   private getFeatures() {
     return [
-    {
-      label: this.t('feature.locate.label'),
-      description: this.t('feature.locate.description'),
-      checked: () => !!this.internalLocate,
-      onChange: () => this.toggleLocate(),
-      action: 'locate',
-      fn: () => this.locateCode(),
-      key: 1,
-      available: () => !!this.locate,
-    },
-    {
-      label: this.t('feature.copy.label'),
-      description: this.t('feature.copy.description'),
-      checked: () => !!this.internalCopy,
-      onChange: () => this.toggleCopy(),
-      action: 'copy',
-      fn: () => this.copyCode(),
-      key: 2,
-      available: () => this.copy !== false,
-    },
-    {
-      label: this.t('feature.target.label'),
-      description: this.t('feature.target.description'),
-      checked: () => !!this.internalTarget,
-      onChange: () => this.toggleTarget(),
-      action: 'target',
-      fn: () => this.targetCode(),
-      key: 3,
-      available: () => !!this.target,
-    },
-    {
-      label: this.t('feature.ai.label'),
-      description: this.t('feature.ai.description'),
-      checked: () => !!this.internalAI,
-      onChange: () => this.toggleAICode(),
-      action: 'ai',
-      fn: () => this.openChatModal(),
-      key: 4,
-      available: () => !!this.ai,
-    },
-  ];
+      {
+        label: this.t('feature.locate.label'),
+        description: this.t('feature.locate.description'),
+        checked: () => !!this.internalLocate,
+        onChange: () => this.toggleLocate(),
+        action: 'locate',
+        fn: () => this.locateCode(),
+        key: 1,
+        available: () => !!this.locate,
+      },
+      {
+        label: this.t('feature.copy.label'),
+        description: this.t('feature.copy.description'),
+        checked: () => !!this.internalCopy,
+        onChange: () => this.toggleCopy(),
+        action: 'copy',
+        fn: () => this.copyCode(),
+        key: 2,
+        available: () => this.copy !== false,
+      },
+      {
+        label: this.t('feature.target.label'),
+        description: this.t('feature.target.description'),
+        checked: () => !!this.internalTarget,
+        onChange: () => this.toggleTarget(),
+        action: 'target',
+        fn: () => this.targetCode(),
+        key: 3,
+        available: () => !!this.target,
+      },
+      {
+        label: this.t('feature.ai.label'),
+        description: this.t('feature.ai.description'),
+        checked: () => !!this.internalAI,
+        onChange: () => this.toggleAICode(),
+        action: 'ai',
+        fn: () => this.openChatModal(),
+        key: 4,
+        available: () => !!this.ai,
+      },
+    ];
   }
 
   // Event listeners configuration for centralized management
@@ -517,25 +514,35 @@ export class CodeInspectorComponent extends LitElement {
     };
 
     for (const pos of positions) {
-      const browserWidth = document.documentElement.clientWidth;
-      if (pos.horizon.endsWith('left')) {
+      if (!isOutOfScreen(pos) && pos.isExternal) {
+        return pos;
+      }
+    }
+
+    for (const pos of positions) {
+      const finalPos = { ...pos };
+      if (pos.horizon.endsWith('right')) {
         const overflowWidth = containerLeft + width - browserWidth;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(-${overflowWidth}px) ${pos.additionStyle?.transform || ''
-              }`,
+            transform: `translateX(-${overflowWidth + 4}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
           };
+          finalPos.left -= overflowWidth + 4;
         }
       } else {
         const overflowWidth = width - containerRight;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(${overflowWidth}px) ${pos.additionStyle?.transform || ''
-              }`,
+            transform: `translateX(${overflowWidth + 4}px) ${
+              pos.additionStyle?.transform || ''
+            }`,
           };
+          finalPos.left += overflowWidth + 4;
         }
       }
-      if (!isOutOfScreen(pos)) {
+      if (!isOutOfScreen(finalPos)) {
         return pos;
       }
     }
@@ -622,7 +629,10 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   // 生成元素选择器的 HTML，格式如 div#myid.class1.class2，带颜色标记
-  getElementSelectorHtml = (target: HTMLElement, tagName: string): TemplateResult => {
+  getElementSelectorHtml = (
+    target: HTMLElement,
+    tagName: string,
+  ): TemplateResult => {
     const parts: TemplateResult[] = [];
 
     // 标签名
@@ -636,7 +646,7 @@ export class CodeInspectorComponent extends LitElement {
     // 添加 class
     if (target.className && typeof target.className === 'string') {
       const classes = target.className.trim().split(/\s+/).filter(Boolean);
-      classes.forEach(cls => {
+      classes.forEach((cls) => {
         parts.push(html`<span class="tag-class">.${cls}</span>`);
       });
     }
@@ -657,7 +667,7 @@ export class CodeInspectorComponent extends LitElement {
 
   renderLayerPanel = (
     nodeTree: TreeNode,
-    { x, y }: { x: number; y: number }
+    { x, y }: { x: number; y: number },
   ) => {
     const browserWidth = document.documentElement.clientWidth;
     const browserHeight = document.documentElement.clientHeight;
@@ -676,8 +686,9 @@ export class CodeInspectorComponent extends LitElement {
       position['left'] = x + 'px';
       // 检测是否横向一定超出屏幕
       if (rightToViewPort < PopperWidth) {
-        position['transform'] = `translateX(-${PopperWidth - rightToViewPort
-          }px)`;
+        position['transform'] = `translateX(-${
+          PopperWidth - rightToViewPort
+        }px)`;
       }
     }
 
@@ -749,7 +760,7 @@ export class CodeInspectorComponent extends LitElement {
     for (let replacement in replacementMap) {
       targetUrl = targetUrl.replace(
         new RegExp(replacement, 'g'),
-        String(replacementMap[replacement])
+        String(replacementMap[replacement]),
       );
     }
 
@@ -769,7 +780,7 @@ export class CodeInspectorComponent extends LitElement {
       this.element.path,
       String(this.element.line),
       String(this.element.column),
-      this.copy || false
+      this.copy || false,
     );
     this.copyToClipboard(path[0]);
   };
@@ -778,14 +789,16 @@ export class CodeInspectorComponent extends LitElement {
     window.open(this.buildTargetUrl(), '_blank');
   };
 
-  dispatchCustomEvent = (action: 'locate' | 'copy' | 'target' | 'chat' | string) => {
+  dispatchCustomEvent = (
+    action: 'locate' | 'copy' | 'target' | 'chat' | string,
+  ) => {
     window.dispatchEvent(
       new CustomEvent('code-inspector:trackCode', {
         detail: {
           action,
           element: this.element,
         },
-      })
+      }),
     );
   };
 
@@ -820,7 +833,12 @@ export class CodeInspectorComponent extends LitElement {
       const targetDigitCode = 'digit' + feature.key;
       const targetNumCode = 'numpad' + feature.key;
       const targetKeyCode = 48 + feature.key; // key code of number1 is 49
-      if ((code === targetDigitCode || code === targetNumCode || keyCode === targetKeyCode) && feature.available()) {
+      if (
+        (code === targetDigitCode ||
+          code === targetNumCode ||
+          keyCode === targetKeyCode) &&
+        feature.available()
+      ) {
         if (feature.action === 'ai' || (this.targetNode && this.element.path)) {
           if (feature.action === 'ai') {
             this.openChatModal(true);
@@ -928,7 +946,10 @@ export class CodeInspectorComponent extends LitElement {
   getValidNodeList = (nodePath: HTMLElement[]) => {
     const validNodeList: HTMLElement[] = [];
     for (const node of nodePath) {
-      if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
+      if (
+        (node.hasAttribute && node.hasAttribute(PathName)) ||
+        node[PathName]
+      ) {
         validNodeList.push(node);
       }
     }
@@ -992,7 +1013,9 @@ export class CodeInspectorComponent extends LitElement {
 
     const nodePath = e.composedPath() as HTMLElement[];
     const validNodeList = this.getValidNodeList(nodePath);
-    let targetNodeIndex = validNodeList.findIndex((node) => node === this.targetNode);
+    let targetNodeIndex = validNodeList.findIndex(
+      (node) => node === this.targetNode,
+    );
     if (targetNodeIndex === -1) {
       this.wheelThrottling = false;
       return;
@@ -1118,7 +1141,7 @@ export class CodeInspectorComponent extends LitElement {
   printTip = () => {
     const agent = navigator.userAgent.toLowerCase();
     const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
-      (item) => agent.toUpperCase().match(item.toUpperCase())
+      (item) => agent.toUpperCase().match(item.toUpperCase()),
     );
     const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
     const hotKeyNames = this.hotKeys
@@ -1136,34 +1159,31 @@ export class CodeInspectorComponent extends LitElement {
       return chain;
     };
 
-    c.blue(this.t('console.expandGuide'))
-      .groupCollapsed(() => {
-        keysChain(hotKeyNames.concat(this.t('console.leftClick')))
-          .green(this.t('console.useActiveFeature'))
-          .log()
+    c.blue(this.t('console.expandGuide')).groupCollapsed(() => {
+      keysChain(hotKeyNames.concat(this.t('console.leftClick')))
+        .green(this.t('console.useActiveFeature'))
+        .log();
 
-        keysChain(hotKeyNames.concat(this.t('console.rightClick')))
-          .green(this.t('console.openNodeTree'))
-          .log()
+      keysChain(hotKeyNames.concat(this.t('console.rightClick')))
+        .green(this.t('console.openNodeTree'))
+        .log();
 
-        keysChain(hotKeyNames.concat(this.t('console.mouseWheel')))
-          .green(this.t('console.selectParentOrChild'))
-          .log()
+      keysChain(hotKeyNames.concat(this.t('console.mouseWheel')))
+        .green(this.t('console.selectParentOrChild'))
+        .log();
 
-        keysChain(switchKeyNames)
-          .green(this.t('console.changeActiveFeature'))
-          .log()
+      keysChain(switchKeyNames)
+        .green(this.t('console.changeActiveFeature'))
+        .log();
 
-        this.features.forEach((feature) => {
-          keysChain(hotKeyNames.concat(feature.key.toString()))
-            .green(this.t('console.use'))
-            .yellow(feature.label)
-            .bold()
-            .log();
-        });
-      })
-
-
+      this.features.forEach((feature) => {
+        keysChain(hotKeyNames.concat(feature.key.toString()))
+          .green(this.t('console.use'))
+          .yellow(feature.label)
+          .bold()
+          .log();
+      });
+    });
   };
 
   // 获取鼠标位置
@@ -1177,7 +1197,7 @@ export class CodeInspectorComponent extends LitElement {
   // 记录鼠标按下时初始位置
   recordMousePosition = (
     e: MouseEvent | TouchEvent,
-    target: 'switch' | 'nodeTree'
+    target: 'switch' | 'nodeTree',
   ) => {
     const ref =
       target === 'switch' ? this.inspectorSwitchRef : this.nodeTreeRef;
@@ -1307,12 +1327,19 @@ export class CodeInspectorComponent extends LitElement {
 
   // 持久化 AI 对话状态到 sessionStorage
   private persistAIState = () => {
-    const persistedMessages: ChatMessage[] = this.chatMessages.map(({ modelContent, ...rest }) => rest);
+    const persistedMessages: ChatMessage[] = this.chatMessages.map(
+      ({ modelContent, ...rest }) => rest,
+    );
     let modalPosition: { left: string; top: string } | null = null;
     if (this.showChatModal) {
-      const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+      const chatModal = this.shadowRoot?.querySelector(
+        '#chat-modal-floating',
+      ) as HTMLElement;
       if (chatModal) {
-        modalPosition = { left: chatModal.style.left, top: chatModal.style.top };
+        modalPosition = {
+          left: chatModal.style.left,
+          top: chatModal.style.top,
+        };
       }
     }
     saveAIState({
@@ -1384,7 +1411,10 @@ export class CodeInspectorComponent extends LitElement {
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
   };
 
-  private buildMessageWithPastedImages = (message: string, images: PendingChatImageAttachment[]): string => {
+  private buildMessageWithPastedImages = (
+    message: string,
+    images: PendingChatImageAttachment[],
+  ): string => {
     if (images.length === 0) {
       return message;
     }
@@ -1402,7 +1432,9 @@ export class CodeInspectorComponent extends LitElement {
     return `${baseMessage}\n\n${imageBlocks.join('\n\n')}`;
   };
 
-  private buildChatHistoryForModel = (messages: ChatMessage[]): ChatHistoryMessage[] => {
+  private buildChatHistoryForModel = (
+    messages: ChatMessage[],
+  ): ChatHistoryMessage[] => {
     return messages.map((msg) => ({
       role: msg.role,
       content: msg.modelContent || msg.content,
@@ -1462,17 +1494,22 @@ export class CodeInspectorComponent extends LitElement {
       modelInfo.providers[0],
       this.chatProvider,
     ];
-    const nextProvider = candidates.find((provider): provider is ChatProvider => {
-      return !!provider && (modelInfo.providers.length === 0 || modelInfo.providers.includes(provider));
-    });
+    const nextProvider = candidates.find(
+      (provider): provider is ChatProvider => {
+        return (
+          !!provider &&
+          (modelInfo.providers.length === 0 ||
+            modelInfo.providers.includes(provider))
+        );
+      },
+    );
 
     if (nextProvider) {
       this.chatProvider = nextProvider;
     }
     const providerChanged =
       !!nextProvider && !!previousProvider && nextProvider !== previousProvider;
-    const providerResolvedFromEmpty =
-      !previousProvider && !!nextProvider;
+    const providerResolvedFromEmpty = !previousProvider && !!nextProvider;
 
     const modelCandidates: Array<string | null | undefined> = [
       preferredModel,
@@ -1497,7 +1534,12 @@ export class CodeInspectorComponent extends LitElement {
   };
 
   private hasLiveTerminal = (): boolean => {
-    return this.terminalMode && this.terminalManager != null && !this.terminalManager.isDisposed() && this.terminalExitCode === null;
+    return (
+      this.terminalMode &&
+      this.terminalManager != null &&
+      !this.terminalManager.isDisposed() &&
+      this.terminalExitCode === null
+    );
   };
 
   private promptTerminalSwitch = (action: () => void) => {
@@ -1512,7 +1554,11 @@ export class CodeInspectorComponent extends LitElement {
     this.showProviderMenu = false;
     this.showModelMenu = false;
     if (provider === this.chatProvider) return;
-    if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
+    if (
+      this.availableAIProviders.length > 0 &&
+      !this.availableAIProviders.includes(provider)
+    )
+      return;
 
     // 切换 provider 时保留当前对话上下文，仅重置会话 ID 以避免跨 provider 复用会话
     this.chatSessionId = null;
@@ -1539,7 +1585,11 @@ export class CodeInspectorComponent extends LitElement {
 
   switchChatProvider = (provider: ChatProvider) => {
     if (provider === this.chatProvider) return;
-    if (this.availableAIProviders.length > 0 && !this.availableAIProviders.includes(provider)) return;
+    if (
+      this.availableAIProviders.length > 0 &&
+      !this.availableAIProviders.includes(provider)
+    )
+      return;
     if (!this.terminalMode && this.isTurnRunning()) return;
     if (this.hasLiveTerminal()) {
       this.promptTerminalSwitch(() => this.performSwitchChatProvider(provider));
@@ -1561,7 +1611,11 @@ export class CodeInspectorComponent extends LitElement {
     this.showModelMenu = false;
     if (!model || !model.trim()) return;
     if (model === this.chatModel) return;
-    if (this.availableAIModels.length > 0 && !this.availableAIModels.includes(model)) return;
+    if (
+      this.availableAIModels.length > 0 &&
+      !this.availableAIModels.includes(model)
+    )
+      return;
 
     // 切换 model 时保留当前对话上下文，仅重置会话 ID 以避免跨 model 复用会话
     this.chatSessionId = null;
@@ -1578,7 +1632,11 @@ export class CodeInspectorComponent extends LitElement {
   switchChatModel = (model: string) => {
     if (!model || !model.trim()) return;
     if (model === this.chatModel) return;
-    if (this.availableAIModels.length > 0 && !this.availableAIModels.includes(model)) return;
+    if (
+      this.availableAIModels.length > 0 &&
+      !this.availableAIModels.includes(model)
+    )
+      return;
     if (!this.terminalMode && this.isTurnRunning()) return;
     if (this.hasLiveTerminal()) {
       this.promptTerminalSwitch(() => this.performSwitchChatModel(model));
@@ -1616,7 +1674,12 @@ export class CodeInspectorComponent extends LitElement {
     this.showChatModal = true;
 
     // 获取 provider/模型信息
-    if (!this.chatModel || this.availableAIModels.length === 0 || this.availableAIProviders.length === 0 || !this.chatProvider) {
+    if (
+      !this.chatModel ||
+      this.availableAIModels.length === 0 ||
+      this.availableAIProviders.length === 0 ||
+      !this.chatProvider
+    ) {
       this.refreshChatProviderAndModel();
     }
 
@@ -1626,11 +1689,16 @@ export class CodeInspectorComponent extends LitElement {
     // 等待 DOM 更新后设置位置
     this.updateComplete.then(() => {
       requestAnimationFrame(() => {
-        const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+        const chatModal = this.shadowRoot?.querySelector(
+          '#chat-modal-floating',
+        ) as HTMLElement;
         if (chatModal) {
           if (referenceNode) {
             // 有参考元素时，使用 floating-ui 定位
-            this.chatPositionCleanup = updateChatModalPosition(referenceNode, chatModal);
+            this.chatPositionCleanup = updateChatModalPosition(
+              referenceNode,
+              chatModal,
+            );
           } else {
             // 全局模式：居中显示
             const viewportWidth = document.documentElement.clientWidth;
@@ -1678,7 +1746,12 @@ export class CodeInspectorComponent extends LitElement {
 
   private isTurnRunning = (): boolean => {
     // 终端模式：进程未退出即视为运行中
-    if (this.terminalMode && this.terminalManager != null && !this.terminalManager.isDisposed() && this.terminalExitCode === null) {
+    if (
+      this.terminalMode &&
+      this.terminalManager != null &&
+      !this.terminalManager.isDisposed() &&
+      this.terminalExitCode === null
+    ) {
       return true;
     }
     return this.chatLoading || this.turnStatus === 'running';
@@ -1728,7 +1801,11 @@ export class CodeInspectorComponent extends LitElement {
   terminateAndCloseChatModal = () => {
     this.interruptChat();
     // 终端模式下销毁终端实例
-    if (this.terminalMode && this.terminalManager && !this.terminalManager.isDisposed()) {
+    if (
+      this.terminalMode &&
+      this.terminalManager &&
+      !this.terminalManager.isDisposed()
+    ) {
       this.terminalManager.dispose();
       this.terminalManager = null;
     }
@@ -1824,7 +1901,10 @@ export class CodeInspectorComponent extends LitElement {
           dataUrl,
         });
       } catch {
-        this.showNotification(this.t('notification.readPastedImageFailed'), 'error');
+        this.showNotification(
+          this.t('notification.readPastedImageFailed'),
+          'error',
+        );
       }
     }
 
@@ -1837,7 +1917,9 @@ export class CodeInspectorComponent extends LitElement {
     if (target) {
       this.revokeObjectUrl(target.previewUrl);
     }
-    this.chatPastedImages = this.chatPastedImages.filter((item) => item.id !== id);
+    this.chatPastedImages = this.chatPastedImages.filter(
+      (item) => item.id !== id,
+    );
   };
 
   // 滚动聊天内容到底部（去重，避免高频调用）
@@ -1886,20 +1968,15 @@ export class CodeInspectorComponent extends LitElement {
   // 自动保存对话到服务端
   private autoSaveConversation = async () => {
     try {
-      await saveConversation(
-        this.ip || 'localhost',
-        this.port,
-        {
-          messages: this.chatMessages,
-          context: this.chatContext,
-          sessionId: this.chatSessionId,
-          provider: this.chatProvider,
-          model: this.chatModel,
-          revertedToolIds: this.revertedToolIds.size > 0
-            ? Array.from(this.revertedToolIds)
-            : [],
-        },
-      );
+      await saveConversation(this.ip || 'localhost', this.port, {
+        messages: this.chatMessages,
+        context: this.chatContext,
+        sessionId: this.chatSessionId,
+        provider: this.chatProvider,
+        model: this.chatModel,
+        revertedToolIds:
+          this.revertedToolIds.size > 0 ? Array.from(this.revertedToolIds) : [],
+      });
     } catch {
       // 保存失败静默
     }
@@ -1918,11 +1995,7 @@ export class CodeInspectorComponent extends LitElement {
     }
 
     if (runtimeSessionId) {
-      void abortRuntimeSessionOnServer(
-        this.ip,
-        this.port,
-        runtimeSessionId,
-      );
+      void abortRuntimeSessionOnServer(this.ip, this.port, runtimeSessionId);
     }
 
     this.clearRuntimeSessionState();
@@ -1939,7 +2012,9 @@ export class CodeInspectorComponent extends LitElement {
     await this.updateComplete;
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
     if (!containerEl) return;
 
     if (this.terminalManager && !this.terminalManager.isDisposed()) {
@@ -1961,7 +2036,9 @@ export class CodeInspectorComponent extends LitElement {
     await this.updateComplete;
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
     if (!containerEl) return;
 
     // 如果已有终端且未销毁，重新挂载到当前容器
@@ -2003,7 +2080,9 @@ export class CodeInspectorComponent extends LitElement {
       provider: this.chatProvider!,
       prompt: '',
       runtimeSessionId:
-        this.runtimeSessionKind === 'terminal' ? this.runtimeSessionId || undefined : undefined,
+        this.runtimeSessionKind === 'terminal'
+          ? this.runtimeSessionId || undefined
+          : undefined,
       runtimeCursor: this.runtimeCursor,
       cwd: this._projectRoot || '',
       model: this.chatModel || undefined,
@@ -2047,7 +2126,9 @@ export class CodeInspectorComponent extends LitElement {
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     // 获取终端容器
-    const containerEl = this.shadowRoot?.getElementById('ai-terminal-container');
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
     if (!containerEl) {
       this.chatLoading = false;
       this.stopTurnTimer('done');
@@ -2114,7 +2195,9 @@ export class CodeInspectorComponent extends LitElement {
     if (this.revertedToolIds.has(tool.id) || this.revertingToolIds.has(tool.id))
       return;
 
-    this.revertingToolIds = new Set(Array.from(this.revertingToolIds).concat(tool.id));
+    this.revertingToolIds = new Set(
+      Array.from(this.revertingToolIds).concat(tool.id),
+    );
 
     try {
       const edits = this.extractRevertEdits(tool);
@@ -2124,7 +2207,9 @@ export class CodeInspectorComponent extends LitElement {
       const allSuccess = results.every((r) => r.success);
 
       if (allSuccess) {
-        this.revertedToolIds = new Set(Array.from(this.revertedToolIds).concat(tool.id));
+        this.revertedToolIds = new Set(
+          Array.from(this.revertedToolIds).concat(tool.id),
+        );
         this.persistAIState();
       }
     } catch {
@@ -2198,7 +2283,11 @@ export class CodeInspectorComponent extends LitElement {
         const before = oldSections.get(filePath) ?? '';
         const after = newSections.get(filePath) ?? '';
         if (before !== after) {
-          edits.push({ file_path: filePath, old_string: before, new_string: after });
+          edits.push({
+            file_path: filePath,
+            old_string: before,
+            new_string: after,
+          });
         }
       }
       if (edits.length > 0) {
@@ -2322,13 +2411,19 @@ export class CodeInspectorComponent extends LitElement {
     // 只响应鼠标左键
     if (e.button !== 0) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest('button, input, textarea, select, .chat-provider-switcher, .chat-model-switcher')) {
+    if (
+      target?.closest(
+        'button, input, textarea, select, .chat-provider-switcher, .chat-model-switcher',
+      )
+    ) {
       return;
     }
     this.showProviderMenu = false;
     this.showModelMenu = false;
 
-    const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+    const chatModal = this.shadowRoot?.querySelector(
+      '#chat-modal-floating',
+    ) as HTMLElement;
     if (!chatModal) return;
 
     // 停止 floating-ui 自动更新
@@ -2351,7 +2446,9 @@ export class CodeInspectorComponent extends LitElement {
   handleChatDragMove = (e: MouseEvent) => {
     if (!this.isDragging) return;
 
-    const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+    const chatModal = this.shadowRoot?.querySelector(
+      '#chat-modal-floating',
+    ) as HTMLElement;
     if (!chatModal) return;
 
     const deltaX = e.clientX - this.dragStartX;
@@ -2365,8 +2462,14 @@ export class CodeInspectorComponent extends LitElement {
     const viewportHeight = document.documentElement.clientHeight;
     const modalRect = chatModal.getBoundingClientRect();
 
-    const clampedX = Math.max(0, Math.min(newX, viewportWidth - modalRect.width));
-    const clampedY = Math.max(0, Math.min(newY, viewportHeight - modalRect.height));
+    const clampedX = Math.max(
+      0,
+      Math.min(newX, viewportWidth - modalRect.width),
+    );
+    const clampedY = Math.max(
+      0,
+      Math.min(newY, viewportHeight - modalRect.height),
+    );
 
     chatModal.style.left = `${clampedX}px`;
     chatModal.style.top = `${clampedY}px`;
@@ -2394,7 +2497,8 @@ export class CodeInspectorComponent extends LitElement {
   handleChatModalClick = (e: MouseEvent) => {
     e.stopPropagation();
     const target = e.target as HTMLElement | null;
-    if (target?.closest('.chat-provider-switcher, .chat-model-switcher')) return;
+    if (target?.closest('.chat-provider-switcher, .chat-model-switcher'))
+      return;
     if (this.showProviderMenu) {
       this.showProviderMenu = false;
     }
@@ -2421,8 +2525,13 @@ export class CodeInspectorComponent extends LitElement {
     const pendingImages = this.chatPastedImages;
     if (!rawMessage && pendingImages.length === 0) return;
 
-    const outgoingMessage = this.buildMessageWithPastedImages(rawMessage, pendingImages);
-    const userMessage = rawMessage || `[Pasted ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}]`;
+    const outgoingMessage = this.buildMessageWithPastedImages(
+      rawMessage,
+      pendingImages,
+    );
+    const userMessage =
+      rawMessage ||
+      `[Pasted ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}]`;
     const userImages: ChatImageAttachment[] = pendingImages.map((image) => ({
       id: image.id,
       name: image.name,
@@ -2430,15 +2539,19 @@ export class CodeInspectorComponent extends LitElement {
       size: image.size,
       previewUrl: image.previewUrl,
     }));
-    const messageContext = this.chatContext
-      ? { ...this.chatContext }
-      : null;
+    const messageContext = this.chatContext ? { ...this.chatContext } : null;
     this.chatInput = '';
     this.chatPastedImages = [];
     this.clearRuntimeSessionState();
     this.chatMessages = [
       ...this.chatMessages,
-      { role: 'user', content: userMessage, modelContent: outgoingMessage, context: messageContext, images: userImages },
+      {
+        role: 'user',
+        content: userMessage,
+        modelContent: outgoingMessage,
+        context: messageContext,
+        images: userImages,
+      },
     ];
     this.chatLoading = true;
     this.scrollChatToBottom();
@@ -2450,7 +2563,10 @@ export class CodeInspectorComponent extends LitElement {
     this.chatAbortController = new AbortController();
 
     // 添加空的 assistant 消息用于流式更新
-    this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'assistant', content: '', blocks: [] },
+    ];
     let assistantContent = '';
     const blocks: ContentBlock[] = [];
     const toolIdToIndex = new Map<string, number>(); // toolId -> blocks 中的索引
@@ -2544,7 +2660,11 @@ export class CodeInspectorComponent extends LitElement {
 
             // 兼容旧事件流：按最近未完成工具回退
             for (let i = blocks.length - 1; i >= 0; i--) {
-              if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
+              if (
+                blocks[i].type === 'tool' &&
+                blocks[i].tool &&
+                !blocks[i].tool!.isComplete
+              ) {
                 blocks[i].tool!.input = input;
                 flushUpdate();
                 return;
@@ -2596,7 +2716,7 @@ export class CodeInspectorComponent extends LitElement {
         this.chatAbortController.signal,
         this.chatSessionId,
         this.chatProvider,
-        this.chatModel
+        this.chatModel,
       );
       // 正常完成：最终刷新确保所有内容显示
       flushUpdate();
@@ -2608,7 +2728,10 @@ export class CodeInspectorComponent extends LitElement {
       } else {
         // 其他错误
         this.chatMessages = this.chatMessages.slice(0, -1);
-        this.showNotification(this.t('notification.sendMessageFailed'), 'error');
+        this.showNotification(
+          this.t('notification.sendMessageFailed'),
+          'error',
+        );
         this.stopTurnTimer('interrupt');
       }
     } finally {
@@ -2636,8 +2759,16 @@ export class CodeInspectorComponent extends LitElement {
 
       // 如果最后一条 assistant 消息是未完成恢复占位，则直接复用；否则追加一个新的占位消息
       const lastMessage = this.chatMessages[this.chatMessages.length - 1];
-      if (!lastMessage || lastMessage.role !== 'assistant' || lastMessage.content || (lastMessage.blocks && lastMessage.blocks.length > 0)) {
-        this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+      if (
+        !lastMessage ||
+        lastMessage.role !== 'assistant' ||
+        lastMessage.content ||
+        (lastMessage.blocks && lastMessage.blocks.length > 0)
+      ) {
+        this.chatMessages = [
+          ...this.chatMessages,
+          { role: 'assistant', content: '', blocks: [] },
+        ];
       }
 
       let assistantContent = '';
@@ -2786,7 +2917,10 @@ export class CodeInspectorComponent extends LitElement {
     this.chatAbortController = new AbortController();
 
     // 添加空的 assistant 消息用于流式更新
-    this.chatMessages = [...this.chatMessages, { role: 'assistant', content: '', blocks: [] }];
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'assistant', content: '', blocks: [] },
+    ];
     let assistantContent = '';
     const blocks: ContentBlock[] = [];
     const toolIdToIndex = new Map<string, number>();
@@ -2875,7 +3009,11 @@ export class CodeInspectorComponent extends LitElement {
             }
 
             for (let i = blocks.length - 1; i >= 0; i--) {
-              if (blocks[i].type === 'tool' && blocks[i].tool && !blocks[i].tool!.isComplete) {
+              if (
+                blocks[i].type === 'tool' &&
+                blocks[i].tool &&
+                !blocks[i].tool!.isComplete
+              ) {
                 blocks[i].tool!.input = input;
                 flushUpdate();
                 return;
@@ -2923,7 +3061,7 @@ export class CodeInspectorComponent extends LitElement {
         this.chatAbortController.signal,
         this.chatSessionId,
         this.chatProvider,
-        this.chatModel
+        this.chatModel,
       );
       flushUpdate();
       this.stopTurnTimer('done');
@@ -2954,7 +3092,11 @@ export class CodeInspectorComponent extends LitElement {
    */
   private detachEventListeners(): void {
     this.eventListeners.forEach(({ event, handler, options }) => {
-      window.removeEventListener(event, handler, options as EventListenerOptions);
+      window.removeEventListener(
+        event,
+        handler,
+        options as EventListenerOptions,
+      );
     });
   }
 
@@ -3034,12 +3176,16 @@ export class CodeInspectorComponent extends LitElement {
       // 恢复弹窗位置
       this.updateComplete.then(() => {
         requestAnimationFrame(() => {
-          const chatModal = this.shadowRoot?.querySelector('#chat-modal-floating') as HTMLElement;
+          const chatModal = this.shadowRoot?.querySelector(
+            '#chat-modal-floating',
+          ) as HTMLElement;
           if (chatModal && persisted.modalPosition) {
             chatModal.style.left = persisted.modalPosition.left;
             chatModal.style.top = persisted.modalPosition.top;
           }
-          this.refreshChatProviderAndModel(this.chatProvider).then(() => this.persistAIState());
+          this.refreshChatProviderAndModel(this.chatProvider).then(() =>
+            this.persistAIState(),
+          );
           // 如果刷新前任务正在执行，自动恢复
           if (
             persisted.turnStatus === 'running' &&
@@ -3051,7 +3197,8 @@ export class CodeInspectorComponent extends LitElement {
       });
     } else {
       // 无持久化状态时，检测系统主题偏好
-      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+      const prefersDark =
+        window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
       this.chatTheme = prefersDark ? 'dark' : 'light';
       if (this.chatTheme === 'light') {
         this.classList.add('chat-theme-light');
@@ -3060,19 +3207,71 @@ export class CodeInspectorComponent extends LitElement {
 
     // Initialize event listeners configuration
     this.eventListeners = [
-      { event: 'mousemove', handler: this.handleMouseMove as unknown as EventListener, options: true },
-      { event: 'touchmove', handler: this.handleMouseMove as unknown as EventListener, options: true },
-      { event: 'mousemove', handler: this.handleDrag as EventListener, options: true },
-      { event: 'touchmove', handler: this.handleDrag as EventListener, options: true },
-      { event: 'click', handler: this.handleMouseClick as EventListener, options: true },
-      { event: 'pointerdown', handler: this.handlePointerDown as EventListener, options: true },
-      { event: 'keyup', handler: this.handleKeyUp as EventListener, options: true },
-      { event: 'keydown', handler: this.handleModeShortcut as EventListener, options: true },
-      { event: 'mouseleave', handler: this.removeCover as EventListener, options: true },
-      { event: 'mouseup', handler: this.handleMouseUp as EventListener, options: true },
-      { event: 'touchend', handler: this.handleMouseUp as EventListener, options: true },
-      { event: 'contextmenu', handler: this.handleContextMenu as EventListener, options: true },
-      { event: 'wheel', handler: this.handleWheel as EventListener, options: { passive: false } },
+      {
+        event: 'mousemove',
+        handler: this.handleMouseMove as unknown as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchmove',
+        handler: this.handleMouseMove as unknown as EventListener,
+        options: true,
+      },
+      {
+        event: 'mousemove',
+        handler: this.handleDrag as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchmove',
+        handler: this.handleDrag as EventListener,
+        options: true,
+      },
+      {
+        event: 'click',
+        handler: this.handleMouseClick as EventListener,
+        options: true,
+      },
+      {
+        event: 'pointerdown',
+        handler: this.handlePointerDown as EventListener,
+        options: true,
+      },
+      {
+        event: 'keyup',
+        handler: this.handleKeyUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'keydown',
+        handler: this.handleModeShortcut as EventListener,
+        options: true,
+      },
+      {
+        event: 'mouseleave',
+        handler: this.removeCover as EventListener,
+        options: true,
+      },
+      {
+        event: 'mouseup',
+        handler: this.handleMouseUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchend',
+        handler: this.handleMouseUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'contextmenu',
+        handler: this.handleContextMenu as EventListener,
+        options: true,
+      },
+      {
+        event: 'wheel',
+        handler: this.handleWheel as EventListener,
+        options: { passive: false },
+      },
     ];
 
     if (!this.hideConsole) {
@@ -3108,7 +3307,7 @@ export class CodeInspectorComponent extends LitElement {
       class="inspector-layer"
       style="padding-left: ${node.depth * 8}px;"
       @mouseenter="${async (e: MouseEvent) =>
-      await this.handleMouseEnterNode(e, node)}"
+        await this.handleMouseEnterNode(e, node)}"
       @mouseleave="${this.handleMouseLeaveNode}"
       @click="${() => this.handleClickTreeNode(node)}"
     >
@@ -3122,16 +3321,18 @@ export class CodeInspectorComponent extends LitElement {
       display: this.show ? 'block' : 'none',
       top: `${this.position.top - this.position.margin.top}px`,
       left: `${this.position.left - this.position.margin.left}px`,
-      height: `${this.position.bottom -
+      height: `${
+        this.position.bottom -
         this.position.top +
         this.position.margin.bottom +
         this.position.margin.top
-        }px`,
-      width: `${this.position.right -
+      }px`,
+      width: `${
+        this.position.right -
         this.position.left +
         this.position.margin.right +
         this.position.margin.left
-        }px`,
+      }px`,
     };
     const marginPosition = {
       borderTopWidth: `${this.position.margin.top}px`,
@@ -3182,25 +3383,35 @@ export class CodeInspectorComponent extends LitElement {
         <div
           id="element-info"
           class="element-info ${this.elementTipStyle.vertical} ${this
-        .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
+            .elementTipStyle.horizon} ${this.elementTipStyle.visibility}"
           style=${styleMap({
-          width: PopperWidth + 'px',
-          maxWidth: '100vw',
-          ...this.elementTipStyle.additionStyle,
-        })}
+            width: PopperWidth + 'px',
+            maxWidth: '100vw',
+            ...this.elementTipStyle.additionStyle,
+          })}
         >
           <div class="element-info-content">
             <div class="inspector-info-header">
               <div class="element-tag-info">
-                ${this.targetNode ? this.getElementSelectorHtml(this.targetNode, this.element.name) : html`<span class="tag-name">${this.element.name}</span>`}
+                ${this.targetNode
+                  ? this.getElementSelectorHtml(
+                      this.targetNode,
+                      this.element.name,
+                    )
+                  : html`<span class="tag-name">${this.element.name}</span>`}
               </div>
               <div class="element-dimensions">
-                ${((this.position.right - this.position.left).toFixed(2))} × ${((this.position.bottom - this.position.top).toFixed(2))}
+                ${(this.position.right - this.position.left).toFixed(2)} ×
+                ${(this.position.bottom - this.position.top).toFixed(2)}
               </div>
             </div>
             <div class="inspector-info-footer">
-              <div class="inspector-path">${this.element.path}:${this.element.line}:${this.element.column}</div>
-              <div class="inspector-tip">${this.t('inspector.clickToOpen')}</div>
+              <div class="inspector-path">
+                ${this.element.path}:${this.element.line}:${this.element.column}
+              </div>
+              <div class="inspector-tip">
+                ${this.t('inspector.clickToOpen')}
+              </div>
             </div>
           </div>
         </div>
@@ -3208,16 +3419,16 @@ export class CodeInspectorComponent extends LitElement {
       <div
         id="inspector-switch"
         class="inspector-switch ${this.open
-        ? 'active-inspector-switch'
-        : ''} ${this.moved ? 'move-inspector-switch' : ''}"
+          ? 'active-inspector-switch'
+          : ''} ${this.moved ? 'move-inspector-switch' : ''}"
         style=${styleMap({ display: this.showSwitch ? 'flex' : 'none' })}
         @mousedown="${(e: MouseEvent) => this.recordMousePosition(e, 'switch')}"
         @touchstart="${(e: TouchEvent) =>
-        this.recordMousePosition(e, 'switch')}"
+          this.recordMousePosition(e, 'switch')}"
         @click="${this.switch}"
       >
         ${this.open
-        ? html`
+          ? html`
               <svg
                 t="1677801709811"
                 class="icon"
@@ -3261,7 +3472,7 @@ export class CodeInspectorComponent extends LitElement {
                 ></path>
               </svg>
             `
-        : html`<svg
+          : html`<svg
               t="1677801709811"
               class="icon"
               viewBox="0 0 1024 1024"
@@ -3312,11 +3523,11 @@ export class CodeInspectorComponent extends LitElement {
         <div
           class="inspector-layer-title"
           @mousedown="${(e: MouseEvent) =>
-        this.recordMousePosition(e, 'nodeTree')}"
+            this.recordMousePosition(e, 'nodeTree')}"
           @touchstart="${(e: TouchEvent) =>
-        this.recordMousePosition(e, 'nodeTree')}"
+            this.recordMousePosition(e, 'nodeTree')}"
         >
-                  <div>🔍️ ${this.t('tree.clickNodeToLocate')}</div>
+          <div>🔍️ ${this.t('tree.clickNodeToLocate')}</div>
           ${html`<svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -3356,7 +3567,9 @@ export class CodeInspectorComponent extends LitElement {
                 @click="${(e: MouseEvent) => e.stopPropagation()}"
               >
                 <div class="settings-modal-header">
-                  <h3 class="settings-modal-title">${this.t('settings.modeSettings')}</h3>
+                  <h3 class="settings-modal-title">
+                    ${this.t('settings.modeSettings')}
+                  </h3>
                   <button
                     class="settings-modal-close"
                     @click="${this.closeSettingsModal}"
@@ -3366,7 +3579,7 @@ export class CodeInspectorComponent extends LitElement {
                 </div>
                 <div class="settings-modal-content">
                   ${this.features.map(
-          (feature) => html`
+                    (feature) => html`
                       <div class="settings-item">
                         <label class="settings-label">
                           <span class="settings-label-text"
@@ -3385,8 +3598,8 @@ export class CodeInspectorComponent extends LitElement {
                           <span class="settings-slider"></span>
                         </label>
                       </div>
-                    `
-        )}
+                    `,
+                  )}
                 </div>
               </div>
             </div>
@@ -3395,75 +3608,75 @@ export class CodeInspectorComponent extends LitElement {
 
       <!-- 聊天框 -->
       ${renderChatModal(
-          {
-            lang: this.getCurrentLang(),
-            showChatModal: this.showChatModal,
-            keepTerminalMounted:
-              this.terminalMode &&
-              this.terminalManager != null &&
-              !this.terminalManager.isDisposed(),
-            showCloseConfirm: this.showCloseConfirm,
-            showTerminalSwitchConfirm: this.showTerminalSwitchConfirm,
-            chatMessages: this.chatMessages,
-            chatInput: this.chatInput,
-            chatPastedImages: this.chatPastedImages,
-            chatImageProcessing: this.chatImageProcessing,
-            chatLoading: this.chatLoading,
-            chatContext: this.chatContext,
-            currentTools: this.currentTools,
-            chatTheme: this.chatTheme,
-            turnStatus: this.turnStatus,
-            turnDuration: this.turnDuration,
-            isDragging: this.isDragging,
-            chatModel: this.chatModel,
-            availableModels: this.availableAIModels,
-            chatProvider: this.chatProvider,
-            availableProviders: this.availableAIProviders,
-            showProviderMenu: this.showProviderMenu,
-            showModelMenu: this.showModelMenu,
-            revertedToolIds: this.revertedToolIds,
-            revertingToolIds: this.revertingToolIds,
-            conversationId: this.conversationId,
-            showHistoryPanel: this.showHistoryPanel,
-            historyList: this.historyList,
-            historyLoading: this.historyLoading,
-            terminalMode: this.terminalMode,
-            terminalExitCode: this.terminalExitCode,
-          },
-          {
-            closeChatModal: this.closeChatModal,
-            confirmCloseChatModal: this.confirmCloseChatModal,
-            cancelCloseChatModal: this.cancelCloseChatModal,
-            terminateAndCloseChatModal: this.terminateAndCloseChatModal,
-            keepCurrentTerminal: this.keepCurrentTerminal,
-            killAndSwitchTerminal: this.killAndSwitchTerminal,
-            clearChatMessages: this.clearChatMessages,
-            handleChatInput: this.handleChatInput,
-            handleChatKeyDown: this.handleChatKeyDown,
-            handleChatPaste: this.handleChatPaste,
-            removePastedImage: this.removePastedImage,
-            sendChatMessage: this.sendChatMessage,
-            toggleTheme: this.toggleTheme,
-            interruptChat: this.interruptChat,
-            toggleModelMenu: this.toggleModelMenu,
-            switchModel: this.switchChatModel,
-            toggleProviderMenu: this.toggleProviderMenu,
-            switchProvider: this.switchChatProvider,
-            handleDragStart: this.handleChatDragStart,
-            handleDragMove: this.handleChatDragMove,
-            handleDragEnd: this.handleChatDragEnd,
-            handleModalClick: this.handleChatModalClick,
-            handleOverlayClick: this.handleOverlayClick,
-            revertEdit: this.handleRevertEdit,
-            revertAllEdits: this.handleRevertAllEdits,
-            toggleHistoryPanel: this.toggleHistoryPanel,
-            loadConversation: this.handleLoadConversation,
-            deleteConversation: this.handleDeleteConversation,
-            startNewConversation: this.handleStartNewConversation,
-            sendTerminalMessage: this.sendTerminalMessage,
-            restartTerminal: this.restartTerminal,
-          }
-        )}
+        {
+          lang: this.getCurrentLang(),
+          showChatModal: this.showChatModal,
+          keepTerminalMounted:
+            this.terminalMode &&
+            this.terminalManager != null &&
+            !this.terminalManager.isDisposed(),
+          showCloseConfirm: this.showCloseConfirm,
+          showTerminalSwitchConfirm: this.showTerminalSwitchConfirm,
+          chatMessages: this.chatMessages,
+          chatInput: this.chatInput,
+          chatPastedImages: this.chatPastedImages,
+          chatImageProcessing: this.chatImageProcessing,
+          chatLoading: this.chatLoading,
+          chatContext: this.chatContext,
+          currentTools: this.currentTools,
+          chatTheme: this.chatTheme,
+          turnStatus: this.turnStatus,
+          turnDuration: this.turnDuration,
+          isDragging: this.isDragging,
+          chatModel: this.chatModel,
+          availableModels: this.availableAIModels,
+          chatProvider: this.chatProvider,
+          availableProviders: this.availableAIProviders,
+          showProviderMenu: this.showProviderMenu,
+          showModelMenu: this.showModelMenu,
+          revertedToolIds: this.revertedToolIds,
+          revertingToolIds: this.revertingToolIds,
+          conversationId: this.conversationId,
+          showHistoryPanel: this.showHistoryPanel,
+          historyList: this.historyList,
+          historyLoading: this.historyLoading,
+          terminalMode: this.terminalMode,
+          terminalExitCode: this.terminalExitCode,
+        },
+        {
+          closeChatModal: this.closeChatModal,
+          confirmCloseChatModal: this.confirmCloseChatModal,
+          cancelCloseChatModal: this.cancelCloseChatModal,
+          terminateAndCloseChatModal: this.terminateAndCloseChatModal,
+          keepCurrentTerminal: this.keepCurrentTerminal,
+          killAndSwitchTerminal: this.killAndSwitchTerminal,
+          clearChatMessages: this.clearChatMessages,
+          handleChatInput: this.handleChatInput,
+          handleChatKeyDown: this.handleChatKeyDown,
+          handleChatPaste: this.handleChatPaste,
+          removePastedImage: this.removePastedImage,
+          sendChatMessage: this.sendChatMessage,
+          toggleTheme: this.toggleTheme,
+          interruptChat: this.interruptChat,
+          toggleModelMenu: this.toggleModelMenu,
+          switchModel: this.switchChatModel,
+          toggleProviderMenu: this.toggleProviderMenu,
+          switchProvider: this.switchChatProvider,
+          handleDragStart: this.handleChatDragStart,
+          handleDragMove: this.handleChatDragMove,
+          handleDragEnd: this.handleChatDragEnd,
+          handleModalClick: this.handleChatModalClick,
+          handleOverlayClick: this.handleOverlayClick,
+          revertEdit: this.handleRevertEdit,
+          revertAllEdits: this.handleRevertAllEdits,
+          toggleHistoryPanel: this.toggleHistoryPanel,
+          loadConversation: this.handleLoadConversation,
+          deleteConversation: this.handleDeleteConversation,
+          startNewConversation: this.handleStartNewConversation,
+          sendTerminalMessage: this.sendTerminalMessage,
+          restartTerminal: this.restartTerminal,
+        },
+      )}
 
       <div
         id="node-tree-tooltip"
@@ -3477,397 +3690,396 @@ export class CodeInspectorComponent extends LitElement {
 
   static styles = [
     css`
-    .code-inspector-container {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999999999999;
-      font-family: 'PingFang SC';
-      .margin-overlay {
-        position: absolute;
-        inset: 0;
-        border-style: solid;
-        border-color: rgba(255, 155, 0, 0.3);
-        .border-overlay {
+      .code-inspector-container {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999999999999;
+        font-family: 'PingFang SC';
+        .margin-overlay {
           position: absolute;
           inset: 0;
           border-style: solid;
-          border-color: rgba(255, 200, 50, 0.3);
-          .padding-overlay {
+          border-color: rgba(255, 155, 0, 0.3);
+          .border-overlay {
             position: absolute;
             inset: 0;
             border-style: solid;
-            border-color: rgba(77, 200, 0, 0.3);
-            .content-overlay {
+            border-color: rgba(255, 200, 50, 0.3);
+            .padding-overlay {
               position: absolute;
               inset: 0;
-              background: rgba(120, 170, 210, 0.7);
+              border-style: solid;
+              border-color: rgba(77, 200, 0, 0.3);
+              .content-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(120, 170, 210, 0.7);
+              }
             }
           }
         }
       }
-    }
-    .element-info {
-      position: absolute;
-    }
-    .element-info.hidden {
-      visibility: hidden;
-    }
-    .element-info-content {
-      max-width: 100%;
-      font-size: 12px;
-      color: #000;
-      background-color: #fff;
-      word-break: break-all;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-      box-sizing: border-box;
-      padding: 6px 8px;
-      border-radius: 2px;
-      font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    }
-    .element-info-top {
-      top: -4px;
-      transform: translateY(-100%);
-    }
-    .element-info-bottom {
-      top: calc(100% + 4px);
-    }
-    .element-info-top-inner {
-      top: 4px;
-    }
-    .element-info-bottom-inner {
-      bottom: 4px;
-    }
-    .element-info-left {
-      left: 0;
-      display: flex;
-      justify-content: flex-start;
-    }
-    .element-info-right {
-      right: 0;
-      display: flex;
-      justify-content: flex-end;
-    }
-    .inspector-info-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      line-height: 16px;
-    }
-    .element-tag-info {
-      flex: 1;
-      min-width: 0;
-      overflow-wrap: break-word;
-      word-break: break-all;
-      font-weight: bold;
-    }
-    .element-tag-name {
-      color: #881280;
-      font-weight: 500;
-    }
-    .tag-name {
-      color: #881280;
-      font-weight: bold;
-    }
-    .tag-id {
-      color: #1a1aa6;
-      font-weight: bold;
-    }
-    .tag-class {
-      color: #c25e00;
-      font-weight: bold;
-    }
-    .element-dimensions {
-      flex-shrink: 0;
-      color: #222;
-      font-weight: 400;
-      white-space: nowrap;
-    }
-    .inspector-info-footer {
-      margin-top: 4px;
-      font-size: 11px;
-      overflow-wrap: break-word;
-      word-break: break-all;
-    }
-    .inspector-path {
-      color: #333;
-      line-height: 14px;
-      font-size: 11px;
-    }
-    .inspector-tip {
-      color: #888;
-      line-height: 14px;
-      margin-top: 2px;
-      font-size: 11px;
-    }
-    .inspector-switch {
-      position: fixed;
-      z-index: 9999999999999;
-      top: 50%;
-      right: 24px;
-      font-size: 22px;
-      transform: translateY(-100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: rgba(255, 255, 255, 0.8);
-      color: #555;
-      height: 32px;
-      width: 32px;
-      border-radius: 50%;
-      box-shadow: 0px 1px 2px -2px rgba(0, 0, 0, 0.2),
-        0px 3px 6px 0px rgba(0, 0, 0, 0.16),
-        0px 5px 12px 4px rgba(0, 0, 0, 0.12);
-      cursor: pointer;
-    }
-    .active-inspector-switch {
-      color: #006aff;
-    }
-    .move-inspector-switch {
-      cursor: move;
-    }
-    #inspector-node-tree {
-      position: fixed;
-      user-select: none;
-      z-index: 9999999999999999;
-      min-width: 300px;
-      max-width: min(max(30vw, 300px), 400px);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-        'Liberation Mono', 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      padding: 0;
-
-      .inspector-layer-title {
-        border-bottom: 1px solid #eee;
-        padding: 8px 8px 4px;
-        margin-bottom: 8px;
-        flex-shrink: 0;
+      .element-info {
+        position: absolute;
+      }
+      .element-info.hidden {
+        visibility: hidden;
+      }
+      .element-info-content {
+        max-width: 100%;
+        font-size: 12px;
+        color: #000;
+        background-color: #fff;
+        word-break: break-all;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border-radius: 2px;
+        font-family:
+          'PingFang SC',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+      }
+      .element-info-top {
+        top: -4px;
+        transform: translateY(-100%);
+      }
+      .element-info-bottom {
+        top: calc(100% + 4px);
+      }
+      .element-info-top-inner {
+        top: 4px;
+      }
+      .element-info-bottom-inner {
+        bottom: 4px;
+      }
+      .element-info-left {
+        right: 0;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
+      }
+      .element-info-right {
+        left: 0;
+        display: flex;
+        justify-content: flex-start;
+      }
+      .element-name .element-title {
+        color: coral;
+        font-weight: bold;
+      }
+      .element-tag-name {
+        color: #881280;
+        font-weight: 500;
+      }
+      .tag-name {
+        color: #881280;
+        font-weight: bold;
+      }
+      .tag-id {
+        color: #1a1aa6;
+        font-weight: bold;
+      }
+      .tag-class {
+        color: #c25e00;
+        font-weight: bold;
+      }
+      .element-dimensions {
+        flex-shrink: 0;
+        color: #222;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+      .inspector-info-footer {
+        margin-top: 4px;
+        font-size: 11px;
+        overflow-wrap: break-word;
+        word-break: break-all;
+      }
+      .inspector-path {
+        color: #333;
+        line-height: 14px;
+        font-size: 11px;
+      }
+      .inspector-tip {
+        color: #888;
+        line-height: 14px;
+        margin-top: 2px;
+        font-size: 11px;
+      }
+      .inspector-switch {
+        position: fixed;
+        z-index: 9999999999999;
+        top: 50%;
+        right: 24px;
+        font-size: 22px;
+        transform: translateY(-100%);
+        display: flex;
         align-items: center;
-        cursor: move;
-        user-select: none;
-        &:hover {
-          background: rgba(0, 106, 255, 0.1);
-        }
-      }
-
-      .node-tree-list {
-        flex: 1;
-        overflow-y: auto;
-        min-height: 0;
-      }
-
-      .inspector-layer {
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #555;
+        height: 32px;
+        width: 32px;
+        border-radius: 50%;
+        box-shadow:
+          0px 1px 2px -2px rgba(0, 0, 0, 0.2),
+          0px 3px 6px 0px rgba(0, 0, 0, 0.16),
+          0px 5px 12px 4px rgba(0, 0, 0, 0.12);
         cursor: pointer;
-        position: relative;
-        padding-right: 8px;
-        &:hover {
-          background: #fdf4bf;
+      }
+      .active-inspector-switch {
+        color: #006aff;
+      }
+      .move-inspector-switch {
+        cursor: move;
+      }
+      #inspector-node-tree {
+        position: fixed;
+        user-select: none;
+        z-index: 9999999999999999;
+        min-width: 300px;
+        max-width: min(max(30vw, 300px), 400px);
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+
+        .inspector-layer-title {
+          border-bottom: 1px solid #eee;
+          padding: 8px 8px 4px;
+          margin-bottom: 8px;
+          flex-shrink: 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: move;
+          user-select: none;
+          &:hover {
+            background: rgba(0, 106, 255, 0.1);
+          }
+        }
+
+        .node-tree-list {
+          flex: 1;
+          overflow-y: auto;
+          min-height: 0;
+        }
+
+        .inspector-layer {
+          cursor: pointer;
+          position: relative;
+          padding-right: 8px;
+          &:hover {
+            background: #fdf4bf;
+          }
+        }
+
+        .path-line {
+          font-size: 9px;
+          color: #777;
+          margin-top: 1px;
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         }
       }
 
-      .path-line {
-        font-size: 9px;
-        color: #777;
-        margin-top: 1px;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      #node-tree-tooltip {
+        position: fixed;
+        box-sizing: border-box;
+        z-index: 999999999999999999;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: wrap;
+        pointer-events: none;
+        word-break: break-all;
       }
-    }
+      .tooltip-top {
+        transform: translateY(-100%);
+      }
+      .close-icon {
+        cursor: pointer;
+      }
 
-    #node-tree-tooltip {
-      position: fixed;
-      box-sizing: border-box;
-      z-index: 999999999999999999;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: wrap;
-      pointer-events: none;
-      word-break: break-all;
-    }
-    .tooltip-top {
-      transform: translateY(-100%);
-    }
-    .close-icon {
-      cursor: pointer;
-    }
+      /* 设置弹窗样式 */
+      .settings-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999999999999999;
+        animation: fadeIn 0.2s ease-out;
+      }
 
-    /* 设置弹窗样式 */
-    .settings-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999999999999999;
-      animation: fadeIn 0.2s ease-out;
-    }
+      .settings-modal {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease-out;
+      }
 
-    .settings-modal {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      width: 90%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      animation: slideUp 0.3s ease-out;
-    }
+      .settings-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid #eee;
+      }
 
-    .settings-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 24px;
-      border-bottom: 1px solid #eee;
-    }
+      .settings-modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+      }
 
-    .settings-modal-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-    }
+      .settings-modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #999;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
 
-    .settings-modal-close {
-      background: none;
-      border: none;
-      font-size: 28px;
-      color: #999;
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
+      .settings-modal-close:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
 
-    .settings-modal-close:hover {
-      background: #f5f5f5;
-      color: #333;
-    }
+      .settings-modal-content {
+        padding: 16px 24px;
+        overflow-y: auto;
+        flex: 1;
+      }
 
-    .settings-modal-content {
-      padding: 16px 24px;
-      overflow-y: auto;
-      flex: 1;
-    }
+      .settings-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid #f5f5f5;
+      }
 
-    .settings-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 0;
-      border-bottom: 1px solid #f5f5f5;
-    }
+      .settings-item:last-child {
+        border-bottom: none;
+      }
 
-    .settings-item:last-child {
-      border-bottom: none;
-    }
+      .settings-label {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        margin-right: 16px;
+        cursor: pointer;
+      }
 
-    .settings-label {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      margin-right: 16px;
-      cursor: pointer;
-    }
+      .settings-label-text {
+        font-size: 15px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
+      }
 
-    .settings-label-text {
-      font-size: 15px;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 4px;
-    }
+      .settings-label-desc {
+        font-size: 13px;
+        color: #999;
+      }
 
-    .settings-label-desc {
-      font-size: 13px;
-      color: #999;
-    }
+      .settings-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
 
-    .settings-switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-
-    .settings-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .settings-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 24px;
-    }
-
-    .settings-slider:before {
-      position: absolute;
-      content: '';
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    .settings-switch input:checked + .settings-slider {
-      background-color: #006aff;
-    }
-
-    .settings-switch input:checked + .settings-slider:before {
-      transform: translateX(20px);
-    }
-
-    .settings-switch input:focus + .settings-slider {
-      box-shadow: 0 0 1px #006aff;
-    }
-
-    @keyframes fadeIn {
-      from {
+      .settings-switch input {
         opacity: 0;
+        width: 0;
+        height: 0;
       }
-      to {
-        opacity: 1;
-      }
-    }
 
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
+      .settings-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 24px;
       }
-      to {
-        transform: translateY(0);
-        opacity: 1;
+
+      .settings-slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
       }
-    }
-  `,
+
+      .settings-switch input:checked + .settings-slider {
+        background-color: #006aff;
+      }
+
+      .settings-switch input:checked + .settings-slider:before {
+        transform: translateX(20px);
+      }
+
+      .settings-switch input:focus + .settings-slider {
+        box-shadow: 0 0 1px #006aff;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    `,
     chatStyles,
   ];
 }

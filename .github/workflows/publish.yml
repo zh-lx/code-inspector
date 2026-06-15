@@ -64,3 +64,13 @@ jobs:
           else
             pnpm -r --filter "./packages/*" publish --no-git-checks --access public --tag "${{ inputs.dist_tag }}"
           fi
+
+      - name: Install deploy dependencies
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy docs
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: pnpm deploy:docs

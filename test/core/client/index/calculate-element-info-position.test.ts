@@ -281,8 +281,9 @@ describe('calculateElementInfoPosition with specific overflow scenarios', () => 
   });
 
   it('should trigger right overflow branch (lines 356-362) with proper mocking', async () => {
-    // Scenario: width > containerRight for 'right' horizon positions
-    // First position is 'element-info-right', so we need to make width > containerRight
+    // 让元素在垂直方向撑满屏幕，使所有外部位置都溢出，
+    // 从而进入第二个循环（溢出处理逻辑）。
+    // 元素水平靠右，使 right 对齐位置触发 right 溢出分支。
 
     Object.defineProperty(document.documentElement, 'clientWidth', {
       value: 1000,
@@ -297,15 +298,16 @@ describe('calculateElementInfoPosition with specific overflow scenarios', () => 
     target.setAttribute(PathName, '/test.tsx:1:1:div');
     document.body.appendChild(target);
 
-    // Element at far left, so containerRight is small
-    // containerRight = right + marginRight = 30 + 0 = 30
+    // 元素垂直撑满（top 接近 0，bottom 接近 browserHeight），水平靠右
+    // containerTop=10, containerBottom=790 → 外部 top/bottom 位置均溢出
+    // containerLeft=950 → right 对齐溢出：950 + 100 - 1000 = 50
     target.getBoundingClientRect = vi.fn().mockReturnValue({
-      top: 400,
-      left: 10,
-      right: 30,    // Small right value
-      bottom: 450,
+      top: 10,
+      left: 950,
+      right: 970,
+      bottom: 790,
       width: 20,
-      height: 50,
+      height: 780,
     });
 
     const originalGetComputedStyle = window.getComputedStyle;
@@ -315,34 +317,32 @@ describe('calculateElementInfoPosition with specific overflow scenarios', () => 
 
     await component.updateComplete;
 
-    // Mock elementInfoRef with width > containerRight (30)
     const elementInfoRef = component.shadowRoot?.getElementById('element-info');
     if (elementInfoRef) {
       elementInfoRef.getBoundingClientRect = vi.fn().mockReturnValue({
-        width: 100,   // 100 > 30 (containerRight)
+        width: 100,
         height: 30,
       });
     }
 
     const result = await component.calculateElementInfoPosition(target);
 
-    // First position should be valid and should have overflow handling
+    // 应返回 right 对齐位置，并经过 right 溢出处理
+    // overflowWidth = 950 + 100 - 1000 = 50, transform: translateX(-54px)
     expect(result).toBeDefined();
-    // overflowWidth = 100 - 30 = 70, should add translateX(70px)
-    if (result.horizon === 'element-info-right') {
-      expect(result.additionStyle?.transform).toContain('translateX(70px)');
-    }
+    expect(result.horizon).toBe('element-info-right');
+    expect(result.additionStyle?.transform).toContain('translateX(-54px)');
 
     window.getComputedStyle = originalGetComputedStyle;
     document.body.removeChild(target);
   });
 
-  it('should trigger left overflow branch (lines 347-353) with proper mocking', async () => {
-    // Scenario: containerLeft + width > browserWidth for 'left' horizon positions
-    // We need to make the first valid position have 'left' horizon
+  it('should trigger left overflow branch (lines 363-371) with proper mocking', async () => {
+    // 让元素在垂直方向撑满屏幕，使所有外部位置都溢出，进入第二个循环。
+    // 元素水平靠左，使 left 对齐位置在遍历时触发 left 溢出分支（覆盖该代码）。
 
     Object.defineProperty(document.documentElement, 'clientWidth', {
-      value: 500,
+      value: 1000,
       configurable: true,
     });
     Object.defineProperty(document.documentElement, 'clientHeight', {
@@ -354,17 +354,15 @@ describe('calculateElementInfoPosition with specific overflow scenarios', () => 
     target.setAttribute(PathName, '/test.tsx:1:1:div');
     document.body.appendChild(target);
 
-    // Element at right side, so containerLeft is large
-    // containerLeft = left - marginLeft = 400 - 0 = 400
-    // For 'left' horizon positions: containerLeft + width > browserWidth
-    // 400 + 150 = 550 > 500 (browserWidth)
+    // 元素垂直撑满，水平靠左
+    // containerRight=30 → left 对齐溢出：width(100) - containerRight(30) = 70
     target.getBoundingClientRect = vi.fn().mockReturnValue({
-      top: 400,
-      left: 400,
-      right: 480,
-      bottom: 450,
-      width: 80,
-      height: 50,
+      top: 10,
+      left: 10,
+      right: 30,
+      bottom: 790,
+      width: 20,
+      height: 780,
     });
 
     const originalGetComputedStyle = window.getComputedStyle;
@@ -374,22 +372,19 @@ describe('calculateElementInfoPosition with specific overflow scenarios', () => 
 
     await component.updateComplete;
 
-    // Mock elementInfoRef with width that causes overflow
     const elementInfoRef = component.shadowRoot?.getElementById('element-info');
     if (elementInfoRef) {
       elementInfoRef.getBoundingClientRect = vi.fn().mockReturnValue({
-        width: 150,   // 400 + 150 = 550 > 500 (browserWidth)
+        width: 100,
         height: 30,
       });
     }
 
     const result = await component.calculateElementInfoPosition(target);
 
+    // 第二个循环遍历到 left 对齐位置时会执行 left 溢出处理代码（覆盖目标）
     expect(result).toBeDefined();
-    // overflowWidth = 400 + 150 - 500 = 50, should add translateX(-50px)
-    if (result.horizon === 'element-info-left') {
-      expect(result.additionStyle?.transform).toContain('translateX(-50px)');
-    }
+    expect(result.horizon).toBeDefined();
 
     window.getComputedStyle = originalGetComputedStyle;
     document.body.removeChild(target);

@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.1
+
+- 【fix】优化 inspector tooltip 位置逻辑，防止遮挡目标元素 [#541](https://github.com/zh-lx/code-inspector/pull/541)
+
 ## 1.6.0
 
 - 【feat】新增对 Astro（`.astro`）文件的源码定位支持，在框架编译前注入 `data-insp-path`，优先使用 `@astrojs/compiler` 的 AST 定位，无法解析时回退到安全的源码扫描 [#531](https://github.com/zh-lx/code-inspector/pull/531)

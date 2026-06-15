@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+
+- 【fix】Optimize inspector tooltip position logic to prevent covering target elements [#541](https://github.com/zh-lx/code-inspector/pull/541)
+
 ## 1.6.0
 
 - 【feat】Added source-location support for Astro (`.astro`) files by injecting `data-insp-path` before framework compilation, preferring `@astrojs/compiler` AST positions and falling back to a safe source scanner when it cannot be resolved [#531](https://github.com/zh-lx/code-inspector/pull/531)
