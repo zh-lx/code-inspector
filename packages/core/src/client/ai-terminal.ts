@@ -5,7 +5,6 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import type { ITheme } from '@xterm/xterm';
 import type { ChatProvider } from './ai';
 
-
 const XTERM_CSS = `
 .xterm {
   height: 100%;
@@ -82,7 +81,6 @@ const XTERM_CSS = `
 }
 `;
 
-
 const DARK_THEME: ITheme = {
   background: '#2e3440',
   foreground: '#d8dee9',
@@ -146,8 +144,7 @@ function terminalBackgroundFor(theme: 'dark' | 'light'): string {
 
 function terminalCursorFor(theme: 'dark' | 'light'): string {
   return (
-    terminalThemeFor(theme).cursor ||
-    (theme === 'dark' ? '#88c0d0' : '#5e81ac')
+    terminalThemeFor(theme).cursor || (theme === 'dark' ? '#88c0d0' : '#5e81ac')
   );
 }
 
@@ -161,15 +158,7 @@ const MAX_TERMINAL_REPLAY_BUFFER = 500_000;
 const DEFAULT_TERMINAL_OVERVIEW_RULER_WIDTH = 10;
 const MINIMUM_TERMINAL_COLS = 2;
 const MINIMUM_TERMINAL_ROWS = 1;
-const DARK_ANSI_COLOR_INDICES = new Set([
-  0,
-  232,
-  233,
-  234,
-  235,
-  236,
-  237,
-]);
+const DARK_ANSI_COLOR_INDICES = new Set([0, 232, 233, 234, 235, 236, 237]);
 const LIGHT_ANSI_COLOR_INDICES = new Set([15, 231, 252, 253, 254, 255]);
 
 function isDarkRgb(r: number, g: number, b: number): boolean {
@@ -340,7 +329,6 @@ function normalizeTerminalOutputForTheme(
   );
 }
 
-
 interface TerminalCreateMessage {
   type: 'create';
   provider: ChatProvider;
@@ -398,7 +386,6 @@ type ServerMessage =
   | ServerErrorMessage
   | ServerSessionMessage
   | ServerRuntimeStateMessage;
-
 
 export class AITerminalManager {
   private terminal: Terminal | null = null;
@@ -515,8 +502,7 @@ export class AITerminalManager {
       }
     };
 
-    this.ws.onclose = () => {
-    };
+    this.ws.onclose = () => {};
 
     this.ws.onerror = () => {
       this.onError?.('WebSocket connection failed');
@@ -549,10 +535,8 @@ export class AITerminalManager {
         };
         this.ws.send(JSON.stringify(msg));
       }
-    } catch {
-    }
+    } catch {}
   }
-
 
   private proposeDimensions(): { cols: number; rows: number } | null {
     if (!this.terminal || !this.container) return null;
@@ -563,7 +547,11 @@ export class AITerminalManager {
     const renderDimensions = (this.terminal as any)?._core?._renderService
       ?.dimensions;
 
-    if (!terminalElement || !terminalElement.parentElement || !renderDimensions) {
+    if (
+      !terminalElement ||
+      !terminalElement.parentElement ||
+      !renderDimensions
+    ) {
       return null;
     }
 
@@ -668,7 +656,6 @@ export class AITerminalManager {
     }
   }
 
-
   private rememberOutput(data: string): void {
     if (!data) return;
 
@@ -700,8 +687,7 @@ export class AITerminalManager {
     if (this.ws) {
       try {
         this.ws.close();
-      } catch {
-      }
+      } catch {}
       this.ws = null;
     }
   }
@@ -725,8 +711,10 @@ export class AITerminalManager {
     return this._disposed;
   }
 
-
-  private attachTerminal(container: HTMLElement, theme: 'dark' | 'light'): void {
+  private attachTerminal(
+    container: HTMLElement,
+    theme: 'dark' | 'light',
+  ): void {
     this.container = container;
     this.currentTheme = theme;
     this.container.style.backgroundColor = terminalBackgroundFor(theme);
@@ -739,7 +727,7 @@ export class AITerminalManager {
       fontSize: 13,
       fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
       theme: terminalThemeFor(theme),
-      minimumContrastRatio: 4.5,
+      minimumContrastRatio: 1,
       overviewRuler: { width: this.getOverviewRulerWidth() },
       allowProposedApi: true,
       scrollback: 5000,
@@ -812,4 +800,3 @@ export async function checkTerminalAvailable(
     return false;
   }
 }
-

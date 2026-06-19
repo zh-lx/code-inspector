@@ -3248,15 +3248,11 @@ export const chatStyles = css`
     flex-direction: column;
   }
 
-  .chat-terminal-container[data-terminal-provider="opencode"] {
+  .chat-terminal-container[data-terminal-provider='opencode'] {
     padding: 0;
   }
 
-  .chat-terminal-container .xterm-rows {
-    padding: 4px 0 0 4px;
-  }
-
-  .chat-terminal-container[data-terminal-provider="opencode"] .xterm-rows {
+  .chat-terminal-container[data-terminal-provider='opencode'] .xterm-rows {
     padding: 0;
   }
 
