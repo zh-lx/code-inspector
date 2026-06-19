@@ -383,7 +383,7 @@ export async function getCodeWithWebComponent({
         injectCode,
         getProjectRecord(record)?.port || 0,
       );
-      if (!file.match(webComponentFilePath)) {
+      if (path.resolve(file) !== path.resolve(webComponentFilePath)) {
         const relativePath = normalizePath(
           path.relative(path.dirname(file), webComponentFilePath),
         );

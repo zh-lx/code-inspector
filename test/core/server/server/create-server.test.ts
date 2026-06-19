@@ -722,7 +722,7 @@ describe('server path helpers', () => {
 
   it('should expose a valid git root or empty string', () => {
     if (serverModule.ProjectRootPath) {
-      expect(serverModule.ProjectRootPath.startsWith('/')).toBe(true);
+      expect(path.isAbsolute(serverModule.ProjectRootPath)).toBe(true);
       return;
     }
 
