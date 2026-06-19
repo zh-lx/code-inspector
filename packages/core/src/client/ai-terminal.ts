@@ -642,7 +642,7 @@ export class AITerminalManager {
 
   private renderOutput(data: string): void {
     this.terminal?.write(
-      this.currentProvider === 'opencode' || this.currentProvider === 'codex'
+      this.currentProvider === 'opencode'
         ? data
         : normalizeTerminalOutputForTheme(data, this.currentTheme),
     );
