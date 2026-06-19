@@ -32,17 +32,53 @@ describe('ai terminal helpers', () => {
 
   it('should only resolve executable spawn commands when a path is provided', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-terminal-cmd-'));
-    const executablePath = path.join(tempDir, 'runner.sh');
-    const nonExecutablePath = path.join(tempDir, 'plain.sh');
+    const executablePath = path.join(
+      tempDir,
+      process.platform === 'win32' ? 'runner.cmd' : 'runner.sh',
+    );
+    const nonExecutablePath = path.join(
+      tempDir,
+      process.platform === 'win32' ? 'plain.txt' : 'plain.sh',
+    );
 
-    fs.writeFileSync(executablePath, '#!/bin/sh\nexit 0\n');
+    fs.writeFileSync(
+      executablePath,
+      process.platform === 'win32'
+        ? '@echo off\r\nexit /b 0\r\n'
+        : '#!/bin/sh\nexit 0\n',
+    );
     fs.writeFileSync(nonExecutablePath, '#!/bin/sh\nexit 0\n');
-    fs.chmodSync(executablePath, 0o755);
-    fs.chmodSync(nonExecutablePath, 0o644);
+    if (process.platform !== 'win32') {
+      fs.chmodSync(executablePath, 0o755);
+      fs.chmodSync(nonExecutablePath, 0o644);
+    }
 
     expect(__TEST_ONLY__.resolveSpawnCommand(executablePath)).toBe(
       executablePath,
     );
     expect(__TEST_ONLY__.resolveSpawnCommand(nonExecutablePath)).toBeNull();
+  });
+
+  it('should resolve Windows extensionless npm shims to cmd siblings', () => {
+    const platformDesc = Object.getOwnPropertyDescriptor(process, 'platform');
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-terminal-win-'));
+    const shimPath = path.join(tempDir, 'codex');
+    const cmdPath = `${shimPath}.cmd`;
+
+    fs.writeFileSync(shimPath, '#!/bin/sh\n');
+    fs.writeFileSync(cmdPath, '@echo off\r\n');
+
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: 'win32',
+    });
+
+    try {
+      expect(__TEST_ONLY__.resolveSpawnCommand(shimPath)).toBe(cmdPath);
+    } finally {
+      if (platformDesc) {
+        Object.defineProperty(process, 'platform', platformDesc);
+      }
+    }
   });
 });

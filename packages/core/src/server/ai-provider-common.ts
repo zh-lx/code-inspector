@@ -250,6 +250,9 @@ export const __TEST_ONLY__ = {
   extractModelFromEvent,
   extractTextEvent,
   shouldIgnorePlainLine,
+  isRunnableCliPath,
+  pickCliPathFromSearchResult,
+  pickRunnableCliPath,
   findCodexCli,
   queryViaCli,
   getCodexSDKCtor,
@@ -603,6 +606,60 @@ export function handleCodexRequest(
 
 /** 缓存的 CLI 路径 */
 const cachedCliPathMap = new Map<string, string | null | undefined>();
+const WINDOWS_CLI_EXTENSIONS = ['.cmd', '.exe', '.bat', '.com'];
+
+function expandWindowsCliPathCandidates(filePath: string): string[] {
+  if (process.platform !== 'win32' || path.extname(filePath)) {
+    return [filePath];
+  }
+  return WINDOWS_CLI_EXTENSIONS.map((ext) => `${filePath}${ext}`);
+}
+
+function isRunnableCliPath(filePath: string): boolean {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) return false;
+    if (process.platform === 'win32') {
+      return WINDOWS_CLI_EXTENSIONS.includes(
+        path.extname(filePath).toLowerCase(),
+      );
+    }
+    fs.accessSync(filePath, fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function pickRunnableCliPath(candidates: string[]): string | null {
+  for (const candidate of candidates) {
+    const trimmed = candidate.trim();
+    if (!trimmed) continue;
+    for (const expanded of expandWindowsCliPathCandidates(trimmed)) {
+      if (isRunnableCliPath(expanded)) {
+        return expanded;
+      }
+    }
+  }
+  return null;
+}
+
+function pickCliPathFromSearchResult(candidates: string[]): string | null {
+  const trimmedCandidates = candidates
+    .map((candidate) => candidate.trim())
+    .filter(Boolean);
+  if (trimmedCandidates.length === 0) return null;
+  if (process.platform !== 'win32') return trimmedCandidates[0];
+
+  for (const ext of WINDOWS_CLI_EXTENSIONS) {
+    const match = trimmedCandidates.find(
+      (candidate) => path.extname(candidate).toLowerCase() === ext,
+    );
+    if (match) return match;
+  }
+
+  return trimmedCandidates[0];
+}
 
 /**
  * 查找本地 Codex CLI 路径
@@ -625,9 +682,11 @@ export function findCodexCli(
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
     if (result) {
-      const foundPath = result.split('\n')[0];
-      cachedCliPathMap.set(runtime.cliBinaryName, foundPath);
-      return foundPath;
+      const foundPath = pickCliPathFromSearchResult(result.split('\n'));
+      if (foundPath) {
+        cachedCliPathMap.set(runtime.cliBinaryName, foundPath);
+        return foundPath;
+      }
     }
   } catch {
     // 命令未找到
@@ -654,9 +713,10 @@ export function findCodexCli(
   ];
 
   for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      cachedCliPathMap.set(runtime.cliBinaryName, p);
-      return p;
+    const foundPath = pickRunnableCliPath([p]);
+    if (foundPath) {
+      cachedCliPathMap.set(runtime.cliBinaryName, foundPath);
+      return foundPath;
     }
   }
 

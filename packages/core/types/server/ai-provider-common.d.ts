@@ -117,6 +117,9 @@ export declare const __TEST_ONLY__: {
     extractModelFromEvent: typeof extractModelFromEvent;
     extractTextEvent: typeof extractTextEvent;
     shouldIgnorePlainLine: typeof shouldIgnorePlainLine;
+    isRunnableCliPath: typeof isRunnableCliPath;
+    pickCliPathFromSearchResult: typeof pickCliPathFromSearchResult;
+    pickRunnableCliPath: typeof pickRunnableCliPath;
     findCodexCli: typeof findCodexCli;
     queryViaCli: typeof queryViaCli;
     getCodexSDKCtor: typeof getCodexSDKCtor;
@@ -149,6 +152,9 @@ export declare function getModelInfo(codexOptions: CodexOptions | undefined): Pr
  * Codex provider 统一入口
  */
 export declare function handleCodexRequest(message: string, context: AIContext | null, history: AIMessage[], sessionId: string | undefined, cwd: string, codexOptions: CodexOptions | undefined, callbacks: ProviderCallbacks, runtime?: CodexProviderRuntime): ProviderResult;
+declare function isRunnableCliPath(filePath: string): boolean;
+declare function pickRunnableCliPath(candidates: string[]): string | null;
+declare function pickCliPathFromSearchResult(candidates: string[]): string | null;
 /**
  * 查找本地 Codex CLI 路径
  */

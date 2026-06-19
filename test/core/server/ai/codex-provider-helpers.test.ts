@@ -792,9 +792,21 @@ describe('codex provider helpers', () => {
     const oldPath = process.env.PATH;
     const oldHome = process.env.HOME;
     const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-home-'));
-    const fallbackPath = path.join(fakeHome, '.npm-global', 'bin', 'codex');
+    const fallbackBasePath = path.join(fakeHome, '.npm-global', 'bin', 'codex');
+    const fallbackPath =
+      process.platform === 'win32'
+        ? `${fallbackBasePath}.cmd`
+        : fallbackBasePath;
     fs.mkdirSync(path.dirname(fallbackPath), { recursive: true });
-    fs.writeFileSync(fallbackPath, '#!/bin/sh\necho codex');
+    fs.writeFileSync(
+      fallbackPath,
+      process.platform === 'win32'
+        ? '@echo off\r\necho codex\r\n'
+        : '#!/bin/sh\necho codex',
+    );
+    if (process.platform !== 'win32') {
+      fs.chmodSync(fallbackPath, 0o755);
+    }
     process.env.PATH = '';
     process.env.HOME = fakeHome;
     const discovered = __TEST_ONLY__.findCodexCli();
@@ -820,6 +832,32 @@ describe('codex provider helpers', () => {
     process.env.HOME = oldHome;
     if (platformDesc) {
       Object.defineProperty(process, 'platform', platformDesc);
+    }
+  });
+
+  it('should prefer Windows cmd shims over extensionless npm shims', () => {
+    const platformDesc = Object.getOwnPropertyDescriptor(process, 'platform');
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-win-shim-'));
+    const shimPath = path.join(tempDir, 'codex');
+    const cmdPath = `${shimPath}.cmd`;
+
+    fs.writeFileSync(shimPath, '#!/bin/sh\n');
+    fs.writeFileSync(cmdPath, '@echo off\r\n');
+    Object.defineProperty(process, 'platform', {
+      configurable: true,
+      value: 'win32',
+    });
+
+    try {
+      expect(__TEST_ONLY__.isRunnableCliPath(shimPath)).toBe(false);
+      expect(__TEST_ONLY__.pickRunnableCliPath([shimPath])).toBe(cmdPath);
+      expect(
+        __TEST_ONLY__.pickCliPathFromSearchResult([shimPath, cmdPath]),
+      ).toBe(cmdPath);
+    } finally {
+      if (platformDesc) {
+        Object.defineProperty(process, 'platform', platformDesc);
+      }
     }
   });
 

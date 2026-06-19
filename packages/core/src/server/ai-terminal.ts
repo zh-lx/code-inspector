@@ -127,12 +127,24 @@ const wsCache = { value: null as WsModule | null };
 
 const loadNodePty = () => loadOptionalModule('node-pty', nodePtyCache, normalizeNodePtyModule);
 const loadWs = () => loadOptionalModule('ws', wsCache, normalizeWsModule);
+const WINDOWS_SPAWN_EXTENSIONS = ['.cmd', '.exe', '.bat', '.com'];
+
+function expandWindowsSpawnCandidates(filePath: string): string[] {
+  if (process.platform !== 'win32' || path.extname(filePath)) {
+    return [filePath];
+  }
+  return WINDOWS_SPAWN_EXTENSIONS.map((ext) => `${filePath}${ext}`);
+}
 
 function isExecutableFile(filePath: string): boolean {
   try {
     const stat = fs.statSync(filePath);
     if (!stat.isFile()) return false;
-    if (process.platform === 'win32') return true;
+    if (process.platform === 'win32') {
+      return WINDOWS_SPAWN_EXTENSIONS.includes(
+        path.extname(filePath).toLowerCase(),
+      );
+    }
     fs.accessSync(filePath, fs.constants.X_OK);
     return true;
   } catch {
@@ -156,8 +168,10 @@ function resolveSpawnCommand(command: string): string | null {
   }
 
   for (const candidate of candidates) {
-    if (isExecutableFile(candidate)) {
-      return candidate;
+    for (const expanded of expandWindowsSpawnCandidates(candidate)) {
+      if (isExecutableFile(expanded)) {
+        return expanded;
+      }
     }
   }
 

@@ -1924,100 +1924,100 @@ export function renderChatModal(
 export const chatStyles = css`
   /* 暗色主题变量（默认） */
   :host {
-    --chat-bg: #1e1e1e;
-    --chat-header-bg: #252526;
-    --chat-border: #333;
-    --chat-text: #d4d4d4;
-    --chat-text-primary: #d4d4d4;
-    --chat-text-secondary: #ccc;
-    --chat-text-muted: #aaa;
-    --chat-text-placeholder: #888;
-    --chat-accent: #569cd6;
-    --chat-accent-hover: #6cb6ff;
-    --chat-overlay: rgba(0, 0, 0, 0.3);
-    --chat-shadow: rgba(0, 0, 0, 0.4);
-    --chat-code-bg: #2d2d2d;
-    --chat-code-text: #ce9178;
-    --chat-pre-bg: #1a1a1a;
-    --chat-pre-text: #d4d4d4;
-    --chat-prompt-ai: #c586c0;
-    --chat-tool-bg: #252526;
-    --chat-tool-border: #555;
-    --chat-tool-complete: #4ec9b0;
-    --chat-tool-name: #dcdcaa;
-    --chat-tool-result: #9cdcfe;
-    --chat-tool-error: #f48771;
-    --chat-tool-prefix: #555;
-    --chat-scrollbar-track: #1e1e1e;
-    --chat-scrollbar-thumb: #424242;
-    --chat-scrollbar-hover: #555;
-    --chat-heading: #e0e0e0;
-    --chat-strong: #e0e0e0;
-    --chat-em: #b5b5b5;
-    --chat-del: #888;
-    --chat-blockquote-bg: #252526;
-    --chat-blockquote-text: #aaa;
-    --chat-table-header-bg: #252526;
-    --chat-table-alt-bg: #1a1a1a;
-    --chat-input-bg: #1e1e1e;
-    --chat-btn-text: #1e1e1e;
-    --chat-ai-text: #9cdcfe;
-    --chat-user-text: #d4d4d4;
-    --chat-hover-bg: #333;
-    --chat-bg-secondary: #2a2a2a;
-    --chat-diff-add-bg: rgba(35, 134, 54, 0.15);
-    --chat-diff-add-text: #4ec9b0;
-    --chat-diff-del-bg: rgba(218, 54, 51, 0.15);
-    --chat-diff-del-text: #f48771;
+    --chat-bg: #2e3440;
+    --chat-header-bg: #3b4252;
+    --chat-border: #4c566a;
+    --chat-text: #d8dee9;
+    --chat-text-primary: #e5e9f0;
+    --chat-text-secondary: #c0c8d6;
+    --chat-text-muted: #a7b1c2;
+    --chat-text-placeholder: #a7b1c2;
+    --chat-accent: #88c0d0;
+    --chat-accent-hover: #8fbcbb;
+    --chat-overlay: rgba(46, 52, 64, 0.52);
+    --chat-shadow: rgba(46, 52, 64, 0.38);
+    --chat-code-bg: #3b4252;
+    --chat-code-text: #d08770;
+    --chat-pre-bg: #2b303b;
+    --chat-pre-text: #e5e9f0;
+    --chat-prompt-ai: #b48ead;
+    --chat-tool-bg: #3b4252;
+    --chat-tool-border: #4c566a;
+    --chat-tool-complete: #a3be8c;
+    --chat-tool-name: #ebcb8b;
+    --chat-tool-result: #88c0d0;
+    --chat-tool-error: #bf616a;
+    --chat-tool-prefix: #7b88a1;
+    --chat-scrollbar-track: #2e3440;
+    --chat-scrollbar-thumb: #4c566a;
+    --chat-scrollbar-hover: #5e81ac;
+    --chat-heading: #eceff4;
+    --chat-strong: #eceff4;
+    --chat-em: #c0c8d6;
+    --chat-del: #7b88a1;
+    --chat-blockquote-bg: #3b4252;
+    --chat-blockquote-text: #c0c8d6;
+    --chat-table-header-bg: #3b4252;
+    --chat-table-alt-bg: #343b4a;
+    --chat-input-bg: #2e3440;
+    --chat-btn-text: #ffffff;
+    --chat-ai-text: #88c0d0;
+    --chat-user-text: #e5e9f0;
+    --chat-hover-bg: #434c5e;
+    --chat-bg-secondary: #3b4252;
+    --chat-diff-add-bg: rgba(163, 190, 140, 0.16);
+    --chat-diff-add-text: #a3be8c;
+    --chat-diff-del-bg: rgba(191, 97, 106, 0.16);
+    --chat-diff-del-text: #bf616a;
   }
 
   /* 亮色主题变量 */
   :host(.chat-theme-light) {
-    --chat-bg: #ffffff;
-    --chat-header-bg: #f5f5f5;
-    --chat-border: #e0e0e0;
-    --chat-text: #333333;
-    --chat-text-primary: #333333;
-    --chat-text-secondary: #555555;
-    --chat-text-muted: #666;
-    --chat-text-placeholder: #aaaaaa;
-    --chat-accent: #0969da;
-    --chat-accent-hover: #0550ae;
-    --chat-overlay: rgba(0, 0, 0, 0.15);
-    --chat-shadow: rgba(0, 0, 0, 0.12);
-    --chat-code-bg: #eff1f3;
-    --chat-code-text: #d73e1d;
-    --chat-pre-bg: #f6f8fa;
-    --chat-pre-text: #333333;
-    --chat-prompt-ai: #8250df;
-    --chat-tool-bg: #f5f5f5;
-    --chat-tool-border: #d0d0d0;
-    --chat-tool-complete: #1a7f37;
-    --chat-tool-name: #953800;
-    --chat-tool-result: #0550ae;
-    --chat-tool-error: #cf222e;
-    --chat-tool-prefix: #bbb;
-    --chat-scrollbar-track: #ffffff;
-    --chat-scrollbar-thumb: #c8c8c8;
-    --chat-scrollbar-hover: #a0a0a0;
-    --chat-heading: #1f2328;
-    --chat-strong: #1f2328;
-    --chat-em: #555555;
-    --chat-del: #aaaaaa;
-    --chat-blockquote-bg: #f5f5f5;
-    --chat-blockquote-text: #666666;
-    --chat-table-header-bg: #f5f5f5;
-    --chat-table-alt-bg: #f6f8fa;
-    --chat-input-bg: #ffffff;
+    --chat-bg: #eceff4;
+    --chat-header-bg: #e5e9f0;
+    --chat-border: #c7d0dd;
+    --chat-text: #2e3440;
+    --chat-text-primary: #2e3440;
+    --chat-text-secondary: #434c5e;
+    --chat-text-muted: #4c566a;
+    --chat-text-placeholder: #5e6b82;
+    --chat-accent: #4c6f97;
+    --chat-accent-hover: #3f5f84;
+    --chat-overlay: rgba(46, 52, 64, 0.16);
+    --chat-shadow: rgba(46, 52, 64, 0.14);
+    --chat-code-bg: #e5e9f0;
+    --chat-code-text: #a34b5c;
+    --chat-pre-bg: #e5e9f0;
+    --chat-pre-text: #2e3440;
+    --chat-prompt-ai: #8a5d83;
+    --chat-tool-bg: #e5e9f0;
+    --chat-tool-border: #c7d0dd;
+    --chat-tool-complete: #5f7a60;
+    --chat-tool-name: #8f6f3e;
+    --chat-tool-result: #4c6f97;
+    --chat-tool-error: #a34b5c;
+    --chat-tool-prefix: #6b778c;
+    --chat-scrollbar-track: #eceff4;
+    --chat-scrollbar-thumb: #c7d0dd;
+    --chat-scrollbar-hover: #a7b1c2;
+    --chat-heading: #2e3440;
+    --chat-strong: #2e3440;
+    --chat-em: #434c5e;
+    --chat-del: #6b778c;
+    --chat-blockquote-bg: #e5e9f0;
+    --chat-blockquote-text: #434c5e;
+    --chat-table-header-bg: #e5e9f0;
+    --chat-table-alt-bg: #e7ebf1;
+    --chat-input-bg: #eceff4;
     --chat-btn-text: #ffffff;
-    --chat-ai-text: #0550ae;
-    --chat-user-text: #333333;
-    --chat-hover-bg: #e8e8e8;
-    --chat-bg-secondary: #f0f2f5;
-    --chat-diff-add-bg: rgba(35, 134, 54, 0.1);
-    --chat-diff-add-text: #1a7f37;
-    --chat-diff-del-bg: rgba(218, 54, 51, 0.1);
-    --chat-diff-del-text: #cf222e;
+    --chat-ai-text: #3f5f84;
+    --chat-user-text: #2e3440;
+    --chat-hover-bg: #dde3ec;
+    --chat-bg-secondary: #e5e9f0;
+    --chat-diff-add-bg: rgba(95, 122, 96, 0.14);
+    --chat-diff-add-text: #4f6b53;
+    --chat-diff-del-bg: rgba(163, 75, 92, 0.14);
+    --chat-diff-del-text: #8f3f4f;
   }
 
   /* 聊天框样式 */
@@ -3248,8 +3248,16 @@ export const chatStyles = css`
     flex-direction: column;
   }
 
+  .chat-terminal-container[data-terminal-provider="opencode"] {
+    padding: 0;
+  }
+
   .chat-terminal-container .xterm-rows {
     padding: 4px 0 0 4px;
+  }
+
+  .chat-terminal-container[data-terminal-provider="opencode"] .xterm-rows {
+    padding: 0;
   }
 
   .chat-terminal-container .xterm {

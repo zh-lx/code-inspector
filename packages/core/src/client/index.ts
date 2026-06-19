@@ -2018,7 +2018,11 @@ export class CodeInspectorComponent extends LitElement {
     if (!containerEl) return;
 
     if (this.terminalManager && !this.terminalManager.isDisposed()) {
-      this.terminalManager.remount(containerEl, this.chatTheme);
+      this.terminalManager.remount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
       this.terminalManager.focus();
       return;
     }
@@ -2043,13 +2047,21 @@ export class CodeInspectorComponent extends LitElement {
 
     // 如果已有终端且未销毁，重新挂载到当前容器
     if (this.terminalManager && !this.terminalManager.isDisposed()) {
-      this.terminalManager.remount(containerEl, this.chatTheme);
+      this.terminalManager.remount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
       this.terminalManager.focus();
       return;
     }
 
     this.terminalManager = new AITerminalManager(this.ip, this.port);
-    this.terminalManager.mount(containerEl, this.chatTheme);
+    this.terminalManager.mount(
+      containerEl,
+      this.chatTheme,
+      this.chatProvider || 'claudeCode',
+    );
 
     this.terminalManager.onExit = (code: number) => {
       this.terminalExitCode = code;
@@ -2141,7 +2153,11 @@ export class CodeInspectorComponent extends LitElement {
       this.terminalManager.clear();
     } else {
       this.terminalManager = new AITerminalManager(this.ip, this.port);
-      this.terminalManager.mount(containerEl, this.chatTheme);
+      this.terminalManager.mount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
     }
 
     this.terminalManager.onExit = (code: number) => {
