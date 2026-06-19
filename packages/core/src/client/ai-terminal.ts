@@ -541,7 +541,7 @@ export class AITerminalManager {
       ) {
         this.terminal.resize(dims.cols, dims.rows);
       }
-      if (dims && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         const msg: TerminalResizeMessage = {
           type: 'resize',
           cols: dims.cols,
