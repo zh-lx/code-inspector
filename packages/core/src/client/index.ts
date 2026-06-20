@@ -3710,7 +3710,7 @@ export class CodeInspectorComponent extends LitElement {
         position: fixed;
         pointer-events: none;
         z-index: 9999999999999;
-        font-family: 'PingFang SC';
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         .margin-overlay {
           position: absolute;
           inset: 0;
@@ -3751,14 +3751,7 @@ export class CodeInspectorComponent extends LitElement {
         box-sizing: border-box;
         padding: 6px 8px;
         border-radius: 2px;
-        font-family:
-          'PingFang SC',
-          -apple-system,
-          BlinkMacSystemFont,
-          'Segoe UI',
-          'Helvetica Neue',
-          Arial,
-          sans-serif;
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
       .element-info-top {
         top: -4px;
@@ -3859,9 +3852,7 @@ export class CodeInspectorComponent extends LitElement {
         z-index: 9999999999999999;
         min-width: 300px;
         max-width: min(max(30vw, 300px), 400px);
-        font-family:
-          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          'Liberation Mono', 'Courier New', monospace;
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         display: flex;
         flex-direction: column;
         padding: 0;
@@ -3900,7 +3891,7 @@ export class CodeInspectorComponent extends LitElement {
           font-size: 9px;
           color: #777;
           margin-top: 1px;
-          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
       }
 
@@ -4113,7 +4104,7 @@ if (!document.getElementById('code-inspector-notification-styles')) {
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-weight: 500;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       opacity: 0;

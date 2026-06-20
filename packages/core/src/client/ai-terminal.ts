@@ -727,7 +727,7 @@ export class AITerminalManager {
       fontSize: 13,
       fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace",
       theme: terminalThemeFor(theme),
-      minimumContrastRatio: 1,
+      minimumContrastRatio: 1.8,
       overviewRuler: { width: this.getOverviewRulerWidth() },
       allowProposedApi: true,
       scrollback: 5000,
