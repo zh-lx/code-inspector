@@ -10,6 +10,10 @@ function getAstroPropagatedPathExpression() {
   return `typeof $$props !== 'undefined' && $$props && $$props[${pathName}] || Astro.props && Astro.props[${pathName}]`;
 }
 
+function astroPath(filePath: string, line: number, column: number, name: string) {
+  return JSON.stringify(`${filePath}:${line}:${column}:${name}`);
+}
+
 function createAstroFixture(content: string, compilerSource: string) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-astro-'));
   const srcDir = path.join(root, 'src');
@@ -56,7 +60,7 @@ describe('transformAstro compiler path', () => {
       );
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${filePath}:1:1:main"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(filePath, 1, 1, 'main')}}`,
       );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -176,16 +180,16 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${customOffset + 1}:custom-el"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, customOffset + 1, 'custom-el')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${cardOffset + 1}:Card"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, cardOffset + 1, 'Card')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, svgOffset + 1, 'svg')}`,
       );
       expect(result).toContain('<p data-insp-path="old">Text</p>');
       expect(result).not.toContain(':path"');
@@ -235,9 +239,9 @@ module.exports = {
     try {
       const result = await transformAstro(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:div"`);
+      expect(result).toContain(`${PathName}=${astroPath(fixture.filePath, 1, 1, 'div')}`);
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, svgOffset + 1, 'svg')}`,
       );
       expect(result).not.toContain(`${fixture.filePath}:1:${pathOffset + 1}:path`);
       expect(result).not.toContain(getAstroPropagatedPathExpression());
@@ -294,7 +298,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -327,7 +331,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -356,7 +360,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `<section class="inspector-complex" ${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:4:1:section"}`,
+        `<section class="inspector-complex" ${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 4, 1, 'section')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -380,7 +384,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:section"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'section')}}`,
       );
     } finally {
       fixture.cleanup();

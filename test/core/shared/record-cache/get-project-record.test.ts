@@ -119,10 +119,10 @@ describe('getProjectRecord', () => {
   });
 
   describe('when no write permission', () => {
-    it('should return record from memory cache', function() {
+    it('should return record from memory cache', () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/no/permission/project');
@@ -156,10 +156,10 @@ describe('getProjectRecord', () => {
       });
     });
 
-    it('should return undefined from memory cache when no record exists', function() {
+    it('should return undefined from memory cache when no record exists', () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/fresh/no/permission/project');

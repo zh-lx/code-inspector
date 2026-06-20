@@ -24,6 +24,9 @@ export default defineConfig({
             //   models: ['gpt-5.2'],
             // },
           },
+          // opencode: {
+          //   type: 'terminal',
+          // },
         },
       },
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']

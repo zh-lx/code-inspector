@@ -535,7 +535,11 @@ describe('claude provider helpers', () => {
     process.env.HOME = fakeHome;
 
     const found = __TEST_ONLY__.findClaudeCodeCli();
-    expect(found).toBeNull();
+    if (process.platform === 'win32') {
+      expect(found).toBe(fallbackPath);
+    } else {
+      expect(found).toBeNull();
+    }
 
     process.env.PATH = oldPath;
     process.env.HOME = oldHome;

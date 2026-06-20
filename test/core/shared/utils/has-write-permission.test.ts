@@ -50,10 +50,10 @@ describe('hasWritePermission', () => {
       expect(hasWritePermission(testFile)).toBe(true);
     });
 
-    it('should return false for read-only file', function() {
+    it('should return false for read-only file', () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
       expect(hasWritePermission(readOnlyFile)).toBe(false);
     });
@@ -74,10 +74,10 @@ describe('hasWritePermission', () => {
       expect(hasWritePermission(nonExistentPath)).toBe(false);
     });
 
-    it('should return false if parent directory is not writable', function() {
+    it('should return false if parent directory is not writable', () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       // Create a read-only directory
