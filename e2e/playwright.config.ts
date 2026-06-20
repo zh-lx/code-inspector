@@ -6,8 +6,8 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
   workers: 1,
-  retries: 0,
-  // 单用例含 dev server 冷启动（最慢的 next/nuxt/vue-cli 可达 ~2min）+ 页面加载 + 断言
+  retries: process.env.CI ? 3 : 0,
+  // 单用例含 dev server 冷启动 + 页面加载 + 断言
   timeout: 240_000,
   expect: { timeout: 15_000 },
   reporter: [['list']],

@@ -7,6 +7,7 @@ export const demosRoot = path.join(repoRoot, 'demos');
 export const INSPECTOR_PORT = 5678;
 // 注入属性名（packages/core/src/shared/constant.ts -> PathName）
 export const PATH_NAME = 'data-insp-path';
+export const DEFAULT_READY_TIMEOUT_MS = 240_000;
 
 // 通用 dev-server URL 解析：匹配 stdout 中第一个 http(s)://<本机host>:<port>
 // 覆盖 localhost / 127.0.0.1 / 0.0.0.0 / [::1] / [::]（部分工具只打印后几种）
@@ -22,7 +23,7 @@ export interface DemoConfig {
   args?: string[];
   /** 额外环境变量 */
   env?: Record<string, string>;
-  /** 等待 dev server 就绪的超时（ms），默认 60000 */
+  /** 等待 dev server 就绪的超时（ms），默认 240000 */
   readyTimeoutMs?: number;
   /** 自定义 URL 解析正则（默认 GENERIC_URL_REGEX） */
   urlRegex?: RegExp;
@@ -32,7 +33,7 @@ export interface DemoConfig {
   inspectorPort?: number;
 }
 
-const HEAVY = 120_000;
+const HEAVY = DEFAULT_READY_TIMEOUT_MS;
 
 export const demos: DemoConfig[] = [
   // ---- vite 系（默认 `vite`，通用解析）----

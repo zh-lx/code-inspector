@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { demos, PATH_NAME } from '../demos.config';
+import { DEFAULT_READY_TIMEOUT_MS, demos, PATH_NAME } from '../demos.config';
 import { bootDemo, type BootedDemo } from '../helpers/boot-demo';
 import { parseInspPath } from '../helpers/inspector';
 import { MockInspectorServer } from '../helpers/mock-server';
@@ -15,7 +15,7 @@ demos.forEach((demo, index) => {
 
 for (const demo of demos) {
   test(`L2 locate: ${demo.dir}`, async ({ page }) => {
-    test.setTimeout((demo.readyTimeoutMs ?? 60_000) + 60_000);
+    test.setTimeout((demo.readyTimeoutMs ?? DEFAULT_READY_TIMEOUT_MS) + 60_000);
 
     let booted: BootedDemo | undefined;
     let mockServer: MockInspectorServer | undefined;

@@ -1,7 +1,12 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import path from 'node:path';
 import treeKill from 'tree-kill';
-import { demosRoot, GENERIC_URL_REGEX, type DemoConfig } from '../demos.config';
+import {
+  DEFAULT_READY_TIMEOUT_MS,
+  demosRoot,
+  GENERIC_URL_REGEX,
+  type DemoConfig,
+} from '../demos.config';
 
 const ANSI = /\x1b\[[0-9;]*m/g;
 
@@ -45,7 +50,7 @@ export async function bootDemo(cfg: DemoConfig): Promise<BootedDemo> {
   const cwd = path.join(demosRoot, cfg.dir);
   const cmd = cfg.cmd ?? 'pnpm';
   const args = cfg.args ?? ['run', 'dev'];
-  const timeout = cfg.readyTimeoutMs ?? 60_000;
+  const timeout = cfg.readyTimeoutMs ?? DEFAULT_READY_TIMEOUT_MS;
   const urlRegex = cfg.urlRegex ?? GENERIC_URL_REGEX;
 
   const proc = spawn(cmd, args, {

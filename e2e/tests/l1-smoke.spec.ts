@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { demos } from '../demos.config';
+import { DEFAULT_READY_TIMEOUT_MS, demos } from '../demos.config';
 import { bootDemo, type BootedDemo } from '../helpers/boot-demo';
 import {
   collectInspPaths,
@@ -10,7 +10,7 @@ import {
 // L1：对每个 demo 验证 ① dev server 成功启动并渲染 ② data-insp-path 正确注入。
 for (const demo of demos) {
   test(`L1 smoke: ${demo.dir}`, async ({ page }) => {
-    test.setTimeout((demo.readyTimeoutMs ?? 60_000) + 60_000);
+    test.setTimeout((demo.readyTimeoutMs ?? DEFAULT_READY_TIMEOUT_MS) + 60_000);
 
     let booted: BootedDemo | undefined;
     try {
