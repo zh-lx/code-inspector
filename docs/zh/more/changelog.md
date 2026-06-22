@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.2
+
+- 【fix】重命名插件 Lit 相关全局变量，避免与用户项目中安装的 Lit 版本冲突 [#546](https://github.com/zh-lx/code-inspector/pull/546)
+
 ## 1.6.1
 
 - 【fix】优化 inspector tooltip 位置逻辑，防止遮挡目标元素 [#541](https://github.com/zh-lx/code-inspector/pull/541)

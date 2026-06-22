@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2
+
+- 【fix】Renamed plugin Lit-related global variables to avoid conflicts with Lit versions installed in user projects [#546](https://github.com/zh-lx/code-inspector/pull/546)
+
 ## 1.6.1
 
 - 【fix】Optimize inspector tooltip position logic to prevent covering target elements [#541](https://github.com/zh-lx/code-inspector/pull/541)
