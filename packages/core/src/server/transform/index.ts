@@ -4,6 +4,7 @@ import { transformJsx } from './transform-jsx';
 import { transformMdx } from './transform-mdx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
+export { createVueInspectorNodeTransform } from './vue-node-transform';
 import { EscapeTags, PathType, isIgnoredFile } from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
 
