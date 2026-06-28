@@ -1,15 +1,26 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
+import { createRequire } from 'node:module';
 import {
   resolveVueCompilerDom,
   transformVue,
 } from '@/core/src/server/transform/transform-vue';
+import {
+  createVueInspectorNodeTransform,
+} from '@/core/src/server/transform/vue-node-transform';
 import { PathName } from '@/core/src/shared/constant';
 
 // Only mock server module, not fs
 vi.mock('@/core/src/server/server', () => ({
   ProjectRootPath: '/mock/project',
+  getRelativeOrAbsolutePath: (filePath: string, pathType?: string) =>
+    pathType === 'relative'
+      ? filePath.replace('/mock/project/', '')
+      : filePath,
 }));
+
+const coreRequire = createRequire(`${process.cwd()}/packages/core/package.json`);
+const { compile } = coreRequire('@vue/compiler-dom') as { compile: any };
 
 describe('transformVue', () => {
   const filePath = 'test/file.vue';
@@ -702,5 +713,46 @@ const count = ref(0);
         }),
       ).toThrowError('Failed to load @vue/compiler-dom parse/transform exports');
     });
+  });
+});
+
+describe('createVueInspectorNodeTransform', () => {
+  it('should inject data-insp-path through Vue compiler AST without changing source', () => {
+    const source = '<div><span>Hi</span></div>';
+    const result = compile(source, {
+      filename: '/mock/project/src/App.vue',
+      nodeTransforms: [
+        createVueInspectorNodeTransform({
+          pathType: 'relative',
+        }),
+      ],
+    });
+
+    expect(source).toBe('<div><span>Hi</span></div>');
+    expect(result.code).toContain(
+      `"${PathName}": "src/App.vue:1:1:div"`,
+    );
+    expect(result.code).toContain(
+      `"${PathName}": "src/App.vue:1:6:span"`,
+    );
+  });
+
+  it('should respect escapeTags and existing data-insp-path attributes', () => {
+    const result = compile(
+      `<div ${PathName}="existing"><custom-card>Skip</custom-card></div>`,
+      {
+        filename: '/mock/project/src/App.vue',
+        nodeTransforms: [
+          createVueInspectorNodeTransform({
+            escapeTags: [/^custom-/],
+            pathType: 'relative',
+          }),
+        ],
+      },
+    );
+
+    expect(result.code.match(new RegExp(PathName, 'g'))?.length).toBe(1);
+    expect(result.code).toContain(`"${PathName}": "existing"`);
+    expect(result.code).not.toContain(':custom-card');
   });
 });

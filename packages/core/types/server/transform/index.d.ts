@@ -1,3 +1,4 @@
+export { createVueInspectorNodeTransform } from './vue-node-transform';
 import { EscapeTags, PathType } from '../../shared';
 type FileType = 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
 type TransformCodeParams = {
@@ -9,4 +10,3 @@ type TransformCodeParams = {
     mdx?: boolean;
 };
 export declare function transformCode(params: TransformCodeParams): Promise<string>;
-export {};

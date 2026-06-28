@@ -1,6 +1,7 @@
 import {
   CodeOptions,
   RecordInfo,
+  createVueInspectorNodeTransform,
   getCodeWithWebComponent,
   getProjectRecord,
   isDev,
@@ -14,10 +15,111 @@ const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface LoaderOptions extends CodeOptions {
   record: RecordInfo;
+  vueCompilerNodeTransform?: boolean;
 }
 
 const baseLoaderPath = path.resolve(compatibleDirname, './loader.js');
 const injectLoaderPath = path.resolve(compatibleDirname, './inject-loader.js');
+const codeInspectorVueNodeTransform = Symbol.for(
+  'code-inspector.vueNodeTransform',
+);
+
+function getUseItems(rule: any): any[] {
+  if (!rule) {
+    return [];
+  }
+
+  if (Array.isArray(rule.use)) {
+    return rule.use;
+  }
+
+  if (rule.loader) {
+    return [rule];
+  }
+
+  return [];
+}
+
+function walkRules(rules: any[], visitor: (rule: any) => void) {
+  rules.forEach((rule) => {
+    visitor(rule);
+    if (Array.isArray(rule.rules)) {
+      walkRules(rule.rules, visitor);
+    }
+    if (Array.isArray(rule.oneOf)) {
+      walkRules(rule.oneOf, visitor);
+    }
+  });
+}
+
+function isVueLoader(loader: string) {
+  return /(^|[\\/])vue-loader([\\/]|$)/.test(loader);
+}
+
+function isVueTemplateLoader(loader: string) {
+  return /(^|[\\/])vue-loader[\\/]dist[\\/]templateLoader\.js$/.test(loader);
+}
+
+function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
+  const _compiler = compiler?.compiler || compiler;
+  const module = _compiler?.options?.module;
+  const rules = module?.rules || module?.loaders || [];
+  let applied = false;
+
+  walkRules(rules, (rule) => {
+    getUseItems(rule).forEach((item) => {
+      const loader = typeof item === 'string' ? item : item?.loader;
+      if (
+        typeof loader !== 'string' ||
+        (!isVueLoader(loader) && !isVueTemplateLoader(loader))
+      ) {
+        return;
+      }
+
+      if (typeof item === 'string') {
+        return;
+      }
+
+      if (!item.options || typeof item.options !== 'object') {
+        item.options = {};
+      }
+
+      const loaderOptions = item.options;
+      if (
+        !loaderOptions.compilerOptions ||
+        typeof loaderOptions.compilerOptions !== 'object'
+      ) {
+        loaderOptions.compilerOptions = {};
+      }
+
+      const compilerOptions = loaderOptions.compilerOptions;
+      if (!Array.isArray(compilerOptions.nodeTransforms)) {
+        compilerOptions.nodeTransforms = [];
+      }
+
+      const nodeTransforms = compilerOptions.nodeTransforms;
+      const hasRegistered = nodeTransforms.some(
+        (transform: any) => transform?.[codeInspectorVueNodeTransform],
+      );
+
+      if (!hasRegistered) {
+        const transform = createVueInspectorNodeTransform({
+          escapeTags: options.escapeTags,
+          mappings: options.mappings,
+          pathType: options.pathType,
+        });
+        Object.defineProperty(transform, codeInspectorVueNodeTransform, {
+          value: true,
+        });
+        nodeTransforms.push(transform);
+      }
+
+      applied = true;
+    });
+  });
+
+  return applied;
+}
 
 function hasRegisteredCodeInspectorLoader(rules: any[]) {
   return rules.some((rule) =>
@@ -165,14 +267,18 @@ class WebpackCodeInspectorPlugin {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         record.port =
-          this.options.port || getProjectRecord(record)?.previousPort;
+            this.options.port || getProjectRecord(record)?.previousPort || 0;
         getPureClientCodeString(this.options, record, true);
       } else {
         cache.version = `code-inspector-${Date.now()}`;
       }
     }
 
-    applyLoader({ ...this.options, record }, compiler);
+    const vueCompilerNodeTransform = applyVueCompilerNodeTransform(
+      this.options,
+      compiler,
+    );
+    applyLoader({ ...this.options, record, vueCompilerNodeTransform }, compiler);
 
     if (
       compiler?.hooks?.emit &&

@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@code-inspector/core', () => ({
   CodeOptions: {},
   RecordInfo: {},
+  createVueInspectorNodeTransform: vi.fn(() => vi.fn()),
   fileURLToPath: vi.fn((url: string) => url.replace('file://', '')),
   getCodeWithWebComponent: vi.fn(async () => 'injected-code'),
   getProjectRecord: vi.fn(() => ({ previousPort: 3000 })),
@@ -28,6 +29,7 @@ vi.mock('@/webpack/src/entry', () => ({
 
 import WebpackCodeInspectorPlugin from '@/webpack/src/index';
 import {
+  createVueInspectorNodeTransform,
   getCodeWithWebComponent,
   getProjectRecord,
   isDev,
@@ -130,6 +132,49 @@ describe('WebpackCodeInspectorPlugin', () => {
       await plugin.apply(mockCompiler);
 
       expect(mockCompiler.options.module.rules.length).toBeGreaterThan(0);
+    });
+
+    it('should register Vue compiler node transform on vue-loader options', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const vueLoaderOptions = {
+        compilerOptions: {
+          nodeTransforms: [],
+        },
+      };
+      mockCompiler.options.module.rules.push({
+        test: /\.vue$/,
+        use: [
+          {
+            loader: '/test/node_modules/vue-loader/dist/index.js',
+            options: vueLoaderOptions,
+          },
+        ],
+      });
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+        pathType: 'relative',
+      });
+
+      await plugin.apply(mockCompiler);
+
+      expect(createVueInspectorNodeTransform).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pathType: 'relative',
+        }),
+      );
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+
+      const codeInspectorRule = mockCompiler.options.module.rules.find(
+        (rule: any) =>
+          rule?.use?.some?.((item: any) =>
+            item?.loader?.includes?.('loader.js'),
+          ),
+      );
+      expect(codeInspectorRule.use[0].options.vueCompilerNodeTransform).toBe(
+        true,
+      );
     });
   });
 
@@ -484,7 +529,9 @@ describe('WebpackCodeInspectorPlugin', () => {
       process.env.NODE_ENV = 'development';
       mockCompiler.options.mode = undefined;
 
-      vi.mocked(isDev).mockImplementation((dev, condition) => dev ?? condition);
+        vi.mocked(isDev).mockImplementation((dev, condition) =>
+          typeof dev === 'function' ? dev() : (dev ?? condition),
+        );
 
       const plugin = new WebpackCodeInspectorPlugin({
         bundler: 'webpack',
