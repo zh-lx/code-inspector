@@ -23,6 +23,15 @@ import {
   isExcludedFile,
 } from '@code-inspector/core';
 
+function callLoader(
+  context: any,
+  content: string,
+  source?: any,
+  meta?: any,
+) {
+  return WebpackCodeInspectorLoader.call(context, content, source, meta);
+}
+
 describe('WebpackCodeInspectorLoader', () => {
   let mockContext: any;
 
@@ -42,13 +51,13 @@ describe('WebpackCodeInspectorLoader', () => {
 
   describe('caching', () => {
     it('should call cacheable when available', async () => {
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(mockContext.cacheable).toHaveBeenCalledWith(true);
     });
 
     it('should work when cacheable is not available', async () => {
       delete mockContext.cacheable;
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(result).toBeDefined();
     });
 
@@ -59,7 +68,7 @@ describe('WebpackCodeInspectorLoader', () => {
         const callback = vi.fn((...args: any[]) => resolve(args));
         mockContext.async = vi.fn(() => callback);
 
-        const result = WebpackCodeInspectorLoader.call(
+        const result = callLoader(
           mockContext,
           'const x = 1;',
           source,
@@ -83,7 +92,7 @@ describe('WebpackCodeInspectorLoader', () => {
     it('should return original content for excluded files', async () => {
       vi.mocked(isExcludedFile).mockReturnValueOnce(true);
       const content = 'const x = 1;';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(result).toBe(content);
     });
   });
@@ -94,7 +103,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.tsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(true);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(transformCode).toHaveBeenCalledWith(
         expect.objectContaining({
           fileType: 'jsx',
@@ -107,7 +116,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.vue?isJsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(transformCode).toHaveBeenCalledWith(
         expect.objectContaining({
           fileType: 'jsx',
@@ -120,7 +129,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.vue?isTsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(transformCode).toHaveBeenCalled();
     });
 
@@ -129,7 +138,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.vue?lang.jsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(transformCode).toHaveBeenCalled();
     });
 
@@ -138,7 +147,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.vue?lang.tsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(transformCode).toHaveBeenCalled();
     });
   });
@@ -150,7 +159,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '<template></template><script lang="tsx">const a = 1;</script>';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(parseSFC).toHaveBeenCalled();
     });
 
@@ -160,7 +169,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '<template></template><script lang="jsx">const a = 1;</script>';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(parseSFC).toHaveBeenCalled();
     });
 
@@ -176,7 +185,7 @@ describe('WebpackCodeInspectorLoader', () => {
       } as any);
 
       const content = '<script lang="tsx">const a = 1;</script>';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(transformCode).toHaveBeenCalled();
     });
 
@@ -192,7 +201,7 @@ describe('WebpackCodeInspectorLoader', () => {
       } as any);
 
       const content = '<script setup lang="tsx">const b = 2;</script>';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(transformCode).toHaveBeenCalled();
     });
   });
@@ -203,7 +212,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.vue';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, '<template></template>');
+      const result = await callLoader(mockContext, '<template></template>');
       expect(transformCode).toHaveBeenCalledWith(
         expect.objectContaining({
           fileType: 'vue',
@@ -216,7 +225,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/template.html?type=template&vue';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, '<div></div>');
+      const result = await callLoader(mockContext, '<div></div>');
       expect(transformCode).toHaveBeenCalledWith(
         expect.objectContaining({
           fileType: 'vue',
@@ -230,7 +239,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '.class { color: red; }';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(result).toBe(content);
     });
 
@@ -240,7 +249,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = 'export default {}';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(result).toBe(content);
     });
 
@@ -250,7 +259,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '<template></template>';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(result).toBe(content);
     });
   });
@@ -261,12 +270,41 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.svelte';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, '<div></div>');
+      const result = await callLoader(mockContext, '<div></div>');
       expect(transformCode).toHaveBeenCalledWith(
         expect.objectContaining({
           fileType: 'svelte',
         })
       );
+    });
+
+    it('should skip Vue template string transform when compiler node transform is enabled', async () => {
+      mockContext.resourcePath = '/test/file.vue';
+      mockContext.resource = '/test/file.vue?vue&type=template&id=abc';
+      mockContext.query.vueCompilerNodeTransform = true;
+      vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
+
+      const content = '<section>Static</section>';
+      const result = await callLoader(
+        mockContext,
+        content,
+      );
+
+      expect(result).toBe(content);
+      expect(transformCode).not.toHaveBeenCalled();
+    });
+
+    it('should skip html-vue template transform when compiler node transform is enabled', async () => {
+      mockContext.resourcePath = '/test/file.html';
+      mockContext.resource = '/test/file.html?type=template&vue';
+      mockContext.query.vueCompilerNodeTransform = true;
+      vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
+
+      const content = '<section>Static</section>';
+      const result = await callLoader(mockContext, content);
+
+      expect(result).toBe(content);
+      expect(transformCode).not.toHaveBeenCalled();
     });
   });
 
@@ -277,7 +315,7 @@ describe('WebpackCodeInspectorLoader', () => {
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '.class { color: red; }';
-      const result = await WebpackCodeInspectorLoader.call(mockContext, content);
+      const result = await callLoader(mockContext, content);
       expect(result).toBe(content);
     });
   });
@@ -289,7 +327,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.tsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(true);
 
-      const result = await WebpackCodeInspectorLoader.call(mockContext, 'const x = 1;');
+      const result = await callLoader(mockContext, 'const x = 1;');
       expect(result).toBeDefined();
     });
 
@@ -299,7 +337,7 @@ describe('WebpackCodeInspectorLoader', () => {
       mockContext.resource = '/test/file.tsx';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(true);
 
-      const result = await WebpackCodeInspectorLoader.call(
+      const result = await callLoader(
         mockContext,
         'const x = 1;',
       );

@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { EscapeTags, PathName, isEscapeTags } from '../../shared';
 import type { ElementNode } from '@vue/compiler-dom';
+import { NodeTypes } from '@vue/compiler-dom';
 import * as pug from 'volar-service-pug/lib/languageService';
 
 interface AstLocation {
@@ -13,7 +14,6 @@ export interface PugFileInfo {
   offsets: number[];
 }
 
-const AttributeNodeType = 6;
 export const pugMap = new Map<string, PugFileInfo>(); // 使用了 pug 模板的 vue 文件集合
 
 export function belongTemplate(
@@ -122,7 +122,7 @@ export function isPugTemplate(templateNode: ElementNode | undefined): boolean {
   }
   return (templateNode.props || []).some(
     (prop) =>
-      prop.type === AttributeNodeType &&
+      prop.type === NodeTypes.ATTRIBUTE &&
       prop.name === 'lang' &&
       prop.value?.content === 'pug',
   );
