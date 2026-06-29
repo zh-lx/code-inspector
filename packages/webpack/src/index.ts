@@ -52,6 +52,13 @@ function walkRules(rules: any[], visitor: (rule: any) => void) {
   });
 }
 
+// Resolve module.rules across webpack/rspack versions and child compilers.
+function getCompilerRules(compiler: any): any[] {
+  const _compiler = compiler?.compiler || compiler;
+  const module = _compiler?.options?.module;
+  return module?.rules || module?.loaders || [];
+}
+
 function isVueLoader(loader: string) {
   return /(^|[\\/])vue-loader([\\/]|$)/.test(loader);
 }
@@ -61,9 +68,7 @@ function isVueTemplateLoader(loader: string) {
 }
 
 function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
-  const _compiler = compiler?.compiler || compiler;
-  const module = _compiler?.options?.module;
-  const rules = module?.rules || module?.loaders || [];
+  const rules = getCompilerRules(compiler);
   let applied = false;
 
   walkRules(rules, (rule) => {
@@ -131,10 +136,7 @@ function hasRegisteredCodeInspectorLoader(rules: any[]) {
 }
 
 const applyLoader = (options: LoaderOptions, compiler: any) => {
-  // 适配 webpack 各个版本
-  const _compiler = compiler?.compiler || compiler;
-  const module = _compiler?.options?.module;
-  const rules = module?.rules || module?.loaders || [];
+  const rules = getCompilerRules(compiler);
 
   if (hasRegisteredCodeInspectorLoader(rules)) {
     return;
@@ -267,7 +269,7 @@ class WebpackCodeInspectorPlugin {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         record.port =
-            this.options.port || getProjectRecord(record)?.previousPort || 0;
+          this.options.port || getProjectRecord(record)?.previousPort || 0;
         getPureClientCodeString(this.options, record, true);
       } else {
         cache.version = `code-inspector-${Date.now()}`;
@@ -278,7 +280,10 @@ class WebpackCodeInspectorPlugin {
       this.options,
       compiler,
     );
-    applyLoader({ ...this.options, record, vueCompilerNodeTransform }, compiler);
+    applyLoader(
+      { ...this.options, record, vueCompilerNodeTransform },
+      compiler,
+    );
 
     if (
       compiler?.hooks?.emit &&

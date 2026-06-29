@@ -7,34 +7,16 @@ import type {
   TextNode,
   TransformContext,
 } from '@vue/compiler-dom';
+import { NodeTypes } from '@vue/compiler-dom';
 import type { EscapeTags, PathType } from '../../shared';
 import {
+  CodeInspectorEscapeTags,
   PathName,
   getMappingFilePath,
   isEscapeTags,
   normalizePath,
 } from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
-
-const VueElementType = 1;
-const VueTextType = 2;
-const VueAttributeType = 6;
-
-const CodeInspectorEscapeTags = [
-  'style',
-  'script',
-  'template',
-  'transition',
-  'keepalive',
-  'keep-alive',
-  'component',
-  'slot',
-  'teleport',
-  'transition-group',
-  'transitiongroup',
-  'suspense',
-  'fragment',
-];
 
 type VueInspectorNodeTransformOptions = {
   escapeTags?: EscapeTags;
@@ -46,13 +28,13 @@ type VueInspectorNodeTransformOptions = {
 
 function hasInspectorPath(node: ElementNode) {
   return node.props.some(
-    (prop) => prop.type === VueAttributeType && prop.name === PathName,
+    (prop) => prop.type === NodeTypes.ATTRIBUTE && prop.name === PathName,
   );
 }
 
 function createTextNode(content: string, loc: SourceLocation): TextNode {
   return {
-    type: VueTextType,
+    type: NodeTypes.TEXT,
     content,
     loc,
   } as TextNode;
@@ -64,7 +46,7 @@ function createAttributeNode(
   loc: SourceLocation,
 ): AttributeNode {
   return {
-    type: VueAttributeType,
+    type: NodeTypes.ATTRIBUTE,
     name,
     nameLoc: loc,
     value: createTextNode(content, loc),
@@ -94,7 +76,7 @@ export function createVueInspectorNodeTransform(
 
   return ((node: TemplateChildNode, context: TransformContext) => {
     if (
-      node.type !== VueElementType ||
+      node.type !== NodeTypes.ELEMENT ||
       hasInspectorPath(node) ||
       isEscapeTags(finalEscapeTags, node.tag)
     ) {
