@@ -293,6 +293,19 @@ describe('WebpackCodeInspectorLoader', () => {
       expect(result).toBe(content);
       expect(transformCode).not.toHaveBeenCalled();
     });
+
+    it('should skip html-vue template transform when compiler node transform is enabled', async () => {
+      mockContext.resourcePath = '/test/file.html';
+      mockContext.resource = '/test/file.html?type=template&vue';
+      mockContext.query.vueCompilerNodeTransform = true;
+      vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
+
+      const content = '<section>Static</section>';
+      const result = await callLoader(mockContext, content);
+
+      expect(result).toBe(content);
+      expect(transformCode).not.toHaveBeenCalled();
+    });
   });
 
   describe('other files', () => {

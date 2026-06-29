@@ -176,6 +176,125 @@ describe('WebpackCodeInspectorPlugin', () => {
         true,
       );
     });
+
+    it('should initialize compilerOptions when not present on vue-loader options', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const vueLoaderOptions = {};
+      mockCompiler.options.module.rules.push({
+        test: /\.vue$/,
+        use: [
+          {
+            loader: '/test/node_modules/vue-loader/dist/index.js',
+            options: vueLoaderOptions,
+          },
+        ],
+      });
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+      await plugin.apply(mockCompiler);
+
+      expect(vueLoaderOptions.compilerOptions).toBeDefined();
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+    });
+
+    it('should initialize nodeTransforms array when not present', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const vueLoaderOptions = { compilerOptions: {} };
+      mockCompiler.options.module.rules.push({
+        test: /\.vue$/,
+        use: [
+          {
+            loader: '/test/node_modules/vue-loader/dist/index.js',
+            options: vueLoaderOptions,
+          },
+        ],
+      });
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+      await plugin.apply(mockCompiler);
+
+      expect(Array.isArray(vueLoaderOptions.compilerOptions.nodeTransforms)).toBe(true);
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+    });
+
+    it('should initialize options object when not present on vue-loader use item', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const useItem: any = {
+        loader: '/test/node_modules/vue-loader/dist/index.js',
+      };
+      mockCompiler.options.module.rules.push({
+        test: /\.vue$/,
+        use: [useItem],
+      });
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+      await plugin.apply(mockCompiler);
+
+      expect(useItem.options).toBeDefined();
+      expect(useItem.options.compilerOptions.nodeTransforms).toHaveLength(1);
+    });
+
+    it('should walk nested rules (oneOf/rules) and skip string loaders', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const vueLoaderOptions = { compilerOptions: { nodeTransforms: [] } };
+      mockCompiler.options.module.rules.push({
+        oneOf: [
+          {
+            rules: [
+              {
+                use: [
+                  // string loader matching vue-loader -> skipped (typeof string)
+                  'vue-loader',
+                  {
+                    loader: '/test/node_modules/vue-loader/dist/index.js',
+                    options: vueLoaderOptions,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+      await plugin.apply(mockCompiler);
+
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+    });
+
+    it('should handle rule.loader shorthand and falsy rule entries', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      const vueLoaderOptions = { compilerOptions: { nodeTransforms: [] } };
+      mockCompiler.options.module.rules.push(
+        // falsy rule entry -> getUseItems returns []
+        null,
+        // rule.loader shorthand (no `use` array) -> getUseItems returns [rule]
+        {
+          loader: '/test/node_modules/vue-loader/dist/index.js',
+          options: vueLoaderOptions,
+        },
+      );
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+      });
+      await plugin.apply(mockCompiler);
+
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+    });
   });
 
   describe('filesystem cache handling', () => {
@@ -208,6 +327,22 @@ describe('WebpackCodeInspectorPlugin', () => {
       await plugin.apply(mockCompiler);
 
       expect(mockCompiler.options.cache.version).toMatch(/^code-inspector-/);
+    });
+
+    it('should default record.port to 0 when no port and no previousPort', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      mockCompiler.options.cache = { type: 'filesystem' };
+      vi.mocked(getProjectRecord).mockReturnValueOnce({ previousPort: 0 } as any);
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'webpack',
+        output: '/test',
+        cache: true,
+      });
+
+      await plugin.apply(mockCompiler);
+
+      expect(getProjectRecord).toHaveBeenCalled();
     });
 
     it('should use previousPort when port is not specified', async () => {

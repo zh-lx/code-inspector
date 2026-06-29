@@ -25,10 +25,6 @@ const codeInspectorVueNodeTransform = Symbol.for(
 );
 
 function getUseItems(rule: any): any[] {
-  if (!rule) {
-    return [];
-  }
-
   if (Array.isArray(rule.use)) {
     return rule.use;
   }
@@ -42,6 +38,9 @@ function getUseItems(rule: any): any[] {
 
 function walkRules(rules: any[], visitor: (rule: any) => void) {
   rules.forEach((rule) => {
+    if (!rule) {
+      return;
+    }
     visitor(rule);
     if (Array.isArray(rule.rules)) {
       walkRules(rule.rules, visitor);

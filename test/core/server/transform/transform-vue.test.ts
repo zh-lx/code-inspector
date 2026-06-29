@@ -755,4 +755,29 @@ describe('createVueInspectorNodeTransform', () => {
     expect(result.code).toContain(`"${PathName}": "existing"`);
     expect(result.code).not.toContain(':custom-card');
   });
+
+  it('should default pathType to relative and apply mappings', () => {
+    const result = compile('<div>mapped</div>', {
+      filename: '/mock/project/src/App.vue',
+      nodeTransforms: [
+        createVueInspectorNodeTransform({
+          // no pathType -> defaults to 'relative'
+          mappings: [{ find: '/mock/project/', replacement: '/mapped/' }],
+        }),
+      ],
+    });
+
+    // mapping target does not exist on disk, so path is unchanged then made relative
+    expect(result.code).toContain(`"${PathName}": "src/App.vue:1:1:div"`);
+  });
+
+  it('should handle empty filename gracefully', () => {
+    const result = compile('<div>no filename</div>', {
+      // no filename -> context.filename is empty -> defaults to ''
+      nodeTransforms: [createVueInspectorNodeTransform({ pathType: 'relative' })],
+    });
+
+    // normalizePath('') resolves to '.', so path becomes '.'
+    expect(result.code).toContain(`"${PathName}": ".:1:1:div"`);
+  });
 });
