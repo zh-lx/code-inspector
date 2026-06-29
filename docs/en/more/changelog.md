@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.3
+
+- 【fix】Fixed the issue where scope CSS would fail in production builds for webpack/rspack Vue projects [#549](https://github.com/zh-lx/code-inspector/pull/549)
+
 ## 1.6.2
 
 - 【fix】Renamed plugin Lit-related global variables to avoid conflicts with Lit versions installed in user projects [#546](https://github.com/zh-lx/code-inspector/pull/546)
