@@ -61,20 +61,13 @@ function isVueLoader(loader: string) {
   return /(^|[\\/])vue-loader([\\/]|$)/.test(loader);
 }
 
-function isVueTemplateLoader(loader: string) {
-  return /(^|[\\/])vue-loader[\\/]dist[\\/]templateLoader\.js$/.test(loader);
-}
-
 function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
   const rules = getCompilerRules(compiler);
 
   walkRules(rules, (rule) => {
     getUseItems(rule).forEach((item) => {
       const loader = typeof item === 'string' ? item : item?.loader;
-      if (
-        typeof loader !== 'string' ||
-        (!isVueLoader(loader) && !isVueTemplateLoader(loader))
-      ) {
+      if (typeof loader !== 'string' || !isVueLoader(loader)) {
         return;
       }
 
