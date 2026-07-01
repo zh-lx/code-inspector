@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.4
+
+- 【fix】修复低版本 vue compiler 中 `data-insp-path` 注入不正确的问题 [#553](https://github.com/zh-lx/code-inspector/pull/553)
+
 ## 1.6.3 
 
 - 【fix】修复 webpack/rspack vue 项目中生产环境中打包后 scope css 失效的问题 [#549](https://github.com/zh-lx/code-inspector/pull/549)

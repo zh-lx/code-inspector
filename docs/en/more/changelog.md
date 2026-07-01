@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.4
+
+- 【fix】Fixed the issue where `data-insp-path` was not injected correctly in lower versions of Vue compiler [#553](https://github.com/zh-lx/code-inspector/pull/553)
+
 ## 1.6.3
 
 - 【fix】Fixed the issue where scope CSS would fail in production builds for webpack/rspack Vue projects [#549](https://github.com/zh-lx/code-inspector/pull/549)
