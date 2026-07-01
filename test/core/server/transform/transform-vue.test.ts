@@ -5,21 +5,19 @@ import {
   resolveVueCompilerDom,
   transformVue,
 } from '@/core/src/server/transform/transform-vue';
-import {
-  createVueInspectorNodeTransform,
-} from '@/core/src/server/transform/vue-node-transform';
+import { createVueInspectorNodeTransform } from '@/core/src/server/transform/transform-vue-node';
 import { PathName } from '@/core/src/shared/constant';
 
 // Only mock server module, not fs
 vi.mock('@/core/src/server/server', () => ({
   ProjectRootPath: '/mock/project',
   getRelativeOrAbsolutePath: (filePath: string, pathType?: string) =>
-    pathType === 'relative'
-      ? filePath.replace('/mock/project/', '')
-      : filePath,
+    pathType === 'relative' ? filePath.replace('/mock/project/', '') : filePath,
 }));
 
-const coreRequire = createRequire(`${process.cwd()}/packages/core/package.json`);
+const coreRequire = createRequire(
+  `${process.cwd()}/packages/core/package.json`,
+);
 const { compile } = coreRequire('@vue/compiler-dom') as { compile: any };
 
 describe('transformVue', () => {
@@ -67,14 +65,16 @@ describe('transformVue', () => {
 
   describe('escape tags', () => {
     it('should not transform escaped tags (string)', async () => {
-      const content = '<template><component :is="comp">Hello</component></template>';
+      const content =
+        '<template><component :is="comp">Hello</component></template>';
       const result = await transformVue(content, filePath, ['component']);
 
       expect(result).not.toContain(`:component"`);
     });
 
     it('should not transform escaped tags (RegExp)', async () => {
-      const content = '<template><custom-element>Hello</custom-element></template>';
+      const content =
+        '<template><custom-element>Hello</custom-element></template>';
       const result = await transformVue(content, filePath, [/^custom-/]);
 
       expect(result).not.toContain(`:custom-element"`);
@@ -209,21 +209,24 @@ div { color: red; }
     });
 
     it('should handle v-for', async () => {
-      const content = '<template><div v-for="item in items" :key="item.id">{{ item.name }}</div></template>';
+      const content =
+        '<template><div v-for="item in items" :key="item.id">{{ item.name }}</div></template>';
       const result = await transformVue(content, filePath, defaultEscapeTags);
 
       expect(result).toContain(`:div"`);
     });
 
     it('should handle v-bind', async () => {
-      const content = '<template><div :class="dynamicClass">Hello</div></template>';
+      const content =
+        '<template><div :class="dynamicClass">Hello</div></template>';
       const result = await transformVue(content, filePath, defaultEscapeTags);
 
       expect(result).toContain(`:div"`);
     });
 
     it('should handle v-on', async () => {
-      const content = '<template><button @click="handleClick">Click</button></template>';
+      const content =
+        '<template><button @click="handleClick">Click</button></template>';
       const result = await transformVue(content, filePath, defaultEscapeTags);
 
       expect(result).toContain(`:button"`);
@@ -237,7 +240,8 @@ div { color: red; }
     });
 
     it('should handle v-slot', async () => {
-      const content = '<template><MyComponent><template v-slot:default>Content</template></MyComponent></template>';
+      const content =
+        '<template><MyComponent><template v-slot:default>Content</template></MyComponent></template>';
       const result = await transformVue(content, filePath, defaultEscapeTags);
 
       expect(result).toContain(`:MyComponent"`);
@@ -310,7 +314,11 @@ div.container.wrapper Hello
       const content = `<template lang="pug">
 .my-class Hello
 </template>`;
-      const result = await transformVue(content, 'test/pug-class-only.vue', defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        'test/pug-class-only.vue',
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
     });
@@ -320,7 +328,11 @@ div.container.wrapper Hello
       const content = `<template lang="pug">
 #my-id Hello
 </template>`;
-      const result = await transformVue(content, 'test/pug-id-only.vue', defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        'test/pug-id-only.vue',
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
     });
@@ -330,7 +342,11 @@ div.container.wrapper Hello
       const content = `<template lang="pug">
 .my-class(data-foo="bar") Hello
 </template>`;
-      const result = await transformVue(content, 'test/pug-class-attrs.vue', defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        'test/pug-class-attrs.vue',
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
       expect(result).toContain('data-foo="bar"');
@@ -418,7 +434,11 @@ div Hello
       // Second transformation with same filePath (already in pugMap)
       // This tests the path where pugMap.has(filePath) is true
       // and content doesn't include PathName (will try to read file)
-      const result = await transformVue(fullContent, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        fullContent,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
     });
@@ -434,12 +454,18 @@ div Hello
       await transformVue(fullContent, uniqueFilePath, defaultEscapeTags);
 
       // Mock fs.readFileSync to return full content
-      const readFileSyncSpy = vi.spyOn(fs, 'readFileSync').mockReturnValue(fullContent);
+      const readFileSyncSpy = vi
+        .spyOn(fs, 'readFileSync')
+        .mockReturnValue(fullContent);
 
       // Second transformation with partial content that doesn't include PathName
       // This triggers the fs.readFileSync path
       const partialContent = 'div Hello';
-      const result = await transformVue(partialContent, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        partialContent,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       readFileSyncSpy.mockRestore();
 
@@ -462,7 +488,11 @@ div Hello
       const contentWithPath = `<template lang="pug">
 div(${PathName}="existing") Hello
 </template>`;
-      const result = await transformVue(contentWithPath, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        contentWithPath,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toBeDefined();
     });
@@ -478,14 +508,20 @@ div Hello
       await transformVue(fullContent, relativeFilePath, defaultEscapeTags);
 
       // Mock fs.readFileSync to throw error (file not found with absolute path)
-      const readFileSyncSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
-        throw new Error('File not found');
-      });
+      const readFileSyncSpy = vi
+        .spyOn(fs, 'readFileSync')
+        .mockImplementation(() => {
+          throw new Error('File not found');
+        });
 
       // Second transformation with partial content (without PathName)
       // This triggers the path that uses ProjectRootPath
       const partialContent = 'div Hello';
-      const result = await transformVue(partialContent, relativeFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        partialContent,
+        relativeFilePath,
+        defaultEscapeTags,
+      );
 
       readFileSyncSpy.mockRestore();
 
@@ -504,12 +540,18 @@ div Hello
       await transformVue(fullContent, absoluteFilePath, defaultEscapeTags);
 
       // Mock fs.readFileSync to return content for successful read
-      const readFileSyncSpy = vi.spyOn(fs, 'readFileSync').mockReturnValue(fullContent);
+      const readFileSyncSpy = vi
+        .spyOn(fs, 'readFileSync')
+        .mockReturnValue(fullContent);
 
       // Second transformation with partial content (without PathName)
       // This triggers the branch where absolute path is used directly
       const partialContent = 'div Hello';
-      const result = await transformVue(partialContent, absoluteFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        partialContent,
+        absoluteFilePath,
+        defaultEscapeTags,
+      );
 
       readFileSyncSpy.mockRestore();
 
@@ -564,7 +606,11 @@ div Hello
     </section>
   </div>
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
       expect(result).toContain(':section"');
@@ -594,7 +640,11 @@ const count = ref(0);
   text-align: center;
 }
 </style>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
       expect(result).toContain(':h1"');
@@ -610,7 +660,11 @@ const count = ref(0);
   <!-- This is a comment -->
   <div>Hello</div>
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':div"');
       expect(result).toContain('<!-- This is a comment -->');
@@ -627,7 +681,11 @@ const count = ref(0);
     <p>Content</p>
   </my-component>
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':my-component"');
       expect(result).toContain(':h1"');
@@ -642,7 +700,11 @@ const count = ref(0);
       const content = `<template>
   Text only
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain('Text only');
     });
@@ -655,7 +717,11 @@ const count = ref(0);
   <main>Content</main>
   <footer>Footer</footer>
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       expect(result).toContain(':header"');
       expect(result).toContain(':main"');
@@ -670,7 +736,11 @@ const count = ref(0);
     Hello
   </div>
 </template>`;
-      const result = await transformVue(content, uniqueFilePath, defaultEscapeTags);
+      const result = await transformVue(
+        content,
+        uniqueFilePath,
+        defaultEscapeTags,
+      );
 
       // template tag will be transformed but check that structure is preserved
       expect(result).toContain('template');
@@ -703,7 +773,9 @@ const count = ref(0);
             transform: vi.fn(),
           },
         }),
-      ).toThrowError('Failed to load @vue/compiler-dom parse/transform exports');
+      ).toThrowError(
+        'Failed to load @vue/compiler-dom parse/transform exports',
+      );
     });
 
     it('should throw when transform export is missing', () => {
@@ -711,7 +783,9 @@ const count = ref(0);
         resolveVueCompilerDom({
           parse: vi.fn(),
         }),
-      ).toThrowError('Failed to load @vue/compiler-dom parse/transform exports');
+      ).toThrowError(
+        'Failed to load @vue/compiler-dom parse/transform exports',
+      );
     });
   });
 });
@@ -729,12 +803,8 @@ describe('createVueInspectorNodeTransform', () => {
     });
 
     expect(source).toBe('<div><span>Hi</span></div>');
-    expect(result.code).toContain(
-      `"${PathName}": "src/App.vue:1:1:div"`,
-    );
-    expect(result.code).toContain(
-      `"${PathName}": "src/App.vue:1:6:span"`,
-    );
+    expect(result.code).toContain(`"${PathName}": "src/App.vue:1:1:div"`);
+    expect(result.code).toContain(`"${PathName}": "src/App.vue:1:6:span"`);
   });
 
   it('should respect escapeTags and existing data-insp-path attributes', () => {
@@ -771,13 +841,13 @@ describe('createVueInspectorNodeTransform', () => {
     expect(result.code).toContain(`"${PathName}": "src/App.vue:1:1:div"`);
   });
 
-  it('should handle empty filename gracefully', () => {
+  it('should skip injection when filename is missing', () => {
     const result = compile('<div>no filename</div>', {
-      // no filename -> context.filename is empty -> defaults to ''
-      nodeTransforms: [createVueInspectorNodeTransform({ pathType: 'relative' })],
+      nodeTransforms: [
+        createVueInspectorNodeTransform({ pathType: 'relative' }),
+      ],
     });
 
-    // normalizePath('') resolves to '.', so path becomes '.'
-    expect(result.code).toContain(`"${PathName}": ".:1:1:div"`);
+    expect(result.code).not.toContain(PathName);
   });
 });

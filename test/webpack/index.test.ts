@@ -134,7 +134,7 @@ describe('WebpackCodeInspectorPlugin', () => {
       expect(mockCompiler.options.module.rules.length).toBeGreaterThan(0);
     });
 
-    it('should register Vue compiler node transform on vue-loader options', async () => {
+    it('should not register Vue compiler node transform by default', async () => {
       vi.mocked(isDev).mockReturnValueOnce(true);
       const vueLoaderOptions = {
         compilerOptions: {
@@ -159,25 +159,11 @@ describe('WebpackCodeInspectorPlugin', () => {
 
       await plugin.apply(mockCompiler);
 
-      expect(createVueInspectorNodeTransform).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pathType: 'relative',
-        }),
-      );
-      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
-
-      const codeInspectorRule = mockCompiler.options.module.rules.find(
-        (rule: any) =>
-          rule?.use?.some?.((item: any) =>
-            item?.loader?.includes?.('loader.js'),
-          ),
-      );
-      expect(codeInspectorRule.use[0].options.vueCompilerNodeTransform).toBe(
-        true,
-      );
+      expect(createVueInspectorNodeTransform).not.toHaveBeenCalled();
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(0);
     });
 
-    it('should initialize compilerOptions when not present on vue-loader options', async () => {
+    it('should register Vue compiler node transform when vueLoader is internal', async () => {
       vi.mocked(isDev).mockReturnValueOnce(true);
       const vueLoaderOptions = {};
       mockCompiler.options.module.rules.push({
@@ -193,107 +179,42 @@ describe('WebpackCodeInspectorPlugin', () => {
       const plugin = new WebpackCodeInspectorPlugin({
         bundler: 'webpack',
         output: '/test',
+        vueLoader: 'internal',
+        pathType: 'relative',
       });
       await plugin.apply(mockCompiler);
 
-      expect(vueLoaderOptions.compilerOptions).toBeDefined();
-      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
-    });
-
-    it('should initialize nodeTransforms array when not present', async () => {
-      vi.mocked(isDev).mockReturnValueOnce(true);
-      const vueLoaderOptions = { compilerOptions: {} };
-      mockCompiler.options.module.rules.push({
-        test: /\.vue$/,
-        use: [
-          {
-            loader: '/test/node_modules/vue-loader/dist/index.js',
-            options: vueLoaderOptions,
-          },
-        ],
-      });
-
-      const plugin = new WebpackCodeInspectorPlugin({
-        bundler: 'webpack',
-        output: '/test',
-      });
-      await plugin.apply(mockCompiler);
-
-      expect(Array.isArray(vueLoaderOptions.compilerOptions.nodeTransforms)).toBe(true);
-      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
-    });
-
-    it('should initialize options object when not present on vue-loader use item', async () => {
-      vi.mocked(isDev).mockReturnValueOnce(true);
-      const useItem: any = {
-        loader: '/test/node_modules/vue-loader/dist/index.js',
-      };
-      mockCompiler.options.module.rules.push({
-        test: /\.vue$/,
-        use: [useItem],
-      });
-
-      const plugin = new WebpackCodeInspectorPlugin({
-        bundler: 'webpack',
-        output: '/test',
-      });
-      await plugin.apply(mockCompiler);
-
-      expect(useItem.options).toBeDefined();
-      expect(useItem.options.compilerOptions.nodeTransforms).toHaveLength(1);
-    });
-
-    it('should walk nested rules (oneOf/rules) and skip string loaders', async () => {
-      vi.mocked(isDev).mockReturnValueOnce(true);
-      const vueLoaderOptions = { compilerOptions: { nodeTransforms: [] } };
-      mockCompiler.options.module.rules.push({
-        oneOf: [
-          {
-            rules: [
-              {
-                use: [
-                  // string loader matching vue-loader -> skipped (typeof string)
-                  'vue-loader',
-                  {
-                    loader: '/test/node_modules/vue-loader/dist/index.js',
-                    options: vueLoaderOptions,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-
-      const plugin = new WebpackCodeInspectorPlugin({
-        bundler: 'webpack',
-        output: '/test',
-      });
-      await plugin.apply(mockCompiler);
-
-      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
-    });
-
-    it('should handle rule.loader shorthand and falsy rule entries', async () => {
-      vi.mocked(isDev).mockReturnValueOnce(true);
-      const vueLoaderOptions = { compilerOptions: { nodeTransforms: [] } };
-      mockCompiler.options.module.rules.push(
-        // falsy rule entry -> getUseItems returns []
-        null,
-        // rule.loader shorthand (no `use` array) -> getUseItems returns [rule]
-        {
-          loader: '/test/node_modules/vue-loader/dist/index.js',
-          options: vueLoaderOptions,
-        },
+      expect(createVueInspectorNodeTransform).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pathType: 'relative',
+        }),
       );
+      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+      const codeInspectorRule = mockCompiler.options.module.rules.find(
+        (rule: any) =>
+          rule?.use?.some?.((item: any) =>
+            item?.loader?.includes?.('loader.js'),
+          ),
+      );
+      expect(codeInspectorRule.use[0].options.vueLoader).toBe('internal');
+    });
 
+    it('should keep vueLoader defaulting to custom', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
       const plugin = new WebpackCodeInspectorPlugin({
         bundler: 'webpack',
         output: '/test',
       });
+
       await plugin.apply(mockCompiler);
 
-      expect(vueLoaderOptions.compilerOptions.nodeTransforms).toHaveLength(1);
+      const codeInspectorRule = mockCompiler.options.module.rules.find(
+        (rule: any) =>
+          rule?.use?.some?.((item: any) =>
+            item?.loader?.includes?.('loader.js'),
+          ),
+      );
+      expect(codeInspectorRule.use[0].options.vueLoader).toBeUndefined();
     });
   });
 

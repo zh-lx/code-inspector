@@ -145,6 +145,15 @@ export type CodeOptions = {
    */
   include?: Condition;
   /**
+   * @zh Vue 文件的编译方式，仅对 `webpack/rspack/rsbuild` 项目生效，默认值为 `custom`
+   * - `custom` 表示使用 code-inspector-plugin 自定义的 loader 注入，优点是兼容性强，部分 vue 项目生产环境使用可能导致 scoped css 失效
+   * - `internal` 表示使用 vue-loader 内部 compiler node transform，可以解决生产环境 scoped css 失效问题，但是低版本 vue compiler 不兼容
+   * @en Vue file compilation mode, only effective for `webpack/rspack/rsbuild` projects, default value is `custom`
+   * - `custom` means using code-inspector-plugin's custom loader injection, with strong compatibility, but may cause scoped CSS to fail in some Vue projects in production environment
+   * - `internal` means using vue-loader's internal compiler node transform, which can solve the scoped CSS failure issue in production environment, but is not compatible with lower versions of Vue compiler
+   */
+  vueLoader?: 'custom' | 'internal';
+  /**
    * @zh 不参与编译的文件
    * @en Files not to be compiled
    */
