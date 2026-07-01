@@ -58,7 +58,11 @@ function getNodeFilePath(
   context: TransformContext,
   options: VueInspectorNodeTransformOptions,
 ) {
-  const filename = normalizePath(context.filename || '');
+  if (!context.filename) {
+    return '';
+  }
+
+  const filename = normalizePath(context.filename);
   const mappedFilePath = getMappingFilePath(filename, options.mappings);
   return getRelativeOrAbsolutePath(
     mappedFilePath,
@@ -85,6 +89,10 @@ export function createVueInspectorNodeTransform(
 
     const { line, column } = node.loc.start;
     const filePath = getNodeFilePath(context, options);
+    if (!filePath) {
+      return;
+    }
+
     node.props.unshift(
       createAttributeNode(
         PathName,

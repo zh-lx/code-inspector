@@ -79,7 +79,7 @@ async function transformWebpackCodeInspectorContent(
     filePath.endsWith('.html') &&
     params.get('type') === 'template' &&
     params.has('vue');
-  if (options.vueCompilerNodeTransform && (isVue || isHtmlVue)) {
+  if (options.vueLoader === 'internal' && (isVue || isHtmlVue)) {
     return content;
   }
   if (isVue || isHtmlVue) {

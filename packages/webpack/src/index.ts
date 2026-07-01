@@ -15,7 +15,6 @@ const compatibleDirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface LoaderOptions extends CodeOptions {
   record: RecordInfo;
-  vueCompilerNodeTransform?: boolean;
 }
 
 const baseLoaderPath = path.resolve(compatibleDirname, './loader.js');
@@ -62,21 +61,13 @@ function isVueLoader(loader: string) {
   return /(^|[\\/])vue-loader([\\/]|$)/.test(loader);
 }
 
-function isVueTemplateLoader(loader: string) {
-  return /(^|[\\/])vue-loader[\\/]dist[\\/]templateLoader\.js$/.test(loader);
-}
-
 function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
   const rules = getCompilerRules(compiler);
-  let applied = false;
 
   walkRules(rules, (rule) => {
     getUseItems(rule).forEach((item) => {
       const loader = typeof item === 'string' ? item : item?.loader;
-      if (
-        typeof loader !== 'string' ||
-        (!isVueLoader(loader) && !isVueTemplateLoader(loader))
-      ) {
+      if (typeof loader !== 'string' || !isVueLoader(loader)) {
         return;
       }
 
@@ -117,12 +108,8 @@ function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
         });
         nodeTransforms.push(transform);
       }
-
-      applied = true;
     });
   });
-
-  return applied;
 }
 
 function hasRegisteredCodeInspectorLoader(rules: any[]) {
@@ -275,14 +262,11 @@ class WebpackCodeInspectorPlugin {
       }
     }
 
-    const vueCompilerNodeTransform = applyVueCompilerNodeTransform(
-      this.options,
-      compiler,
-    );
-    applyLoader(
-      { ...this.options, record, vueCompilerNodeTransform },
-      compiler,
-    );
+    if (this.options.vueLoader === 'internal') {
+      applyVueCompilerNodeTransform(this.options, compiler);
+    }
+
+    applyLoader({ ...this.options, record }, compiler);
 
     if (
       compiler?.hooks?.emit &&

@@ -140,6 +140,11 @@ export type CodeOptions = {
      */
     include?: Condition;
     /**
+     * @zh Vue 文件的注入方式。`custom` 表示使用 loader 注入，`internal` 表示使用 vue-loader 内部 compiler node transform。
+     * @en Vue injection mode. `custom` uses the loader path, `internal` uses vue-loader's internal compiler node transform.
+     */
+    vueLoader?: 'custom' | 'internal';
+    /**
      * @zh 不参与编译的文件
      * @en Files not to be compiled
      */

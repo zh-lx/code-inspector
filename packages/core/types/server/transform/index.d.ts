@@ -1,4 +1,4 @@
-export { createVueInspectorNodeTransform } from './vue-node-transform';
+export { createVueInspectorNodeTransform } from './transform-vue-node';
 import { EscapeTags, PathType } from '../../shared';
 type FileType = 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
 type TransformCodeParams = {

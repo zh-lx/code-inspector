@@ -281,7 +281,7 @@ describe('WebpackCodeInspectorLoader', () => {
     it('should skip Vue template string transform when compiler node transform is enabled', async () => {
       mockContext.resourcePath = '/test/file.vue';
       mockContext.resource = '/test/file.vue?vue&type=template&id=abc';
-      mockContext.query.vueCompilerNodeTransform = true;
+      mockContext.query.vueLoader = 'internal';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '<section>Static</section>';
@@ -297,7 +297,7 @@ describe('WebpackCodeInspectorLoader', () => {
     it('should skip html-vue template transform when compiler node transform is enabled', async () => {
       mockContext.resourcePath = '/test/file.html';
       mockContext.resource = '/test/file.html?type=template&vue';
-      mockContext.query.vueCompilerNodeTransform = true;
+      mockContext.query.vueLoader = 'internal';
       vi.mocked(isJsTypeFile).mockReturnValueOnce(false);
 
       const content = '<section>Static</section>';

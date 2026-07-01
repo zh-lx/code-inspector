@@ -4,8 +4,13 @@ import { transformJsx } from './transform-jsx';
 import { transformMdx } from './transform-mdx';
 import { transformSvelte } from './transform-svelte';
 import { transformVue } from './transform-vue';
-export { createVueInspectorNodeTransform } from './vue-node-transform';
-import { EscapeTags, PathType, isIgnoredFile, CodeInspectorEscapeTags } from '../../shared';
+export { createVueInspectorNodeTransform } from './transform-vue-node';
+import {
+  EscapeTags,
+  PathType,
+  isIgnoredFile,
+  CodeInspectorEscapeTags,
+} from '../../shared';
 import { getRelativeOrAbsolutePath } from '../server';
 
 type FileType = 'vue' | 'jsx' | 'svelte' | 'astro' | 'mdx' | unknown;
@@ -44,7 +49,12 @@ export async function transformCode(params: TransformCodeParams) {
     } else if (fileType === 'svelte') {
       return transformSvelte(content, filePath, finalEscapeTags);
     } else if (fileType === 'astro') {
-      return transformAstro(content, filePath, finalEscapeTags, resolveFilePath);
+      return transformAstro(
+        content,
+        filePath,
+        finalEscapeTags,
+        resolveFilePath,
+      );
     } else if (fileType === 'mdx') {
       if (!mdx) {
         return content;
