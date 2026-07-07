@@ -209,8 +209,9 @@ export type CodeOptions = {
    * @en The method for launching the IDE. Default value is `exec`
    * - exec: Use the executable path to open the editor
    * - open: Use `open "{editor}://file/xxx/main.jsx:10:20"` to open. It is fast and provides a very smooth experience
+   * - open-bg: like `open` but adds the `-g` flag, so the file opens at the right line without bringing the editor to the foreground — the user's current window (e.g. browser) keeps focus
    *
    * Only supports MacOS. If the editor is in the support list, it is strongly recommended to set `launchType: 'open'`. The support list can be found at: [which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open).
    */
-  launchType?: 'exec' | 'open';
+  launchType?: 'exec' | 'open' | 'open-bg';
 };
