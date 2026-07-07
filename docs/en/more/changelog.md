@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.5
+
+- 【fix】Upgraded `launch-ide` version to `1.4.5`, supporting identification of some newer editor versions such as `Zed`, `Antigravity`, `Devin`, etc. [#554](https://github.com/zh-lx/code-inspector/pull/554)
+
 ## 1.6.4
 
 - 【fix】Fixed the issue where `data-insp-path` was not injected correctly in lower versions of Vue compiler [#553](https://github.com/zh-lx/code-inspector/pull/553)
