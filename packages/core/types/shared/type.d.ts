@@ -140,8 +140,12 @@ export type CodeOptions = {
      */
     include?: Condition;
     /**
-     * @zh Vue 文件的注入方式。`custom` 表示使用 loader 注入，`internal` 表示使用 vue-loader 内部 compiler node transform。
-     * @en Vue injection mode. `custom` uses the loader path, `internal` uses vue-loader's internal compiler node transform.
+     * @zh Vue 文件的编译方式，仅对 `webpack/rspack/rsbuild` 项目生效，默认值为 `custom`
+     * - `custom` 表示使用 code-inspector-plugin 自定义的 loader 注入，优点是兼容性强，部分 vue 项目生产环境使用可能导致 scoped css 失效
+     * - `internal` 表示使用 vue-loader 内部 compiler node transform，可以解决生产环境 scoped css 失效问题，但是低版本 vue compiler 不兼容
+     * @en Vue file compilation mode, only effective for `webpack/rspack/rsbuild` projects, default value is `custom`
+     * - `custom` means using code-inspector-plugin's custom loader injection, with strong compatibility, but may cause scoped CSS to fail in some Vue projects in production environment
+     * - `internal` means using vue-loader's internal compiler node transform, which can solve the scoped CSS failure issue in production environment, but is not compatible with lower versions of Vue compiler
      */
     vueLoader?: 'custom' | 'internal';
     /**
@@ -201,9 +205,10 @@ export type CodeOptions = {
      * @en The method for launching the IDE. Default value is `exec`
      * - exec: Use the executable path to open the editor
      * - open: Use `open "{editor}://file/xxx/main.jsx:10:20"` to open. It is fast and provides a very smooth experience
+     * - open-bg: like `open` but adds the `-g` flag, so the file opens at the right line without bringing the editor to the foreground — the user's current window (e.g. browser) keeps focus
      *
      * Only supports MacOS. If the editor is in the support list, it is strongly recommended to set `launchType: 'open'`. The support list can be found at: [which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open).
      */
-    launchType?: 'exec' | 'open';
+    launchType?: 'exec' | 'open' | 'open-bg';
 };
 export {};
