@@ -698,9 +698,40 @@ describe('WebpackCodeInspectorPlugin', () => {
   });
 
   describe('rspack persistent cache', () => {
-    it('should handle rspack experiments.cache', async () => {
+    it('should handle rspack persistent cache', async () => {
       vi.mocked(isDev).mockReturnValueOnce(true);
-      mockCompiler.options.experiments = { cache: { type: 'filesystem' } };
+      mockCompiler.options.cache = { type: 'persistent' };
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'rspack',
+        output: '/test',
+        cache: true,
+      });
+
+      await plugin.apply(mockCompiler);
+
+      expect(getCodeWithWebComponent).toHaveBeenCalled();
+    });
+
+    it('should set rspack persistent cache version when cache option is disabled', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      mockCompiler.options.cache = { type: 'persistent' };
+
+      const plugin = new WebpackCodeInspectorPlugin({
+        bundler: 'rspack',
+        output: '/test',
+        cache: false,
+      });
+
+      await plugin.apply(mockCompiler);
+
+      expect(mockCompiler.options.cache.version).toMatch(/^code-inspector-/);
+    });
+
+    it('should support legacy rspack experiments.cache', async () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+      mockCompiler.options.cache = false;
+      mockCompiler.options.experiments = { cache: { type: 'persistent' } };
 
       const plugin = new WebpackCodeInspectorPlugin({
         bundler: 'rspack',
