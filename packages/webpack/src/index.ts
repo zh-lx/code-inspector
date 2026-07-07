@@ -250,8 +250,8 @@ class WebpackCodeInspectorPlugin {
     // webpack cache || rspack persistent cache
     const cache =
       compiler?.options?.cache || compiler?.options?.experiments?.cache;
-    // webpack file system cache
-    if (cache?.type === 'filesystem') {
+    // webpack filesystem cache || rspack persistent cache
+    if (cache?.type === 'filesystem' || cache?.type === 'persistent') {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         record.port =
