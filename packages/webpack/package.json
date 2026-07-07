@@ -1,6 +1,6 @@
 {
   "name": "@code-inspector/webpack",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.mjs",
   "typings": "./types/index.d.ts",

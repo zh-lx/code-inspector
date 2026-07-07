@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.6
+
+- 【fix】兼容了新版本 `rspack` 中对于 `persistent` 缓存的处理 [#555](https://github.com/zh-lx/code-inspector/pull/555)
+
 ## 1.6.5
 
 - 【fix】升级 `launch-ide` 版本至 `1.4.5`，支持了部分新版本的 editor 识别如 `Zed`、`Antigravity`、`Devin` 等 [#554](https://github.com/zh-lx/code-inspector/pull/554)

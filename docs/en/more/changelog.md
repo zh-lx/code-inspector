@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.6
+
+- 【fix】Compatible with new version `rspack` handling of `persistent` cache [#555](https://github.com/zh-lx/code-inspector/pull/555)
+
 ## 1.6.5
 
 - 【fix】Upgraded `launch-ide` version to `1.4.5`, supporting identification of some newer editor versions such as `Zed`, `Antigravity`, `Devin`, etc. [#554](https://github.com/zh-lx/code-inspector/pull/554)
