@@ -13,7 +13,7 @@ import {
   subscribeRuntimeSession,
   updateRuntimeSessionMetadata,
   unsubscribeRuntimeSession,
-} from '@/core/src/server/runtime-session';
+} from '@/core/src/ai/server/runtime-session';
 
 describe('runtime session manager', () => {
   it('should replay buffered events to reattached subscribers', () => {
