@@ -992,6 +992,15 @@ importers:
 
   packages/core:
     dependencies:
+      '@anthropic-ai/claude-agent-sdk':
+        specifier: ^0.2.29
+        version: 0.2.29(zod@4.4.3)
+      '@openai/codex-sdk':
+        specifier: ^0.106.0
+        version: 0.106.0
+      '@opencode-ai/sdk':
+        specifier: ^1.2.24
+        version: 1.2.24
       '@vue/compiler-dom':
         specifier: ^3.5.13
         version: 3.5.13
@@ -1074,16 +1083,6 @@ importers:
       volar-service-pug:
         specifier: ^0.0.63
         version: 0.0.63
-    optionalDependencies:
-      '@anthropic-ai/claude-agent-sdk':
-        specifier: ^0.2.29
-        version: 0.2.29(zod@4.4.3)
-      '@openai/codex-sdk':
-        specifier: ^0.106.0
-        version: 0.106.0
-      '@opencode-ai/sdk':
-        specifier: ^1.2.24
-        version: 1.2.24
 
   packages/esbuild:
     dependencies:
