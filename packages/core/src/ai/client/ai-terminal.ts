@@ -107,28 +107,28 @@ const DARK_THEME: ITheme = {
 };
 
 const LIGHT_THEME: ITheme = {
-  background: '#eceff4',
-  foreground: '#2e3440',
-  cursor: '#5e81ac',
-  cursorAccent: '#eceff4',
-  selectionBackground: '#d8dee9',
+  background: '#fafaf9',
+  foreground: '#242424',
+  cursor: '#006aff',
+  cursorAccent: '#fafaf9',
+  selectionBackground: '#dedbd4',
   selectionForeground: '#000000',
   black: '#3b4252',
-  red: '#a34b5c',
-  green: '#5f7a60',
-  yellow: '#8f6f3e',
-  blue: '#4c6f97',
-  magenta: '#8a5d83',
-  cyan: '#4f8a94',
+  red: '#cf222e',
+  green: '#1a7f37',
+  yellow: '#9a6700',
+  blue: '#006aff',
+  magenta: '#9b37b7',
+  cyan: '#087ea4',
   white: '#7b88a1',
   brightBlack: '#4c566a',
-  brightRed: '#8f3f4f',
-  brightGreen: '#4f6b53',
-  brightYellow: '#7a5f33',
-  brightBlue: '#3f5f84',
-  brightMagenta: '#744c70',
-  brightCyan: '#3f727b',
-  brightWhite: '#d8dee9',
+  brightRed: '#e5534b',
+  brightGreen: '#2da44e',
+  brightYellow: '#bf8700',
+  brightBlue: '#0057d9',
+  brightMagenta: '#bf4bce',
+  brightCyan: '#0a95b8',
+  brightWhite: '#f4f4f2',
 };
 
 function terminalThemeFor(theme: 'dark' | 'light'): ITheme {
@@ -138,18 +138,18 @@ function terminalThemeFor(theme: 'dark' | 'light'): ITheme {
 function terminalBackgroundFor(theme: 'dark' | 'light'): string {
   return (
     terminalThemeFor(theme).background ||
-    (theme === 'dark' ? '#2e3440' : '#eceff4')
+    (theme === 'dark' ? '#2e3440' : '#fafaf9')
   );
 }
 
 function terminalCursorFor(theme: 'dark' | 'light'): string {
   return (
-    terminalThemeFor(theme).cursor || (theme === 'dark' ? '#88c0d0' : '#5e81ac')
+    terminalThemeFor(theme).cursor || (theme === 'dark' ? '#88c0d0' : '#006aff')
   );
 }
 
-const LIGHT_SURFACE_BACKGROUND_RGB = [236, 239, 244] as const;
-const LIGHT_FOREGROUND_RGB = [46, 52, 64] as const;
+const LIGHT_SURFACE_BACKGROUND_RGB = [250, 250, 249] as const;
+const LIGHT_FOREGROUND_RGB = [36, 36, 36] as const;
 const DARK_SURFACE_BACKGROUND_RGB = [46, 52, 64] as const;
 const DARK_FOREGROUND_RGB = [216, 222, 233] as const;
 const DARK_BACKGROUND_THRESHOLD = 64;
