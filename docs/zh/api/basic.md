@@ -59,7 +59,8 @@ codeInspectorPlugin({
 ## launchType <Badge type="tip" text="1.3.5+" vertical="middle" />
 
 - 可选项。默认值为 `exec`
-- 类型：`exec | open`
+- 类型：`exec | open | open-bg`
 - 说明：启动 IDE 的方式。仅支持 MacOS，如果 editor 在支持列表内，强烈建议设置 `launchType: 'open'`。editor 支持列表请参考：[which editor supports to be launched by open](https://github.com/zh-lx/launch-ide?tab=readme-ov-file#which-editor-supports-to-be-launched-by-open)。
   - `exec`: 使用可执行路径打开 editor；
   - `open`: 使用 `open "{editor}://file/xxx/main.jsx:10:20"` 方式来打开，速度快且体验更丝滑
+  - `open-bg`: 类似 `open`，但会添加 `-g` 参数，使文件在正确行号打开时不会将编辑器带到前台，用户当前窗口（如浏览器）保持焦点

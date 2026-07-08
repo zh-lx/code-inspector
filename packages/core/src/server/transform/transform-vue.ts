@@ -5,6 +5,7 @@ import type {
   NodeTransform,
   ElementNode,
 } from '@vue/compiler-dom';
+import { NodeTypes } from '@vue/compiler-dom';
 import { ProjectRootPath } from '../server';
 import path from 'path';
 import fs from 'fs';
@@ -15,7 +16,6 @@ import {
   calculateLineOffsets,
 } from './transform-vue-pug';
 
-const VueElementType = 1;
 type VueCompilerDom = Pick<
   typeof import('@vue/compiler-dom'),
   'parse' | 'transform'
@@ -79,7 +79,7 @@ export async function transformVue(
 
   // 判断是否为 Pug 模版
   const templateNode = ast.children.find(
-    (node) => node.type === VueElementType && node.tag === 'template',
+    (node) => node.type === NodeTypes.ELEMENT && node.tag === 'template',
   ) as ElementNode;
 
   // Check if template uses Pug
@@ -122,7 +122,7 @@ function transformVueTemplate(
       ((node: TemplateChildNode) => {
         if (
           !node.loc.source.includes(PathName) &&
-          node.type === VueElementType &&
+          node.type === NodeTypes.ELEMENT &&
           !isEscapeTags(escapeTags, node.tag)
         ) {
           // 向 dom 上添加一个带有 filepath/row/column 的属性

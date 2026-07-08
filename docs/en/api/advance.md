@@ -239,3 +239,11 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Description: Skip injecting certain code snippets:
   - `console`: Skip injecting `console.error` and `console.warn` code snippets, it's not recommended to skip this item for nextjs and nuxt projects
   - `htmlScript`: Skip injecting `script` tags in html, it's not recommended to skip this item for MPA projects
+
+## vueLoader <Badge type="tip" text="1.6.4+" vertical="middle" />
+
+- Optional
+- Type: `'custom' | 'internal'`, default value is `'custom'`
+- Description: Vue file compilation method, only effective for `webpack/rspack/rsbuild` projects
+  - `'custom'`: Use `code-inspector-plugin` custom loader injection, the advantage is strong compatibility, but may cause scoped css to fail in some vue projects in production environment
+  - `'internal'`: Use `vue-loader` internal compiler node transform, which can solve the problem of scoped css failure in production environment, but is not compatible with low version vue compiler

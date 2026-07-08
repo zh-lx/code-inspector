@@ -1,6 +1,7 @@
 import {
   CodeOptions,
   RecordInfo,
+  createVueInspectorNodeTransform,
   getCodeWithWebComponent,
   getProjectRecord,
   isDev,
@@ -18,6 +19,98 @@ interface LoaderOptions extends CodeOptions {
 
 const baseLoaderPath = path.resolve(compatibleDirname, './loader.js');
 const injectLoaderPath = path.resolve(compatibleDirname, './inject-loader.js');
+const codeInspectorVueNodeTransform = Symbol.for(
+  'code-inspector.vueNodeTransform',
+);
+
+function getUseItems(rule: any): any[] {
+  if (Array.isArray(rule.use)) {
+    return rule.use;
+  }
+
+  if (rule.loader) {
+    return [rule];
+  }
+
+  return [];
+}
+
+function walkRules(rules: any[], visitor: (rule: any) => void) {
+  rules.forEach((rule) => {
+    if (!rule) {
+      return;
+    }
+    visitor(rule);
+    if (Array.isArray(rule.rules)) {
+      walkRules(rule.rules, visitor);
+    }
+    if (Array.isArray(rule.oneOf)) {
+      walkRules(rule.oneOf, visitor);
+    }
+  });
+}
+
+// Resolve module.rules across webpack/rspack versions and child compilers.
+function getCompilerRules(compiler: any): any[] {
+  const _compiler = compiler?.compiler || compiler;
+  const module = _compiler?.options?.module;
+  return module?.rules || module?.loaders || [];
+}
+
+function isVueLoader(loader: string) {
+  return /(^|[\\/])vue-loader([\\/]|$)/.test(loader);
+}
+
+function applyVueCompilerNodeTransform(options: CodeOptions, compiler: any) {
+  const rules = getCompilerRules(compiler);
+
+  walkRules(rules, (rule) => {
+    getUseItems(rule).forEach((item) => {
+      const loader = typeof item === 'string' ? item : item?.loader;
+      if (typeof loader !== 'string' || !isVueLoader(loader)) {
+        return;
+      }
+
+      if (typeof item === 'string') {
+        return;
+      }
+
+      if (!item.options || typeof item.options !== 'object') {
+        item.options = {};
+      }
+
+      const loaderOptions = item.options;
+      if (
+        !loaderOptions.compilerOptions ||
+        typeof loaderOptions.compilerOptions !== 'object'
+      ) {
+        loaderOptions.compilerOptions = {};
+      }
+
+      const compilerOptions = loaderOptions.compilerOptions;
+      if (!Array.isArray(compilerOptions.nodeTransforms)) {
+        compilerOptions.nodeTransforms = [];
+      }
+
+      const nodeTransforms = compilerOptions.nodeTransforms;
+      const hasRegistered = nodeTransforms.some(
+        (transform: any) => transform?.[codeInspectorVueNodeTransform],
+      );
+
+      if (!hasRegistered) {
+        const transform = createVueInspectorNodeTransform({
+          escapeTags: options.escapeTags,
+          mappings: options.mappings,
+          pathType: options.pathType,
+        });
+        Object.defineProperty(transform, codeInspectorVueNodeTransform, {
+          value: true,
+        });
+        nodeTransforms.push(transform);
+      }
+    });
+  });
+}
 
 function hasRegisteredCodeInspectorLoader(rules: any[]) {
   return rules.some((rule) =>
@@ -29,10 +122,7 @@ function hasRegisteredCodeInspectorLoader(rules: any[]) {
 }
 
 const applyLoader = (options: LoaderOptions, compiler: any) => {
-  // 适配 webpack 各个版本
-  const _compiler = compiler?.compiler || compiler;
-  const module = _compiler?.options?.module;
-  const rules = module?.rules || module?.loaders || [];
+  const rules = getCompilerRules(compiler);
 
   if (hasRegisteredCodeInspectorLoader(rules)) {
     return;
@@ -160,16 +250,20 @@ class WebpackCodeInspectorPlugin {
     // webpack cache || rspack persistent cache
     const cache =
       compiler?.options?.cache || compiler?.options?.experiments?.cache;
-    // webpack file system cache
-    if (cache?.type === 'filesystem') {
+    // webpack filesystem cache || rspack persistent cache
+    if (cache?.type === 'filesystem' || cache?.type === 'persistent') {
       if (this.options.cache) {
         // 用来在 cache 情况下启动 node server
         record.port =
-          this.options.port || getProjectRecord(record)?.previousPort;
+          this.options.port || getProjectRecord(record)?.previousPort || 0;
         getPureClientCodeString(this.options, record, true);
       } else {
         cache.version = `code-inspector-${Date.now()}`;
       }
+    }
+
+    if (this.options.vueLoader === 'internal') {
+      applyVueCompilerNodeTransform(this.options, compiler);
     }
 
     applyLoader({ ...this.options, record }, compiler);

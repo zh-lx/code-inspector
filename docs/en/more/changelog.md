@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.6.6
+
+- 【fix】Compatible with new version `rspack` handling of `persistent` cache [#555](https://github.com/zh-lx/code-inspector/pull/555)
+
+## 1.6.5
+
+- 【fix】Upgraded `launch-ide` version to `1.4.5`, supporting identification of some newer editor versions such as `Zed`, `Antigravity`, `Devin`, etc. [#554](https://github.com/zh-lx/code-inspector/pull/554)
+
+## 1.6.4
+
+- 【fix】Fixed the issue where `data-insp-path` was not injected correctly in lower versions of Vue compiler [#553](https://github.com/zh-lx/code-inspector/pull/553)
+
+## 1.6.3
+
+- 【fix】Fixed the issue where scope CSS would fail in production builds for webpack/rspack Vue projects [#549](https://github.com/zh-lx/code-inspector/pull/549)
+
+## 1.6.2
+
+- 【fix】Renamed plugin Lit-related global variables to avoid conflicts with Lit versions installed in user projects [#546](https://github.com/zh-lx/code-inspector/pull/546)
+
 ## 1.6.1
 
 - 【fix】Optimize inspector tooltip position logic to prevent covering target elements [#541](https://github.com/zh-lx/code-inspector/pull/541)

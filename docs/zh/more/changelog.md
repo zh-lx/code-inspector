@@ -1,5 +1,25 @@
 # 更新日志
 
+## 1.6.6
+
+- 【fix】兼容了新版本 `rspack` 中对于 `persistent` 缓存的处理 [#555](https://github.com/zh-lx/code-inspector/pull/555)
+
+## 1.6.5
+
+- 【fix】升级 `launch-ide` 版本至 `1.4.5`，支持了部分新版本的 editor 识别如 `Zed`、`Antigravity`、`Devin` 等 [#554](https://github.com/zh-lx/code-inspector/pull/554)
+
+## 1.6.4
+
+- 【fix】修复低版本 vue compiler 中 `data-insp-path` 注入不正确的问题 [#553](https://github.com/zh-lx/code-inspector/pull/553)
+
+## 1.6.3 
+
+- 【fix】修复 webpack/rspack vue 项目中生产环境中打包后 scope css 失效的问题 [#549](https://github.com/zh-lx/code-inspector/pull/549)
+
+## 1.6.2
+
+- 【fix】重命名插件 Lit 相关全局变量，避免与用户项目中安装的 Lit 版本冲突 [#546](https://github.com/zh-lx/code-inspector/pull/546)
+
 ## 1.6.1
 
 - 【fix】优化 inspector tooltip 位置逻辑，防止遮挡目标元素 [#541](https://github.com/zh-lx/code-inspector/pull/541)

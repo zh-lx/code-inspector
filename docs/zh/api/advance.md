@@ -240,3 +240,11 @@ window.addEventListener('code-inspector:trackCode', () => {
 - 说明：跳过注入某些代码片段：
   - `console`：跳过注入 `console.error` 和 `console.warn` 的代码片段，nextjs 和 nuxt 项目不建议跳过此项
   - `htmlScript`：跳过在 html 中注入 script 标签的代码片段，MPA 项目不建议跳过此项
+
+## vueLoader <Badge type="tip" text="1.6.4+" vertical="middle" />
+
+- 可选项。
+- 类型：`'custom' | 'internal'`，默认值为 `'custom'`
+- 说明：Vue 文件的编译方式，仅对 `webpack/rspack/rsbuild` 项目生效
+  - `'custom'`：使用 `code-inspector-plugin` 自定义的 loader 注入，优点是兼容性强，部分 vue 项目生产环境使用可能导致 scoped css 失效
+  - `'internal'`：使用 `vue-loader` 内部 compiler node transform，可以解决生产环境 scoped css 失效问题，但是低版本 vue compiler 不兼容
