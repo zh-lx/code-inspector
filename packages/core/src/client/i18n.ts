@@ -88,6 +88,10 @@ const MESSAGES = defineMessages({
   },
   'chat.switchModel': { en: 'Switch model', zh: '切换模型' },
   'chat.global': { en: 'Global', zh: '全局' },
+  'chat.insertPathToTerminal': {
+    en: 'Insert file path into terminal',
+    zh: '插入文件路径到终端',
+  },
   'chat.history': { en: 'History', zh: '历史记录' },
   'chat.switchToLightTheme': {
     en: 'Switch to light theme',

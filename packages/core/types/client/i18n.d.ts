@@ -117,6 +117,10 @@ declare const MESSAGES: {
         readonly en: "Global";
         readonly zh: "全局";
     };
+    readonly 'chat.insertPathToTerminal': {
+        readonly en: "Insert file path into terminal";
+        readonly zh: "插入文件路径到终端";
+    };
     readonly 'chat.history': {
         readonly en: "History";
         readonly zh: "历史记录";
