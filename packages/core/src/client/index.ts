@@ -2115,6 +2115,28 @@ export class CodeInspectorComponent extends LitElement {
     await this.initTerminal();
   };
 
+  insertContextPathToTerminal = async () => {
+    if (!this.terminalMode || !this.chatContext) {
+      return;
+    }
+    if (!this.terminalManager || this.terminalManager.isDisposed()) {
+      await this.ensureTerminalMounted();
+    }
+
+    if (
+      !this.terminalManager ||
+      this.terminalManager.isDisposed() ||
+      this.terminalExitCode !== null
+    ) {
+      return;
+    }
+
+    this.terminalManager.sendInput(
+      `${this.chatContext.file}#${this.chatContext.line}`,
+    );
+    this.terminalManager.focus();
+  };
+
   sendTerminalMessage = async () => {
     const rawMessage = this.chatInput.trim();
     if (!rawMessage) return;
@@ -3691,6 +3713,7 @@ export class CodeInspectorComponent extends LitElement {
           startNewConversation: this.handleStartNewConversation,
           sendTerminalMessage: this.sendTerminalMessage,
           restartTerminal: this.restartTerminal,
+          insertContextPathToTerminal: this.insertContextPathToTerminal,
         },
       )}
 

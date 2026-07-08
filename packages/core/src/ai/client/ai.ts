@@ -203,6 +203,7 @@ export interface ChatHandlers {
   startNewConversation: () => void;
   sendTerminalMessage: () => void;
   restartTerminal: () => void;
+  insertContextPathToTerminal: () => void;
 }
 
 /**
@@ -1420,12 +1421,53 @@ export function renderChatModal(
                     >`
                   : ''}
             </div>
-            <span class="chat-context-info">
-              ${state.chatContext
-                ? html`&lt;${state.chatContext.name}&gt;
-                  ${state.chatContext.file}#${state.chatContext.line}`
-                : getClientText(lang, 'chat.global')}
-            </span>
+            <div class="chat-context-row">
+              <span class="chat-context-info">
+                ${state.chatContext
+                  ? html`<span class="chat-context-tag"
+                        >&lt;${state.chatContext.name}&gt;</span
+                      >
+                      <span
+                        class="chat-context-path"
+                        title="${state.chatContext.file}#${state.chatContext
+                          .line}"
+                        >${state.chatContext.file}#${state.chatContext
+                          .line}</span
+                      >`
+                  : getClientText(lang, 'chat.global')}
+              </span>
+              ${state.terminalMode &&
+              state.terminalExitCode === null &&
+              state.chatContext
+                ? html`<button
+                    class="chat-context-insert-btn"
+                    title="${getClientText(lang, 'chat.insertPathToTerminal')}"
+                    @mousedown="${(e: MouseEvent) => e.stopPropagation()}"
+                    @click="${(e: MouseEvent) => {
+                      e.stopPropagation();
+                      handlers.insertContextPathToTerminal();
+                    }}"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m10 16 4-4-4-4" />
+                      <path d="M3 12h11" />
+                      <path
+                        d="M3 8V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3"
+                      />
+                    </svg>
+                  </button>`
+                : ''}
+            </div>
           </div>
           <div class="chat-modal-actions">
             <button
@@ -2144,7 +2186,8 @@ export const chatStyles = css`
     font-weight: 500;
     color: var(--chat-text-secondary);
     font-family:
-      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
   }
 
   .chat-modal-title-row {
@@ -2159,7 +2202,9 @@ export const chatStyles = css`
     background: var(--chat-border);
     padding: 1px 6px;
     border-radius: 3px;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     white-space: nowrap;
     max-width: 160px;
     overflow: hidden;
@@ -2226,7 +2271,9 @@ export const chatStyles = css`
     border-radius: 4px;
     background: transparent;
     color: var(--chat-text-secondary);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 11px;
     text-align: left;
     padding: 5px 8px;
@@ -2252,7 +2299,9 @@ export const chatStyles = css`
     background: var(--chat-border);
     padding: 1px 6px;
     border-radius: 3px;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     white-space: nowrap;
     max-width: 160px;
     overflow: hidden;
@@ -2267,10 +2316,56 @@ export const chatStyles = css`
   .chat-context-info {
     font-size: 11px;
     color: var(--chat-text-muted);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .chat-context-tag {
+    flex-shrink: 0;
+  }
+
+  .chat-context-path {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    direction: rtl;
+    text-align: left;
+  }
+
+  .chat-context-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .chat-context-insert-btn {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--chat-text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .chat-context-insert-btn:hover {
+    background: var(--chat-hover-bg);
+    color: var(--chat-text-secondary);
   }
 
   .chat-provider-trigger {
@@ -2322,7 +2417,9 @@ export const chatStyles = css`
     border-radius: 4px;
     background: transparent;
     color: var(--chat-text-secondary);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 11px;
     text-align: left;
     padding: 5px 8px;
@@ -2478,7 +2575,9 @@ export const chatStyles = css`
     flex-direction: column;
     gap: 0;
     min-height: 0;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 13px;
     line-height: 1.5;
     background: var(--chat-bg);
@@ -2554,7 +2653,9 @@ export const chatStyles = css`
     font-size: 11px;
     line-height: 1.35;
     color: var(--chat-text-muted);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
   }
 
   .chat-message-context-tag {
@@ -2652,7 +2753,9 @@ export const chatStyles = css`
     background: var(--chat-code-bg);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 0.9em;
     color: var(--chat-code-text);
   }
@@ -2794,7 +2897,9 @@ export const chatStyles = css`
     padding: 4px 14px;
     background: var(--chat-header-bg);
     border-top: 1px solid var(--chat-border);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 11px;
   }
 
@@ -2921,7 +3026,9 @@ export const chatStyles = css`
 
   .chat-input-prompt {
     color: var(--chat-accent);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 13px;
     font-weight: 600;
     flex-shrink: 0;
@@ -2935,7 +3042,9 @@ export const chatStyles = css`
     border-radius: 4px;
     padding: 6px 10px;
     font-size: 13px;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     color: var(--chat-text);
     resize: none;
     line-height: 1.4;
@@ -3088,7 +3197,9 @@ export const chatStyles = css`
   .diff-view {
     flex: 1;
     min-width: 0;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 12px;
     line-height: 1.5;
     border-radius: 4px;
@@ -3163,7 +3274,9 @@ export const chatStyles = css`
     background: transparent;
     border: 1px solid var(--chat-border);
     color: var(--chat-text-muted);
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 11px;
     padding: 2px 8px;
     border-radius: 4px;
@@ -3196,7 +3309,9 @@ export const chatStyles = css`
   .read-result-block {
     flex: 1;
     min-width: 0;
-    font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+      -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto,
+      sans-serif;
     font-size: 12px;
     line-height: 1.5;
     border-radius: 4px;

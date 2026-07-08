@@ -288,6 +288,7 @@ export declare class CodeInspectorComponent extends LitElement {
      * 从“会话已结束”卡片重新启动一个交互式终端会话
      */
     restartTerminal: () => Promise<void>;
+    insertContextPathToTerminal: () => Promise<void>;
     sendTerminalMessage: () => Promise<void>;
     handleRevertEdit: (tool: ToolCall) => Promise<void>;
     private extractRevertEdits;

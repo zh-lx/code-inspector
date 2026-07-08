@@ -160,6 +160,7 @@ export interface ChatHandlers {
     startNewConversation: () => void;
     sendTerminalMessage: () => void;
     restartTerminal: () => void;
+    insertContextPathToTerminal: () => void;
 }
 /**
  * 更新聊天框位置（使用 floating-ui）
