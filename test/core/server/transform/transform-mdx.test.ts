@@ -52,8 +52,16 @@ describe('transformMdx parser path', () => {
         filePath,
         [],
       );
+      const cachedResult = await transformMdx(
+        '<section>Missing parser</section>',
+        filePath,
+        [],
+      );
 
       expect(result).toContain(
+        `${PathName}=${mdxPath(filePath, 1, 1, 'section')}`,
+      );
+      expect(cachedResult).toContain(
         `${PathName}=${mdxPath(filePath, 1, 1, 'section')}`,
       );
     } finally {
@@ -89,6 +97,46 @@ describe('transformMdx parser path', () => {
     }
   });
 
+  it('should resolve parser from a missing source file path', async () => {
+    const content = '<main>Missing source path</main>';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({
+      type: 'root',
+      children: [
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'main',
+          attributes: [],
+          children: [],
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+      ],
+    }),
+  }),
+};
+`,
+    );
+    const missingFilePath = path.join(
+      path.dirname(path.dirname(fixture.filePath)),
+      'missing',
+      'file.mdx',
+    );
+
+    try {
+      const result = await transformMdx(content, missingFilePath, []);
+
+      expect(result).toContain(
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(missingFilePath, 1, 1, 'main')}}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should support default-exported MDX parser modules', async () => {
     const content = '<article>Default parser</article>';
     const fixture = createMdxFixture(
@@ -117,8 +165,12 @@ module.exports = {
 
     try {
       const result = await transformMdx(content, fixture.filePath, []);
+      const cachedResult = await transformMdx(content, fixture.filePath, []);
 
       expect(result).toContain(
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(fixture.filePath, 1, 1, 'article')}}`,
+      );
+      expect(cachedResult).toContain(
         `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(fixture.filePath, 1, 1, 'article')}}`,
       );
     } finally {
@@ -137,6 +189,61 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 1, 1, 'main')}`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should skip dynamic root propagation when AST root has no offset', async () => {
+    const content = '<article>No offset</article>';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({
+      type: 'root',
+      children: [
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'article',
+          attributes: [],
+          children: [],
+          position: { start: { line: 1, column: 1 } },
+        },
+      ],
+    }),
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle parser AST roots without children', async () => {
+    const content = 'Plain only';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({ type: 'root' }),
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }
@@ -806,12 +913,46 @@ module.exports = {
     }
   });
 
+  it('should transform markdown after unterminated frontmatter marker', async () => {
+    const content = ['---', '# Title'].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'h1')}>Title</h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
   it('should treat unfinished MDX ESM regions as ignored ranges', async () => {
     const content = [
       'export const config = {',
       '  label: "quoted <span>"',
       '<div>Ignored</div>',
     ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle empty unfinished MDX ESM ranges', async () => {
+    const content = '';
     const fixture = createMdxFixture(
       content,
       'module.exports = { notCreateProcessor: true };',
