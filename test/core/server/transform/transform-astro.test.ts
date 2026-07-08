@@ -58,12 +58,78 @@ describe('transformAstro compiler path', () => {
         filePath,
         [],
       );
+      const cachedResult = await transformAstro(
+        '<main>Missing compiler</main>',
+        filePath,
+        [],
+      );
 
       expect(result).toContain(
         `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(filePath, 1, 1, 'main')}}`,
       );
+      expect(cachedResult).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(filePath, 1, 1, 'main')}}`,
+      );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('should resolve compiler from a missing source file path', async () => {
+    const content = '<main>Missing source path</main>';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'main',
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+    const missingFilePath = path.join(
+      path.dirname(path.dirname(fixture.filePath)),
+      'missing',
+      'file.astro',
+    );
+
+    try {
+      const result = await transformAstro(content, missingFilePath, []);
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(missingFilePath, 1, 1, 'main')}}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle compiler AST roots without children', async () => {
+    const content = 'Plain only';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({ ast: { type: 'root' } }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
     }
   });
 
@@ -329,10 +395,46 @@ module.exports = {
 
     try {
       const result = await transformAstro(content, fixture.filePath, []);
+      const cachedResult = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
         `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
+      expect(cachedResult).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should skip dynamic root propagation when AST root has no offset', async () => {
+    const content = '<div>No offset</div>';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'div',
+          attributes: [],
+          position: { start: { line: 1, column: 1 } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }
@@ -413,6 +515,30 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should scan fallback content with unterminated frontmatter', async () => {
+    const content = ['---', '<div>Visible</div>'].join('\n');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => {
+    throw new Error('parse failed');
+  },
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 2, 1, 'div')}}`,
+      );
     } finally {
       fixture.cleanup();
     }

@@ -230,6 +230,80 @@ describe('claude cli stream parsing', () => {
     }
   });
 
+  it('should skip blank and directory cli candidates', async () => {
+    mockExecSync.mockReturnValue(`\n${process.cwd()}\n`);
+
+    await expect(getModelInfo(undefined as any)).resolves.toBe('');
+  });
+
+  it('should continue past blank cli candidates before a runnable path', async () => {
+    const child = createChildProcessMock();
+    mockExecSync.mockReturnValue(`/not-runnable\n\n${runnableCliPath}\n`);
+    mockSpawn.mockReturnValue(child);
+    const originalStatSync = fs.statSync;
+    const statSpy = vi.spyOn(fs, 'statSync').mockImplementation((filePath, options) => {
+      if (filePath === '/not-runnable') {
+        throw new Error('not runnable');
+      }
+      return originalStatSync(filePath, options as fs.StatSyncOptions);
+    });
+
+    try {
+      const promise = getModelInfo(undefined as any);
+      child.stdout.emit(
+        'data',
+        Buffer.from(JSON.stringify({ type: 'system', model: 'claude-sonnet-4-5' }) + '\n'),
+      );
+      child.emit('close', 0);
+
+      await expect(promise).resolves.toBe('claude-sonnet-4-5');
+    } finally {
+      statSpy.mockRestore();
+    }
+  });
+
+  it('should treat file cli candidates as runnable on Windows', async () => {
+    const child = createChildProcessMock();
+    const cliPath = `${process.execPath}.cmd`;
+    mockExecSync.mockReturnValue(`${cliPath}\n`);
+    mockSpawn.mockReturnValue(child);
+    const platformDescriptor = Object.getOwnPropertyDescriptor(
+      process,
+      'platform',
+    );
+    const originalStatSync = fs.statSync;
+    const accessSpy = vi.spyOn(fs, 'accessSync');
+    const statSpy = vi.spyOn(fs, 'statSync').mockImplementation((filePath, options) => {
+      if (filePath === cliPath) {
+        return {
+          isFile: () => true,
+        } as fs.Stats;
+      }
+      return originalStatSync(filePath, options as fs.StatSyncOptions);
+    });
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+    });
+
+    try {
+      const promise = getModelInfo(undefined as any);
+      child.stdout.emit(
+        'data',
+        Buffer.from(JSON.stringify({ type: 'system', model: 'claude-sonnet-4-5' }) + '\n'),
+      );
+      child.emit('close', 0);
+
+      await expect(promise).resolves.toBe('claude-sonnet-4-5');
+      expect(accessSpy).not.toHaveBeenCalledWith(cliPath, fs.constants.X_OK);
+    } finally {
+      statSpy.mockRestore();
+      accessSpy.mockRestore();
+      if (platformDescriptor) {
+        Object.defineProperty(process, 'platform', platformDescriptor);
+      }
+    }
+  });
+
   it('should timeout while probing model and return empty string', async () => {
     const child = createChildProcessMock();
     mockExecSync.mockReturnValue(`${runnableCliPath}\n`);

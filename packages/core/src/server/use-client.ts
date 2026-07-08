@@ -443,7 +443,7 @@ function resolveNextPackageJson(basedir: string) {
     const require = createRequire(path.join(resolveDir, 'noop.js'));
     const request = 'next/package.json';
     const resolvedPath = require.resolve(request);
-    const resolvePaths = require.resolve.paths(request) || [];
+    const resolvePaths = require.resolve.paths(request) as string[];
     const allowedResolvePaths = getNodeModulesPaths(resolveDir);
     const matchedResolvePath = resolvePaths.find((resolvePath) => {
       const normalizedResolvePath = path.resolve(resolvePath);
