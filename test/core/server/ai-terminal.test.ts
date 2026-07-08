@@ -30,6 +30,27 @@ describe('ai terminal helpers', () => {
     });
   });
 
+  it('should resolve terminal runtime dependencies from the core package', () => {
+    expect(__TEST_ONLY__.tryRequire('node-pty')?.spawn).toBeTypeOf('function');
+    const ws = __TEST_ONLY__.tryRequire('ws');
+
+    expect(ws?.WebSocketServer || ws?.Server).toBeTypeOf('function');
+  });
+
+  it('should restore executable bits on helper binaries', () => {
+    if (process.platform === 'win32') {
+      return;
+    }
+
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-terminal-helper-'));
+    const helperPath = path.join(tempDir, 'spawn-helper');
+    fs.writeFileSync(helperPath, '#!/bin/sh\nexit 0\n');
+    fs.chmodSync(helperPath, 0o644);
+
+    expect(__TEST_ONLY__.ensureExecutableBit(helperPath)).toBe(true);
+    expect(fs.statSync(helperPath).mode & 0o111).not.toBe(0);
+  });
+
   it('should only resolve executable spawn commands when a path is provided', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-terminal-cmd-'));
     const executablePath = path.join(

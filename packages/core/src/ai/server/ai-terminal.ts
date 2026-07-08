@@ -3,6 +3,7 @@
  */
 import fs from 'fs';
 import http from 'http';
+import { createRequire } from 'module';
 import path from 'path';
 import type {
   ClaudeCliOptions,
@@ -34,6 +35,7 @@ type WsModule = any;
 
 let terminalFeatureAvailable = false;
 let terminalFeatureUnavailableReason = 'Terminal feature has not been initialized.';
+const requireFromCore = createRequire(import.meta.url);
 
 function getRuntimeRequire(): NodeJS.Require | null {
   try {
@@ -57,13 +59,61 @@ async function tryDynamicImport(specifier: string): Promise<any | null> {
 }
 
 function tryRequire(specifier: string): any | null {
+  try {
+    return requireFromCore(specifier);
+  } catch {
+    // Continue with a global require fallback for non-standard runtimes.
+  }
+
   const runtimeRequire = getRuntimeRequire();
-  if (!runtimeRequire) return null;
+  if (!runtimeRequire || runtimeRequire === requireFromCore) return null;
   try {
     return runtimeRequire(specifier);
   } catch {
     return null;
   }
+}
+
+function tryResolve(specifier: string): string | null {
+  try {
+    return requireFromCore.resolve(specifier);
+  } catch {
+    const runtimeRequire = getRuntimeRequire();
+    if (!runtimeRequire || runtimeRequire === requireFromCore) return null;
+    try {
+      return runtimeRequire.resolve(specifier);
+    } catch {
+      return null;
+    }
+  }
+}
+
+function ensureExecutableBit(filePath: string): boolean {
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) return false;
+    if ((stat.mode & 0o111) !== 0) return true;
+    fs.chmodSync(filePath, stat.mode | 0o755);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function ensureNodePtySpawnHelperExecutable(): void {
+  if (process.platform !== 'darwin' && process.platform !== 'linux') return;
+
+  const packageJsonPath = tryResolve('node-pty/package.json');
+  if (!packageJsonPath) return;
+
+  ensureExecutableBit(
+    path.join(
+      path.dirname(packageJsonPath),
+      'prebuilds',
+      `${process.platform}-${process.arch}`,
+      'spawn-helper',
+    ),
+  );
 }
 
 /**
@@ -223,9 +273,11 @@ function normalizeSpawnEnv(
 
 export const __TEST_ONLY__ = {
   isExecutableFile,
+  ensureExecutableBit,
   resolveSpawnCommand,
   resolveSpawnCwd,
   normalizeSpawnEnv,
+  tryRequire,
 };
 
 function getTerminalProbeCommand(): { command: string; args: string[] } {
@@ -604,6 +656,7 @@ export async function attachTerminalWebSocket(
 ): Promise<boolean> {
   const pty = await loadNodePty();
   const WS = await loadWs();
+  ensureNodePtySpawnHelperExecutable();
 
   if (!pty || !WS) {
     terminalFeatureAvailable = false;
