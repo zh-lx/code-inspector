@@ -66,6 +66,7 @@ describe('runtime session manager', () => {
     expect(abortRuntimeSession('missing')).toBe(false);
 
     expect(() => {
+      __TEST_ONLY__.destroyRuntimeSession('missing');
       setRuntimeSessionHooks('missing', { abort: vi.fn() });
       updateRuntimeSessionMetadata('missing', { a: 1 });
       markRuntimeSessionRunning('missing');
