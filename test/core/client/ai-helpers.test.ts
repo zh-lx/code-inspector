@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { __TEST_ONLY__, setProjectRoot } from '@/core/src/client/ai';
+import { __TEST_ONLY__, setProjectRoot } from '@/core/src/ai/client/ai';
 
 function templateText(tpl: any): string {
   if (tpl == null) return '';

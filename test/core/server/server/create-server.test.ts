@@ -26,7 +26,7 @@ vi.mock('launch-ide', () => ({
   getEnvVariables: mockGetEnvVariables,
 }));
 
-vi.mock('@/core/src/server/ai', () => ({
+vi.mock('@/core/src/ai/server/ai', () => ({
   getAIOptions: mockGetAIOptions,
   handleAIRequest: mockHandleAIRequest,
   handleAIModelRequest: mockHandleAIModelRequest,
@@ -36,12 +36,12 @@ vi.mock('@/core/src/server/ai', () => ({
   getExpireDays: mockGetExpireDays,
 }));
 
-vi.mock('@/core/src/server/ai-terminal', () => ({
+vi.mock('@/core/src/ai/server/ai-terminal', () => ({
   attachTerminalWebSocket: mockAttachTerminalWebSocket,
   getTerminalAvailabilityStatus: mockGetTerminalAvailabilityStatus,
 }));
 
-vi.mock('@/core/src/server/ai-history', () => ({
+vi.mock('@/core/src/ai/server/ai-history', () => ({
   handleAIHistoryListRequest: mockHandleAIHistoryListRequest,
   handleAIHistorySaveRequest: mockHandleAIHistorySaveRequest,
   handleAIHistoryLoadRequest: mockHandleAIHistoryLoadRequest,

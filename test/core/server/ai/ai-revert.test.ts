@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import { handleAIRevertRequest } from '@/core/src/server/ai';
+import { handleAIRevertRequest } from '@/core/src/ai/server/ai';
 
 function createMockReq(rawBody: string) {
   const listeners: Record<string, Function[]> = {};

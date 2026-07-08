@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { __TEST_ONLY__ } from '@/core/src/server/ai-terminal';
+import { __TEST_ONLY__ } from '@/core/src/ai/server/ai-terminal';
 
 describe('ai terminal helpers', () => {
   it('should resolve spawn cwd and fall back when requested cwd is missing', () => {

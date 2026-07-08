@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { __TEST_ONLY__, getModelInfo, handleClaudeRequest } from '@/core/src/server/ai-provider-claude';
+import { __TEST_ONLY__, getModelInfo, handleClaudeRequest } from '@/core/src/ai/server/ai-provider-claude';
 
 const PNG_DATA_URL = 'data:image/png;base64,aGVsbG8=';
 

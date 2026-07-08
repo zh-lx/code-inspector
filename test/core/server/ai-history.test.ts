@@ -8,7 +8,7 @@ import {
   handleAIHistoryListRequest,
   handleAIHistoryLoadRequest,
   handleAIHistorySaveRequest,
-} from '@/core/src/server/ai-history';
+} from '@/core/src/ai/server/ai-history';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

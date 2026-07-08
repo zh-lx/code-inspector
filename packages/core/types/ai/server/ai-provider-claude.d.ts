@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { ChildProcess } from 'child_process';
-import type { ClaudeCodeOptions, ClaudeCliOptions, ClaudeSdkOptions, ClaudeAgentOptions } from '../shared';
+import type { ClaudeCodeOptions, ClaudeCliOptions, ClaudeSdkOptions, ClaudeAgentOptions } from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 export interface ProviderCallbacks {
     sendSSE: (data: object | string) => void;

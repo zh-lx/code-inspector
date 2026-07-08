@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-let AITerminalManagerCtor: typeof import('@/core/src/client/ai-terminal').AITerminalManager;
+let AITerminalManagerCtor: typeof import('@/core/src/ai/client/ai-terminal').AITerminalManager;
 
 beforeAll(async () => {
   Object.defineProperty(window, 'matchMedia', {
@@ -42,7 +42,7 @@ beforeAll(async () => {
     })),
   });
 
-  const terminalModule = await import('@/core/src/client/ai-terminal');
+  const terminalModule = await import('@/core/src/ai/client/ai-terminal');
   AITerminalManagerCtor = terminalModule.AITerminalManager;
 });
 

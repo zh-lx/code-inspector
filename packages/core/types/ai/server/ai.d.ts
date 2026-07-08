@@ -4,7 +4,7 @@
  * 通过 provider 模式支持不同的 AI 后端
  */
 import http from 'http';
-import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../shared';
+import type { ClaudeCodeOptions, CodexOptions, OpenCodeOptions } from '../../shared';
 /**
  * AI 上下文信息
  */

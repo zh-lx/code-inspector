@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { describe, expect, it } from 'vitest';
-import { __TEST_ONLY__ } from '@/core/src/server/ai-provider-codex';
+import { __TEST_ONLY__ } from '@/core/src/ai/server/ai-provider-codex';
 
 const PNG_DATA_URL = 'data:image/png;base64,aGVsbG8=';
 const JPEG_DATA_URL = 'data:image/jpeg;base64,d29ybGQ=';

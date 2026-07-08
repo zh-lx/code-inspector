@@ -1,4 +1,4 @@
-import type { CodexOptions } from '../shared';
+import type { CodexOptions } from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import {

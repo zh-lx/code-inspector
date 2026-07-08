@@ -16,7 +16,7 @@ import {
   formatHistoryDateText,
   getClientText,
   normalizeClientLang,
-} from './i18n';
+} from '../../client/i18n';
 
 /** 项目根路径，由服务端 SSE info 事件传入 */
 let _projectRoot = '';

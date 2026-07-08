@@ -7,9 +7,9 @@ import path from 'path';
 import type {
   ClaudeCliOptions,
   CodexCliOptions,
-} from '../shared';
+} from '../../shared';
 import type { AIProviderType, ResolvedAIOptions } from './ai';
-import { getEnvVars } from './server';
+import { getEnvVars } from '../../server/server';
 import { findClaudeCodeCli } from './ai-provider-claude';
 import { findCodexCli, CODEX_PROVIDER_RUNTIME } from './ai-provider-common';
 import { OPENCODE_PROVIDER_RUNTIME } from './ai-provider-opencode';

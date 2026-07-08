@@ -15,7 +15,7 @@ import {
   sendChatToServer,
   setProjectRoot,
   updateChatModalPosition,
-} from '@/core/src/client/ai';
+} from '@/core/src/ai/client/ai';
 
 function createHandlers() {
   return {

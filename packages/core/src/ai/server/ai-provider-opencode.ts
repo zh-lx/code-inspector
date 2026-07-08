@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { OpenCodeOptions } from '../shared';
+import type { OpenCodeOptions } from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import {
