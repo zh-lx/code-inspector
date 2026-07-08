@@ -72,7 +72,7 @@ describe('client ai terminal output colors', () => {
     const input = '\x1b[48;2;41;41;41mUse /skills\x1b[0m';
     const output = renderTerminalOutput(input, 'light');
 
-    expect(output).toContain('\x1b[48;2;236;239;244m');
+    expect(output).toContain('\x1b[48;2;250;250;249m');
     expect(output).not.toContain('48;2;41;41;41');
     expect(renderTerminalOutput(input, 'dark')).toBe(input);
   });
@@ -83,14 +83,14 @@ describe('client ai terminal output colors', () => {
         '\x1b[40mblack bg\x1b[0m',
         'light',
       ),
-    ).toContain('\x1b[48;2;236;239;244m');
+    ).toContain('\x1b[48;2;250;250;249m');
 
     expect(
       renderTerminalOutput(
         '\x1b[48;5;236mindexed bg\x1b[0m',
         'light',
       ),
-    ).toContain('\x1b[48;2;236;239;244m');
+    ).toContain('\x1b[48;2;250;250;249m');
   });
 
   it('should remap low-contrast light foregrounds in light terminal output', () => {
@@ -99,14 +99,14 @@ describe('client ai terminal output colors', () => {
         '\x1b[38;2;245;245;245mwhite text\x1b[0m',
         'light',
       ),
-    ).toContain('\x1b[38;2;46;52;64m');
+    ).toContain('\x1b[38;2;36;36;36m');
 
     expect(
       renderTerminalOutput(
         '\x1b[37mwhite ansi text\x1b[0m',
         'light',
       ),
-    ).toContain('\x1b[38;2;46;52;64m');
+    ).toContain('\x1b[38;2;36;36;36m');
   });
 
   it('should preserve opencode terminal output without theme normalization', () => {
@@ -126,7 +126,7 @@ describe('client ai terminal output colors', () => {
   it('should remap low-contrast light backgrounds and dark foregrounds in dark terminal output', () => {
     expect(
       renderTerminalOutput(
-        '\x1b[48;2;236;239;244mlight bg\x1b[0m',
+        '\x1b[48;2;250;250;249mlight bg\x1b[0m',
         'dark',
       ),
     ).toContain('\x1b[48;2;46;52;64m');
@@ -154,7 +154,7 @@ describe('client ai terminal output colors', () => {
     manager.write(input);
 
     expect(terminal.write).toHaveBeenLastCalledWith(
-      expect.stringContaining('\x1b[48;2;236;239;244m'),
+      expect.stringContaining('\x1b[48;2;250;250;249m'),
     );
 
     manager.setTheme('dark');
@@ -270,4 +270,3 @@ describe('client ai terminal output colors', () => {
   });
 
 });
-
