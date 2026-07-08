@@ -9,7 +9,7 @@ import type {
   ClaudeCodeOptions,
   CodexOptions,
   OpenCodeOptions,
-} from '../shared';
+} from '../../shared';
 import {
   handleClaudeRequest,
   getModelInfo as getClaudeModelInfo,

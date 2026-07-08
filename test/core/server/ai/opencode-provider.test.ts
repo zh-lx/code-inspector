@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockHandleCodexRequest = vi.hoisted(() => vi.fn(() => ({ abort: vi.fn() })));
 const mockGetCodexModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 
-vi.mock('@/core/src/server/ai-provider-common', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/core/src/server/ai-provider-common')>();
+vi.mock('@/core/src/ai/server/ai-provider-common', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/core/src/ai/server/ai-provider-common')>();
   return {
     ...actual,
     handleCodexRequest: mockHandleCodexRequest,
@@ -15,7 +15,7 @@ vi.mock('@/core/src/server/ai-provider-common', async (importOriginal) => {
 import {
   getModelInfo,
   handleOpenCodeRequest,
-} from '@/core/src/server/ai-provider-opencode';
+} from '@/core/src/ai/server/ai-provider-opencode';
 
 describe('opencode provider wrapper', () => {
   beforeEach(() => {

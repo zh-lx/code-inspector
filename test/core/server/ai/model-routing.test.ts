@@ -7,17 +7,17 @@ const mockGetCodexModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 const mockGetOpenCodeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 const mockGetClaudeModelInfo = vi.hoisted(() => vi.fn(async () => ''));
 
-vi.mock('@/core/src/server/ai-provider-codex', () => ({
+vi.mock('@/core/src/ai/server/ai-provider-codex', () => ({
   handleCodexRequest: mockHandleCodexRequest,
   getModelInfo: mockGetCodexModelInfo,
 }));
 
-vi.mock('@/core/src/server/ai-provider-opencode', () => ({
+vi.mock('@/core/src/ai/server/ai-provider-opencode', () => ({
   handleOpenCodeRequest: mockHandleOpenCodeRequest,
   getModelInfo: mockGetOpenCodeModelInfo,
 }));
 
-vi.mock('@/core/src/server/ai-provider-claude', () => ({
+vi.mock('@/core/src/ai/server/ai-provider-claude', () => ({
   handleClaudeRequest: mockHandleClaudeRequest,
   getModelInfo: mockGetClaudeModelInfo,
 }));
@@ -26,7 +26,7 @@ import {
   getAIOptions,
   handleAIModelRequest,
   handleAIRequest,
-} from '@/core/src/server/ai';
+} from '@/core/src/ai/server/ai';
 
 function createMockReq(body: Record<string, unknown>) {
   const payload = JSON.stringify(body);

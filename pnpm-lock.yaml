@@ -654,7 +654,7 @@ importers:
         specifier: ^0.13.0
         version: 0.13.0
       node-pty:
-        specifier: ^1.0.0
+        specifier: ^1.1.0
         version: 1.1.0
       npm:
         specifier: ^11.11.0
@@ -1013,12 +1013,15 @@ importers:
       launch-ide:
         specifier: 1.4.5
         version: 1.4.5
-      marked:
-        specifier: ^17.0.1
-        version: 17.0.1
+      node-pty:
+        specifier: ^1.1.0
+        version: 1.1.0
       portfinder:
         specifier: ^1.0.28
         version: 1.0.32(supports-color@6.1.0)
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4)
     devDependencies:
       '@babel/core':
         specifier: ^7.21.3
@@ -1050,6 +1053,9 @@ importers:
       magic-string:
         specifier: ^0.30.0
         version: 0.30.0
+      marked:
+        specifier: ^17.0.1
+        version: 17.0.1
       rollup-plugin-terser:
         specifier: ^7.0.2
         version: 7.0.2(rollup@4.61.1)
@@ -1078,12 +1084,6 @@ importers:
       '@opencode-ai/sdk':
         specifier: ^1.2.24
         version: 1.2.24
-      node-pty:
-        specifier: ^1.0.0
-        version: 1.1.0
-      ws:
-        specifier: ^8.18.0
-        version: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4)
 
   packages/esbuild:
     dependencies:

@@ -18,7 +18,7 @@ import {
   __TEST_ONLY__,
   getModelInfo,
   handleClaudeRequest,
-} from '@/core/src/server/ai-provider-claude';
+} from '@/core/src/ai/server/ai-provider-claude';
 
 const runnableCliPath = process.execPath;
 

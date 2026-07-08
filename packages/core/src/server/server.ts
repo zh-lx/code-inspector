@@ -19,17 +19,17 @@ import {
   getExpireDays,
   handleAIRuntimeAbortRequest,
   handleAIRuntimeStreamRequest,
-} from './ai';
+} from '../ai/server/ai';
 import {
   handleAIHistoryListRequest,
   handleAIHistorySaveRequest,
   handleAIHistoryLoadRequest,
   handleAIHistoryDeleteRequest,
-} from './ai-history';
+} from '../ai/server/ai-history';
 import {
   attachTerminalWebSocket,
   getTerminalAvailabilityStatus,
-} from './ai-terminal';
+} from '../ai/server/ai-terminal';
 import { getEnvVariables } from 'launch-ide';
 
 /**

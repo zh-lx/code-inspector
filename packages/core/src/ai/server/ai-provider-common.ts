@@ -10,10 +10,10 @@ import type {
   CodexCliOptions,
   CodexSdkOptions,
   CodexAgentOptions,
-} from '../shared';
+} from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
-import { getEnvVars } from './server';
+import { getEnvVars } from '../../server/server';
 import chalk from 'chalk';
 
 export type CodexProviderRuntime = {

@@ -17,7 +17,7 @@ vi.mock('child_process', () => ({
 import {
   __TEST_ONLY__,
   handleCodexRequest,
-} from '@/core/src/server/ai-provider-codex';
+} from '@/core/src/ai/server/ai-provider-codex';
 
 function createChildProcessMock() {
   const child = new EventEmitter() as any;

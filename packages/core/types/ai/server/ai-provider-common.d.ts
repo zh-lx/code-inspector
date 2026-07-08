@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { ChildProcess } from 'child_process';
-import type { CodexOptions, CodexCliOptions, CodexSdkOptions, CodexAgentOptions } from '../shared';
+import type { CodexOptions, CodexCliOptions, CodexSdkOptions, CodexAgentOptions } from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 export type CodexProviderRuntime = {

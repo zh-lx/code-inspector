@@ -1,5 +1,5 @@
 import { LitElement, TemplateResult } from 'lit';
-import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall, HistoryEntry } from './ai';
+import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall, HistoryEntry } from '../ai/client/ai';
 interface Position {
     left?: string;
     right?: string;

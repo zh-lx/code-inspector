@@ -27,9 +27,9 @@ import {
   saveConversation,
   loadConversationData,
   deleteConversationData,
-} from './ai';
-import { saveAIState, loadAIState, clearAIState } from './ai-persist';
-import { AITerminalManager } from './ai-terminal';
+} from '../ai/client/ai';
+import { saveAIState, loadAIState, clearAIState } from '../ai/client/ai-persist';
+import { AITerminalManager } from '../ai/client/ai-terminal';
 import {
   ClientTextVars,
   ClientTextKey,

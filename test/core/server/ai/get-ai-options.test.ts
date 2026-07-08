@@ -3,7 +3,7 @@ import {
   getAIOptions,
   getAvailableAIProviders,
   resolveAIOptions,
-} from '@/core/src/server/ai';
+} from '@/core/src/ai/server/ai';
 
 describe('getAIOptions', () => {
   it('should return undefined when AI is not configured', () => {

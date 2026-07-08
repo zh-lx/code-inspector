@@ -16,8 +16,8 @@ const mockSaveAIState = vi.hoisted(() => vi.fn());
 const mockLoadAIState = vi.hoisted(() => vi.fn(() => null));
 const mockClearAIState = vi.hoisted(() => vi.fn());
 
-vi.mock('@/core/src/client/ai', async () => {
-  const actual = await vi.importActual<any>('@/core/src/client/ai');
+vi.mock('@/core/src/ai/client/ai', async () => {
+  const actual = await vi.importActual<any>('@/core/src/ai/client/ai');
   return {
     ...actual,
     sendChatToServer: mockSendChatToServer,
@@ -26,7 +26,7 @@ vi.mock('@/core/src/client/ai', async () => {
   };
 });
 
-vi.mock('@/core/src/client/ai-persist', () => ({
+vi.mock('@/core/src/ai/client/ai-persist', () => ({
   saveAIState: mockSaveAIState,
   loadAIState: mockLoadAIState,
   clearAIState: mockClearAIState,

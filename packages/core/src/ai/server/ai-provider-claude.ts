@@ -9,9 +9,9 @@ import type {
   ClaudeCliOptions,
   ClaudeSdkOptions,
   ClaudeAgentOptions,
-} from '../shared';
+} from '../../shared';
 import type { AIContext, AIMessage } from './ai';
-import { getEnvVars } from './server';
+import { getEnvVars } from '../../server/server';
 import chalk from 'chalk';
 
 // ============================================================================

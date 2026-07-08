@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearAIState, loadAIState, saveAIState, type PersistedAIState } from '@/core/src/client/ai-persist';
+import { clearAIState, loadAIState, saveAIState, type PersistedAIState } from '@/core/src/ai/client/ai-persist';
 
 const sampleState: PersistedAIState = {
   showChatModal: true,
