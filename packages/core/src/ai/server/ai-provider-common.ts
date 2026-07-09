@@ -190,7 +190,7 @@ function persistInlineImagesToTempFiles(
       const ext = mediaTypeToExtension(image.mediaType);
       const filename = `code-inspector-codex-image-${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
       const filePath = path.join(os.tmpdir(), filename);
-      const bytes = Buffer.from(image.data, 'base64');
+      const bytes = Uint8Array.from(Buffer.from(image.data, 'base64'));
       fs.writeFileSync(filePath, bytes);
       imagePaths.push(filePath);
     } catch {
