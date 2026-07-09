@@ -6,7 +6,7 @@ Code Location is the core capability of `code-inspector-plugin`: click a page el
 
 ## Quick Start
 
-Use `behavior.locate` to enable or disable this feature. Default is `true` (usually no extra config is needed):
+Use `behavior.locate` to enable or disable this feature. (Default is `true` and it is already enabled, no extra config needed):
 
 ```js
 codeInspectorPlugin({

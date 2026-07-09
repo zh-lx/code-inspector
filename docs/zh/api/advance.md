@@ -129,7 +129,7 @@ window.addEventListener('code-inspector:trackCode', () => {
      * server 端接收到 DOM 源代码定位请求后的钩子函数
      */
     afterInspectRequest?: (
-      options: CodeInspectorOptions,
+      options: CodeOptions,
       source: SourceInfo
     ) => void;
   };
@@ -200,7 +200,7 @@ window.addEventListener('code-inspector:trackCode', () => {
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 
 - 可选项
-- 类型：`string`
+- 类型：`'file' | 'code'`
 - 说明：引入客户端交互代码的方式: `file` 为引入交互代码所在的文件; `code` 为直接将交互代码注入到入口文件中去。
 
 ## needEnvInspector <Badge type="danger" text="已废弃" vertical="middle" />
@@ -221,6 +221,12 @@ window.addEventListener('code-inspector:trackCode', () => {
 - 类型：`boolean`，默认值为 `false`
 - 说明：是否在控制台中打印 server 的启动信息。
 
+## server <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- 可选项
+- 类型：`'open' | 'close'`，默认值为 `'open'`
+- 说明：是否启用本地 server。使用代码定位、AI 助手等需要和本地服务通信的功能时必须保持开启；如果只需要在线上构建中查看 DOM 上的 `data-insp-path`，可以设置为 `'close'`。
+
 ## pathType <Badge type="tip" text="0.20.0+" vertical="middle" />
 
 - 可选项
@@ -240,6 +246,12 @@ window.addEventListener('code-inspector:trackCode', () => {
 - 说明：跳过注入某些代码片段：
   - `console`：跳过注入 `console.error` 和 `console.warn` 的代码片段，nextjs 和 nuxt 项目不建议跳过此项
   - `htmlScript`：跳过在 html 中注入 script 标签的代码片段，MPA 项目不建议跳过此项
+
+## modeKey <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- 可选项
+- 类型：`string`，默认值为 `z`
+- 说明：功能开关面板的字母快捷键。按下 `hotKeys + modeKey` 可打开功能开关设置，例如默认是 `Option + Shift + Z` / `Alt + Shift + Z`。
 
 ## vueLoader <Badge type="tip" text="1.6.4+" vertical="middle" />
 

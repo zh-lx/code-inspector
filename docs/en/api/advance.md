@@ -130,7 +130,7 @@ window.addEventListener('code-inspector:trackCode', () => {
      * Hook function after server receives DOM source code location request
      */
     afterInspectRequest?: (
-      options: CodeInspectorOptions,
+      options: CodeOptions,
       source: SourceInfo
     ) => void;
   };
@@ -199,7 +199,7 @@ window.addEventListener('code-inspector:trackCode', () => {
 ## importClient <Badge type="tip" text="0.14.1+" vertical="middle" />
 
 - Optional
-- Type: `string`
+- Type: `'file' | 'code'`
 - Description: Method of importing client interaction code: `file` means importing the file containing interaction code; `code` means directly injecting interaction code into the entry file.
 
 ## needEnvInspector <Badge type="danger" text="Deprecated" vertical="middle" />
@@ -220,6 +220,12 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Type: `boolean`, default value is `false`
 - Description: Whether to print the server startup information in the console.
 
+## server <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- Optional
+- Type: `'open' | 'close'`, default value is `'open'`
+- Description: Whether to enable the local server. Keep it enabled when using features that communicate with the local service, such as code location and AI Assistant. If you only need to inspect `data-insp-path` in a production build, you can set it to `'close'`.
+
 ## pathType <Badge type="tip" text="0.20.0+" vertical="middle" />
 
 - Optional
@@ -239,6 +245,12 @@ window.addEventListener('code-inspector:trackCode', () => {
 - Description: Skip injecting certain code snippets:
   - `console`: Skip injecting `console.error` and `console.warn` code snippets, it's not recommended to skip this item for nextjs and nuxt projects
   - `htmlScript`: Skip injecting `script` tags in html, it's not recommended to skip this item for MPA projects
+
+## modeKey <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- Optional
+- Type: `string`, default value is `z`
+- Description: Letter shortcut key for the feature switch panel. Press `hotKeys + modeKey` to open feature switch settings, for example the default is `Option + Shift + Z` / `Alt + Shift + Z`.
 
 ## vueLoader <Badge type="tip" text="1.6.4+" vertical="middle" />
 

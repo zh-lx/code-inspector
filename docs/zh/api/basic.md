@@ -16,7 +16,7 @@ codeInspectorPlugin({
 
 - 必选项。
 - 类型：`string`
-- 可选值：`vite / webpack / rspack / esbuild`
+- 可选值：`vite / webpack / rspack / esbuild / turbopack / mako`
 - 说明：指定当前项目使用的打包工具
 
 ## editor
@@ -41,8 +41,8 @@ codeInspectorPlugin({
 ## hotKeys
 
 - 可选项。默认值为 `['altKey', 'shiftKey']`
-- 类型：`('ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey')[]`
-- 说明：触发源码定位功能的组合键，为空数组则会关闭组合键触发功能。(`ctrlKey` 对应 Mac 中的 `control` 键；`altKey` 对应 Mac 中的 `option` 键；`metaKey` 对应 Mac 中的 `command` 键)
+- 类型：`('ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey')[] | false`
+- 说明：触发源码定位功能的组合键，为空数组或 `false` 则会关闭组合键触发功能。(`ctrlKey` 对应 Mac 中的 `control` 键；`altKey` 对应 Mac 中的 `option` 键；`metaKey` 对应 Mac 中的 `command` 键)
 
 ## showSwitch
 
@@ -55,6 +55,12 @@ codeInspectorPlugin({
 - 可选项。默认值为 `true`
 - 类型：`boolean`
 - 说明：配合 `showSwitch: true` 使用，触发了跳转 IDE 功能后，会自动将 `switch` 的功能关闭。（主要是为了防止用户切回页面后，页面聚焦时会直接误触发源码定位功能。）
+
+## lang <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- 可选项。默认值为 `en`
+- 类型：`'en' | 'zh'`
+- 说明：客户端界面语言。设置为 `zh` 时，功能面板和 AI 助手等客户端 UI 会展示中文。
 
 ## launchType <Badge type="tip" text="1.3.5+" vertical="middle" />
 

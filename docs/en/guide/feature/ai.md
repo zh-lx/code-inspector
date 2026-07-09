@@ -18,6 +18,10 @@ codeInspectorPlugin({
 }),
 ```
 
+You can configure multiple providers at the same time. The AI panel shows available providers and selectable models. When no provider is specified, the first available provider is selected by this priority: `codex > opencode > claudeCode`.
+
+`options.model` is the default model, and `options.models` is the selectable model list in the frontend model dropdown. When a user switches models in the panel, that request overrides the provider's `options.model`.
+
 ## Usage
 
 :::tip Note
@@ -44,6 +48,7 @@ This method works even when the AI switch is off.
 
 - `type: 'cli'`: use local Codex CLI (default), best when your local Codex setup is ready.
 - `type: 'sdk'`: use Codex SDK, best when you need explicit `apiKey/baseUrl` control.
+- `type: 'terminal'`: use the native CLI terminal inside the browser (based on `xterm.js` + `node-pty`), with the same options as CLI mode.
 
 ### Use Codex CLI
 
@@ -142,6 +147,22 @@ codeInspectorPlugin({
 }),
 ```
 
+### Use Codex Terminal
+
+Terminal mode opens a native Codex CLI terminal in the AI panel. It requires the current runtime to load `node-pty` and `ws`; if terminal support is unavailable, model info is downgraded and displayed as CLI mode.
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
 ::: details Full Codex Type Definitions
 
 ```ts
@@ -153,6 +174,10 @@ type CodexOptions =
   | {
       type: 'sdk';
       options?: CodexSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: CodexCliOptions;
     };
 
 type CodexCliOptions = {
@@ -215,6 +240,7 @@ type CodexSdkOptions = {
 
 - `type: 'cli'`: use local OpenCode CLI (default).
 - `type: 'sdk'`: use OpenCode SDK.
+- `type: 'terminal'`: use the native OpenCode CLI terminal inside the browser (based on `xterm.js` + `node-pty`), with the same options as CLI mode.
 
 ### Use OpenCode CLI
 
@@ -230,7 +256,7 @@ codeInspectorPlugin({
 }),
 ```
 
-Custom CLI options (same shape as Codex CLI options):
+Custom CLI options:
 
 ```js
 codeInspectorPlugin({
@@ -241,14 +267,18 @@ codeInspectorPlugin({
         options: {
           model: 'open-code-model',
           models: ['open-code-model', 'open-code-model-next'],
-          sandbox: 'workspace-write',
-          fullAuto: true,
+          profile: 'build',
+          env: {
+            OPENCODE_CONFIG_DIR: process.env.OPENCODE_CONFIG_DIR,
+          },
         },
       },
     },
   },
 }),
 ```
+
+For OpenCode CLI, `profile` maps to OpenCode's `--agent` argument.
 
 ### Use OpenCode SDK
 
@@ -279,12 +309,54 @@ codeInspectorPlugin({
 }),
 ```
 
+### Use OpenCode Terminal
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      opencode: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
+::: details Full OpenCode Type Definitions
+
+```ts
+type OpenCodeOptions =
+  | {
+      type?: 'cli';
+      options?: OpenCodeCliOptions;
+    }
+  | {
+      type: 'sdk';
+      options?: OpenCodeSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: OpenCodeCliOptions;
+    };
+
+type OpenCodeCliOptions = CodexCliOptions;
+
+type OpenCodeSdkOptions = Omit<CodexSdkOptions, 'config'> & {
+  config?: Record<string, any>;
+  opencodePathOverride?: string;
+};
+```
+
+:::
+
 ## Claude Code Configuration
 
 ### Choose A Mode First
 
 - `type: 'cli'`: use local Claude Code CLI (default), best when your local Claude Code setup is ready.
 - `type: 'sdk'`: use Claude Agent SDK, best when you need explicit `apiKey/baseUrl` control.
+- `type: 'terminal'`: use the native Claude Code CLI terminal inside the browser (based on `xterm.js` + `node-pty`), with the same options as CLI mode.
 
 ### Use Claude Code CLI
 
@@ -356,6 +428,8 @@ codeInspectorPlugin({
 }),
 ```
 
+Claude SDK mode defaults to `maxTurns: 20`, `permissionMode: 'bypassPermissions'`, `settingSources: ['user', 'project', 'local']`, and allows the `Read`, `Write`, `Edit`, `Glob`, `Grep`, `Bash`, `WebFetch`, and `WebSearch` tools. If `permissionMode` is `bypassPermissions` and `allowDangerouslySkipPermissions` is not set explicitly, the plugin sets it to `true` automatically.
+
 #### Claude SDK `.env` Setup (API Key / Base URL)
 
 Set `.env.local`:
@@ -386,6 +460,20 @@ codeInspectorPlugin({
 }),
 ```
 
+### Use Claude Code Terminal
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      claudeCode: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
 ::: details Full Claude Code Type Definitions
 
 ```ts
@@ -397,6 +485,10 @@ type ClaudeCodeOptions =
   | {
       type: 'sdk';
       options?: ClaudeSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: ClaudeCliOptions;
     };
 
 type ClaudeCliOptions = {

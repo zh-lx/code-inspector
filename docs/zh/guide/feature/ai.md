@@ -18,6 +18,10 @@ codeInspectorPlugin({
 }),
 ```
 
+可以同时配置多个 provider。AI 面板会展示可用 provider 和可选模型；未指定 provider 时，默认按 `codex > opencode > claudeCode` 的优先级选择第一个可用 provider。
+
+`options.model` 表示默认模型，`options.models` 表示前端模型下拉中的可选模型列表。用户在面板中切换模型后，本次请求会覆盖 provider 的 `options.model`。
+
 ## 使用方式
 
 :::tip 注意
@@ -44,6 +48,7 @@ codeInspectorPlugin({
 
 - `type: 'cli'`：使用本地 Codex CLI（默认），更适合已在本机配置好 Codex 的场景。
 - `type: 'sdk'`：使用 Codex SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'terminal'`：使用浏览器内原生 CLI 终端（基于 `xterm.js` + `node-pty`），参数与 CLI 模式一致。
 
 ### 使用 Codex CLI
 
@@ -142,6 +147,22 @@ codeInspectorPlugin({
 }),
 ```
 
+### 使用 Codex Terminal
+
+Terminal 模式会在 AI 面板中打开原生 Codex CLI 终端。需要当前运行环境可加载 `node-pty` 和 `ws`；如果终端能力不可用，模型信息会降级显示为 CLI 模式。
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      codex: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
 ::: details Codex 完整类型定义
 
 ```ts
@@ -153,6 +174,10 @@ type CodexOptions =
   | {
       type: 'sdk';
       options?: CodexSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: CodexCliOptions;
     };
 
 type CodexCliOptions = {
@@ -215,6 +240,7 @@ type CodexSdkOptions = {
 
 - `type: 'cli'`：使用本地 OpenCode CLI（默认）。
 - `type: 'sdk'`：使用 OpenCode SDK。
+- `type: 'terminal'`：使用浏览器内原生 OpenCode CLI 终端（基于 `xterm.js` + `node-pty`），参数与 CLI 模式一致。
 
 ### 使用 OpenCode CLI
 
@@ -230,7 +256,7 @@ codeInspectorPlugin({
 }),
 ```
 
-自定义 CLI 参数（与 Codex CLI 参数结构一致）：
+自定义 CLI 参数：
 
 ```js
 codeInspectorPlugin({
@@ -241,14 +267,18 @@ codeInspectorPlugin({
         options: {
           model: 'open-code-model',
           models: ['open-code-model', 'open-code-model-next'],
-          sandbox: 'workspace-write',
-          fullAuto: true,
+          profile: 'build',
+          env: {
+            OPENCODE_CONFIG_DIR: process.env.OPENCODE_CONFIG_DIR,
+          },
         },
       },
     },
   },
 }),
 ```
+
+OpenCode CLI 的 `profile` 会映射为 OpenCode 的 `--agent` 参数。
 
 ### 使用 OpenCode SDK
 
@@ -279,12 +309,54 @@ codeInspectorPlugin({
 }),
 ```
 
+### 使用 OpenCode Terminal
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      opencode: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
+::: details OpenCode 完整类型定义
+
+```ts
+type OpenCodeOptions =
+  | {
+      type?: 'cli';
+      options?: OpenCodeCliOptions;
+    }
+  | {
+      type: 'sdk';
+      options?: OpenCodeSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: OpenCodeCliOptions;
+    };
+
+type OpenCodeCliOptions = CodexCliOptions;
+
+type OpenCodeSdkOptions = Omit<CodexSdkOptions, 'config'> & {
+  config?: Record<string, any>;
+  opencodePathOverride?: string;
+};
+```
+
+:::
+
 ## Claude Code 配置
 
 ### 先选模式
 
 - `type: 'cli'`：使用本地 Claude Code CLI（默认），更适合已在本机配置好 Claude Code 的场景。
 - `type: 'sdk'`：使用 Claude Agent SDK，适合需要显式控制 `apiKey/baseUrl`、或接入网关服务的场景。
+- `type: 'terminal'`：使用浏览器内原生 Claude Code CLI 终端（基于 `xterm.js` + `node-pty`），参数与 CLI 模式一致。
 
 ### 使用 Claude Code CLI
 
@@ -356,6 +428,8 @@ codeInspectorPlugin({
 }),
 ```
 
+Claude SDK 模式默认使用 `maxTurns: 20`、`permissionMode: 'bypassPermissions'`、`settingSources: ['user', 'project', 'local']`，并允许 `Read`、`Write`、`Edit`、`Glob`、`Grep`、`Bash`、`WebFetch`、`WebSearch` 工具。若 `permissionMode` 为 `bypassPermissions` 且未显式设置 `allowDangerouslySkipPermissions`，插件会自动设置为 `true`。
+
 #### Claude SDK 的 `.env`（API Key / Base URL）
 
 在 `.env.local` 中配置：
@@ -386,6 +460,20 @@ codeInspectorPlugin({
 }),
 ```
 
+### 使用 Claude Code Terminal
+
+```js
+codeInspectorPlugin({
+  behavior: {
+    ai: {
+      claudeCode: {
+        type: 'terminal',
+      },
+    },
+  },
+}),
+```
+
 ::: details Claude Code 完整类型定义
 
 ```ts
@@ -397,6 +485,10 @@ type ClaudeCodeOptions =
   | {
       type: 'sdk';
       options?: ClaudeSdkOptions;
+    }
+  | {
+      type: 'terminal';
+      options?: ClaudeCliOptions;
     };
 
 type ClaudeCliOptions = {

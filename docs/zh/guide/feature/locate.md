@@ -6,7 +6,7 @@
 
 ## 快速开启
 
-通过 `behavior.locate` 控制是否开启，默认值为 `true`（通常可不配置）：
+通过 `behavior.locate` 控制是否开启（默认值为 `true` 已开启， 可不配置）：
 
 ```js
 codeInspectorPlugin({
