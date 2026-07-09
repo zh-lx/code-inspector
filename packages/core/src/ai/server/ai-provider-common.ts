@@ -964,16 +964,21 @@ function extractTextEvent(
 }
 
 function shouldIgnorePlainLine(line: string): boolean {
-  if (!line.trim()) return true;
+  const trimmedLine = line.trim();
+  if (!trimmedLine) return true;
+  if (trimmedLine === 'Reading additional input from stdin...') return true;
   if (
-    line.startsWith('WARNING: proceeding, even though we could not update PATH')
+    trimmedLine.startsWith(
+      'WARNING: proceeding, even though we could not update PATH',
+    )
   )
     return true;
-  if (line.startsWith('Performing one time database migration')) return true;
-  if (line.startsWith('sqlite-migration:done')) return true;
-  if (line.startsWith('Database migration complete.')) return true;
-  if (/^ERROR\s+\d{4}-\d{2}-\d{2}T/.test(line)) return true;
-  if (/^\d{4}-\d{2}-\d{2}T.*\sERROR\s/.test(line)) return true;
+  if (trimmedLine.startsWith('Performing one time database migration'))
+    return true;
+  if (trimmedLine.startsWith('sqlite-migration:done')) return true;
+  if (trimmedLine.startsWith('Database migration complete.')) return true;
+  if (/^ERROR\s+\d{4}-\d{2}-\d{2}T/.test(trimmedLine)) return true;
+  if (/^\d{4}-\d{2}-\d{2}T.*\sERROR\s/.test(trimmedLine)) return true;
   return false;
 }
 

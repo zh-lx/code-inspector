@@ -110,6 +110,41 @@ describe('codex cli stream parsing', () => {
     expect(joined).toContain('"type":"tool_result"');
   });
 
+  it('should ignore codex stdin status notices from cli output', () => {
+    const child = createChildProcessMock();
+    mockSpawn.mockReturnValue(child);
+
+    const chunks: string[] = [];
+    const errors: string[] = [];
+
+    __TEST_ONLY__.queryViaCli(
+      '/bin/codex',
+      'prompt',
+      process.cwd(),
+      {} as any,
+      [],
+      (data: string) => chunks.push(data),
+      (error: string) => errors.push(error),
+      () => undefined,
+    );
+
+    child.stdout.emit(
+      'data',
+      Buffer.from(' Reading additional input from stdin...\n'),
+    );
+    child.stderr.emit(
+      'data',
+      Buffer.from('Reading additional input from stdin...'),
+    );
+    child.stdout.emit('data', Buffer.from('actual output\n'));
+    child.emit('close', 0);
+
+    const joined = chunks.join('\n');
+    expect(joined).not.toContain('Reading additional input from stdin');
+    expect(joined).toContain('actual output');
+    expect(errors).toEqual([]);
+  });
+
   it('should use opencode run/json args when runtime is opencode', () => {
     const child = createChildProcessMock();
     mockSpawn.mockReturnValue(child);
