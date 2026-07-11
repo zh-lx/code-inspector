@@ -237,6 +237,84 @@ describe('createServer', () => {
       }
     });
 
+    it.each([
+      ['parent traversal', '../outside.ts'],
+      ['double-encoded parent traversal', '%2e%2e%2foutside.ts'],
+    ])('should return 403 for %s', (_, file) => {
+      serverModule.createServer(vi.fn(), {
+        pathType: 'relative',
+        bundler: 'vite',
+      });
+
+      const mockReq = {
+        url: `?file=${encodeURIComponent(file)}&line=1&column=1`,
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      if (serverModule.ProjectRootPath) {
+        expect(mockRes.writeHead).toHaveBeenCalledWith(403, expect.any(Object));
+        expect(mockRes.end).toHaveBeenCalledWith(
+          'not allowed to open this file',
+        );
+        expect(mockLaunchIDE).not.toHaveBeenCalled();
+      }
+    });
+
+    it('should return 403 for a path that only shares the project root prefix', () => {
+      serverModule.createServer(vi.fn(), {
+        pathType: 'relative',
+        bundler: 'vite',
+      });
+
+      const file = `${serverModule.ProjectRootPath}-outside/file.ts`;
+      const mockReq = {
+        url: `?file=${encodeURIComponent(file)}&line=1&column=1`,
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      if (serverModule.ProjectRootPath) {
+        expect(mockRes.writeHead).toHaveBeenCalledWith(403, expect.any(Object));
+        expect(mockLaunchIDE).not.toHaveBeenCalled();
+      }
+    });
+
+    it.each([
+      ['missing file parameter', '?line=1&column=1'],
+      ['malformed file encoding', '?file=%&line=1&column=1'],
+    ])('should return 400 for %s', (_, url) => {
+      serverModule.createServer(vi.fn(), { bundler: 'vite' });
+
+      const mockReq = {
+        url,
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      expect(mockRes.writeHead).toHaveBeenCalledWith(400, expect.any(Object));
+      expect(mockRes.end).toHaveBeenCalledWith('invalid file parameter');
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
+    });
+
     it('should call afterInspectRequest hook if provided', () => {
       const afterInspectRequest = vi.fn();
       const options = {
@@ -654,13 +732,14 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
-      expect(mockRes.writeHead).toHaveBeenCalledWith(200, {
+      expect(mockRes.writeHead).toHaveBeenCalledWith(400, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
         'Access-Control-Allow-Headers': '*',
         'Access-Control-Allow-Private-Network': 'true',
       });
-      expect(mockRes.end).toHaveBeenCalledWith('ok');
+      expect(mockRes.end).toHaveBeenCalledWith('invalid file parameter');
+      expect(mockLaunchIDE).not.toHaveBeenCalled();
     });
   });
 });

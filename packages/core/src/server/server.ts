@@ -97,21 +97,37 @@ function handleIDERequest(
   record?: RecordInfo
 ): void {
   const params = new URLSearchParams(req.url?.slice(1) || '');
-  let file = decodeURIComponent(params.get('file') as string);
+  const fileParam = params.get('file');
+  let file: string;
+
+  try {
+    if (!fileParam) {
+      throw new URIError('Missing file parameter');
+    }
+    file = decodeURIComponent(fileParam);
+  } catch {
+    res.writeHead(400, CORS_HEADERS);
+    res.end('invalid file parameter');
+    return;
+  }
 
   if (ProjectRootPath && !path.isAbsolute(file)) {
-    file = `${ProjectRootPath}/${file}`;
+    file = path.resolve(ProjectRootPath, file);
   }
 
   // 安全检查：相对路径模式下不允许访问项目外的文件
-  if (
-    options?.pathType === 'relative' &&
-    ProjectRootPath &&
-    !file.startsWith(ProjectRootPath)
-  ) {
-    res.writeHead(403, CORS_HEADERS);
-    res.end('not allowed to open this file');
-    return;
+  if (options?.pathType === 'relative' && ProjectRootPath) {
+    const projectRoot = path.resolve(ProjectRootPath);
+    const relativePath = path.relative(projectRoot, path.resolve(file));
+    if (
+      relativePath === '..' ||
+      relativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativePath)
+    ) {
+      res.writeHead(403, CORS_HEADERS);
+      res.end('not allowed to open this file');
+      return;
+    }
   }
 
   const line = Number(params.get('line'));
