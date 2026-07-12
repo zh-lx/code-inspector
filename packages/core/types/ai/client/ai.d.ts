@@ -252,7 +252,7 @@ declare function normalizeChatProvider(provider: unknown): ChatProvider | null;
 /**
  * 获取 AI 模型信息
  */
-export declare function fetchModelInfo(ip: string, port: number, provider?: ChatProvider | null): Promise<AIModelInfo>;
+export declare function fetchModelInfo(ip: string, port: number, provider?: ChatProvider | null, token?: string): Promise<AIModelInfo>;
 /**
  * Revert 请求结果
  */
@@ -268,11 +268,11 @@ export declare function revertEdit(ip: string, port: number, edits: Array<{
     file_path: string;
     old_string: string;
     new_string: string;
-}>): Promise<RevertResult[]>;
+}>, token?: string): Promise<RevertResult[]>;
 /**
  * 获取对话历史列表
  */
-export declare function fetchHistoryList(ip: string, port: number): Promise<HistoryEntry[]>;
+export declare function fetchHistoryList(ip: string, port: number, token?: string): Promise<HistoryEntry[]>;
 /**
  * 保存对话到服务端
  */
@@ -284,21 +284,21 @@ export declare function saveConversation(ip: string, port: number, data: {
     provider: ChatProvider | null;
     model: string;
     revertedToolIds: string[];
-}): Promise<{
+}, token?: string): Promise<{
     id: string;
     success: boolean;
 }>;
 /**
  * 加载对话历史
  */
-export declare function loadConversationData(ip: string, port: number, id: string): Promise<ConversationData | null>;
+export declare function loadConversationData(ip: string, port: number, id: string, token?: string): Promise<ConversationData | null>;
 /**
  * 删除对话历史
  */
-export declare function deleteConversationData(ip: string, port: number, id: string): Promise<boolean>;
-export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null, model?: string | null): Promise<void>;
-export declare function attachRuntimeSessionToServer(ip: string, port: number, runtimeSessionId: string, cursor: number, handlers: StreamHandlers, signal?: AbortSignal): Promise<void>;
-export declare function abortRuntimeSessionOnServer(ip: string, port: number, runtimeSessionId: string): Promise<boolean>;
+export declare function deleteConversationData(ip: string, port: number, id: string, token?: string): Promise<boolean>;
+export declare function sendChatToServer(ip: string, port: number, message: string, context: ChatContext | null, history: ChatHistoryMessage[] | undefined, handlers: StreamHandlers, signal?: AbortSignal, sessionId?: string | null, provider?: ChatProvider | null, model?: string | null, token?: string): Promise<void>;
+export declare function attachRuntimeSessionToServer(ip: string, port: number, runtimeSessionId: string, cursor: number, handlers: StreamHandlers, signal?: AbortSignal, token?: string): Promise<void>;
+export declare function abortRuntimeSessionOnServer(ip: string, port: number, runtimeSessionId: string, token?: string): Promise<boolean>;
 export declare const __TEST_ONLY__: {
     toRelativePath: typeof toRelativePath;
     formatDuration: typeof formatDuration;

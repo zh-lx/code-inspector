@@ -21,6 +21,18 @@ import {
 /** 项目根路径，由服务端 SSE info 事件传入 */
 let _projectRoot = '';
 
+function buildAIUrl(
+  ip: string,
+  port: number,
+  pathname: string,
+  token = '',
+  params?: URLSearchParams,
+): string {
+  const query = params || new URLSearchParams();
+  query.set('token', token);
+  return `http://${ip}:${port}${pathname}?${query.toString()}`;
+}
+
 /**
  * 设置项目根路径（用于将绝对路径转为相对路径）
  */
@@ -3674,6 +3686,7 @@ export async function fetchModelInfo(
   ip: string,
   port: number,
   provider?: ChatProvider | null,
+  token = '',
 ): Promise<AIModelInfo> {
   const fallback: AIModelInfo = {
     model: '',
@@ -3683,8 +3696,11 @@ export async function fetchModelInfo(
     providerType: 'cli',
   };
   try {
-    const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
-    const response = await fetch(`http://${ip}:${port}/ai/model${query}`);
+    const query = new URLSearchParams();
+    if (provider) query.set('provider', provider);
+    const response = await fetch(
+      buildAIUrl(ip, port, '/ai/model', token, query),
+    );
     if (!response.ok) {
       return fallback;
     }
@@ -3737,9 +3753,10 @@ export async function revertEdit(
   ip: string,
   port: number,
   edits: Array<{ file_path: string; old_string: string; new_string: string }>,
+  token = '',
 ): Promise<RevertResult[]> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/revert`, {
+    const response = await fetch(buildAIUrl(ip, port, '/ai/revert', token), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ edits }),
@@ -3768,9 +3785,10 @@ export async function revertEdit(
 export async function fetchHistoryList(
   ip: string,
   port: number,
+  token = '',
 ): Promise<HistoryEntry[]> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/history`);
+    const response = await fetch(buildAIUrl(ip, port, '/ai/history', token));
     if (!response.ok) return [];
     const data = await response.json();
     return Array.isArray(data?.conversations) ? data.conversations : [];
@@ -3794,13 +3812,17 @@ export async function saveConversation(
     model: string;
     revertedToolIds: string[];
   },
+  token = '',
 ): Promise<{ id: string; success: boolean }> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/history/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      buildAIUrl(ip, port, '/ai/history/save', token),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      },
+    );
     if (!response.ok) return { id: '', success: false };
     return await response.json();
   } catch {
@@ -3815,13 +3837,17 @@ export async function loadConversationData(
   ip: string,
   port: number,
   id: string,
+  token = '',
 ): Promise<ConversationData | null> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/history/load`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
+    const response = await fetch(
+      buildAIUrl(ip, port, '/ai/history/load', token),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      },
+    );
     if (!response.ok) return null;
     const data = await response.json();
     if (data?.error) return null;
@@ -3838,13 +3864,17 @@ export async function deleteConversationData(
   ip: string,
   port: number,
   id: string,
+  token = '',
 ): Promise<boolean> {
   try {
-    const response = await fetch(`http://${ip}:${port}/ai/history/delete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
+    const response = await fetch(
+      buildAIUrl(ip, port, '/ai/history/delete', token),
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      },
+    );
     if (!response.ok) return false;
     const data = await response.json();
     return data?.success === true;
@@ -3966,8 +3996,9 @@ export async function sendChatToServer(
   sessionId?: string | null,
   provider?: ChatProvider | null,
   model?: string | null,
+  token = '',
 ): Promise<void> {
-  const response = await fetch(`http://${ip}:${port}/ai`, {
+  const response = await fetch(buildAIUrl(ip, port, '/ai', token), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -3997,13 +4028,14 @@ export async function attachRuntimeSessionToServer(
   cursor: number,
   handlers: StreamHandlers,
   signal?: AbortSignal,
+  token = '',
 ): Promise<void> {
   const query = new URLSearchParams({
     runtimeSessionId,
     cursor: String(cursor || 0),
   });
   const response = await fetch(
-    `http://${ip}:${port}/ai/runtime?${query.toString()}`,
+    buildAIUrl(ip, port, '/ai/runtime', token, query),
     {
       method: 'GET',
       signal,
@@ -4021,14 +4053,18 @@ export async function abortRuntimeSessionOnServer(
   ip: string,
   port: number,
   runtimeSessionId: string,
+  token = '',
 ): Promise<boolean> {
-  const response = await fetch(`http://${ip}:${port}/ai/runtime/abort`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    buildAIUrl(ip, port, '/ai/runtime/abort', token),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ runtimeSessionId }),
     },
-    body: JSON.stringify({ runtimeSessionId }),
-  });
+  );
 
   if (!response.ok) {
     return false;

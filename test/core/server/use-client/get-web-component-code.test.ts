@@ -31,7 +31,7 @@ describe('getWebComponentCode', () => {
   it('should inject the terminal authentication token', () => {
     const result = getWebComponentCode({} as any, 5678);
 
-    expect(result).toMatch(/inspector\.terminalAuthToken = '[a-f0-9]{64}'/);
+    expect(result).toMatch(/inspector\.aiAuthToken = '[a-f0-9]{64}'/);
   });
 
   beforeEach(() => {

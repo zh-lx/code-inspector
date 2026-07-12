@@ -791,9 +791,12 @@ export class AITerminalManager {
 export async function checkTerminalAvailable(
   ip: string,
   port: number,
+  token = '',
 ): Promise<boolean> {
   try {
-    const res = await fetch(`http://${ip}:${port}/ai/terminal/status`);
+    const res = await fetch(
+      `http://${ip}:${port}/ai/terminal/status?token=${encodeURIComponent(token)}`,
+    );
     if (!res.ok) return false;
     const data = await res.json();
     return data.available === true;

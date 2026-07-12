@@ -31,6 +31,7 @@ import {
   getTerminalAvailabilityStatus,
 } from '../ai/server/ai-terminal';
 import { getEnvVariables } from 'launch-ide';
+import { isAuthorizedAIRequest } from '../ai/server/ai-auth';
 
 /**
  * 获取项目 git 根目录
@@ -168,6 +169,13 @@ export function createServer(
     if (req.method === 'OPTIONS') {
       res.writeHead(200, CORS_HEADERS);
       res.end();
+      return;
+    }
+
+    const isAIRoute = pathname === '/ai' || pathname.startsWith('/ai/');
+    if (isAIRoute && !isAuthorizedAIRequest(url)) {
+      res.writeHead(403, CORS_HEADERS);
+      res.end('Forbidden');
       return;
     }
 

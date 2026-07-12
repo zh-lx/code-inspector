@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getTerminalAuthToken,
-  isAuthorizedTerminalUpgrade,
-} from '@/core/src/ai/server/terminal-auth';
+  getAIAuthToken,
+  isAuthorizedAIRequest,
+} from '@/core/src/ai/server/ai-auth';
 
 describe('terminal websocket authorization', () => {
   it('requires the server token', () => {
-    const token = getTerminalAuthToken();
+    const token = getAIAuthToken();
 
     expect(
-      isAuthorizedTerminalUpgrade(
+      isAuthorizedAIRequest(
         new URL(`http://localhost:5678/ai/terminal?token=${token}`),
       ),
     ).toBe(true);
     expect(
-      isAuthorizedTerminalUpgrade(
+      isAuthorizedAIRequest(
         new URL('http://localhost:5678/ai/terminal?token=invalid'),
       ),
     ).toBe(false);
     expect(
-      isAuthorizedTerminalUpgrade(
+      isAuthorizedAIRequest(
         new URL('http://localhost:5678/ai/terminal'),
       ),
     ).toBe(false);

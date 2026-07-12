@@ -2,6 +2,7 @@ import type { ChatProvider } from './ai';
 export declare class AITerminalManager {
     private ip;
     private port;
+    private authToken;
     private terminal;
     private fitAddon;
     private webLinksAddon;
@@ -18,7 +19,7 @@ export declare class AITerminalManager {
     onError?: (message: string) => void;
     onRuntimeSession?: (runtimeSessionId: string, kind?: string) => void;
     onRuntimeCursor?: (cursor: number) => void;
-    constructor(ip: string, port: number);
+    constructor(ip: string, port: number, authToken?: string);
     mount(container: HTMLElement, theme: 'dark' | 'light', provider?: ChatProvider): void;
     remount(container: HTMLElement, theme: 'dark' | 'light', provider?: ChatProvider): void;
     connect(options: {
@@ -50,4 +51,4 @@ export declare class AITerminalManager {
     private detachTerminal;
     private injectCSS;
 }
-export declare function checkTerminalAvailable(ip: string, port: number): Promise<boolean>;
+export declare function checkTerminalAvailable(ip: string, port: number, token?: string): Promise<boolean>;

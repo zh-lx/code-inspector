@@ -51,6 +51,7 @@ export declare class CodeInspectorComponent extends LitElement {
     targetNode: HTMLElement | null;
     ip: string;
     ai: boolean;
+    aiAuthToken: string;
     lang: 'en' | 'zh';
     private wheelThrottling;
     modeKey: string;

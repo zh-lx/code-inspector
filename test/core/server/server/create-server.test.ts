@@ -20,6 +20,11 @@ const mockHandleAIHistoryListRequest = vi.hoisted(() => vi.fn());
 const mockHandleAIHistorySaveRequest = vi.hoisted(() => vi.fn());
 const mockHandleAIHistoryLoadRequest = vi.hoisted(() => vi.fn());
 const mockHandleAIHistoryDeleteRequest = vi.hoisted(() => vi.fn());
+const mockIsAuthorizedAIRequest = vi.hoisted(() => vi.fn(() => true));
+
+vi.mock('@/core/src/ai/server/ai-auth', () => ({
+  isAuthorizedAIRequest: mockIsAuthorizedAIRequest,
+}));
 
 vi.mock('launch-ide', () => ({
   launchIDE: mockLaunchIDE,
@@ -67,6 +72,7 @@ describe('createServer', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    mockIsAuthorizedAIRequest.mockReturnValue(true);
 
     mockServer = {
       listen: vi.fn((port: number, callback: Function) => {
@@ -107,6 +113,28 @@ describe('createServer', () => {
     );
 
     serverModule = await loadServerModule();
+  });
+
+  it('should reject unauthorized AI requests', async () => {
+    mockIsAuthorizedAIRequest.mockReturnValueOnce(false);
+    serverModule.createServer(vi.fn());
+    const mockRes = { writeHead: vi.fn(), end: vi.fn() };
+
+    await requestHandler(
+      {
+        url: '/ai?token=invalid',
+        method: 'POST',
+        headers: { host: 'localhost:5678' },
+      },
+      mockRes,
+    );
+
+    expect(mockRes.writeHead).toHaveBeenCalledWith(
+      403,
+      expect.objectContaining({ 'Access-Control-Allow-Origin': '*' }),
+    );
+    expect(mockRes.end).toHaveBeenCalledWith('Forbidden');
+    expect(mockHandleAIRequest).not.toHaveBeenCalled();
   });
 
   afterEach(() => {

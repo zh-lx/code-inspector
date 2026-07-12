@@ -135,7 +135,7 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   ai: boolean = false;
   @property({ attribute: false })
-  terminalAuthToken: string = '';
+  aiAuthToken: string = '';
   @property()
   lang: 'en' | 'zh' = 'en';
 
@@ -1468,6 +1468,7 @@ export class CodeInspectorComponent extends LitElement {
       this.ip,
       this.port,
       preferredProvider || this.chatProvider,
+      this.aiAuthToken,
     );
     if (!this.isConnected) return;
 
@@ -1970,15 +1971,20 @@ export class CodeInspectorComponent extends LitElement {
   // 自动保存对话到服务端
   private autoSaveConversation = async () => {
     try {
-      await saveConversation(this.ip || 'localhost', this.port, {
-        messages: this.chatMessages,
-        context: this.chatContext,
-        sessionId: this.chatSessionId,
-        provider: this.chatProvider,
-        model: this.chatModel,
-        revertedToolIds:
-          this.revertedToolIds.size > 0 ? Array.from(this.revertedToolIds) : [],
-      });
+      await saveConversation(
+        this.ip || 'localhost',
+        this.port,
+        {
+          messages: this.chatMessages,
+          context: this.chatContext,
+          sessionId: this.chatSessionId,
+          provider: this.chatProvider,
+          model: this.chatModel,
+          revertedToolIds:
+            this.revertedToolIds.size > 0 ? Array.from(this.revertedToolIds) : [],
+        },
+        this.aiAuthToken,
+      );
     } catch {
       // 保存失败静默
     }
@@ -1997,7 +2003,12 @@ export class CodeInspectorComponent extends LitElement {
     }
 
     if (runtimeSessionId) {
-      void abortRuntimeSessionOnServer(this.ip, this.port, runtimeSessionId);
+      void abortRuntimeSessionOnServer(
+        this.ip,
+        this.port,
+        runtimeSessionId,
+        this.aiAuthToken,
+      );
     }
 
     this.clearRuntimeSessionState();
@@ -2061,7 +2072,7 @@ export class CodeInspectorComponent extends LitElement {
     this.terminalManager = new AITerminalManager(
       this.ip,
       this.port,
-      this.terminalAuthToken,
+      this.aiAuthToken,
     );
     this.terminalManager.mount(
       containerEl,
@@ -2183,7 +2194,7 @@ export class CodeInspectorComponent extends LitElement {
       this.terminalManager = new AITerminalManager(
         this.ip,
         this.port,
-        this.terminalAuthToken,
+        this.aiAuthToken,
       );
       this.terminalManager.mount(
         containerEl,
@@ -2251,7 +2262,12 @@ export class CodeInspectorComponent extends LitElement {
       const edits = this.extractRevertEdits(tool);
       if (edits.length === 0) return;
 
-      const results = await revertEdit(this.ip, this.port, edits);
+      const results = await revertEdit(
+        this.ip,
+        this.port,
+        edits,
+        this.aiAuthToken,
+      );
       const allSuccess = results.every((r) => r.success);
 
       if (allSuccess) {
@@ -2377,6 +2393,7 @@ export class CodeInspectorComponent extends LitElement {
         this.historyList = await fetchHistoryList(
           this.ip || 'localhost',
           this.port,
+          this.aiAuthToken,
         );
       } catch {
         this.historyList = [];
@@ -2393,6 +2410,7 @@ export class CodeInspectorComponent extends LitElement {
         this.ip || 'localhost',
         this.port,
         id,
+        this.aiAuthToken,
       );
       if (!data) return;
 
@@ -2423,6 +2441,7 @@ export class CodeInspectorComponent extends LitElement {
         this.ip || 'localhost',
         this.port,
         id,
+        this.aiAuthToken,
       );
       if (success) {
         this.historyList = this.historyList.filter((h) => h.id !== id);
@@ -2765,6 +2784,7 @@ export class CodeInspectorComponent extends LitElement {
         this.chatSessionId,
         this.chatProvider,
         this.chatModel,
+        this.aiAuthToken,
       );
       // 正常完成：最终刷新确保所有内容显示
       flushUpdate();
@@ -2945,6 +2965,7 @@ export class CodeInspectorComponent extends LitElement {
             },
           },
           this.chatAbortController.signal,
+          this.aiAuthToken,
         );
       } catch (error) {
         if (!(error instanceof Error && error.name === 'AbortError')) {
@@ -3110,6 +3131,7 @@ export class CodeInspectorComponent extends LitElement {
         this.chatSessionId,
         this.chatProvider,
         this.chatModel,
+        this.aiAuthToken,
       );
       flushUpdate();
       this.stopTurnTimer('done');
