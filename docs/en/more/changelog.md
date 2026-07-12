@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0
+
+- 【feat】Added an AI assistant and terminal experience with Claude, Codex, OpenCode, and other providers, including conversation history, persistence, model routing, revert support, and runtime sessions [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【feat】Added the AI terminal bridge and context-path injection for project-aware code analysis and operations, with improved terminal output readability [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【feat】Refreshed Inspector client interactions and styling with i18n support, light-theme AI colors, and browser Chalk utilities [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【docs】Restructured the English and Chinese feature documentation into dedicated guides for AI, locate, copy, custom events, DOM selection, mode switching, and target behavior, with API, startup, and IDE updates [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【test】Added Playwright E2E infrastructure, cross-framework demo coverage, and broad unit coverage for AI, terminal, server, and transform logic [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【chore】Refreshed demos for Vite, Vue, React, Preact, Solid, Svelte, Qwik, Astro, Next, Nuxt, Webpack, Rspack, Rsbuild, Farm, Mako, Esbuild, and Turbopack [#560](https://github.com/zh-lx/code-inspector/pull/560)
+
 ## 1.6.6
 
 - 【fix】Compatible with new version `rspack` handling of `persistent` cache [#555](https://github.com/zh-lx/code-inspector/pull/555)

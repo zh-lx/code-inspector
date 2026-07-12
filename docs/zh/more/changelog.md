@@ -1,5 +1,14 @@
 # 更新日志
 
+## 2.0.0
+
+- 【feat】新增 AI 助手与终端能力，支持 Claude、Codex、OpenCode 等多供应商，提供对话历史、持久化、模型路由、撤销恢复和运行时会话管理 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【feat】新增 AI 终端桥接与上下文路径注入，支持在项目上下文中进行代码分析和操作，并提升终端输出可读性 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【feat】优化 Inspector 客户端交互与样式，新增国际化支持、浅色主题 AI 配色及浏览器 Chalk 工具 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【docs】重构中英文功能文档，拆分 AI、定位、复制、自定义事件、DOM 选择、模式切换和目标行为等专题页面，并更新 API、启动和 IDE 指南 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【test】新增 Playwright E2E 测试基础设施、跨框架示例覆盖及 AI、终端、服务端和转换逻辑的全面单元测试 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+- 【chore】刷新 Vite、Vue、React、Preact、Solid、Svelte、Qwik、Astro、Next、Nuxt、Webpack、Rspack、Rsbuild、Farm、Mako、Esbuild 和 Turbopack 示例 [#560](https://github.com/zh-lx/code-inspector/pull/560)
+
 ## 1.6.6
 
 - 【fix】兼容了新版本 `rspack` 中对于 `persistent` 缓存的处理 [#555](https://github.com/zh-lx/code-inspector/pull/555)
