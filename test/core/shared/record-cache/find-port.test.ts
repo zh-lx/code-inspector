@@ -76,10 +76,10 @@ describe('findPort', () => {
   });
 
   describe('when port exists in memory cache', () => {
-    it('should return port from memory cache', async function() {
+    it('should return port from memory cache', async () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/memory/cache/project');
@@ -186,10 +186,10 @@ describe('findPort', () => {
   });
 
   describe('when port is in RecordCache but file has no port', () => {
-    it('should return port from RecordCache when file is writable but has no port entry', async function() {
+    it('should return port from RecordCache when file is writable but has no port entry', async () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/recordcache/fallback/project');
@@ -256,10 +256,10 @@ describe('findPort', () => {
       expect(port).toBe(4444);
     });
 
-    it('should return port from memory cache when file is not writable', async function() {
+    it('should return port from memory cache when file is not writable', async () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/cache/fallback/project');

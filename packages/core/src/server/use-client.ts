@@ -13,6 +13,7 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-ignore
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 import { startServer } from './server';
+import { getAIAuthToken } from '../ai/server/ai-auth';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
@@ -160,30 +161,43 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
     hideConsole = false,
+    lang = 'en',
     autoToggle = true,
     behavior = {},
     ip = false,
     bundler,
     modeKey = 'z',
   } = options || ({} as CodeOptions);
-  const { locate = true, copy = false, target = '' } = behavior;
+  const {
+    locate = true,
+    copy = false,
+    target = '',
+    defaultAction = '',
+  } = behavior;
+  const aiEnabled = Boolean(
+    behavior.ai?.codex || behavior.ai?.claudeCode || behavior.ai?.opencode,
+  );
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
       ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
-      
+
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};
       inspector.hotKeys = '${(hotKeys ? hotKeys : [])?.join(',')}';
       inspector.showSwitch = !!${showSwitch};
       inspector.autoToggle = !!${autoToggle};
       inspector.hideConsole = !!${hideConsole};
+      inspector.lang = '${lang === 'zh' ? 'zh' : 'en'}';
       inspector.locate = !!${locate};
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
+      inspector.ai = ${aiEnabled};
+      inspector.aiAuthToken = '${getAIAuthToken()}';
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
+      inspector.defaultAction = '${defaultAction}';
       document.documentElement.append(inspector);
     }
   }
@@ -371,7 +385,7 @@ export async function getCodeWithWebComponent({
         injectCode,
         getProjectRecord(record)?.port || 0,
       );
-      if (!file.match(webComponentFilePath)) {
+      if (path.resolve(file) !== path.resolve(webComponentFilePath)) {
         const relativePath = normalizePath(
           path.relative(path.dirname(file), webComponentFilePath),
         );
@@ -431,7 +445,7 @@ function resolveNextPackageJson(basedir: string) {
     const require = createRequire(path.join(resolveDir, 'noop.js'));
     const request = 'next/package.json';
     const resolvedPath = require.resolve(request);
-    const resolvePaths = require.resolve.paths(request) || [];
+    const resolvePaths = require.resolve.paths(request) as string[];
     const allowedResolvePaths = getNodeModulesPaths(resolveDir);
     const matchedResolvePath = resolvePaths.find((resolvePath) => {
       const normalizedResolvePath = path.resolve(resolvePath);

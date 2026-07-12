@@ -8,19 +8,27 @@ const mockStartServer = vi.hoisted(() => vi.fn(async () => {}));
 
 // Mock fs.readFileSync to handle missing client files first (before imports)
 vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs') as typeof fs;
+  const actual = (await vi.importActual('fs')) as typeof fs;
   return {
     ...actual,
     default: {
       ...actual,
       readFileSync: vi.fn((filePath: string, encoding?: string) => {
-        if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+        if (
+          typeof filePath === 'string' &&
+          (filePath.includes('client.umd.js') ||
+            filePath.includes('client.iife.js'))
+        ) {
           return '// mocked client code';
         }
         return actual.readFileSync(filePath, encoding as BufferEncoding);
       }),
       existsSync: vi.fn((filePath: string) => {
-        if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+        if (
+          typeof filePath === 'string' &&
+          (filePath.includes('client.umd.js') ||
+            filePath.includes('client.iife.js'))
+        ) {
           return true;
         }
         return actual.existsSync(filePath);
@@ -30,13 +38,21 @@ vi.mock('fs', async () => {
       rmSync: actual.rmSync,
     },
     readFileSync: vi.fn((filePath: string, encoding?: string) => {
-      if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+      if (
+        typeof filePath === 'string' &&
+        (filePath.includes('client.umd.js') ||
+          filePath.includes('client.iife.js'))
+      ) {
         return '// mocked client code';
       }
       return actual.readFileSync(filePath, encoding as BufferEncoding);
     }),
     existsSync: vi.fn((filePath: string) => {
-      if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
+      if (
+        typeof filePath === 'string' &&
+        (filePath.includes('client.umd.js') ||
+          filePath.includes('client.iife.js'))
+      ) {
         return true;
       }
       return actual.existsSync(filePath);
@@ -349,7 +365,10 @@ describe('getCodeWithWebComponent', () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/entry-record');
 
       const testFile = path.join(testDir, 'entry.tsx');
-      fs.writeFileSync(testFile, 'export default function App() { return <div />; }');
+      fs.writeFileSync(
+        testFile,
+        'export default function App() { return <div />; }',
+      );
 
       const record: RecordInfo = {
         port: 0,
@@ -592,7 +611,9 @@ describe('getCodeWithWebComponent', () => {
       // Should create eslintrc file
       expect(fs.existsSync(path.join(testDir, '.eslintrc.js'))).toBe(true);
       // Should create web component file
-      expect(fs.existsSync(path.join(testDir, 'append-code-5678.js'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'append-code-5678.js'))).toBe(
+        true,
+      );
     });
 
     it('should not rewrite eslintrc if it already exists', async () => {

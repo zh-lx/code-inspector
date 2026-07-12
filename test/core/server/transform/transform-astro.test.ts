@@ -10,6 +10,10 @@ function getAstroPropagatedPathExpression() {
   return `typeof $$props !== 'undefined' && $$props && $$props[${pathName}] || Astro.props && Astro.props[${pathName}]`;
 }
 
+function astroPath(filePath: string, line: number, column: number, name: string) {
+  return JSON.stringify(`${filePath}:${line}:${column}:${name}`);
+}
+
 function createAstroFixture(content: string, compilerSource: string) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-astro-'));
   const srcDir = path.join(root, 'src');
@@ -54,12 +58,78 @@ describe('transformAstro compiler path', () => {
         filePath,
         [],
       );
+      const cachedResult = await transformAstro(
+        '<main>Missing compiler</main>',
+        filePath,
+        [],
+      );
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${filePath}:1:1:main"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(filePath, 1, 1, 'main')}}`,
+      );
+      expect(cachedResult).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(filePath, 1, 1, 'main')}}`,
       );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('should resolve compiler from a missing source file path', async () => {
+    const content = '<main>Missing source path</main>';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'main',
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+    const missingFilePath = path.join(
+      path.dirname(path.dirname(fixture.filePath)),
+      'missing',
+      'file.astro',
+    );
+
+    try {
+      const result = await transformAstro(content, missingFilePath, []);
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(missingFilePath, 1, 1, 'main')}}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle compiler AST roots without children', async () => {
+    const content = 'Plain only';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({ ast: { type: 'root' } }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
     }
   });
 
@@ -176,16 +246,16 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${customOffset + 1}:custom-el"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, customOffset + 1, 'custom-el')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${cardOffset + 1}:Card"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, cardOffset + 1, 'Card')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, svgOffset + 1, 'svg')}`,
       );
       expect(result).toContain('<p data-insp-path="old">Text</p>');
       expect(result).not.toContain(':path"');
@@ -235,9 +305,9 @@ module.exports = {
     try {
       const result = await transformAstro(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:div"`);
+      expect(result).toContain(`${PathName}=${astroPath(fixture.filePath, 1, 1, 'div')}`);
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:${svgOffset + 1}:svg"`,
+        `${PathName}=${astroPath(fixture.filePath, 1, svgOffset + 1, 'svg')}`,
       );
       expect(result).not.toContain(`${fixture.filePath}:1:${pathOffset + 1}:path`);
       expect(result).not.toContain(getAstroPropagatedPathExpression());
@@ -294,7 +364,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -325,10 +395,46 @@ module.exports = {
 
     try {
       const result = await transformAstro(content, fixture.filePath, []);
+      const cachedResult = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
       );
+      expect(cachedResult).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'div')}}`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should skip dynamic root propagation when AST root has no offset', async () => {
+    const content = '<div>No offset</div>';
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => ({
+    ast: {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          name: 'div',
+          attributes: [],
+          position: { start: { line: 1, column: 1 } },
+        },
+      ],
+    },
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }
@@ -356,7 +462,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `<section class="inspector-complex" ${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:4:1:section"}`,
+        `<section class="inspector-complex" ${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 4, 1, 'section')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -380,7 +486,7 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={${getAstroPropagatedPathExpression()} || "${fixture.filePath}:1:1:section"}`,
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 1, 1, 'section')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -409,6 +515,30 @@ module.exports = {
       const result = await transformAstro(content, fixture.filePath, []);
 
       expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should scan fallback content with unterminated frontmatter', async () => {
+    const content = ['---', '<div>Visible</div>'].join('\n');
+    const fixture = createAstroFixture(
+      content,
+      `
+module.exports = {
+  parse: async () => {
+    throw new Error('parse failed');
+  },
+};
+`,
+    );
+
+    try {
+      const result = await transformAstro(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `${PathName}={${getAstroPropagatedPathExpression()} || ${astroPath(fixture.filePath, 2, 1, 'div')}}`,
+      );
     } finally {
       fixture.cleanup();
     }

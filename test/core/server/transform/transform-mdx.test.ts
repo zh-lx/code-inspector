@@ -34,6 +34,10 @@ function transformWholeMdx(
   return transformMdx(content, filePath, escapeTags, filePath);
 }
 
+function mdxPath(filePath: string, line: number, column: number, name: string) {
+  return JSON.stringify(`${filePath}:${line}:${column}:${name}`);
+}
+
 describe('transformMdx parser path', () => {
   it('should fall back to scanner when parser package cannot be resolved', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'code-inspector-mdx-missing-'));
@@ -48,9 +52,17 @@ describe('transformMdx parser path', () => {
         filePath,
         [],
       );
+      const cachedResult = await transformMdx(
+        '<section>Missing parser</section>',
+        filePath,
+        [],
+      );
 
       expect(result).toContain(
-        `${PathName}="${filePath}:1:1:section"`,
+        `${PathName}=${mdxPath(filePath, 1, 1, 'section')}`,
+      );
+      expect(cachedResult).toContain(
+        `${PathName}=${mdxPath(filePath, 1, 1, 'section')}`,
       );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -78,10 +90,50 @@ describe('transformMdx parser path', () => {
       );
 
       expect(result).toContain(
-        `${PathName}="${filePath}:1:1:article"`,
+        `${PathName}=${mdxPath(filePath, 1, 1, 'article')}`,
       );
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('should resolve parser from a missing source file path', async () => {
+    const content = '<main>Missing source path</main>';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({
+      type: 'root',
+      children: [
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'main',
+          attributes: [],
+          children: [],
+          position: { start: { line: 1, column: 1, offset: 0 } },
+        },
+      ],
+    }),
+  }),
+};
+`,
+    );
+    const missingFilePath = path.join(
+      path.dirname(path.dirname(fixture.filePath)),
+      'missing',
+      'file.mdx',
+    );
+
+    try {
+      const result = await transformMdx(content, missingFilePath, []);
+
+      expect(result).toContain(
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(missingFilePath, 1, 1, 'main')}}`,
+      );
+    } finally {
+      fixture.cleanup();
     }
   });
 
@@ -113,9 +165,13 @@ module.exports = {
 
     try {
       const result = await transformMdx(content, fixture.filePath, []);
+      const cachedResult = await transformMdx(content, fixture.filePath, []);
 
       expect(result).toContain(
-        `${PathName}={props && props[${JSON.stringify(PathName)}] || "${fixture.filePath}:1:1:article"}`,
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(fixture.filePath, 1, 1, 'article')}}`,
+      );
+      expect(cachedResult).toContain(
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(fixture.filePath, 1, 1, 'article')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -132,7 +188,62 @@ module.exports = {
     try {
       const result = await transformWholeMdx(content, fixture.filePath);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:main"`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 1, 1, 'main')}`);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should skip dynamic root propagation when AST root has no offset', async () => {
+    const content = '<article>No offset</article>';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({
+      type: 'root',
+      children: [
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'article',
+          attributes: [],
+          children: [],
+          position: { start: { line: 1, column: 1 } },
+        },
+      ],
+    }),
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle parser AST roots without children', async () => {
+    const content = 'Plain only';
+    const fixture = createMdxFixture(
+      content,
+      `
+module.exports = {
+  createProcessor: () => ({
+    parse: () => ({ type: 'root' }),
+  }),
+};
+`,
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
     } finally {
       fixture.cleanup();
     }
@@ -155,10 +266,10 @@ module.exports = {
     try {
       const result = await transformMdx(content, fixture.filePath, []);
 
-      expect(result).toContain(`${PathName}="${fixture.filePath}:1:1:h1"`);
-      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:ul"`);
-      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:li"`);
-      expect(result).toContain(`${PathName}="${fixture.filePath}:6:1:section"`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 3, 1, 'ul')}`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 3, 1, 'li')}`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 6, 1, 'section')}`);
     } finally {
       fixture.cleanup();
     }
@@ -237,13 +348,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:5:1:Card"`,
+        `${PathName}=${mdxPath(fixture.filePath, 5, 1, 'Card')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:6:1:svg"`,
+        `${PathName}=${mdxPath(fixture.filePath, 6, 1, 'svg')}`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Title</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'h1')}>Title</h1>`,
       );
       expect(result).not.toContain('Props<Card data-insp-path');
       expect(result).not.toContain(`:path"`);
@@ -282,7 +393,7 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `${PathName}={props && props[${JSON.stringify(PathName)}] || "${fixture.filePath}:1:1:div"}`,
+        `${PathName}={props && props[${JSON.stringify(PathName)}] || ${mdxPath(fixture.filePath, 1, 1, 'div')}}`,
       );
     } finally {
       fixture.cleanup();
@@ -308,10 +419,10 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:1:Card"`,
+        `${PathName}=${mdxPath(fixture.filePath, 1, 1, 'Card')}`,
       );
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:1:9:div"`,
+        `${PathName}=${mdxPath(fixture.filePath, 1, 9, 'div')}`,
       );
     } finally {
       fixture.cleanup();
@@ -368,7 +479,7 @@ module.exports = {
       expect(result).toContain('<section data-insp-path="manual">Manual</section>');
       expect(result).toContain('<aside>Invalid position</aside>');
       expect(result).toContain(
-        `${PathName}="${fixture.filePath}:3:1:nav"`,
+        `${PathName}=${mdxPath(fixture.filePath, 3, 1, 'nav')}`,
       );
       expect(result).not.toContain(':section"');
       expect(result).not.toContain(':aside"');
@@ -418,16 +529,16 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<ul ${PathName}="${fixture.filePath}:1:1:ul">`,
+        `<ul ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'ul')}>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:1:1:li">Bullet</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'li')}>Bullet</li>`,
       );
       expect(result).toContain(
-        `<ol ${PathName}="${fixture.filePath}:2:1:ol">`,
+        `<ol ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'ol')}>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:2:1:li">Ordered</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'li')}>Ordered</li>`,
       );
     } finally {
       fixture.cleanup();
@@ -451,13 +562,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">1 &lt; 2 and 3 &gt; 2 and <span>ok</span></h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}>1 &lt; 2 and 3 &gt; 2 and <span>ok</span></h1>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:3:1:li">a &lt; b &gt; c</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'li')}>a &lt; b &gt; c</li>`,
       );
       expect(result).toContain(
-        `<p ${PathName}="${fixture.filePath}:5:3:p">c &lt; d &gt; e</p>`,
+        `<p ${PathName}=${mdxPath(fixture.filePath, 5, 3, 'p')}>c &lt; d &gt; e</p>`,
       );
       expect(result).not.toContain(`${fixture.filePath}:1:13:span`);
     } finally {
@@ -484,16 +595,16 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">C# and &copy;</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}>C# and &copy;</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Escaped &#123;literal&#125; and {value}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'h1')}>Escaped &#123;literal&#125; and {value}</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Keep closing marker</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 5, 1, 'h1')}>Keep closing marker</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:7:1:h1"><strong>bold #</strong> and - marker</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 7, 1, 'h1')}><strong>bold #</strong> and - marker</h1>`,
       );
     } finally {
       fixture.cleanup();
@@ -514,13 +625,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<ul ${PathName}="${fixture.filePath}:1:1:ul">`,
+        `<ul ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'ul')}>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:1:1:li">[x] Completed task from remark-gfm syntax</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'li')}>[x] Completed task from remark-gfm syntax</li>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:2:1:li">[ ] Pending task from remark-gfm syntax</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'li')}>[ ] Pending task from remark-gfm syntax</li>`,
       );
       expect(result).not.toContain('type="checkbox"');
       expect(result).not.toContain('<input');
@@ -542,7 +653,7 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1"><a href="https://example.com/docs/(section)" title="Nested title">Nested [label] link</a> and <img src="https://example.com/assets/(demo).png" alt="Decorated alt text" title="Asset title" /></h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}><a href="https://example.com/docs/(section)" title="Nested title">Nested [label] link</a> and <img src="https://example.com/assets/(demo).png" alt="Decorated alt text" title="Asset title" /></h1>`,
       );
     } finally {
       fixture.cleanup();
@@ -566,13 +677,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">Result {format({ label: 'brace } text', meta: { count: visibleGroups.length }, template: \`value \${visibleGroups[0]?.id}\` })}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}>Result {format({ label: 'brace } text', meta: { count: visibleGroups.length }, template: \`value \${visibleGroups[0]?.id}\` })}</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Regex {(/value\\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'h1')}>Regex {(/value\\}/).test('value}') ? 'regex literal matched' : 'regex literal missed'}</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Comment {value /* comment } */ ?? 'fallback'}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 5, 1, 'h1')}>Comment {value /* comment } */ ?? 'fallback'}</h1>`,
       );
     } finally {
       fixture.cleanup();
@@ -596,13 +707,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1">Regex {/[\\]}]/.test(value)}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}>Regex {/[\\]}]/.test(value)}</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:3:1:h1">Leading regex { /abc/.test(value) }</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'h1')}>Leading regex { /abc/.test(value) }</h1>`,
       );
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:5:1:h1">Return regex {(() => { return /abc/.test(value) })()}</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 5, 1, 'h1')}>Return regex {(() => { return /abc/.test(value) })()}</h1>`,
       );
     } finally {
       fixture.cleanup();
@@ -681,13 +792,13 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:1:1:h1"><strong>strong &lt; text &gt;</strong> <em>em &#123; text &#125;</em> <del>del &lt; text</del> <a href="https://example.com"><code>code &lt; &gt; &#123; &#125;</code></a></h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 1, 1, 'h1')}><strong>strong &lt; text &gt;</strong> <em>em &#123; text &#125;</em> <del>del &lt; text</del> <a href="https://example.com"><code>code &lt; &gt; &#123; &#125;</code></a></h1>`,
       );
       expect(result).toContain(
-        `<li ${PathName}="${fixture.filePath}:3:1:li"><strong># label &lt; 2</strong> and - literal</li>`,
+        `<li ${PathName}=${mdxPath(fixture.filePath, 3, 1, 'li')}><strong># label &lt; 2</strong> and - literal</li>`,
       );
       expect(result).toContain(
-        `<p ${PathName}="${fixture.filePath}:5:3:p"><a href="https://example.com">label &lt; value &gt;</a> and <code>code &lt;tag&gt; &#123;x&#125;</code></p>`,
+        `<p ${PathName}=${mdxPath(fixture.filePath, 5, 3, 'p')}><a href="https://example.com">label &lt; value &gt;</a> and <code>code &lt;tag&gt; &#123;x&#125;</code></p>`,
       );
     } finally {
       fixture.cleanup();
@@ -751,9 +862,9 @@ module.exports = {
       const result = await transformWholeMdx(content, fixture.filePath);
 
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:2:1:h1"><span>Nested</span></h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'h1')}><span>Nested</span></h1>`,
       );
-      expect(result).toContain(`${PathName}="${fixture.filePath}:3:1:div"`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 3, 1, 'div')}`);
       expect(result).not.toContain(`${fixture.filePath}:2:3:span`);
     } finally {
       fixture.cleanup();
@@ -777,7 +888,7 @@ module.exports = {
       const result = await transformMdx(content, fixture.filePath, []);
 
       expect(result).not.toContain(`${fixture.filePath}:2:18:span`);
-      expect(result).toContain(`${PathName}="${fixture.filePath}:5:1:section"`);
+      expect(result).toContain(`${PathName}=${mdxPath(fixture.filePath, 5, 1, 'section')}`);
     } finally {
       fixture.cleanup();
     }
@@ -795,7 +906,25 @@ module.exports = {
 
       expect(result).toContain('title: Demo');
       expect(result).toContain(
-        `<h1 ${PathName}="${fixture.filePath}:4:1:h1">Title</h1>`,
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 4, 1, 'h1')}>Title</h1>`,
+      );
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should transform markdown after unterminated frontmatter marker', async () => {
+    const content = ['---', '# Title'].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toContain(
+        `<h1 ${PathName}=${mdxPath(fixture.filePath, 2, 1, 'h1')}>Title</h1>`,
       );
     } finally {
       fixture.cleanup();
@@ -808,6 +937,22 @@ module.exports = {
       '  label: "quoted <span>"',
       '<div>Ignored</div>',
     ].join('\n');
+    const fixture = createMdxFixture(
+      content,
+      'module.exports = { notCreateProcessor: true };',
+    );
+
+    try {
+      const result = await transformMdx(content, fixture.filePath, []);
+
+      expect(result).toBe(content);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+
+  it('should handle empty unfinished MDX ESM ranges', async () => {
+    const content = '';
     const fixture = createMdxFixture(
       content,
       'module.exports = { notCreateProcessor: true };',

@@ -247,7 +247,7 @@ describe('render', () => {
       await component.updateComplete;
 
       const switches = component.shadowRoot?.querySelectorAll('.settings-switch');
-      expect(switches?.length).toBe(3);
+      expect(switches?.length).toBe(4);
     });
 
     it('should close modal when clicking overlay', async () => {
@@ -310,8 +310,8 @@ describe('render', () => {
       };
       await component.updateComplete;
 
-      const elementTitle = component.shadowRoot?.querySelector('.element-title');
-      expect(elementTitle?.textContent).toContain('TestComponent');
+      const elementTagInfo = component.shadowRoot?.querySelector('.element-tag-info');
+      expect(elementTagInfo?.textContent).toContain('TestComponent');
     });
 
     it('should render path info', async () => {
@@ -324,8 +324,8 @@ describe('render', () => {
       };
       await component.updateComplete;
 
-      const pathLine = component.shadowRoot?.querySelector('.path-line');
-      expect(pathLine?.textContent).toContain('/src/App.tsx:25:5');
+      const inspectorPath = component.shadowRoot?.querySelector('.inspector-path');
+      expect(inspectorPath?.textContent).toContain('/src/App.tsx:25:5');
     });
   });
 

@@ -60,6 +60,25 @@ describe('WebpackCodeInjectLoader', () => {
     expect(mockContext.callback).toHaveBeenCalled();
   });
 
+  it('should use callback when async is not available', async () => {
+    delete mockContext.async;
+    const content = 'const x = 1;';
+    const source = { map: {} };
+    const meta = { info: 'meta' };
+
+    await new Promise<void>((resolve) => {
+      mockContext.callback.mockImplementationOnce(() => resolve());
+      WebpackCodeInjectLoader.call(mockContext, content, source, meta);
+    });
+
+    expect(mockContext.callback).toHaveBeenCalledWith(
+      null,
+      `injected:${content}`,
+      source,
+      meta,
+    );
+  });
+
   it('should return original content for excluded files', async () => {
     vi.mocked(isExcludedFile).mockReturnValueOnce(true);
     const content = 'const x = 1;';
@@ -103,6 +122,7 @@ describe('WebpackCodeInjectLoader', () => {
   it('should return a promise when no callback is available', async () => {
     delete mockContext.async;
     delete mockContext.callback;
+    delete mockContext.query;
 
     const result = WebpackCodeInjectLoader.call(
       mockContext,
@@ -112,6 +132,12 @@ describe('WebpackCodeInjectLoader', () => {
     );
 
     await expect(result).resolves.toBe('injected:const x = 1;');
+    expect(getCodeWithWebComponent).toHaveBeenCalledWith({
+      options: {},
+      file: '/test/file.js',
+      code: 'const x = 1;',
+      record: undefined,
+    });
   });
 
   it('should fall back to original content when injection fails', async () => {

@@ -5,8 +5,10 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   test:
@@ -28,13 +30,17 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Run tests with coverage
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run unit tests with coverage
         run: pnpm test
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: zh-lx/code-inspector
+          use_oidc: true
+          fail_ci_if_error: true
+          verbose: true

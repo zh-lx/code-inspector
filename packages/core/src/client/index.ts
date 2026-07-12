@@ -3,6 +3,39 @@ import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
 import { formatOpenPath } from 'launch-ide';
+import { browserChalk } from '../shared/browser-chalk';
+import {
+  ChatMessage,
+  ChatContext,
+  ChatImageAttachment,
+  ChatProvider,
+  ChatHistoryMessage,
+  ContentBlock,
+  ToolCall,
+  HistoryEntry,
+  renderChatModal,
+  chatStyles,
+  sendChatToServer,
+  attachRuntimeSessionToServer,
+  abortRuntimeSessionOnServer,
+  updateChatModalPosition,
+  setProjectRoot,
+  fetchModelInfo,
+  revertEdit,
+  collectRevertableTools,
+  fetchHistoryList,
+  saveConversation,
+  loadConversationData,
+  deleteConversationData,
+} from '../ai/client/ai';
+import { saveAIState, loadAIState, clearAIState } from '../ai/client/ai-persist';
+import { AITerminalManager } from '../ai/client/ai-terminal';
+import {
+  ClientTextVars,
+  ClientTextKey,
+  getClientText,
+  normalizeClientLang,
+} from './i18n';
 
 const styleId = '__code-inspector-unique-id';
 
@@ -65,6 +98,10 @@ interface ActiveNode {
   class?: 'tooltip-top' | 'tooltip-bottom';
 }
 
+interface PendingChatImageAttachment extends ChatImageAttachment {
+  dataUrl: string;
+}
+
 const PopperWidth = 300;
 const POPPER_MARGIN = 10; // Margin for popper positioning
 
@@ -88,17 +125,25 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   locate: boolean = true;
   @property()
-  copy: boolean | string = false;
+  copy: boolean | undefined | string = undefined;
   @property()
   target: string = '';
   @property()
   targetNode: HTMLElement | null = null;
   @property()
   ip: string = 'localhost';
+  @property()
+  ai: boolean = false;
+  @property({ attribute: false })
+  aiAuthToken: string = '';
+  @property()
+  lang: 'en' | 'zh' = 'en';
 
   private wheelThrottling: boolean = false;
   @property()
   modeKey: string = 'z';
+  @property()
+  defaultAction: string = ''; // 默认开启的功能
 
   @state()
   position = {
@@ -162,11 +207,93 @@ export class CodeInspectorComponent extends LitElement {
   @state()
   showSettingsModal = false; // 是否显示设置弹窗
   @state()
-  internalLocate = true; // 内部 locate 状态
+  internalLocate = false; // 内部 locate 状态
   @state()
   internalCopy: boolean = false; // 内部 copy 状态
   @state()
   internalTarget = false; // 内部 target 状态
+  @state()
+  internalAI = false; // 内部 chat 状态
+  @state()
+  showChatModal = false; // 聊天框显示状态
+  @state()
+  showCloseConfirm = false; // 关闭运行中会话的二次确认弹层
+  @state()
+  showTerminalSwitchConfirm = false; // terminal 切换 provider/model 的确认弹层
+  @state()
+  chatMessages: ChatMessage[] = []; // 聊天消息列表
+  @state()
+  chatInput = ''; // 聊天输入内容
+  @state()
+  chatPastedImages: PendingChatImageAttachment[] = []; // 输入框待发送图片
+  @state()
+  chatImageProcessing = false; // 粘贴图片处理中
+  @state()
+  chatLoading = false; // 聊天加载状态
+  @state()
+  chatContext: ChatContext | null = null; // 聊天上下文（当前选中的元素信息）
+  @state()
+  currentTools: Map<string, ToolCall> = new Map(); // 当前正在执行的工具调用
+  chatSessionId: string | null = null; // CLI 会话 ID，用于 --resume 恢复上下文
+  runtimeSessionId: string | null = null; // 服务端运行时会话 ID，用于刷新后重连流/终端
+  runtimeSessionKind: 'agent-turn' | 'terminal' | null = null;
+  runtimeCursor = 0;
+  @state()
+  chatTheme: 'light' | 'dark' = 'dark'; // 聊天主题
+  @state()
+  turnStatus: 'idle' | 'running' | 'done' | 'interrupt' = 'idle'; // 当前轮状态
+  @state()
+  turnDuration: number = 0; // 当前轮持续时间（秒）
+  @state()
+  chatModel: string = ''; // 当前使用的模型名称
+  @state()
+  availableAIModels: string[] = []; // 当前 provider 可选模型
+  @state()
+  chatProvider: ChatProvider | null = null; // 当前使用的 AI provider
+  @state()
+  availableAIProviders: ChatProvider[] = []; // 当前可用的 AI providers
+  @state()
+  showProviderMenu = false; // provider 下拉是否展开
+  @state()
+  showModelMenu = false; // model 下拉是否展开
+  @state()
+  revertedToolIds: Set<string> = new Set();
+  @state()
+  revertingToolIds: Set<string> = new Set();
+  @state()
+  conversationId: string | null = null;
+  @state()
+  showHistoryPanel = false;
+  @state()
+  historyList: HistoryEntry[] = [];
+  @state()
+  historyLoading = false;
+
+  // 终端模式（由配置 type: 'terminal' 驱动）
+  @state()
+  terminalMode = false;
+  @state()
+  terminalExitCode: number | null = null;
+  private terminalManager: AITerminalManager | null = null;
+  private _projectRoot: string = ''; // 服务端返回的项目根路径
+
+  // 中断控制器和计时器
+  private chatAbortController: AbortController | null = null;
+  private turnTimerInterval: ReturnType<typeof setInterval> | null = null;
+  private turnStartTime: number = 0;
+
+  // 拖拽相关
+  @state()
+  isDragging = false;
+  private dragStartX: number = 0;
+  private dragStartY: number = 0;
+  private modalStartX: number = 0;
+  private modalStartY: number = 0;
+  private wasDragging: boolean = false; // 防止拖拽结束后点击关闭弹窗
+
+  // floating-ui autoUpdate 清理函数
+  private chatPositionCleanup: (() => void) | null = null;
+  private pendingTerminalSwitchAction: (() => void) | null = null;
 
   @query('#inspector-switch')
   inspectorSwitchRef!: HTMLDivElement;
@@ -183,26 +310,68 @@ export class CodeInspectorComponent extends LitElement {
   @query('#node-tree-tooltip')
   nodeTreeTooltipRef!: HTMLDivElement;
 
-  features = [
-    {
-      label: 'Locate Code',
-      description: 'Open the editor and locate code',
-      checked: () => !!this.internalLocate,
-      onChange: () => this.toggleLocate(),
-    },
-    {
-      label: 'Copy Path',
-      description: 'Copy the code path to clipboard',
-      checked: () => !!this.internalCopy,
-      onChange: () => this.toggleCopy(),
-    },
-    {
-      label: 'Open Target',
-      description: 'Open the target url',
-      checked: () => !!this.internalTarget,
-      onChange: () => this.toggleTarget(),
-    },
-  ];
+  private getCurrentLang(): 'en' | 'zh' {
+    return normalizeClientLang(this.lang);
+  }
+
+  private t<K extends ClientTextKey>(key: K, vars?: ClientTextVars<K>): string {
+    return getClientText(this.getCurrentLang(), key, vars);
+  }
+
+  private featuresOverride: any[] | null = null;
+
+  get features() {
+    return this.featuresOverride || this.getFeatures();
+  }
+
+  set features(value: any[]) {
+    this.featuresOverride = value;
+  }
+
+  private getFeatures() {
+    return [
+      {
+        label: this.t('feature.locate.label'),
+        description: this.t('feature.locate.description'),
+        checked: () => !!this.internalLocate,
+        onChange: () => this.toggleLocate(),
+        action: 'locate',
+        fn: () => this.locateCode(),
+        key: 1,
+        available: () => !!this.locate,
+      },
+      {
+        label: this.t('feature.copy.label'),
+        description: this.t('feature.copy.description'),
+        checked: () => !!this.internalCopy,
+        onChange: () => this.toggleCopy(),
+        action: 'copy',
+        fn: () => this.copyCode(),
+        key: 2,
+        available: () => this.copy !== false,
+      },
+      {
+        label: this.t('feature.target.label'),
+        description: this.t('feature.target.description'),
+        checked: () => !!this.internalTarget,
+        onChange: () => this.toggleTarget(),
+        action: 'target',
+        fn: () => this.targetCode(),
+        key: 3,
+        available: () => !!this.target,
+      },
+      {
+        label: this.t('feature.ai.label'),
+        description: this.t('feature.ai.description'),
+        checked: () => !!this.internalAI,
+        onChange: () => this.toggleAICode(),
+        action: 'ai',
+        fn: () => this.openChatModal(),
+        key: 4,
+        available: () => !!this.ai,
+      },
+    ];
+  }
 
   // Event listeners configuration for centralized management
   private eventListeners: Array<{
@@ -358,21 +527,21 @@ export class CodeInspectorComponent extends LitElement {
         const overflowWidth = containerLeft + width - browserWidth;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(-${(overflowWidth + 4)}px) ${
+            transform: `translateX(-${overflowWidth + 4}px) ${
               pos.additionStyle?.transform || ''
             }`,
           };
-          finalPos.left -= (overflowWidth + 4);
+          finalPos.left -= overflowWidth + 4;
         }
       } else {
         const overflowWidth = width - containerRight;
         if (overflowWidth > 0) {
           pos.additionStyle = {
-            transform: `translateX(${(overflowWidth + 4)}px) ${
+            transform: `translateX(${overflowWidth + 4}px) ${
               pos.additionStyle?.transform || ''
             }`,
           };
-          finalPos.left += (overflowWidth + 4);
+          finalPos.left += overflowWidth + 4;
         }
       }
       if (!isOutOfScreen(finalPos)) {
@@ -461,6 +630,32 @@ export class CodeInspectorComponent extends LitElement {
     return { name, path, line, column };
   };
 
+  // 生成元素选择器的 HTML，格式如 div#myid.class1.class2，带颜色标记
+  getElementSelectorHtml = (
+    target: HTMLElement,
+    tagName: string,
+  ): TemplateResult => {
+    const parts: TemplateResult[] = [];
+
+    // 标签名
+    parts.push(html`<span class="tag-name">${tagName}</span>`);
+
+    // 添加 id
+    if (target.id) {
+      parts.push(html`<span class="tag-id">#${target.id}</span>`);
+    }
+
+    // 添加 class
+    if (target.className && typeof target.className === 'string') {
+      const classes = target.className.trim().split(/\s+/).filter(Boolean);
+      classes.forEach((cls) => {
+        parts.push(html`<span class="tag-class">.${cls}</span>`);
+      });
+    }
+
+    return html`${parts}`;
+  };
+
   removeCover = (force?: boolean | MouseEvent) => {
     if (force !== true && this.nodeTree) {
       return;
@@ -474,7 +669,7 @@ export class CodeInspectorComponent extends LitElement {
 
   renderLayerPanel = (
     nodeTree: TreeNode,
-    { x, y }: { x: number; y: number }
+    { x, y }: { x: number; y: number },
   ) => {
     const browserWidth = document.documentElement.clientWidth;
     const browserHeight = document.documentElement.clientHeight;
@@ -567,40 +762,56 @@ export class CodeInspectorComponent extends LitElement {
     for (let replacement in replacementMap) {
       targetUrl = targetUrl.replace(
         new RegExp(replacement, 'g'),
-        String(replacementMap[replacement])
+        String(replacementMap[replacement]),
       );
     }
 
     return targetUrl;
   };
 
-  // 触发功能的处理
-  trackCode = () => {
-    if (this.internalLocate) {
-      if (this.sendType === 'xhr') {
-        this.sendXHR();
-      } else {
-        this.sendImg();
-      }
+  locateCode = () => {
+    if (this.sendType === 'xhr') {
+      this.sendXHR();
+    } else {
+      this.sendImg();
     }
-    if (this.internalCopy) {
-      const path = formatOpenPath(
-        this.element.path,
-        String(this.element.line),
-        String(this.element.column),
-        this.copy
-      );
-      this.copyToClipboard(path[0]);
-    }
-    if (this.internalTarget) {
-      window.open(this.buildTargetUrl(), '_blank');
-    }
-    // 触发自定义事件
+  };
+
+  copyCode = () => {
+    const path = formatOpenPath(
+      this.element.path,
+      String(this.element.line),
+      String(this.element.column),
+      this.copy || false,
+    );
+    this.copyToClipboard(path[0]);
+  };
+
+  targetCode = () => {
+    window.open(this.buildTargetUrl(), '_blank');
+  };
+
+  dispatchCustomEvent = (
+    action: 'locate' | 'copy' | 'target' | 'chat' | string,
+  ) => {
     window.dispatchEvent(
       new CustomEvent('code-inspector:trackCode', {
-        detail: this.element,
-      })
+        detail: {
+          action,
+          element: this.element,
+        },
+      }),
     );
+  };
+
+  // 触发功能的处理
+  trackCode = () => {
+    this.features.forEach((feature) => {
+      if (feature.checked()) {
+        feature.fn();
+        this.dispatchCustomEvent(feature.action);
+      }
+    });
   };
 
   private handleModeShortcut = (e: KeyboardEvent) => {
@@ -614,7 +825,35 @@ export class CodeInspectorComponent extends LitElement {
       this.toggleSettingsModal();
       e.preventDefault();
       e.stopPropagation();
+      return;
     }
+
+    const code = e.code.toLowerCase();
+    const keyCode = e.keyCode;
+
+    this.features.forEach((feature) => {
+      const targetDigitCode = 'digit' + feature.key;
+      const targetNumCode = 'numpad' + feature.key;
+      const targetKeyCode = 48 + feature.key; // key code of number1 is 49
+      if (
+        (code === targetDigitCode ||
+          code === targetNumCode ||
+          keyCode === targetKeyCode) &&
+        feature.available()
+      ) {
+        if (feature.action === 'ai' || (this.targetNode && this.element.path)) {
+          if (feature.action === 'ai') {
+            this.openChatModal(true);
+          } else {
+            feature.fn();
+          }
+          e.preventDefault();
+          e.stopPropagation();
+          this.dispatchCustomEvent(feature.action);
+          return;
+        }
+      }
+    });
   };
 
   showNotification(message: string, type: 'success' | 'error' = 'success') {
@@ -643,7 +882,7 @@ export class CodeInspectorComponent extends LitElement {
         navigator.clipboard
           .writeText(text)
           .then(() => {
-            this.showNotification('✓ Copied to clipboard');
+            this.showNotification(this.t('notification.copySuccess'));
           })
           .catch(() => {
             this.fallbackCopy(text);
@@ -667,12 +906,12 @@ export class CodeInspectorComponent extends LitElement {
       const success = document.execCommand('copy');
       document.body.removeChild(textarea);
       if (success) {
-        this.showNotification('✓ Copied to clipboard');
+        this.showNotification(this.t('notification.copySuccess'));
       } else {
-        this.showNotification('✗ Copy failed', 'error');
+        this.showNotification(this.t('notification.copyFailed'), 'error');
       }
     } catch (error) {
-      this.showNotification('✗ Copy failed', 'error');
+      this.showNotification(this.t('notification.copyFailed'), 'error');
     }
   }
 
@@ -709,7 +948,10 @@ export class CodeInspectorComponent extends LitElement {
   getValidNodeList = (nodePath: HTMLElement[]) => {
     const validNodeList: HTMLElement[] = [];
     for (const node of nodePath) {
-      if ((node.hasAttribute && node.hasAttribute(PathName)) || node[PathName]) {
+      if (
+        (node.hasAttribute && node.hasAttribute(PathName)) ||
+        node[PathName]
+      ) {
         validNodeList.push(node);
       }
     }
@@ -733,6 +975,10 @@ export class CodeInspectorComponent extends LitElement {
       ((this.isTracking(e) && !this.dragging) || this.open) &&
       !this.hoverSwitch
     ) {
+      // 确保页面聚焦，否则后续键盘快捷键无法触发
+      if (!document.hasFocus()) {
+        window.focus();
+      }
       const nodePath = e.composedPath() as HTMLElement[];
       const validNodeList = this.getValidNodeList(nodePath);
       let targetNode;
@@ -769,7 +1015,9 @@ export class CodeInspectorComponent extends LitElement {
 
     const nodePath = e.composedPath() as HTMLElement[];
     const validNodeList = this.getValidNodeList(nodePath);
-    let targetNodeIndex = validNodeList.findIndex((node) => node === this.targetNode);
+    let targetNodeIndex = validNodeList.findIndex(
+      (node) => node === this.targetNode,
+    );
     if (targetNodeIndex === -1) {
       this.wheelThrottling = false;
       return;
@@ -895,52 +1143,49 @@ export class CodeInspectorComponent extends LitElement {
   printTip = () => {
     const agent = navigator.userAgent.toLowerCase();
     const isWindows = ['windows', 'win32', 'wow32', 'win64', 'wow64'].some(
-      (item) => agent.toUpperCase().match(item.toUpperCase())
+      (item) => agent.toUpperCase().match(item.toUpperCase()),
     );
     const hotKeyMap = isWindows ? WindowsHotKeyMap : MacHotKeyMap;
-    const rep = '%c';
-    const hotKeys = this.hotKeys
+    const hotKeyNames = this.hotKeys
       .split(',')
-      .map((item) => rep + hotKeyMap[item.trim() as keyof typeof hotKeyMap]);
-    const switchKeys = [...hotKeys, rep + this.modeKey.toUpperCase()];
-    const activeFeatures = this.features
-      .filter((feature) => feature.checked())
-      .map((feature) => `${rep}${feature.label}`);
-    const currentFeature =
-      activeFeatures.length > 0
-        ? activeFeatures.join(`${rep}、`)
-        : `${rep}None`;
+      .map((item) => hotKeyMap[item.trim() as keyof typeof hotKeyMap]);
+    const switchKeyNames = [...hotKeyNames, this.modeKey.toUpperCase()];
+    // const currentFeature = this.features.find((feature) => feature.checked())?.label || 'None';
 
-    const colorCount =
-      hotKeys.length * 2 +
-      switchKeys.length * 2 +
-      currentFeature.match(/%c/g)!.length +
-      1;
-    const colors = Array(colorCount)
-      .fill('')
-      .map((_, index) => {
-        if (index % 2 === 0) {
-          return 'color: #00B42A; font-family: PingFang SC; font-size: 12px;';
-        } else {
-          return 'color: #006aff; font-weight: bold; font-family: PingFang SC; font-size: 12px;';
-        }
+    const c = browserChalk;
+    const keysChain = (names: string[]) => {
+      const chain = c.yellow(names[0]).bold();
+      for (let i = 1; i < names.length; i++) {
+        chain.green(' + ').yellow(names[i]).bold();
+      }
+      return chain;
+    };
+
+    c.blue(this.t('console.expandGuide')).groupCollapsed(() => {
+      keysChain(hotKeyNames.concat(this.t('console.leftClick')))
+        .green(this.t('console.useActiveFeature'))
+        .log();
+
+      keysChain(hotKeyNames.concat(this.t('console.rightClick')))
+        .green(this.t('console.openNodeTree'))
+        .log();
+
+      keysChain(hotKeyNames.concat(this.t('console.mouseWheel')))
+        .green(this.t('console.selectParentOrChild'))
+        .log();
+
+      keysChain(switchKeyNames)
+        .green(this.t('console.changeActiveFeature'))
+        .log();
+
+      this.features.forEach((feature) => {
+        keysChain(hotKeyNames.concat(feature.key.toString()))
+          .green(this.t('console.use'))
+          .yellow(feature.label)
+          .bold()
+          .log();
       });
-
-    const content = [
-      `${rep}[code-inspector-plugin]`,
-      `${rep}• Press and hold ${hotKeys.join(
-        ` ${rep}+ `
-      )} ${rep}to use the feature.`,
-      `• Press ${switchKeys.join(
-        ` ${rep}+ `
-      )} ${rep}to see and change feature.`,
-      `• Current Feature: ${currentFeature}`,
-    ].join('\n');
-    console.log(
-      content,
-      'color: #006aff; font-weight: bolder; font-size: 12px;',
-      ...colors
-    );
+    });
   };
 
   // 获取鼠标位置
@@ -954,7 +1199,7 @@ export class CodeInspectorComponent extends LitElement {
   // 记录鼠标按下时初始位置
   recordMousePosition = (
     e: MouseEvent | TouchEvent,
-    target: 'switch' | 'nodeTree'
+    target: 'switch' | 'nodeTree',
   ) => {
     const ref =
       target === 'switch' ? this.inspectorSwitchRef : this.nodeTreeRef;
@@ -1046,19 +1291,1861 @@ export class CodeInspectorComponent extends LitElement {
     this.showSettingsModal = false;
   };
 
-  // 切换 locate 功能
+  // 清除所有功能状态
+  private clearAllActions = () => {
+    this.internalLocate = false;
+    this.internalCopy = false;
+    this.internalTarget = false;
+    this.internalAI = false;
+  };
+
+  // 切换 locate 功能（互斥）
   toggleLocate = () => {
-    this.internalLocate = !this.internalLocate;
+    const newValue = !this.internalLocate;
+    this.clearAllActions();
+    this.internalLocate = newValue;
   };
 
-  // 切换 copy 功能
+  // 切换 copy 功能（互斥）
   toggleCopy = () => {
-    this.internalCopy = !this.internalCopy;
+    const newValue = !this.internalCopy;
+    this.clearAllActions();
+    this.internalCopy = newValue;
   };
 
-  // 切换 target 功能
+  // 切换 target 功能（互斥）
   toggleTarget = () => {
-    this.internalTarget = !this.internalTarget;
+    const newValue = !this.internalTarget;
+    this.clearAllActions();
+    this.internalTarget = newValue;
+  };
+
+  // 切换 chat 功能（互斥）
+  toggleAICode = () => {
+    const newValue = !this.internalAI;
+    this.clearAllActions();
+    this.internalAI = newValue;
+  };
+
+  // 持久化 AI 对话状态到 sessionStorage
+  private persistAIState = () => {
+    const persistedMessages: ChatMessage[] = this.chatMessages.map(
+      ({ modelContent, ...rest }) => rest,
+    );
+    let modalPosition: { left: string; top: string } | null = null;
+    if (this.showChatModal) {
+      const chatModal = this.shadowRoot?.querySelector(
+        '#chat-modal-floating',
+      ) as HTMLElement;
+      if (chatModal) {
+        modalPosition = {
+          left: chatModal.style.left,
+          top: chatModal.style.top,
+        };
+      }
+    }
+    saveAIState({
+      showChatModal: this.showChatModal,
+      chatMessages: persistedMessages,
+      chatContext: this.chatContext,
+      chatSessionId: this.chatSessionId,
+      chatTheme: this.chatTheme,
+      chatModel: this.chatModel,
+      availableAIModels: this.availableAIModels,
+      chatProvider: this.chatProvider,
+      availableAIProviders: this.availableAIProviders,
+      modalPosition,
+      turnStatus: this.turnStatus,
+      revertedToolIds:
+        this.revertedToolIds.size > 0
+          ? Array.from(this.revertedToolIds)
+          : undefined,
+      conversationId: this.conversationId,
+      runtimeSessionId: this.runtimeSessionId,
+      runtimeSessionKind: this.runtimeSessionKind,
+      runtimeCursor: this.runtimeCursor,
+    });
+  };
+
+  private clearRuntimeSessionState = () => {
+    this.runtimeSessionId = null;
+    this.runtimeSessionKind = null;
+    this.runtimeCursor = 0;
+  };
+
+  private revokeObjectUrl = (url?: string) => {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  private revokeMessageImageUrls = (messages: ChatMessage[]) => {
+    for (const msg of messages) {
+      if (!Array.isArray(msg.images)) continue;
+      for (const image of msg.images) {
+        this.revokeObjectUrl(image.previewUrl);
+      }
+    }
+  };
+
+  private clearPendingPastedImages = (revoke = true) => {
+    if (revoke) {
+      for (const image of this.chatPastedImages) {
+        this.revokeObjectUrl(image.previewUrl);
+      }
+    }
+    this.chatPastedImages = [];
+    this.chatImageProcessing = false;
+  };
+
+  private readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed to read image'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  private formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  };
+
+  private buildMessageWithPastedImages = (
+    message: string,
+    images: PendingChatImageAttachment[],
+  ): string => {
+    if (images.length === 0) {
+      return message;
+    }
+
+    const imageBlocks = images.map((image, index) => {
+      const name = image.name || `${this.t('misc.pastedImage')}-${index + 1}`;
+      const type = image.type || 'image';
+      return `[Pasted Image ${index + 1}] ${name} (${type}, ${this.formatBytes(image.size)})\n${image.dataUrl}`;
+    });
+
+    const baseMessage = message.trim();
+    if (!baseMessage) {
+      return imageBlocks.join('\n\n');
+    }
+    return `${baseMessage}\n\n${imageBlocks.join('\n\n')}`;
+  };
+
+  private buildChatHistoryForModel = (
+    messages: ChatMessage[],
+  ): ChatHistoryMessage[] => {
+    return messages.map((msg) => ({
+      role: msg.role,
+      content: msg.modelContent || msg.content,
+    }));
+  };
+
+  private resolveActiveChatContext = (): ChatContext | null => {
+    if (!this.targetNode) {
+      return null;
+    }
+    const source = this.getSourceInfo(this.targetNode);
+    if (!source) {
+      return null;
+    }
+    return {
+      file: source.path,
+      line: source.line,
+      column: source.column,
+      name: source.name,
+    };
+  };
+
+  private refreshChatProviderAndModel = async (
+    preferredProvider?: ChatProvider | null,
+    preferredModel?: string | null,
+  ) => {
+    const previousProvider = this.chatProvider;
+    const modelInfo = await fetchModelInfo(
+      this.ip,
+      this.port,
+      preferredProvider || this.chatProvider,
+      this.aiAuthToken,
+    );
+    if (!this.isConnected) return;
+
+    if (modelInfo.providers.length > 0) {
+      this.availableAIProviders = modelInfo.providers;
+    }
+    this.availableAIModels = modelInfo.models;
+    const wasTerminalMode = this.terminalMode;
+    this.terminalMode = modelInfo.providerType === 'terminal';
+    // 如果切到终端模式，需要初始化终端
+    if (this.terminalMode && !wasTerminalMode && this.showChatModal) {
+      this.initTerminal();
+    }
+    // 如果从终端模式切走，清理终端
+    if (!this.terminalMode && wasTerminalMode) {
+      if (this.terminalManager && !this.terminalManager.isDisposed()) {
+        this.terminalManager.dispose();
+        this.terminalManager = null;
+      }
+      this.terminalExitCode = null;
+    }
+
+    const candidates: Array<ChatProvider | null | undefined> = [
+      preferredProvider,
+      modelInfo.provider,
+      modelInfo.providers[0],
+      this.chatProvider,
+    ];
+    const nextProvider = candidates.find(
+      (provider): provider is ChatProvider => {
+        return (
+          !!provider &&
+          (modelInfo.providers.length === 0 ||
+            modelInfo.providers.includes(provider))
+        );
+      },
+    );
+
+    if (nextProvider) {
+      this.chatProvider = nextProvider;
+    }
+    const providerChanged =
+      !!nextProvider && !!previousProvider && nextProvider !== previousProvider;
+    const providerResolvedFromEmpty = !previousProvider && !!nextProvider;
+
+    const modelCandidates: Array<string | null | undefined> = [
+      preferredModel,
+      modelInfo.model,
+      providerChanged || providerResolvedFromEmpty ? undefined : this.chatModel,
+      modelInfo.models[0],
+    ];
+    const nextModel = modelCandidates.find((model) => {
+      if (!model || !model.trim()) return false;
+      return modelInfo.models.length === 0 || modelInfo.models.includes(model);
+    });
+    if (nextModel) {
+      this.chatModel = nextModel;
+      return;
+    }
+
+    // Provider changed but target provider has no explicit model info:
+    // clear stale model from previous provider to avoid sending it back.
+    if (providerChanged || providerResolvedFromEmpty) {
+      this.chatModel = '';
+    }
+  };
+
+  private hasLiveTerminal = (): boolean => {
+    return (
+      this.terminalMode &&
+      this.terminalManager != null &&
+      !this.terminalManager.isDisposed() &&
+      this.terminalExitCode === null
+    );
+  };
+
+  private promptTerminalSwitch = (action: () => void) => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    this.showCloseConfirm = false;
+    this.pendingTerminalSwitchAction = action;
+    this.showTerminalSwitchConfirm = true;
+  };
+
+  private performSwitchChatProvider = (provider: ChatProvider) => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    if (provider === this.chatProvider) return;
+    if (
+      this.availableAIProviders.length > 0 &&
+      !this.availableAIProviders.includes(provider)
+    )
+      return;
+
+    // 切换 provider 时保留当前对话上下文，仅重置会话 ID 以避免跨 provider 复用会话
+    this.chatSessionId = null;
+    this.clearRuntimeSessionState();
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    this.chatProvider = provider;
+    this.availableAIModels = [];
+    this.chatModel = '';
+    // 清理终端状态
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    this.persistAIState();
+    this.refreshChatProviderAndModel(provider).then(() => {
+      if (this.terminalMode && this.showChatModal) {
+        this.initTerminal();
+      }
+      this.persistAIState();
+    });
+  };
+
+  switchChatProvider = (provider: ChatProvider) => {
+    if (provider === this.chatProvider) return;
+    if (
+      this.availableAIProviders.length > 0 &&
+      !this.availableAIProviders.includes(provider)
+    )
+      return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.hasLiveTerminal()) {
+      this.promptTerminalSwitch(() => this.performSwitchChatProvider(provider));
+      return;
+    }
+    this.performSwitchChatProvider(provider);
+  };
+
+  toggleProviderMenu = () => {
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.availableAIProviders.length <= 1) return;
+    if (this.showModelMenu) {
+      this.showModelMenu = false;
+    }
+    this.showProviderMenu = !this.showProviderMenu;
+  };
+
+  private performSwitchChatModel = (model: string) => {
+    this.showModelMenu = false;
+    if (!model || !model.trim()) return;
+    if (model === this.chatModel) return;
+    if (
+      this.availableAIModels.length > 0 &&
+      !this.availableAIModels.includes(model)
+    )
+      return;
+
+    // 切换 model 时保留当前对话上下文，仅重置会话 ID 以避免跨 model 复用会话
+    this.chatSessionId = null;
+    this.clearRuntimeSessionState();
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    this.chatModel = model;
+    if (this.terminalMode && this.showChatModal) {
+      this.initTerminal();
+    }
+    this.persistAIState();
+  };
+
+  switchChatModel = (model: string) => {
+    if (!model || !model.trim()) return;
+    if (model === this.chatModel) return;
+    if (
+      this.availableAIModels.length > 0 &&
+      !this.availableAIModels.includes(model)
+    )
+      return;
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.hasLiveTerminal()) {
+      this.promptTerminalSwitch(() => this.performSwitchChatModel(model));
+      return;
+    }
+    this.performSwitchChatModel(model);
+  };
+
+  toggleModelMenu = () => {
+    if (!this.terminalMode && this.isTurnRunning()) return;
+    if (this.availableAIModels.length <= 1) return;
+    if (this.showProviderMenu) {
+      this.showProviderMenu = false;
+    }
+    this.showModelMenu = !this.showModelMenu;
+  };
+
+  // 打开聊天框
+  openChatModal = (forceGlobal = false) => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    this.showCloseConfirm = false;
+    // 组合键直达 AI 时使用全局模式，避免沿用陈旧 DOM context
+    if (forceGlobal) {
+      this.removeCover(true);
+      this.chatContext = null;
+    } else {
+      // 仅在当前存在选中元素时附带上下文，避免沿用历史陈旧 context
+      this.chatContext = this.resolveActiveChatContext();
+    }
+
+    // 同步保存 targetNode 引用，因为 removeCover 会将其清空
+    const referenceNode = this.targetNode;
+
+    this.showChatModal = true;
+
+    // 获取 provider/模型信息
+    if (
+      !this.chatModel ||
+      this.availableAIModels.length === 0 ||
+      this.availableAIProviders.length === 0 ||
+      !this.chatProvider
+    ) {
+      this.refreshChatProviderAndModel();
+    }
+
+    // 阻止背景滚动
+    document.body.style.overflow = 'hidden';
+
+    // 等待 DOM 更新后设置位置
+    this.updateComplete.then(() => {
+      requestAnimationFrame(() => {
+        const chatModal = this.shadowRoot?.querySelector(
+          '#chat-modal-floating',
+        ) as HTMLElement;
+        if (chatModal) {
+          if (referenceNode) {
+            // 有参考元素时，使用 floating-ui 定位
+            this.chatPositionCleanup = updateChatModalPosition(
+              referenceNode,
+              chatModal,
+            );
+          } else {
+            // 全局模式：居中显示
+            const viewportWidth = document.documentElement.clientWidth;
+            const viewportHeight = document.documentElement.clientHeight;
+            const modalRect = chatModal.getBoundingClientRect();
+            const centerX = (viewportWidth - modalRect.width) / 2;
+            const centerY = (viewportHeight - modalRect.height) / 2;
+
+            chatModal.style.left = `${Math.max(16, centerX)}px`;
+            chatModal.style.top = `${Math.max(16, centerY)}px`;
+            chatModal.classList.add('chat-modal-centered');
+          }
+        }
+        if (this.terminalMode) {
+          this.ensureTerminalMounted();
+        }
+        // 位置确定后持久化
+        requestAnimationFrame(() => this.persistAIState());
+      });
+    });
+  };
+
+  // 执行关闭聊天框
+  private performCloseChatModal = () => {
+    // 清理 floating-ui autoUpdate
+    if (this.chatPositionCleanup) {
+      this.chatPositionCleanup();
+      this.chatPositionCleanup = null;
+    }
+    this.showCloseConfirm = false;
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    this.showChatModal = false;
+
+    // 恢复背景滚动
+    document.body.style.overflow = '';
+    // 关闭时清理未发送的粘贴图片
+    this.clearPendingPastedImages(true);
+
+    // 关闭弹窗时清除持久化状态
+    clearAIState();
+  };
+
+  private isTurnRunning = (): boolean => {
+    // 终端模式：进程未退出即视为运行中
+    if (
+      this.terminalMode &&
+      this.terminalManager != null &&
+      !this.terminalManager.isDisposed() &&
+      this.terminalExitCode === null
+    ) {
+      return true;
+    }
+    return this.chatLoading || this.turnStatus === 'running';
+  };
+
+  // 关闭聊天框
+  closeChatModal = () => {
+    if (this.isTurnRunning()) {
+      this.showCloseConfirm = true;
+      return;
+    }
+    this.performCloseChatModal();
+  };
+
+  // 二次确认：仅关闭对话框（任务继续后台运行）
+  confirmCloseChatModal = () => {
+    this.performCloseChatModal();
+  };
+
+  // 二次确认：取消关闭
+  cancelCloseChatModal = () => {
+    this.showCloseConfirm = false;
+  };
+
+  keepCurrentTerminal = () => {
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
+  };
+
+  killAndSwitchTerminal = () => {
+    const action = this.pendingTerminalSwitchAction;
+    this.showTerminalSwitchConfirm = false;
+    this.pendingTerminalSwitchAction = null;
+    this.interruptChat();
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    this.chatLoading = false;
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    action?.();
+  };
+
+  // 二次确认：终止任务并关闭
+  terminateAndCloseChatModal = () => {
+    this.interruptChat();
+    // 终端模式下销毁终端实例
+    if (
+      this.terminalMode &&
+      this.terminalManager &&
+      !this.terminalManager.isDisposed()
+    ) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    this.performCloseChatModal();
+  };
+
+  // 清空聊天记录
+  clearChatMessages = () => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    this.revokeMessageImageUrls(this.chatMessages);
+    this.clearPendingPastedImages(true);
+    this.chatMessages = [];
+    this.chatSessionId = null;
+    this.clearRuntimeSessionState();
+    this.turnStatus = 'idle';
+    this.turnDuration = 0;
+    // 清理终端
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    this.persistAIState();
+  };
+
+  // 切换聊天主题
+  toggleTheme = () => {
+    this.chatTheme = this.chatTheme === 'dark' ? 'light' : 'dark';
+    if (this.chatTheme === 'light') {
+      this.classList.add('chat-theme-light');
+    } else {
+      this.classList.remove('chat-theme-light');
+    }
+    // 同步终端主题
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.setTheme(this.chatTheme);
+    }
+    this.persistAIState();
+  };
+
+  // 处理聊天输入
+  handleChatInput = (e: Event) => {
+    this.chatInput = (e.target as HTMLTextAreaElement).value;
+  };
+
+  // 处理聊天输入框键盘事件
+  handleChatKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      this.sendChatMessage();
+    }
+  };
+
+  handleChatPaste = async (e: ClipboardEvent) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const imageItems = items.filter((item) => item.type.startsWith('image/'));
+    if (imageItems.length === 0) {
+      return;
+    }
+
+    e.preventDefault();
+    this.chatImageProcessing = true;
+
+    const maxImageSize = 5 * 1024 * 1024; // 5MB per image
+    const addedImages: PendingChatImageAttachment[] = [];
+
+    for (let i = 0; i < imageItems.length; i++) {
+      const file = imageItems[i].getAsFile();
+      if (!file) continue;
+
+      if (file.size > maxImageSize) {
+        this.showNotification(
+          this.t('notification.imageTooLarge', {
+            size: this.formatBytes(file.size),
+          }),
+          'error',
+        );
+        continue;
+      }
+
+      try {
+        const dataUrl = await this.readFileAsDataUrl(file);
+        const previewUrl = URL.createObjectURL(file);
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}-${i}`;
+        addedImages.push({
+          id,
+          name: file.name || `${this.t('misc.pastedImage')}-${i + 1}.png`,
+          type: file.type || 'image/png',
+          size: file.size,
+          previewUrl,
+          dataUrl,
+        });
+      } catch {
+        this.showNotification(
+          this.t('notification.readPastedImageFailed'),
+          'error',
+        );
+      }
+    }
+
+    this.chatPastedImages = [...this.chatPastedImages, ...addedImages];
+    this.chatImageProcessing = false;
+  };
+
+  removePastedImage = (id: string) => {
+    const target = this.chatPastedImages.find((item) => item.id === id);
+    if (target) {
+      this.revokeObjectUrl(target.previewUrl);
+    }
+    this.chatPastedImages = this.chatPastedImages.filter(
+      (item) => item.id !== id,
+    );
+  };
+
+  // 滚动聊天内容到底部（去重，避免高频调用）
+  private scrollPending = false;
+  private scrollChatToBottom = () => {
+    if (this.scrollPending) return;
+    this.scrollPending = true;
+    requestAnimationFrame(() => {
+      const content = this.shadowRoot?.querySelector('.chat-modal-content');
+      if (content) {
+        content.scrollTop = content.scrollHeight;
+      }
+      this.scrollPending = false;
+    });
+  };
+
+  // 开始计时
+  private startTurnTimer = () => {
+    this.turnStartTime = Date.now();
+    this.turnDuration = 0;
+    this.turnStatus = 'running';
+    this.turnTimerInterval = setInterval(() => {
+      this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
+    }, 1000);
+  };
+
+  // 停止计时
+  private stopTurnTimer = (status: 'done' | 'interrupt') => {
+    if (this.turnTimerInterval) {
+      clearInterval(this.turnTimerInterval);
+      this.turnTimerInterval = null;
+    }
+    this.turnDuration = Math.floor((Date.now() - this.turnStartTime) / 1000);
+    this.turnStatus = status;
+
+    if (!this.terminalMode) {
+      this.clearRuntimeSessionState();
+    }
+
+    // 自动保存对话到服务端
+    if (status === 'done' && this.chatMessages.length > 0) {
+      this.autoSaveConversation();
+    }
+  };
+
+  // 自动保存对话到服务端
+  private autoSaveConversation = async () => {
+    try {
+      await saveConversation(
+        this.ip || 'localhost',
+        this.port,
+        {
+          messages: this.chatMessages,
+          context: this.chatContext,
+          sessionId: this.chatSessionId,
+          provider: this.chatProvider,
+          model: this.chatModel,
+          revertedToolIds:
+            this.revertedToolIds.size > 0 ? Array.from(this.revertedToolIds) : [],
+        },
+        this.aiAuthToken,
+      );
+    } catch {
+      // 保存失败静默
+    }
+  };
+
+  // 中断聊天
+  interruptChat = () => {
+    if (this.chatAbortController) {
+      this.chatAbortController.abort();
+      this.chatAbortController = null;
+    }
+
+    const runtimeSessionId = this.runtimeSessionId;
+    if (this.terminalMode && this.terminalManager) {
+      this.terminalManager.closeWebSocket();
+    }
+
+    if (runtimeSessionId) {
+      void abortRuntimeSessionOnServer(
+        this.ip,
+        this.port,
+        runtimeSessionId,
+        this.aiAuthToken,
+      );
+    }
+
+    this.clearRuntimeSessionState();
+    this.stopTurnTimer('interrupt');
+    this.chatLoading = false;
+  };
+
+  /**
+   * 确保终端在当前弹窗容器中可见
+   */
+  private ensureTerminalMounted = async () => {
+    if (!this.terminalMode || !this.showChatModal) return;
+
+    await this.updateComplete;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
+    if (!containerEl) return;
+
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.remount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
+      this.terminalManager.focus();
+      return;
+    }
+
+    if (this.terminalExitCode === null) {
+      await this.initTerminal();
+    }
+  };
+
+  /**
+   * 初始化终端模式：挂载 xterm 并启动交互式 CLI
+   */
+  private initTerminal = async () => {
+    // 等待 DOM 渲染完成
+    await this.updateComplete;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
+    if (!containerEl) return;
+
+    // 如果已有终端且未销毁，重新挂载到当前容器
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.remount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
+      this.terminalManager.focus();
+      return;
+    }
+
+    this.terminalManager = new AITerminalManager(
+      this.ip,
+      this.port,
+      this.aiAuthToken,
+    );
+    this.terminalManager.mount(
+      containerEl,
+      this.chatTheme,
+      this.chatProvider || 'claudeCode',
+    );
+
+    this.terminalManager.onExit = (code: number) => {
+      this.terminalExitCode = code;
+      this.clearRuntimeSessionState();
+      // 进程已退出：销毁 xterm，避免残留一个可聚焦却无后端的“死终端”，
+      // 改由“会话已结束”卡片提供重新开始 / 关闭出口。
+      if (this.terminalManager && !this.terminalManager.isDisposed()) {
+        this.terminalManager.dispose();
+        this.terminalManager = null;
+      }
+    };
+
+    this.terminalManager.onError = (_message: string) => {
+      // 终端错误已在 xterm 中显示
+    };
+    this.terminalManager.onRuntimeSession = (runtimeSessionId, kind) => {
+      this.runtimeSessionId = runtimeSessionId;
+      this.runtimeSessionKind =
+        kind === 'terminal' || kind === 'agent-turn' ? kind : 'terminal';
+      this.persistAIState();
+    };
+    this.terminalManager.onRuntimeCursor = (cursor) => {
+      this.runtimeCursor = cursor;
+    };
+
+    // 以交互模式启动（不传 prompt）
+    this.terminalManager.connect({
+      provider: this.chatProvider!,
+      prompt: '',
+      runtimeSessionId:
+        this.runtimeSessionKind === 'terminal'
+          ? this.runtimeSessionId || undefined
+          : undefined,
+      runtimeCursor: this.runtimeCursor,
+      cwd: this._projectRoot || '',
+      model: this.chatModel || undefined,
+    });
+
+    this.terminalManager.focus();
+  };
+
+  /**
+   * 从“会话已结束”卡片重新启动一个交互式终端会话
+   */
+  restartTerminal = async () => {
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      this.terminalManager.dispose();
+      this.terminalManager = null;
+    }
+    this.terminalExitCode = null;
+    await this.initTerminal();
+  };
+
+  insertContextPathToTerminal = async () => {
+    if (!this.terminalMode || !this.chatContext) {
+      return;
+    }
+    if (!this.terminalManager || this.terminalManager.isDisposed()) {
+      await this.ensureTerminalMounted();
+    }
+
+    if (
+      !this.terminalManager ||
+      this.terminalManager.isDisposed() ||
+      this.terminalExitCode !== null
+    ) {
+      return;
+    }
+
+    this.terminalManager.sendInput(
+      `${this.chatContext.file}#${this.chatContext.line}`,
+    );
+    this.terminalManager.focus();
+  };
+
+  sendTerminalMessage = async () => {
+    const rawMessage = this.chatInput.trim();
+    if (!rawMessage) return;
+    if (this.chatLoading) return;
+
+    const messageContext = this.chatContext ? { ...this.chatContext } : null;
+    this.chatInput = '';
+
+    // 添加用户消息到历史
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'user', content: rawMessage, context: messageContext },
+    ];
+    this.clearRuntimeSessionState();
+    this.chatLoading = true;
+    this.terminalExitCode = null;
+    this.startTurnTimer();
+    this.scrollChatToBottom();
+
+    // 等待下一帧确保终端容器已渲染
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // 获取终端容器
+    const containerEl = this.shadowRoot?.getElementById(
+      'ai-terminal-container',
+    );
+    if (!containerEl) {
+      this.chatLoading = false;
+      this.stopTurnTimer('done');
+      return;
+    }
+
+    // 创建或复用 terminal manager
+    if (this.terminalManager && !this.terminalManager.isDisposed()) {
+      // 已有终端，清空后重新连接
+      this.terminalManager.clear();
+    } else {
+      this.terminalManager = new AITerminalManager(
+        this.ip,
+        this.port,
+        this.aiAuthToken,
+      );
+      this.terminalManager.mount(
+        containerEl,
+        this.chatTheme,
+        this.chatProvider || 'claudeCode',
+      );
+    }
+
+    this.terminalManager.onExit = (code: number) => {
+      this.terminalExitCode = code;
+      this.chatLoading = false;
+      this.clearRuntimeSessionState();
+      this.stopTurnTimer(code === 0 ? 'done' : 'interrupt');
+      // 添加 assistant 消息记录
+      this.chatMessages = [
+        ...this.chatMessages,
+        {
+          role: 'assistant',
+          content: this.t('tool.terminalExitMessage', { code }),
+        },
+      ];
+      this.persistAIState();
+    };
+
+    this.terminalManager.onError = (_message: string) => {
+      this.chatLoading = false;
+      this.stopTurnTimer('interrupt');
+    };
+    this.terminalManager.onRuntimeSession = (runtimeSessionId, kind) => {
+      this.runtimeSessionId = runtimeSessionId;
+      this.runtimeSessionKind =
+        kind === 'terminal' || kind === 'agent-turn' ? kind : 'terminal';
+      this.persistAIState();
+    };
+    this.terminalManager.onRuntimeCursor = (cursor) => {
+      this.runtimeCursor = cursor;
+    };
+
+    const cwd = this._projectRoot || '';
+    this.runtimeSessionKind = 'terminal';
+
+    this.terminalManager.connect({
+      provider: this.chatProvider || 'claudeCode',
+      prompt: rawMessage,
+      sessionId: this.chatSessionId || undefined,
+      runtimeSessionId: undefined,
+      runtimeCursor: this.runtimeCursor,
+      cwd,
+      model: this.chatModel || undefined,
+    });
+
+    this.terminalManager.focus();
+  };
+
+  handleRevertEdit = async (tool: ToolCall) => {
+    if (!tool.input || !tool.id) return;
+    if (this.revertedToolIds.has(tool.id) || this.revertingToolIds.has(tool.id))
+      return;
+
+    this.revertingToolIds = new Set(
+      Array.from(this.revertingToolIds).concat(tool.id),
+    );
+
+    try {
+      const edits = this.extractRevertEdits(tool);
+      if (edits.length === 0) return;
+
+      const results = await revertEdit(
+        this.ip,
+        this.port,
+        edits,
+        this.aiAuthToken,
+      );
+      const allSuccess = results.every((r) => r.success);
+
+      if (allSuccess) {
+        this.revertedToolIds = new Set(
+          Array.from(this.revertedToolIds).concat(tool.id),
+        );
+        this.persistAIState();
+      }
+    } catch {
+      // network error, silently ignore
+    } finally {
+      const next = new Set(this.revertingToolIds);
+      next.delete(tool.id);
+      this.revertingToolIds = next;
+    }
+  };
+
+  private extractRevertEdits(
+    tool: ToolCall,
+  ): Array<{ file_path: string; old_string: string; new_string: string }> {
+    const input = tool.input || {};
+    const oldStr = String(input.old_string ?? input.old_str ?? '');
+    const newStr = String(input.new_string ?? input.new_str ?? '');
+    const edits: Array<{
+      file_path: string;
+      old_string: string;
+      new_string: string;
+    }> = [];
+
+    if (Array.isArray(input.diff_blocks) && input.diff_blocks.length > 0) {
+      for (const block of input.diff_blocks) {
+        const filePath = String(block?.file_path || '');
+        const oldStr = String(block?.old_string ?? '');
+        const newStr = String(block?.new_string ?? '');
+        if (filePath && oldStr !== newStr) {
+          edits.push({
+            file_path: filePath,
+            old_string: oldStr,
+            new_string: newStr,
+          });
+        }
+      }
+      return edits;
+    }
+
+    const changes = Array.isArray(input.changes) ? input.changes : [];
+    if (changes.length > 0 && (oldStr || newStr)) {
+      const parseSections = (text: string): Map<string, string> => {
+        const lines = text.split('\n');
+        const sections = new Map<string, string>();
+        let currentPath = '';
+        let buffer: string[] = [];
+
+        const flush = () => {
+          if (!currentPath) return;
+          sections.set(currentPath, buffer.join('\n'));
+        };
+
+        for (const line of lines) {
+          if (line.startsWith('# ')) {
+            flush();
+            currentPath = line.slice(2).trim();
+            buffer = [];
+          } else if (currentPath) {
+            buffer.push(line);
+          }
+        }
+        flush();
+        return sections;
+      };
+
+      const oldSections = parseSections(oldStr);
+      const newSections = parseSections(newStr);
+      for (const change of changes) {
+        const filePath = String(change?.path || change?.file_path || '');
+        if (!filePath) continue;
+        const before = oldSections.get(filePath) ?? '';
+        const after = newSections.get(filePath) ?? '';
+        if (before !== after) {
+          edits.push({
+            file_path: filePath,
+            old_string: before,
+            new_string: after,
+          });
+        }
+      }
+      if (edits.length > 0) {
+        return edits;
+      }
+    }
+
+    const filePath = String(input.file_path || input.path || input.file || '');
+    if (filePath && oldStr !== newStr) {
+      edits.push({
+        file_path: filePath,
+        old_string: oldStr,
+        new_string: newStr,
+      });
+    }
+
+    return edits;
+  }
+
+  handleRevertAllEdits = async () => {
+    const state = {
+      chatMessages: this.chatMessages,
+      revertedToolIds: this.revertedToolIds,
+    };
+    const tools = collectRevertableTools(state as any);
+    if (tools.length === 0) return;
+
+    for (const tool of tools) {
+      await this.handleRevertEdit(tool);
+    }
+  };
+
+  // 切换历史面板
+  toggleHistoryPanel = async () => {
+    this.showHistoryPanel = !this.showHistoryPanel;
+    if (this.showHistoryPanel) {
+      this.historyLoading = true;
+      try {
+        this.historyList = await fetchHistoryList(
+          this.ip || 'localhost',
+          this.port,
+          this.aiAuthToken,
+        );
+      } catch {
+        this.historyList = [];
+      } finally {
+        this.historyLoading = false;
+      }
+    }
+  };
+
+  // 加载历史对话
+  handleLoadConversation = async (id: string) => {
+    try {
+      const data = await loadConversationData(
+        this.ip || 'localhost',
+        this.port,
+        id,
+        this.aiAuthToken,
+      );
+      if (!data) return;
+
+      this.chatMessages = data.messages;
+      this.chatContext = data.context;
+      this.chatSessionId = data.sessionId;
+      if (data.provider) {
+        this.chatProvider = data.provider;
+      }
+      if (data.model) {
+        this.chatModel = data.model;
+      }
+      this.revertedToolIds = new Set(data.revertedToolIds || []);
+      this.conversationId = id;
+      this.showHistoryPanel = false;
+      this.clearRuntimeSessionState();
+      this.turnStatus = 'idle';
+      this.persistAIState();
+    } catch {
+      // 静默
+    }
+  };
+
+  // 删除历史对话
+  handleDeleteConversation = async (id: string) => {
+    try {
+      const success = await deleteConversationData(
+        this.ip || 'localhost',
+        this.port,
+        id,
+        this.aiAuthToken,
+      );
+      if (success) {
+        this.historyList = this.historyList.filter((h) => h.id !== id);
+        if (this.conversationId === id) {
+          this.conversationId = null;
+          this.chatMessages = [];
+          this.chatContext = null;
+          this.chatSessionId = null;
+          this.clearRuntimeSessionState();
+          this.revertedToolIds = new Set();
+          this.turnStatus = 'idle';
+          this.persistAIState();
+        }
+      }
+    } catch {
+      // 静默
+    }
+  };
+
+  // 新建对话
+  handleStartNewConversation = () => {
+    this.chatMessages = [];
+    this.conversationId = null;
+    this.chatSessionId = null;
+    this.clearRuntimeSessionState();
+    this.revertedToolIds = new Set();
+    this.turnStatus = 'idle';
+    this.showHistoryPanel = false;
+    this.persistAIState();
+  };
+
+  // 聊天框拖拽开始
+  handleChatDragStart = (e: MouseEvent) => {
+    // 只响应鼠标左键
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement | null;
+    if (
+      target?.closest(
+        'button, input, textarea, select, .chat-provider-switcher, .chat-model-switcher',
+      )
+    ) {
+      return;
+    }
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+
+    const chatModal = this.shadowRoot?.querySelector(
+      '#chat-modal-floating',
+    ) as HTMLElement;
+    if (!chatModal) return;
+
+    // 停止 floating-ui 自动更新
+    if (this.chatPositionCleanup) {
+      this.chatPositionCleanup();
+      this.chatPositionCleanup = null;
+    }
+
+    this.isDragging = true;
+    this.wasDragging = true;
+    this.dragStartX = e.clientX;
+    this.dragStartY = e.clientY;
+    this.modalStartX = chatModal.offsetLeft;
+    this.modalStartY = chatModal.offsetTop;
+
+    e.preventDefault();
+  };
+
+  // 聊天框拖拽移动
+  handleChatDragMove = (e: MouseEvent) => {
+    if (!this.isDragging) return;
+
+    const chatModal = this.shadowRoot?.querySelector(
+      '#chat-modal-floating',
+    ) as HTMLElement;
+    if (!chatModal) return;
+
+    const deltaX = e.clientX - this.dragStartX;
+    const deltaY = e.clientY - this.dragStartY;
+
+    const newX = this.modalStartX + deltaX;
+    const newY = this.modalStartY + deltaY;
+
+    // 限制在视口范围内
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const modalRect = chatModal.getBoundingClientRect();
+
+    const clampedX = Math.max(
+      0,
+      Math.min(newX, viewportWidth - modalRect.width),
+    );
+    const clampedY = Math.max(
+      0,
+      Math.min(newY, viewportHeight - modalRect.height),
+    );
+
+    chatModal.style.left = `${clampedX}px`;
+    chatModal.style.top = `${clampedY}px`;
+  };
+
+  // 聊天框拖拽结束
+  handleChatDragEnd = () => {
+    this.isDragging = false;
+    // 延迟重置 wasDragging，防止 click 事件关闭弹窗
+    setTimeout(() => {
+      this.wasDragging = false;
+    }, 100);
+    this.persistAIState();
+  };
+
+  // 处理点击遮罩层关闭弹窗
+  handleOverlayClick = () => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    // 如果刚刚拖拽结束，不关闭弹窗
+    if (this.wasDragging) return;
+    this.closeChatModal();
+  };
+
+  handleChatModalClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('.chat-provider-switcher, .chat-model-switcher'))
+      return;
+    if (this.showProviderMenu) {
+      this.showProviderMenu = false;
+    }
+    if (this.showModelMenu) {
+      this.showModelMenu = false;
+    }
+  };
+
+  // 发送聊天消息
+  sendChatMessage = async () => {
+    this.showProviderMenu = false;
+    this.showModelMenu = false;
+    if (this.chatLoading || this.chatImageProcessing) return;
+
+    // 终端模式走独立路径
+    if (this.terminalMode) {
+      return this.sendTerminalMessage();
+    }
+
+    const historyForRequest = this.chatSessionId
+      ? undefined
+      : this.buildChatHistoryForModel(this.chatMessages);
+    const rawMessage = this.chatInput.trim();
+    const pendingImages = this.chatPastedImages;
+    if (!rawMessage && pendingImages.length === 0) return;
+
+    const outgoingMessage = this.buildMessageWithPastedImages(
+      rawMessage,
+      pendingImages,
+    );
+    const userMessage =
+      rawMessage ||
+      `[Pasted ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}]`;
+    const userImages: ChatImageAttachment[] = pendingImages.map((image) => ({
+      id: image.id,
+      name: image.name,
+      type: image.type,
+      size: image.size,
+      previewUrl: image.previewUrl,
+    }));
+    const messageContext = this.chatContext ? { ...this.chatContext } : null;
+    this.chatInput = '';
+    this.chatPastedImages = [];
+    this.clearRuntimeSessionState();
+    this.chatMessages = [
+      ...this.chatMessages,
+      {
+        role: 'user',
+        content: userMessage,
+        modelContent: outgoingMessage,
+        context: messageContext,
+        images: userImages,
+      },
+    ];
+    this.chatLoading = true;
+    this.scrollChatToBottom();
+
+    // 开始计时
+    this.startTurnTimer();
+
+    // 创建中断控制器
+    this.chatAbortController = new AbortController();
+
+    // 添加空的 assistant 消息用于流式更新
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'assistant', content: '', blocks: [] },
+    ];
+    let assistantContent = '';
+    const blocks: ContentBlock[] = [];
+    const toolIdToIndex = new Map<string, number>(); // toolId -> blocks 中的索引
+    const toolStreamIndexToBlockIndex = new Map<number, number>(); // stream index -> blocks 中的索引
+
+    // 辅助函数：更新最后一条 assistant 消息
+    const updateAssistantMessage = () => {
+      this.chatMessages = [
+        ...this.chatMessages.slice(0, -1),
+        { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+      ];
+      this.scrollChatToBottom();
+    };
+
+    // 渲染节流：逐字流式时避免每个字符都触发重渲染
+    let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+    const throttledUpdate = () => {
+      if (!renderThrottleTimer) {
+        renderThrottleTimer = setTimeout(() => {
+          renderThrottleTimer = null;
+          updateAssistantMessage();
+        }, 50);
+      }
+    };
+    const flushUpdate = () => {
+      if (renderThrottleTimer) {
+        clearTimeout(renderThrottleTimer);
+        renderThrottleTimer = null;
+      }
+      updateAssistantMessage();
+      this.persistAIState();
+    };
+    let finalRuntimeStatus: 'done' | 'interrupt' = 'done';
+
+    try {
+      await sendChatToServer(
+        this.ip,
+        this.port,
+        outgoingMessage,
+        messageContext,
+        historyForRequest,
+        {
+          onText: (content) => {
+            assistantContent += content;
+            // 找到或创建文本块
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock && lastBlock.type === 'text') {
+              lastBlock.content = (lastBlock.content || '') + content;
+            } else {
+              blocks.push({ type: 'text', content });
+            }
+            throttledUpdate();
+          },
+          onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
+            const tool: ToolCall = {
+              id: toolId,
+              name: toolName,
+              isComplete: false,
+            };
+            const blockIndex = blocks.length;
+            blocks.push({ type: 'tool', tool });
+            toolIdToIndex.set(toolId, blockIndex);
+            const normalizedIndex = Number(index);
+            if (Number.isFinite(normalizedIndex)) {
+              toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+            }
+            flushUpdate();
+          },
+          onToolInput: (index, input, toolUseId) => {
+            if (toolUseId) {
+              const byIdIndex = toolIdToIndex.get(toolUseId);
+              if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                blocks[byIdIndex].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+
+            const normalizedIndex = Number(index);
+            const blockIndex = Number.isFinite(normalizedIndex)
+              ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+              : undefined;
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.input = input;
+              flushUpdate();
+              return;
+            }
+
+            // 兼容旧事件流：按最近未完成工具回退
+            for (let i = blocks.length - 1; i >= 0; i--) {
+              if (
+                blocks[i].type === 'tool' &&
+                blocks[i].tool &&
+                !blocks[i].tool!.isComplete
+              ) {
+                blocks[i].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+          },
+          onToolResult: (toolUseId, content, isError) => {
+            const blockIndex = toolIdToIndex.get(toolUseId);
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.result = content;
+              blocks[blockIndex].tool!.isError = isError;
+              blocks[blockIndex].tool!.isComplete = true;
+              flushUpdate();
+            }
+          },
+          onError: (error) => {
+            console.error('Chat error:', error);
+          },
+          onSessionId: (sessionId) => {
+            this.chatSessionId = sessionId;
+            this.persistAIState();
+          },
+          onProjectRoot: (cwd) => {
+            setProjectRoot(cwd);
+            this._projectRoot = cwd;
+          },
+          onModel: (model) => {
+            this.chatModel = model;
+          },
+          onRuntimeSessionId: (runtimeSessionId, kind) => {
+            this.runtimeSessionId = runtimeSessionId;
+            this.runtimeSessionKind =
+              kind === 'terminal' || kind === 'agent-turn'
+                ? kind
+                : 'agent-turn';
+            this.runtimeCursor = 0;
+            this.persistAIState();
+          },
+          onRuntimeCursor: (cursor) => {
+            this.runtimeCursor = cursor;
+          },
+          onRuntimeState: (_status, _reason) => {
+            if (_status === 'aborted' || _status === 'failed') {
+              finalRuntimeStatus = 'interrupt';
+            }
+            this.persistAIState();
+          },
+        },
+        this.chatAbortController.signal,
+        this.chatSessionId,
+        this.chatProvider,
+        this.chatModel,
+        this.aiAuthToken,
+      );
+      // 正常完成：最终刷新确保所有内容显示
+      flushUpdate();
+      this.stopTurnTimer(finalRuntimeStatus);
+    } catch (error) {
+      // 检查是否是中断导致的错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        // 中断已在 interruptChat 中处理
+      } else {
+        // 其他错误
+        this.chatMessages = this.chatMessages.slice(0, -1);
+        this.showNotification(
+          this.t('notification.sendMessageFailed'),
+          'error',
+        );
+        this.stopTurnTimer('interrupt');
+      }
+    } finally {
+      this.chatLoading = false;
+      this.chatAbortController = null;
+    }
+  };
+
+  // 页面刷新后自动恢复未完成的 AI 任务
+  private resumeAITask = async () => {
+    if (this.chatLoading) return;
+
+    if (this.runtimeSessionId && this.runtimeSessionKind === 'terminal') {
+      this.chatLoading = true;
+      this.startTurnTimer();
+      this.terminalExitCode = null;
+      await this.initTerminal();
+      return;
+    }
+
+    if (this.runtimeSessionId) {
+      this.chatLoading = true;
+      this.startTurnTimer();
+      this.chatAbortController = new AbortController();
+
+      // 如果最后一条 assistant 消息是未完成恢复占位，则直接复用；否则追加一个新的占位消息
+      const lastMessage = this.chatMessages[this.chatMessages.length - 1];
+      if (
+        !lastMessage ||
+        lastMessage.role !== 'assistant' ||
+        lastMessage.content ||
+        (lastMessage.blocks && lastMessage.blocks.length > 0)
+      ) {
+        this.chatMessages = [
+          ...this.chatMessages,
+          { role: 'assistant', content: '', blocks: [] },
+        ];
+      }
+
+      let assistantContent = '';
+      const blocks: ContentBlock[] = [];
+      const toolIdToIndex = new Map<string, number>();
+      const toolStreamIndexToBlockIndex = new Map<number, number>();
+
+      const updateAssistantMessage = () => {
+        this.chatMessages = [
+          ...this.chatMessages.slice(0, -1),
+          { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+        ];
+        this.scrollChatToBottom();
+      };
+
+      let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+      const throttledUpdate = () => {
+        if (!renderThrottleTimer) {
+          renderThrottleTimer = setTimeout(() => {
+            renderThrottleTimer = null;
+            updateAssistantMessage();
+          }, 50);
+        }
+      };
+      const flushUpdate = () => {
+        if (renderThrottleTimer) {
+          clearTimeout(renderThrottleTimer);
+          renderThrottleTimer = null;
+        }
+        updateAssistantMessage();
+        this.persistAIState();
+      };
+
+      try {
+        await attachRuntimeSessionToServer(
+          this.ip,
+          this.port,
+          this.runtimeSessionId,
+          this.runtimeCursor,
+          {
+            onText: (content) => {
+              assistantContent += content;
+              const lastBlock = blocks[blocks.length - 1];
+              if (lastBlock && lastBlock.type === 'text') {
+                lastBlock.content = (lastBlock.content || '') + content;
+              } else {
+                blocks.push({ type: 'text', content });
+              }
+              throttledUpdate();
+            },
+            onToolStart: (toolId, toolName, index) => {
+              if (toolIdToIndex.has(toolId)) {
+                return;
+              }
+              const tool: ToolCall = {
+                id: toolId,
+                name: toolName,
+                isComplete: false,
+              };
+              const blockIndex = blocks.length;
+              blocks.push({ type: 'tool', tool });
+              toolIdToIndex.set(toolId, blockIndex);
+              const normalizedIndex = Number(index);
+              if (Number.isFinite(normalizedIndex)) {
+                toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+              }
+              flushUpdate();
+            },
+            onToolInput: (index, input, toolUseId) => {
+              if (toolUseId) {
+                const byIdIndex = toolIdToIndex.get(toolUseId);
+                if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                  blocks[byIdIndex].tool!.input = input;
+                  flushUpdate();
+                  return;
+                }
+              }
+              const normalizedIndex = Number(index);
+              const blockIndex = Number.isFinite(normalizedIndex)
+                ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+                : undefined;
+              if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+                blocks[blockIndex].tool!.input = input;
+                flushUpdate();
+              }
+            },
+            onToolResult: (toolUseId, content, isError) => {
+              const blockIndex = toolIdToIndex.get(toolUseId);
+              if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+                blocks[blockIndex].tool!.result = content;
+                blocks[blockIndex].tool!.isError = isError;
+                blocks[blockIndex].tool!.isComplete = true;
+                flushUpdate();
+              }
+            },
+            onError: (error) => {
+              console.error('Runtime reattach error:', error);
+            },
+            onSessionId: (sessionId) => {
+              this.chatSessionId = sessionId;
+            },
+            onProjectRoot: (cwd) => {
+              setProjectRoot(cwd);
+              this._projectRoot = cwd;
+            },
+            onModel: (model) => {
+              this.chatModel = model;
+            },
+            onRuntimeSessionId: (runtimeSessionId, kind) => {
+              this.runtimeSessionId = runtimeSessionId;
+              this.runtimeSessionKind =
+                kind === 'terminal' || kind === 'agent-turn'
+                  ? kind
+                  : this.runtimeSessionKind;
+            },
+            onRuntimeCursor: (cursor) => {
+              this.runtimeCursor = cursor;
+            },
+            onRuntimeState: (status) => {
+              if (status === 'completed') {
+                flushUpdate();
+                this.stopTurnTimer('done');
+              } else if (status === 'aborted' || status === 'failed') {
+                this.stopTurnTimer('interrupt');
+              }
+            },
+          },
+          this.chatAbortController.signal,
+          this.aiAuthToken,
+        );
+      } catch (error) {
+        if (!(error instanceof Error && error.name === 'AbortError')) {
+          this.chatMessages = this.chatMessages.slice(0, -1);
+          this.stopTurnTimer('interrupt');
+        }
+      } finally {
+        this.chatLoading = false;
+        this.chatAbortController = null;
+      }
+      return;
+    }
+
+    if (!this.chatSessionId) return;
+
+    this.chatLoading = true;
+    this.startTurnTimer();
+    this.chatAbortController = new AbortController();
+
+    // 添加空的 assistant 消息用于流式更新
+    this.chatMessages = [
+      ...this.chatMessages,
+      { role: 'assistant', content: '', blocks: [] },
+    ];
+    let assistantContent = '';
+    const blocks: ContentBlock[] = [];
+    const toolIdToIndex = new Map<string, number>();
+    const toolStreamIndexToBlockIndex = new Map<number, number>();
+
+    const updateAssistantMessage = () => {
+      this.chatMessages = [
+        ...this.chatMessages.slice(0, -1),
+        { role: 'assistant', content: assistantContent, blocks: [...blocks] },
+      ];
+      this.scrollChatToBottom();
+    };
+
+    let renderThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+    const throttledUpdate = () => {
+      if (!renderThrottleTimer) {
+        renderThrottleTimer = setTimeout(() => {
+          renderThrottleTimer = null;
+          updateAssistantMessage();
+        }, 50);
+      }
+    };
+    const flushUpdate = () => {
+      if (renderThrottleTimer) {
+        clearTimeout(renderThrottleTimer);
+        renderThrottleTimer = null;
+      }
+      updateAssistantMessage();
+      this.persistAIState();
+    };
+
+    try {
+      await sendChatToServer(
+        this.ip,
+        this.port,
+        this.t('chat.resumeAfterRefresh'),
+        this.chatContext,
+        undefined,
+        {
+          onText: (content) => {
+            assistantContent += content;
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock && lastBlock.type === 'text') {
+              lastBlock.content = (lastBlock.content || '') + content;
+            } else {
+              blocks.push({ type: 'text', content });
+            }
+            throttledUpdate();
+          },
+          onToolStart: (toolId, toolName, index) => {
+            if (toolIdToIndex.has(toolId)) {
+              return;
+            }
+            const tool: ToolCall = {
+              id: toolId,
+              name: toolName,
+              isComplete: false,
+            };
+            const blockIndex = blocks.length;
+            blocks.push({ type: 'tool', tool });
+            toolIdToIndex.set(toolId, blockIndex);
+            const normalizedIndex = Number(index);
+            if (Number.isFinite(normalizedIndex)) {
+              toolStreamIndexToBlockIndex.set(normalizedIndex, blockIndex);
+            }
+            flushUpdate();
+          },
+          onToolInput: (index, input, toolUseId) => {
+            if (toolUseId) {
+              const byIdIndex = toolIdToIndex.get(toolUseId);
+              if (byIdIndex !== undefined && blocks[byIdIndex]?.tool) {
+                blocks[byIdIndex].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+
+            const normalizedIndex = Number(index);
+            const blockIndex = Number.isFinite(normalizedIndex)
+              ? toolStreamIndexToBlockIndex.get(normalizedIndex)
+              : undefined;
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.input = input;
+              flushUpdate();
+              return;
+            }
+
+            for (let i = blocks.length - 1; i >= 0; i--) {
+              if (
+                blocks[i].type === 'tool' &&
+                blocks[i].tool &&
+                !blocks[i].tool!.isComplete
+              ) {
+                blocks[i].tool!.input = input;
+                flushUpdate();
+                return;
+              }
+            }
+          },
+          onToolResult: (toolUseId, content, isError) => {
+            const blockIndex = toolIdToIndex.get(toolUseId);
+            if (blockIndex !== undefined && blocks[blockIndex]?.tool) {
+              blocks[blockIndex].tool!.result = content;
+              blocks[blockIndex].tool!.isError = isError;
+              blocks[blockIndex].tool!.isComplete = true;
+              flushUpdate();
+            }
+          },
+          onError: (error) => {
+            console.error('Resume error:', error);
+          },
+          onSessionId: (sessionId) => {
+            this.chatSessionId = sessionId;
+            this.persistAIState();
+          },
+          onProjectRoot: (cwd) => {
+            setProjectRoot(cwd);
+            this._projectRoot = cwd;
+          },
+          onModel: (model) => {
+            this.chatModel = model;
+          },
+          onRuntimeSessionId: (runtimeSessionId, kind) => {
+            this.runtimeSessionId = runtimeSessionId;
+            this.runtimeSessionKind =
+              kind === 'terminal' || kind === 'agent-turn'
+                ? kind
+                : 'agent-turn';
+            this.runtimeCursor = 0;
+          },
+          onRuntimeCursor: (cursor) => {
+            this.runtimeCursor = cursor;
+          },
+          onRuntimeState: (_status) => {
+            this.persistAIState();
+          },
+        },
+        this.chatAbortController.signal,
+        this.chatSessionId,
+        this.chatProvider,
+        this.chatModel,
+        this.aiAuthToken,
+      );
+      flushUpdate();
+      this.stopTurnTimer('done');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // 中断已在 interruptChat 中处理
+      } else {
+        this.chatMessages = this.chatMessages.slice(0, -1);
+        this.stopTurnTimer('interrupt');
+      }
+    } finally {
+      this.chatLoading = false;
+      this.chatAbortController = null;
+    }
   };
 
   /**
@@ -1075,31 +3162,186 @@ export class CodeInspectorComponent extends LitElement {
    */
   private detachEventListeners(): void {
     this.eventListeners.forEach(({ event, handler, options }) => {
-      window.removeEventListener(event, handler, options as EventListenerOptions);
+      window.removeEventListener(
+        event,
+        handler,
+        options as EventListenerOptions,
+      );
     });
   }
 
   protected firstUpdated(): void {
-    // 初始化内部状态
-    this.internalLocate = this.locate;
-    this.internalCopy = !!this.copy;
-    this.internalTarget = !!this.target;
+    // 初始化内部状态（互斥，只能有一个为 true）
+    // 如果有 defaultAction，优先使用 defaultAction 对应的功能（前提是该功能已启用）
+    // 否则按优先级：locate > copy > target > chat
+    let actionSet = false;
+
+    if (this.defaultAction) {
+      // 根据 defaultAction 决定开启哪个功能
+      switch (this.defaultAction) {
+        case 'ai':
+          if (this.ai) {
+            this.internalAI = true;
+            actionSet = true;
+          }
+          break;
+        case 'target':
+          if (this.target) {
+            this.internalTarget = true;
+            actionSet = true;
+          }
+          break;
+        case 'copy':
+          if (this.copy) {
+            this.internalCopy = true;
+            actionSet = true;
+          }
+          break;
+        case 'locate':
+          if (this.locate) {
+            this.internalLocate = true;
+            actionSet = true;
+          }
+          break;
+      }
+    }
+
+    // 如果 defaultAction 对应的功能未启用，则按优先级开启第一个可用的功能
+    if (!actionSet) {
+      if (this.locate) {
+        this.internalLocate = true;
+      } else if (this.copy) {
+        this.internalCopy = true;
+      } else if (this.target) {
+        this.internalTarget = true;
+      } else if (this.ai) {
+        this.internalAI = true;
+      }
+    }
+
+    // 恢复 AI 对话状态（页面刷新后）
+    const persisted = loadAIState();
+    if (persisted?.showChatModal) {
+      this.chatMessages = persisted.chatMessages;
+      this.chatContext = persisted.chatContext;
+      this.chatSessionId = persisted.chatSessionId;
+      this.chatTheme = persisted.chatTheme;
+      this.chatModel = persisted.chatModel;
+      this.availableAIModels = persisted.availableAIModels || [];
+      this.chatProvider = persisted.chatProvider || null;
+      this.availableAIProviders = persisted.availableAIProviders || [];
+      this.revertedToolIds = new Set(persisted.revertedToolIds || []);
+      this.conversationId = persisted.conversationId || null;
+      this.runtimeSessionId = persisted.runtimeSessionId || null;
+      this.runtimeSessionKind = persisted.runtimeSessionKind || null;
+      this.runtimeCursor = persisted.runtimeCursor || 0;
+      this.showChatModal = true;
+
+      if (this.chatTheme === 'light') {
+        this.classList.add('chat-theme-light');
+      }
+
+      document.body.style.overflow = 'hidden';
+
+      // 恢复弹窗位置
+      this.updateComplete.then(() => {
+        requestAnimationFrame(() => {
+          const chatModal = this.shadowRoot?.querySelector(
+            '#chat-modal-floating',
+          ) as HTMLElement;
+          if (chatModal && persisted.modalPosition) {
+            chatModal.style.left = persisted.modalPosition.left;
+            chatModal.style.top = persisted.modalPosition.top;
+          }
+          this.refreshChatProviderAndModel(this.chatProvider).then(() =>
+            this.persistAIState(),
+          );
+          // 如果刷新前任务正在执行，自动恢复
+          if (
+            persisted.turnStatus === 'running' &&
+            (persisted.runtimeSessionId || persisted.chatSessionId)
+          ) {
+            this.resumeAITask();
+          }
+        });
+      });
+    } else {
+      // 无持久化状态时，检测系统主题偏好
+      const prefersDark =
+        window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+      this.chatTheme = prefersDark ? 'dark' : 'light';
+      if (this.chatTheme === 'light') {
+        this.classList.add('chat-theme-light');
+      }
+    }
 
     // Initialize event listeners configuration
     this.eventListeners = [
-      { event: 'mousemove', handler: this.handleMouseMove as unknown as EventListener, options: true },
-      { event: 'touchmove', handler: this.handleMouseMove as unknown as EventListener, options: true },
-      { event: 'mousemove', handler: this.handleDrag as EventListener, options: true },
-      { event: 'touchmove', handler: this.handleDrag as EventListener, options: true },
-      { event: 'click', handler: this.handleMouseClick as EventListener, options: true },
-      { event: 'pointerdown', handler: this.handlePointerDown as EventListener, options: true },
-      { event: 'keyup', handler: this.handleKeyUp as EventListener, options: true },
-      { event: 'keydown', handler: this.handleModeShortcut as EventListener, options: true },
-      { event: 'mouseleave', handler: this.removeCover as EventListener, options: true },
-      { event: 'mouseup', handler: this.handleMouseUp as EventListener, options: true },
-      { event: 'touchend', handler: this.handleMouseUp as EventListener, options: true },
-      { event: 'contextmenu', handler: this.handleContextMenu as EventListener, options: true },
-      { event: 'wheel', handler: this.handleWheel as EventListener, options: { passive: false } },
+      {
+        event: 'mousemove',
+        handler: this.handleMouseMove as unknown as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchmove',
+        handler: this.handleMouseMove as unknown as EventListener,
+        options: true,
+      },
+      {
+        event: 'mousemove',
+        handler: this.handleDrag as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchmove',
+        handler: this.handleDrag as EventListener,
+        options: true,
+      },
+      {
+        event: 'click',
+        handler: this.handleMouseClick as EventListener,
+        options: true,
+      },
+      {
+        event: 'pointerdown',
+        handler: this.handlePointerDown as EventListener,
+        options: true,
+      },
+      {
+        event: 'keyup',
+        handler: this.handleKeyUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'keydown',
+        handler: this.handleModeShortcut as EventListener,
+        options: true,
+      },
+      {
+        event: 'mouseleave',
+        handler: this.removeCover as EventListener,
+        options: true,
+      },
+      {
+        event: 'mouseup',
+        handler: this.handleMouseUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'touchend',
+        handler: this.handleMouseUp as EventListener,
+        options: true,
+      },
+      {
+        event: 'contextmenu',
+        handler: this.handleContextMenu as EventListener,
+        options: true,
+      },
+      {
+        event: 'wheel',
+        handler: this.handleWheel as EventListener,
+        options: { passive: false },
+      },
     ];
 
     if (!this.hideConsole) {
@@ -1111,8 +3353,23 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   disconnectedCallback(): void {
+    // 清理 AI 相关资源
+    if (this.turnTimerInterval) {
+      clearInterval(this.turnTimerInterval);
+      this.turnTimerInterval = null;
+    }
+    if (this.chatAbortController) {
+      this.chatAbortController.abort();
+      this.chatAbortController = null;
+    }
+    if (this.showChatModal) {
+      document.body.style.overflow = '';
+    }
+    this.revokeMessageImageUrls(this.chatMessages);
+    this.clearPendingPastedImages(true);
     // Detach all event listeners
     this.detachEventListeners();
+    super.disconnectedCallback();
   }
 
   renderNodeTree = (node: TreeNode): TemplateResult => html`
@@ -1204,13 +3461,27 @@ export class CodeInspectorComponent extends LitElement {
           })}
         >
           <div class="element-info-content">
-            <div class="name-line">
-              <div class="element-name">
-                <span class="element-title">&lt;${this.element.name}&gt;</span>
+            <div class="inspector-info-header">
+              <div class="element-tag-info">
+                ${this.targetNode
+                  ? this.getElementSelectorHtml(
+                      this.targetNode,
+                      this.element.name,
+                    )
+                  : html`<span class="tag-name">${this.element.name}</span>`}
+              </div>
+              <div class="element-dimensions">
+                ${(this.position.right - this.position.left).toFixed(2)} ×
+                ${(this.position.bottom - this.position.top).toFixed(2)}
               </div>
             </div>
-            <div class="path-line">
-              ${this.element.path}:${this.element.line}:${this.element.column}
+            <div class="inspector-info-footer">
+              <div class="inspector-path">
+                ${this.element.path}:${this.element.line}:${this.element.column}
+              </div>
+              <div class="inspector-tip">
+                ${this.t('inspector.clickToOpen')}
+              </div>
             </div>
           </div>
         </div>
@@ -1326,7 +3597,7 @@ export class CodeInspectorComponent extends LitElement {
           @touchstart="${(e: TouchEvent) =>
             this.recordMousePosition(e, 'nodeTree')}"
         >
-          <div>🔍️ Click node to locate</div>
+          <div>🔍️ ${this.t('tree.clickNodeToLocate')}</div>
           ${html`<svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -1366,7 +3637,9 @@ export class CodeInspectorComponent extends LitElement {
                 @click="${(e: MouseEvent) => e.stopPropagation()}"
               >
                 <div class="settings-modal-header">
-                  <h3 class="settings-modal-title">Mode Settings</h3>
+                  <h3 class="settings-modal-title">
+                    ${this.t('settings.modeSettings')}
+                  </h3>
                   <button
                     class="settings-modal-close"
                     @click="${this.closeSettingsModal}"
@@ -1395,13 +3668,86 @@ export class CodeInspectorComponent extends LitElement {
                           <span class="settings-slider"></span>
                         </label>
                       </div>
-                    `
+                    `,
                   )}
                 </div>
               </div>
             </div>
           `
         : ''}
+
+      <!-- 聊天框 -->
+      ${renderChatModal(
+        {
+          lang: this.getCurrentLang(),
+          showChatModal: this.showChatModal,
+          keepTerminalMounted:
+            this.terminalMode &&
+            this.terminalManager != null &&
+            !this.terminalManager.isDisposed(),
+          showCloseConfirm: this.showCloseConfirm,
+          showTerminalSwitchConfirm: this.showTerminalSwitchConfirm,
+          chatMessages: this.chatMessages,
+          chatInput: this.chatInput,
+          chatPastedImages: this.chatPastedImages,
+          chatImageProcessing: this.chatImageProcessing,
+          chatLoading: this.chatLoading,
+          chatContext: this.chatContext,
+          currentTools: this.currentTools,
+          chatTheme: this.chatTheme,
+          turnStatus: this.turnStatus,
+          turnDuration: this.turnDuration,
+          isDragging: this.isDragging,
+          chatModel: this.chatModel,
+          availableModels: this.availableAIModels,
+          chatProvider: this.chatProvider,
+          availableProviders: this.availableAIProviders,
+          showProviderMenu: this.showProviderMenu,
+          showModelMenu: this.showModelMenu,
+          revertedToolIds: this.revertedToolIds,
+          revertingToolIds: this.revertingToolIds,
+          conversationId: this.conversationId,
+          showHistoryPanel: this.showHistoryPanel,
+          historyList: this.historyList,
+          historyLoading: this.historyLoading,
+          terminalMode: this.terminalMode,
+          terminalExitCode: this.terminalExitCode,
+        },
+        {
+          closeChatModal: this.closeChatModal,
+          confirmCloseChatModal: this.confirmCloseChatModal,
+          cancelCloseChatModal: this.cancelCloseChatModal,
+          terminateAndCloseChatModal: this.terminateAndCloseChatModal,
+          keepCurrentTerminal: this.keepCurrentTerminal,
+          killAndSwitchTerminal: this.killAndSwitchTerminal,
+          clearChatMessages: this.clearChatMessages,
+          handleChatInput: this.handleChatInput,
+          handleChatKeyDown: this.handleChatKeyDown,
+          handleChatPaste: this.handleChatPaste,
+          removePastedImage: this.removePastedImage,
+          sendChatMessage: this.sendChatMessage,
+          toggleTheme: this.toggleTheme,
+          interruptChat: this.interruptChat,
+          toggleModelMenu: this.toggleModelMenu,
+          switchModel: this.switchChatModel,
+          toggleProviderMenu: this.toggleProviderMenu,
+          switchProvider: this.switchChatProvider,
+          handleDragStart: this.handleChatDragStart,
+          handleDragMove: this.handleChatDragMove,
+          handleDragEnd: this.handleChatDragEnd,
+          handleModalClick: this.handleChatModalClick,
+          handleOverlayClick: this.handleOverlayClick,
+          revertEdit: this.handleRevertEdit,
+          revertAllEdits: this.handleRevertAllEdits,
+          toggleHistoryPanel: this.toggleHistoryPanel,
+          loadConversation: this.handleLoadConversation,
+          deleteConversation: this.handleDeleteConversation,
+          startNewConversation: this.handleStartNewConversation,
+          sendTerminalMessage: this.sendTerminalMessage,
+          restartTerminal: this.restartTerminal,
+          insertContextPathToTerminal: this.insertContextPathToTerminal,
+        },
+      )}
 
       <div
         id="node-tree-tooltip"
@@ -1413,353 +3759,391 @@ export class CodeInspectorComponent extends LitElement {
     `;
   }
 
-  static styles = css`
-    .code-inspector-container {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999999999999;
-      font-family: 'PingFang SC';
-      .margin-overlay {
-        position: absolute;
-        inset: 0;
-        border-style: solid;
-        border-color: rgba(255, 155, 0, 0.3);
-        .border-overlay {
+  static styles = [
+    css`
+      .code-inspector-container {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999999999999;
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        .margin-overlay {
           position: absolute;
           inset: 0;
           border-style: solid;
-          border-color: rgba(255, 200, 50, 0.3);
-          .padding-overlay {
+          border-color: rgba(255, 155, 0, 0.3);
+          .border-overlay {
             position: absolute;
             inset: 0;
             border-style: solid;
-            border-color: rgba(77, 200, 0, 0.3);
-            .content-overlay {
+            border-color: rgba(255, 200, 50, 0.3);
+            .padding-overlay {
               position: absolute;
               inset: 0;
-              background: rgba(120, 170, 210, 0.7);
+              border-style: solid;
+              border-color: rgba(77, 200, 0, 0.3);
+              .content-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(120, 170, 210, 0.7);
+              }
             }
           }
         }
       }
-    }
-    .element-info {
-      position: absolute;
-    }
-    .element-info.hidden {
-      visibility: hidden;
-    }
-    .element-info-content {
-      max-width: 100%;
-      font-size: 12px;
-      color: #000;
-      background-color: #fff;
-      word-break: break-all;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-      box-sizing: border-box;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-    .element-info-top {
-      top: -4px;
-      transform: translateY(-100%);
-    }
-    .element-info-bottom {
-      top: calc(100% + 4px);
-    }
-    .element-info-top-inner {
-      top: 4px;
-    }
-    .element-info-bottom-inner {
-      bottom: 4px;
-    }
-    .element-info-left {
-      right: 0;
-      display: flex;
-      justify-content: flex-end;
-    }
-    .element-info-right {
-      left: 0;
-      display: flex;
-      justify-content: flex-start;
-    }
-    .element-name .element-title {
-      color: coral;
-      font-weight: bold;
-    }
-    .path-line {
-      color: #333;
-      line-height: 12px;
-      margin-top: 4px;
-    }
-    .inspector-switch {
-      position: fixed;
-      z-index: 9999999999999;
-      top: 50%;
-      right: 24px;
-      font-size: 22px;
-      transform: translateY(-100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: rgba(255, 255, 255, 0.8);
-      color: #555;
-      height: 32px;
-      width: 32px;
-      border-radius: 50%;
-      box-shadow: 0px 1px 2px -2px rgba(0, 0, 0, 0.2),
-        0px 3px 6px 0px rgba(0, 0, 0, 0.16),
-        0px 5px 12px 4px rgba(0, 0, 0, 0.12);
-      cursor: pointer;
-    }
-    .active-inspector-switch {
-      color: #006aff;
-    }
-    .move-inspector-switch {
-      cursor: move;
-    }
-    #inspector-node-tree {
-      position: fixed;
-      user-select: none;
-      z-index: 9999999999999999;
-      min-width: 300px;
-      max-width: min(max(30vw, 300px), 400px);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-        'Liberation Mono', 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      padding: 0;
-
-      .inspector-layer-title {
-        border-bottom: 1px solid #eee;
-        padding: 8px 8px 4px;
-        margin-bottom: 8px;
-        flex-shrink: 0;
+      .element-info {
+        position: absolute;
+      }
+      .element-info.hidden {
+        visibility: hidden;
+      }
+      .element-info-content {
+        max-width: 100%;
+        font-size: 12px;
+        color: #000;
+        background-color: #fff;
+        word-break: break-all;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border-radius: 2px;
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .element-info-top {
+        top: -4px;
+        transform: translateY(-100%);
+      }
+      .element-info-bottom {
+        top: calc(100% + 4px);
+      }
+      .element-info-top-inner {
+        top: 4px;
+      }
+      .element-info-bottom-inner {
+        bottom: 4px;
+      }
+      .element-info-left {
+        right: 0;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
+      }
+      .element-info-right {
+        left: 0;
+        display: flex;
+        justify-content: flex-start;
+      }
+      .element-name .element-title {
+        color: coral;
+        font-weight: bold;
+      }
+      .element-tag-name {
+        color: #881280;
+        font-weight: 500;
+      }
+      .tag-name {
+        color: #881280;
+        font-weight: bold;
+      }
+      .tag-id {
+        color: #1a1aa6;
+        font-weight: bold;
+      }
+      .tag-class {
+        color: #c25e00;
+        font-weight: bold;
+      }
+      .element-dimensions {
+        flex-shrink: 0;
+        color: #222;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+      .inspector-info-footer {
+        margin-top: 4px;
+        font-size: 11px;
+        overflow-wrap: break-word;
+        word-break: break-all;
+      }
+      .inspector-path {
+        color: #333;
+        line-height: 14px;
+        font-size: 11px;
+      }
+      .inspector-tip {
+        color: #888;
+        line-height: 14px;
+        margin-top: 2px;
+        font-size: 11px;
+      }
+      .inspector-switch {
+        position: fixed;
+        z-index: 9999999999999;
+        top: 50%;
+        right: 24px;
+        font-size: 22px;
+        transform: translateY(-100%);
+        display: flex;
         align-items: center;
-        cursor: move;
-        user-select: none;
-        &:hover {
-          background: rgba(0, 106, 255, 0.1);
-        }
-      }
-
-      .node-tree-list {
-        flex: 1;
-        overflow-y: auto;
-        min-height: 0;
-      }
-
-      .inspector-layer {
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #555;
+        height: 32px;
+        width: 32px;
+        border-radius: 50%;
+        box-shadow:
+          0px 1px 2px -2px rgba(0, 0, 0, 0.2),
+          0px 3px 6px 0px rgba(0, 0, 0, 0.16),
+          0px 5px 12px 4px rgba(0, 0, 0, 0.12);
         cursor: pointer;
-        position: relative;
-        padding-right: 8px;
-        &:hover {
-          background: #fdf4bf;
+      }
+      .active-inspector-switch {
+        color: #006aff;
+      }
+      .move-inspector-switch {
+        cursor: move;
+      }
+      #inspector-node-tree {
+        position: fixed;
+        user-select: none;
+        z-index: 9999999999999999;
+        min-width: 300px;
+        max-width: min(max(30vw, 300px), 400px);
+        font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+
+        .inspector-layer-title {
+          border-bottom: 1px solid #eee;
+          padding: 8px 8px 4px;
+          margin-bottom: 8px;
+          flex-shrink: 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: move;
+          user-select: none;
+          &:hover {
+            background: rgba(0, 106, 255, 0.1);
+          }
+        }
+
+        .node-tree-list {
+          flex: 1;
+          overflow-y: auto;
+          min-height: 0;
+        }
+
+        .inspector-layer {
+          cursor: pointer;
+          position: relative;
+          padding-right: 8px;
+          &:hover {
+            background: #fdf4bf;
+          }
+        }
+
+        .path-line {
+          font-size: 9px;
+          color: #777;
+          margin-top: 1px;
+          font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
       }
 
-      .path-line {
-        font-size: 9px;
-        color: #777;
-        margin-top: 1px;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      #node-tree-tooltip {
+        position: fixed;
+        box-sizing: border-box;
+        z-index: 999999999999999999;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: wrap;
+        pointer-events: none;
+        word-break: break-all;
       }
-    }
+      .tooltip-top {
+        transform: translateY(-100%);
+      }
+      .close-icon {
+        cursor: pointer;
+      }
 
-    #node-tree-tooltip {
-      position: fixed;
-      box-sizing: border-box;
-      z-index: 999999999999999999;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: wrap;
-      pointer-events: none;
-      word-break: break-all;
-    }
-    .tooltip-top {
-      transform: translateY(-100%);
-    }
-    .close-icon {
-      cursor: pointer;
-    }
+      /* 设置弹窗样式 */
+      .settings-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999999999999999;
+        animation: fadeIn 0.2s ease-out;
+      }
 
-    /* 设置弹窗样式 */
-    .settings-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999999999999999;
-      animation: fadeIn 0.2s ease-out;
-    }
+      .settings-modal {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease-out;
+      }
 
-    .settings-modal {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      width: 90%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      animation: slideUp 0.3s ease-out;
-    }
+      .settings-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid #eee;
+      }
 
-    .settings-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 24px;
-      border-bottom: 1px solid #eee;
-    }
+      .settings-modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+      }
 
-    .settings-modal-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-    }
+      .settings-modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #999;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
 
-    .settings-modal-close {
-      background: none;
-      border: none;
-      font-size: 28px;
-      color: #999;
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
+      .settings-modal-close:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
 
-    .settings-modal-close:hover {
-      background: #f5f5f5;
-      color: #333;
-    }
+      .settings-modal-content {
+        padding: 16px 24px;
+        overflow-y: auto;
+        flex: 1;
+      }
 
-    .settings-modal-content {
-      padding: 16px 24px;
-      overflow-y: auto;
-      flex: 1;
-    }
+      .settings-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid #f5f5f5;
+      }
 
-    .settings-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 0;
-      border-bottom: 1px solid #f5f5f5;
-    }
+      .settings-item:last-child {
+        border-bottom: none;
+      }
 
-    .settings-item:last-child {
-      border-bottom: none;
-    }
+      .settings-label {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        margin-right: 16px;
+        cursor: pointer;
+      }
 
-    .settings-label {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      margin-right: 16px;
-      cursor: pointer;
-    }
+      .settings-label-text {
+        font-size: 15px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
+      }
 
-    .settings-label-text {
-      font-size: 15px;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 4px;
-    }
+      .settings-label-desc {
+        font-size: 13px;
+        color: #999;
+      }
 
-    .settings-label-desc {
-      font-size: 13px;
-      color: #999;
-    }
+      .settings-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
 
-    .settings-switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-
-    .settings-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .settings-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 24px;
-    }
-
-    .settings-slider:before {
-      position: absolute;
-      content: '';
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    .settings-switch input:checked + .settings-slider {
-      background-color: #006aff;
-    }
-
-    .settings-switch input:checked + .settings-slider:before {
-      transform: translateX(20px);
-    }
-
-    .settings-switch input:focus + .settings-slider {
-      box-shadow: 0 0 1px #006aff;
-    }
-
-    @keyframes fadeIn {
-      from {
+      .settings-switch input {
         opacity: 0;
+        width: 0;
+        height: 0;
       }
-      to {
-        opacity: 1;
-      }
-    }
 
-    @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
+      .settings-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 24px;
       }
-      to {
-        transform: translateY(0);
-        opacity: 1;
+
+      .settings-slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
       }
-    }
-  `;
+
+      .settings-switch input:checked + .settings-slider {
+        background-color: #006aff;
+      }
+
+      .settings-switch input:checked + .settings-slider:before {
+        transform: translateX(20px);
+      }
+
+      .settings-switch input:focus + .settings-slider {
+        box-shadow: 0 0 1px #006aff;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    `,
+    chatStyles,
+  ];
 }
 
 // Global notification styles
@@ -1775,7 +4159,7 @@ if (!document.getElementById('code-inspector-notification-styles')) {
       padding: 12px 16px;
       border-radius: 8px;
       font-size: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-weight: 500;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       opacity: 0;

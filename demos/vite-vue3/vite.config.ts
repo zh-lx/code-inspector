@@ -10,7 +10,24 @@ export default defineConfig({
     CodeInspectorPlugin({
       bundler: 'vite',
       behavior: {
-        copy: '{file}',
+        ai: {
+          // claudeCode: {
+          //   type: 'terminal',
+          //   // options: {
+          //   //   models: ['claude-opus-4-6', 'claude-sonnet-4-5'],
+          //   //   maxTurns: 50,
+          //   // },
+          // },
+          codex: {
+            type: 'terminal',
+            // options: {
+            //   models: ['gpt-5.2'],
+            // },
+          },
+          // opencode: {
+          //   type: 'terminal',
+          // },
+        },
       },
       // pathFormat: ['-g', '-r', '{file}:{line}:{column}']
     }),

@@ -40,14 +40,7 @@ export function getFilePathWithoutExt(filePath: string) {
 }
 
 export function normalizePath(filepath: string) {
-  let normalizedPath = path.normalize(filepath);
-
-  // Convert Windows path separators to Mac path separators
-  if (process.platform === 'win32') {
-    normalizedPath = normalizedPath.replace(/\\/g, '/');
-  }
-
-  return normalizedPath;
+  return path.posix.normalize(filepath.replace(/\\/g, '/'));
 }
 
 export function isAstroToolbarFile(file: string) {

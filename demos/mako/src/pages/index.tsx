@@ -1,15 +1,17 @@
-import yayJpg from '../assets/yay.jpg';
+import { DemoHero } from '../components/inspector-demo/DemoHero';
+import { ShortcutPanel } from '../components/inspector-demo/ShortcutPanel';
+import { StepCards } from '../components/inspector-demo/StepCards';
+import { TryTargets } from '../components/inspector-demo/TryTargets';
 
 export default function HomePage() {
   return (
-    <div>
-      <h2>Yay! Welcome to umi!</h2>
-      <p>
-        <img src={yayJpg} width="388" />
-      </p>
-      <p>
-        To get started, edit <code>pages/index.tsx</code> and save to reload.
-      </p>
-    </div>
+    <main className="inspector-demo">
+      <section className="inspector-shell" aria-labelledby="inspector-title">
+        <DemoHero />
+        <ShortcutPanel />
+        <StepCards />
+        <TryTargets />
+      </section>
+    </main>
   );
 }

@@ -21,7 +21,12 @@ permissions:
   contents: read
 
 jobs:
+  # 先运行 e2e 测试
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+
   publish:
+    needs: e2e
     runs-on: ubuntu-latest
 
     env:

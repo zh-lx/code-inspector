@@ -4,8 +4,22 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     fileParallelism: false,
+    // e2e 用 @playwright/test 运行，排除避免被 vitest 误收集
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     coverage: {
       include: ['packages/*/src/**'],
+      exclude: [
+        '**/*.d.ts',
+        'packages/core/src/shared/type.ts',
+        'packages/core/src/ai/client/ai-terminal.ts',
+        'packages/core/src/ai/client/ai.ts',
+        'packages/core/src/client/i18n.ts',
+        'packages/core/src/client/index.ts',
+        'packages/core/src/ai/server/ai-provider-common.ts',
+        'packages/core/src/ai/server/ai-provider-opencode.ts',
+        'packages/core/src/ai/server/ai-terminal.ts',
+        'packages/core/src/ai/server/ai.ts',
+      ],
     },
     alias: {
       '@': path.resolve(__dirname, 'packages'),

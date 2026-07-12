@@ -1,12 +1,13 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  color: #17202f;
+  background: #f7f9fc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,67 +15,170 @@
   -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #9F1A8F;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
+html,
+body,
+#app,
+#root {
   min-width: 320px;
   min-height: 100vh;
+  margin: 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+button,
+a {
+  font: inherit;
 }
 
-button {
+.inspector-demo {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background:
+    radial-gradient(circle at top left, rgba(30, 126, 138, 0.16), transparent 32%),
+    linear-gradient(135deg, #f7f9fc 0%, #eef6f3 48%, #fff7e8 100%);
+}
+
+.inspector-shell {
+  width: min(1040px, 100%);
+}
+
+.inspector-badge {
+  display: inline-flex;
+  margin: 0 0 18px;
+  padding: 6px 10px;
+  border: 1px solid #b9d8d2;
+  border-radius: 999px;
+  color: #1c6b73;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inspector-hero {
+  max-width: 760px;
+}
+
+.inspector-hero h1 {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(36px, 6vw, 64px);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.inspector-hero p {
+  margin: 18px 0 0;
+  color: #4b5563;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.inspector-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.inspector-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #d7e1df;
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.inspector-shortcut span {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inspector-shortcut kbd {
+  min-width: 54px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #17202f;
+  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.16);
   font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #9F1A8F;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.inspector-card {
+  min-height: 168px;
+  padding: 20px;
+  border: 1px solid #dfe8e5;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 40px rgba(23, 32, 47, 0.08);
+}
+
+.inspector-card span {
+  color: #b7791f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.inspector-card h2 {
+  margin: 12px 0 8px;
+  color: #17202f;
+  font-size: 20px;
+}
+
+.inspector-card p {
+  margin: 0;
+  color: #5b6472;
+  line-height: 1.7;
+}
+
+.inspector-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.inspector-targets button,
+.inspector-targets span,
+.inspector-targets a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #cad8d4;
+  border-radius: 8px;
+  color: #17202f;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.inspector-targets button {
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .inspector-demo {
+    padding: 32px 16px;
   }
-  a:hover {
-    color: #9F1A8F;
-  }
-  button {
-    background-color: #f9f9f9;
+
+  .inspector-grid {
+    grid-template-columns: 1fr;
   }
 }

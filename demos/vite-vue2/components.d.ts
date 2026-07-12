@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    DemoHero: typeof import('./src/components/inspector-demo/DemoHero.vue')['default']
     ElButton: typeof import('element-ui/lib/button')['default']
     ElMenu: typeof import('element-ui/lib/menu')['default']
     ElMenuItem: typeof import('element-ui/lib/menu-item')['default']
@@ -17,5 +18,8 @@ declare module '@vue/runtime-core' {
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ShortcutPanel: typeof import('./src/components/inspector-demo/ShortcutPanel.vue')['default']
+    StepCards: typeof import('./src/components/inspector-demo/StepCards.vue')['default']
+    TryTargets: typeof import('./src/components/inspector-demo/TryTargets.vue')['default']
   }
 }

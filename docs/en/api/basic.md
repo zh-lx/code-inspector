@@ -16,7 +16,7 @@ codeInspectorPlugin({
 
 - Required
 - Type: `string`
-- Available values: `vite / webpack / rspack / esbuild`
+- Available values: `vite / webpack / rspack / esbuild / turbopack / mako`
 - Description: Specifies the bundler tool used in the current project
 
 ## editor
@@ -41,8 +41,8 @@ codeInspectorPlugin({
 ## hotKeys
 
 - Optional. Default value is `['altKey', 'shiftKey']`
-- Type: `('ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey')[]`
-- Description: Keyboard shortcuts to trigger the source code location feature. An empty array will disable the shortcut trigger feature. (`ctrlKey` corresponds to the `control` key on Mac; `altKey` corresponds to the `option` key on Mac; `metaKey` corresponds to the `command` key on Mac)
+- Type: `('ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey')[] | false`
+- Description: Keyboard shortcuts to trigger the source code location feature. An empty array or `false` will disable the shortcut trigger feature. (`ctrlKey` corresponds to the `control` key on Mac; `altKey` corresponds to the `option` key on Mac; `metaKey` corresponds to the `command` key on Mac)
 
 ## showSwitch
 
@@ -55,6 +55,12 @@ codeInspectorPlugin({
 - Optional. Default value is `true`
 - Type: `boolean`
 - Description: Used with `showSwitch: true`. After triggering the IDE jump feature, it automatically turns off the `switch` functionality. (This is mainly to prevent accidental triggering of the source code location feature when users switch back to the page and it gains focus.)
+
+## lang <Badge type="tip" text="2.0.0+" vertical="middle" />
+
+- Optional. Default value is `en`
+- Type: `'en' | 'zh'`
+- Description: Client UI language. When set to `zh`, client UI such as the feature panel and AI Assistant is displayed in Chinese.
 
 ## launchType <Badge type="tip" text="1.3.5+" vertical="middle" />
 

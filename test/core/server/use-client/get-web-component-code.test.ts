@@ -28,6 +28,12 @@ vi.mock('fs', async () => {
 import { getWebComponentCode } from '@/core/src/server/use-client';
 
 describe('getWebComponentCode', () => {
+  it('should inject the terminal authentication token', () => {
+    const result = getWebComponentCode({} as any, 5678);
+
+    expect(result).toMatch(/inspector\.aiAuthToken = '[a-f0-9]{64}'/);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -164,6 +170,17 @@ describe('getWebComponentCode', () => {
     });
   });
 
+  describe('lang configuration', () => {
+    it('should set zh lang when specified', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        lang: 'zh',
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain("inspector.lang = 'zh'");
+    });
+  });
+
   describe('behavior configuration', () => {
     it('should default locate to true', () => {
       const options: CodeOptions = {
@@ -223,6 +240,33 @@ describe('getWebComponentCode', () => {
       };
       const result = getWebComponentCode(options, 5678);
       expect(result).toContain("inspector.target = 'http://custom-target.com'");
+    });
+
+    it('should keep AI disabled when ai config exists but providers are false', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        behavior: {
+          ai: {
+            codex: false as any,
+            claudeCode: false as any,
+          },
+        },
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain('inspector.ai = false');
+    });
+
+    it('should enable AI when any provider is configured', () => {
+      const options: CodeOptions = {
+        bundler: 'vite',
+        behavior: {
+          ai: {
+            codex: true,
+          },
+        },
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain('inspector.ai = true');
     });
   });
 

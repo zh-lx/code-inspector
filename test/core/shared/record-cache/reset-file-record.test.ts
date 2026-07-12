@@ -150,10 +150,10 @@ describe('resetFileRecord', () => {
   });
 
   describe('when no write permission', () => {
-    it('should store record in memory cache', function() {
+    it('should store record in memory cache', () => {
       // Skip on Windows as chmod doesn't work the same way
       if (process.platform === 'win32') {
-        this.skip();
+        return;
       }
 
       vi.spyOn(process, 'cwd').mockReturnValue('/no/permission/project');

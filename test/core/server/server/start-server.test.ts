@@ -1,9 +1,9 @@
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
-import http from 'http';
-import net from 'net';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import http from 'http';
+import net from 'net';
 import { createRequire } from 'module';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
 
@@ -19,7 +19,9 @@ const corePortFinder = requireFromCore('portfinder') as {
 
 describe('startServer', () => {
   let serverModule: Awaited<typeof import('@/core/src/server/server')>;
-  let recordCacheModule: Awaited<typeof import('@/core/src/shared/record-cache')>;
+  let recordCacheModule: Awaited<
+    typeof import('@/core/src/shared/record-cache')
+  >;
   let testDir: string;
   let mockHttpServer: any;
   let mockNetServer: any;
@@ -82,7 +84,7 @@ describe('startServer', () => {
       if (fs.existsSync(testDir)) {
         fs.rmSync(testDir, { recursive: true, force: true });
       }
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -238,8 +240,8 @@ describe('startServer', () => {
 
     await serverModule.startServer(options, record);
 
-    const serverInfoCalls = consoleSpy.mock.calls.filter(
-      (call) => call[0]?.includes?.('[code-inspector-plugin]'),
+    const serverInfoCalls = consoleSpy.mock.calls.filter((call) =>
+      call[0]?.includes?.('[code-inspector-plugin]'),
     );
 
     expect(serverInfoCalls.length).toBe(0);

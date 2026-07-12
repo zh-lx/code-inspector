@@ -85,7 +85,7 @@ export async function transformMdx(
 async function resolveMdxParser(filePath: string): Promise<MdxParser | null> {
   const resolveDir = fs.existsSync(filePath) ? path.dirname(filePath) : filePath;
   if (mdxParserCache.has(resolveDir)) {
-    return mdxParserCache.get(resolveDir) || null;
+    return mdxParserCache.get(resolveDir) as MdxParser | null;
   }
 
   try {
@@ -1305,8 +1305,8 @@ function getMdxEsmRanges(
   });
 
   if (start !== -1) {
-    const lastLine = lines[lines.length - 1];
-    ranges.push({ start, end: lastLine ? lastLine.end : start });
+    const lastLine = lines[lines.length - 1]!;
+    ranges.push({ start, end: lastLine.end });
   }
 
   return ranges;
