@@ -292,6 +292,31 @@ describe('createServer', () => {
       }
     });
 
+    it('should return 403 when path.relative returns an absolute path', () => {
+      serverModule.createServer(vi.fn(), {
+        pathType: 'relative',
+        bundler: 'vite',
+      });
+      vi.spyOn(path, 'relative').mockReturnValue('/other-drive/file.ts');
+
+      const mockReq = {
+        url: '?file=src%2Ffile.ts&line=1&column=1',
+        method: 'GET',
+        headers: { host: 'localhost:5678' },
+      };
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      };
+
+      requestHandler(mockReq, mockRes);
+
+      if (serverModule.ProjectRootPath) {
+        expect(mockRes.writeHead).toHaveBeenCalledWith(403, expect.any(Object));
+        expect(mockLaunchIDE).not.toHaveBeenCalled();
+      }
+    });
+
     it.each([
       ['missing file parameter', '?line=1&column=1'],
       ['malformed file encoding', '?file=%&line=1&column=1'],
