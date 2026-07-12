@@ -14,6 +14,7 @@ import { getEnvVars } from '../../server/server';
 import { findClaudeCodeCli } from './ai-provider-claude';
 import { findCodexCli, CODEX_PROVIDER_RUNTIME } from './ai-provider-common';
 import { OPENCODE_PROVIDER_RUNTIME } from './ai-provider-opencode';
+import { isAuthorizedTerminalUpgrade } from './terminal-auth';
 import {
   completeRuntimeSession,
   createRuntimeSession,
@@ -707,6 +708,12 @@ export async function attachTerminalWebSocket(
     const url = new URL(req.url || '', `http://${req.headers.host}`);
     if (url.pathname !== '/ai/terminal') {
       return; // 不处理非终端路径，留给其他 WebSocket 处理
+    }
+
+    if (!isAuthorizedTerminalUpgrade(url)) {
+      socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+      socket.destroy();
+      return;
     }
 
     wss.handleUpgrade(req, socket, head, (ws: any) => {

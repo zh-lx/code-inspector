@@ -409,6 +409,7 @@ export class AITerminalManager {
   constructor(
     private ip: string,
     private port: number,
+    private authToken: string = '',
   ) {}
 
   mount(
@@ -453,7 +454,7 @@ export class AITerminalManager {
     this.applyProviderLayout();
 
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${this.ip}:${this.port}/ai/terminal`;
+    const wsUrl = `${protocol}//${this.ip}:${this.port}/ai/terminal?token=${encodeURIComponent(this.authToken)}`;
 
     this.ws = new WebSocket(wsUrl);
 

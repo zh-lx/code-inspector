@@ -13,6 +13,7 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 // @ts-ignore
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 import { startServer } from './server';
+import { getTerminalAuthToken } from '../ai/server/terminal-auth';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
@@ -193,6 +194,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
       inspector.ai = ${aiEnabled};
+      inspector.terminalAuthToken = '${getTerminalAuthToken()}';
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
       inspector.defaultAction = '${defaultAction}';

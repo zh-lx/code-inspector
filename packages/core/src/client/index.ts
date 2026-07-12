@@ -134,6 +134,8 @@ export class CodeInspectorComponent extends LitElement {
   ip: string = 'localhost';
   @property()
   ai: boolean = false;
+  @property({ attribute: false })
+  terminalAuthToken: string = '';
   @property()
   lang: 'en' | 'zh' = 'en';
 
@@ -2056,7 +2058,11 @@ export class CodeInspectorComponent extends LitElement {
       return;
     }
 
-    this.terminalManager = new AITerminalManager(this.ip, this.port);
+    this.terminalManager = new AITerminalManager(
+      this.ip,
+      this.port,
+      this.terminalAuthToken,
+    );
     this.terminalManager.mount(
       containerEl,
       this.chatTheme,
@@ -2174,7 +2180,11 @@ export class CodeInspectorComponent extends LitElement {
       // 已有终端，清空后重新连接
       this.terminalManager.clear();
     } else {
-      this.terminalManager = new AITerminalManager(this.ip, this.port);
+      this.terminalManager = new AITerminalManager(
+        this.ip,
+        this.port,
+        this.terminalAuthToken,
+      );
       this.terminalManager.mount(
         containerEl,
         this.chatTheme,
