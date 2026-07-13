@@ -6,8 +6,10 @@ export const DefaultPort = 5678;
 export const JsFileExtList = ['.js', '.ts', '.mjs', '.mts', '.jsx', '.tsx'];
 
 export const AstroToolbarFile = '\0astro:dev-toolbar';
+export const NextEmptyElementName = 'CodeInspectorEmptyElement';
 
 export const CodeInspectorEscapeTags = [
+  NextEmptyElementName,
   'style',
   'script',
   'template',
