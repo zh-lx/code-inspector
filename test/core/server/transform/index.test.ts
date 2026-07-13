@@ -150,6 +150,22 @@ describe('transformCode', () => {
 
       expect(result).toContain('data-insp-path');
     });
+
+    it('should not transform the Next.js empty inspector element', async () => {
+      const content =
+        'function App() { return <div><CodeInspectorEmptyElement /></div>; }';
+      const result = await transformCode({
+        content,
+        filePath: '/test/file.jsx',
+        fileType: 'jsx',
+        escapeTags: [],
+        pathType: 'relative',
+      });
+
+      expect(result).toContain('data-insp-path');
+      expect(result).toContain('<CodeInspectorEmptyElement />');
+      expect(result).not.toMatch(/<CodeInspectorEmptyElement\s+data-insp-path/);
+    });
   });
 
   describe('svelte transformation', () => {

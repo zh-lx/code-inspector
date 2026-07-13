@@ -17,6 +17,7 @@ import { getAIAuthToken } from '../ai/server/ai-auth';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
+  NextEmptyElementName,
   isJsTypeFile,
   getFilePathWithoutExt,
   getIP,
@@ -38,7 +39,6 @@ const jsClientCode = fs.readFileSync(clientJsPath, 'utf-8');
 const iifeClientJsPath = path.resolve(compatibleDirname, './client.iife.js');
 const iifeClientJsCode = fs.readFileSync(iifeClientJsPath, 'utf-8');
 
-const NextEmptyElementName = 'CodeInspectorEmptyElement';
 export function getInjectedCode(
   options: CodeOptions,
   port: number,
@@ -181,7 +181,11 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
 ;(function (){
   if (typeof window !== 'undefined') {
     if (!document.documentElement.querySelector('code-inspector-component')) {
-      ${bundler === 'mako' ? iifeClientJsCode : jsClientCode};
+      ${
+        bundler === 'mako' || bundler === 'turbopack'
+          ? iifeClientJsCode
+          : jsClientCode
+      };
 
       var inspector = document.createElement('code-inspector-component');
       inspector.port = ${port};

@@ -10,15 +10,33 @@ vi.mock('fs', async () => {
     default: {
       ...actual,
       readFileSync: vi.fn((filePath: string, encoding?: string) => {
-        if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
-          return '// mocked client code';
+        if (
+          typeof filePath === 'string' &&
+          filePath.includes('client.umd.js')
+        ) {
+          return '// mocked umd client code';
+        }
+        if (
+          typeof filePath === 'string' &&
+          filePath.includes('client.iife.js')
+        ) {
+          return '// mocked iife client code';
         }
         return actual.readFileSync(filePath, encoding as BufferEncoding);
       }),
     },
     readFileSync: vi.fn((filePath: string, encoding?: string) => {
-      if (typeof filePath === 'string' && (filePath.includes('client.umd.js') || filePath.includes('client.iife.js'))) {
-        return '// mocked client code';
+      if (
+        typeof filePath === 'string' &&
+        filePath.includes('client.umd.js')
+      ) {
+        return '// mocked umd client code';
+      }
+      if (
+        typeof filePath === 'string' &&
+        filePath.includes('client.iife.js')
+      ) {
+        return '// mocked iife client code';
       }
       return actual.readFileSync(filePath, encoding as BufferEncoding);
     }),
@@ -332,8 +350,16 @@ describe('getWebComponentCode', () => {
         bundler: 'mako',
       };
       const result = getWebComponentCode(options, 5678);
-      // The actual client code is included, we just check the structure
-      expect(result).toContain('inspector');
+      expect(result).toContain('// mocked iife client code');
+    });
+
+    it('should use iife client code for turbopack bundler', () => {
+      const options: CodeOptions = {
+        bundler: 'turbopack',
+      };
+      const result = getWebComponentCode(options, 5678);
+      expect(result).toContain('// mocked iife client code');
+      expect(result).not.toContain('// mocked umd client code');
     });
 
     it('should use umd client code for other bundlers', () => {
@@ -341,7 +367,8 @@ describe('getWebComponentCode', () => {
         bundler: 'vite',
       };
       const result = getWebComponentCode(options, 5678);
-      expect(result).toContain('inspector');
+      expect(result).toContain('// mocked umd client code');
+      expect(result).not.toContain('// mocked iife client code');
     });
   });
 
