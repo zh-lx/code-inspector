@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- 【fix】Fixed the issue where `exports is not defined` occurred during hot updates in Nextjs [#561](https://github.com/zh-lx/code-inspector/pull/561)
+- 【opt】Optimized the display position of inspector overlay element width and height [#562](https://github.com/zh-lx/code-inspector/pull/562)
+
 ## 2.0.0
 
 - 【feat】Added an AI assistant and terminal experience with Claude, Codex, OpenCode, and other providers, including conversation history, persistence, model routing, revert support, and runtime sessions [#560](https://github.com/zh-lx/code-inspector/pull/560)

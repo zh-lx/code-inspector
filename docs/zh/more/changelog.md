@@ -1,5 +1,10 @@
 # 更新日志
 
+## 2.0.1
+
+- 【fix】修复了 Nextjs 中热更新时 `exports is not defined` 的问题 [#561](https://github.com/zh-lx/code-inspector/pull/561)
+- 【opt】优化了 inspector 遮罩层元素宽高的展示布局 [#562](https://github.com/zh-lx/code-inspector/pull/562)
+
 ## 2.0.0
 
 - 【feat】新增 AI 助手与终端能力，支持 Claude、Codex、OpenCode 等多供应商，提供对话历史、持久化、模型路由、撤销恢复和运行时会话管理 [#560](https://github.com/zh-lx/code-inspector/pull/560)
