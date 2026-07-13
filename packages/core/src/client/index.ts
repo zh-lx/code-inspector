@@ -3851,6 +3851,15 @@ export class CodeInspectorComponent extends LitElement {
         color: #c25e00;
         font-weight: bold;
       }
+      .inspector-info-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .element-tag-info {
+        min-width: 0;
+      }
       .element-dimensions {
         flex-shrink: 0;
         color: #222;
