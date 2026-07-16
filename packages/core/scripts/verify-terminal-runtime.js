@@ -188,6 +188,20 @@ async function runTerminalRuntimeCheck(options) {
   const platform = settings.platform || process.platform;
   const arch = settings.arch || process.arch;
   const resolveFromDir = settings.resolveFromDir || __dirname;
+
+  // node-pty can block synchronously while connecting ConPTY pipes on Windows,
+  // which prevents the probe timeout from starting and stalls package installs.
+  // See https://github.com/microsoft/node-pty/issues/763.
+  if (platform === 'win32') {
+    return {
+      ok: true,
+      skipped: true,
+      fixedPaths: [],
+      helperPaths: [],
+      reason: 'Terminal runtime verification is deferred on Windows.',
+    };
+  }
+
   const nodePtyRoot = Object.prototype.hasOwnProperty.call(
     settings,
     'nodePtyRoot',
