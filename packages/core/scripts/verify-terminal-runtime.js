@@ -193,11 +193,6 @@ async function runTerminalRuntimeCheck(options) {
   // which prevents the probe timeout from starting and stalls package installs.
   // See https://github.com/microsoft/node-pty/issues/763.
   if (platform === 'win32') {
-    logMessage(
-      logger,
-      'log',
-      'Skipping terminal runtime verification on Windows because spawning ConPTY during package installation can block the installer.',
-    );
     return {
       ok: true,
       skipped: true,
