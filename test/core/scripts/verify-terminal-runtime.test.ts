@@ -142,6 +142,33 @@ describe('verify terminal runtime script', () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
+  it('should skip the PTY probe on Windows during installation', async () => {
+    const logger = {
+      log: vi.fn(),
+      warn: vi.fn(),
+    };
+    const spawn = vi.fn(() => {
+      throw new Error('Windows PTY probe must not run during installation');
+    });
+
+    const result = await verifyTerminalRuntime.runTerminalRuntimeCheck({
+      logger,
+      nodePtyRoot: 'C:\\node_modules\\node-pty',
+      nodePty: { spawn },
+      platform: 'win32',
+      arch: 'x64',
+      cwd: process.cwd(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.skipped).toBe(true);
+    expect(result.reason).toBe(
+      'Terminal runtime verification is deferred on Windows.',
+    );
+    expect(spawn).not.toHaveBeenCalled();
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
   it('should skip verification when node-pty is not installed', async () => {
     const logger = {
       log: vi.fn(),
