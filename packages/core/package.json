@@ -57,9 +57,11 @@
     "chalk": "^4.1.1",
     "dotenv": "^16.1.4",
     "launch-ide": "1.4.5",
-    "node-pty": "^1.1.0",
     "portfinder": "^1.0.28",
     "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "node-pty": "^1.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
