@@ -1,5 +1,9 @@
 # 更新日志
 
+## 2.0.2
+
+- 【fix】防止 Windows postinstall 挂起 [#564](https://github.com/zh-lx/code-inspector/pull/564)
+
 ## 2.0.1
 
 - 【fix】修复了 Nextjs 中热更新时 `exports is not defined` 的问题 [#561](https://github.com/zh-lx/code-inspector/pull/561)

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.2
+
+- 【fix】Prevent Windows postinstall hang [#564](https://github.com/zh-lx/code-inspector/pull/564)
+
+
 ## 2.0.1
 
 - 【fix】Fixed the issue where `exports is not defined` occurred during hot updates in Nextjs [#561](https://github.com/zh-lx/code-inspector/pull/561)
