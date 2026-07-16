@@ -183,8 +183,7 @@ describe('verify terminal runtime script', () => {
     expect(result.ok).toBe(true);
     expect(result.skipped).toBe(true);
     expect(result.reason).toBe('node-pty is not installed.');
-    expect(logger.warn).toHaveBeenCalled();
-    expect(logger.warn.mock.calls[0][0]).toContain('AI terminal mode will be disabled');
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it('should use platform-specific helper candidate paths', () => {

@@ -212,8 +212,8 @@ async function runTerminalRuntimeCheck(options) {
   if (!nodePtyRoot) {
     logMessage(
       logger,
-      'warn',
-      'node-pty is not available; AI terminal mode will be disabled. Locate and AI CLI/SDK modes still work. Install build tools (python/make/g++) or reinstall node-pty to enable terminal mode.',
+      'log',
+      'Skipping terminal runtime verification because node-pty is not installed.',
     );
     return {
       ok: true,
