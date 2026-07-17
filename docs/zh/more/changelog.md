@@ -2,8 +2,8 @@
 
 ## 2.0.3
 
-- 【deps】Move `node-pty` from `dependencies` to `optionalDependencies`，avoding install failure on some platforms [#566](https://github.com/zh-lx/code-inspector/pull/566)
-- 【deps】Remove unnecessary packages from `dependencies` [#567](https://github.com/zh-lx/code-inspector/pull/567)
+- 【deps】将 `node-pty` 从 `dependencies` 移动到 `optionalDependencies`，避免在某些平台上安装失败 [#566](https://github.com/zh-lx/code-inspector/pull/566)
+- 【deps】从 `dependencies` 中移除了不必要的包 [#567](https://github.com/zh-lx/code-inspector/pull/567)
 
 ## 2.0.2
 
