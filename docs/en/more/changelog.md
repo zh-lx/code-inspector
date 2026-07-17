@@ -1,9 +1,13 @@
 # Changelog
 
+## 2.0.3
+
+- 【deps】Move `node-pty` from `dependencies` to `optionalDependencies`，avoding install failure on some platforms [#566](https://github.com/zh-lx/code-inspector/pull/566)
+- 【deps】Remove unnecessary packages from `dependencies` [#567](https://github.com/zh-lx/code-inspector/pull/567)
+
 ## 2.0.2
 
 - 【fix】Prevent Windows postinstall hang [#564](https://github.com/zh-lx/code-inspector/pull/564)
-
 
 ## 2.0.1
 
