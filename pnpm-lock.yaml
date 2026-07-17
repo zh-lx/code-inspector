@@ -1004,21 +1004,9 @@ importers:
       '@vue/compiler-dom':
         specifier: ^3.5.13
         version: 3.5.13
-      '@xterm/addon-fit':
-        specifier: ^0.11.0
-        version: 0.11.0
-      '@xterm/addon-web-links':
-        specifier: ^0.12.0
-        version: 0.12.0
-      '@xterm/xterm':
-        specifier: ^6.0.0
-        version: 6.0.0
       chalk:
         specifier: ^4.1.1
         version: 4.1.2
-      dotenv:
-        specifier: ^16.1.4
-        version: 16.1.4
       launch-ide:
         specifier: 1.4.5
         version: 1.4.5
@@ -1053,6 +1041,15 @@ importers:
       '@vue/compiler-sfc':
         specifier: ^3.3.4
         version: 3.3.4
+      '@xterm/addon-fit':
+        specifier: ^0.11.0
+        version: 0.11.0
+      '@xterm/addon-web-links':
+        specifier: ^0.12.0
+        version: 0.12.0
+      '@xterm/xterm':
+        specifier: ^6.0.0
+        version: 6.0.0
       lit:
         specifier: ^2.6.1
         version: 2.6.1
@@ -10844,10 +10841,6 @@ packages:
   dotenv@10.0.0:
     resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
     engines: {node: '>=10'}
-
-  dotenv@16.1.4:
-    resolution: {integrity: sha512-m55RtE8AsPeJBpOIFKihEmqUcoVncQIwo7x9U8ZwLEZw9ZpXboz2c+rvog+jUaJvVrZ5kBOeYQBX5+8Aa/OZQw==}
-    engines: {node: '>=12'}
 
   dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
@@ -34182,8 +34175,6 @@ snapshots:
   dotenv-expand@5.1.0: {}
 
   dotenv@10.0.0: {}
-
-  dotenv@16.1.4: {}
 
   dotenv@16.4.5: {}
 
