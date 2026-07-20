@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4
+
+- 【deps】Upgrade `launch-ide` version to `1.4.6`, compatible with JetBrains IDEs after version `2026.2` [#569](https://github.com/zh-lx/code-inspector/pull/569)
+
 ## 2.0.3
 
 - 【deps】Move `node-pty` from `dependencies` to `optionalDependencies`，avoding install failure on some platforms [#566](https://github.com/zh-lx/code-inspector/pull/566)
