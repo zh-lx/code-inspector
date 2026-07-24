@@ -52,7 +52,7 @@
   "dependencies": {
     "@vue/compiler-dom": "^3.5.13",
     "chalk": "^4.1.1",
-    "launch-ide": "1.4.6",
+    "launch-ide": "1.4.8",
     "portfinder": "^1.0.28",
     "ws": "^8.18.0"
   },
