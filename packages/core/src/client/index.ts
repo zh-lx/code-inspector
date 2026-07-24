@@ -2,8 +2,8 @@ import { LitElement, TemplateResult, css, html } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { PathName, DefaultPort } from '../shared';
-import { formatOpenPath } from 'launch-ide';
 import { browserChalk } from '../shared/browser-chalk';
+import { formatOpenPath } from './format-open-path';
 import {
   ChatMessage,
   ChatContext,
