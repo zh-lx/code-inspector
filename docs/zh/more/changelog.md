@@ -1,5 +1,9 @@
 # 更新日志
 
+## 2.0.5
+
+- 【deps】升级 `launch-ide` 版本至 `1.4.8`，通过 git 指令优化了 jetbrains 系列的 IDE 检测 workspace [#570](https://github.com/zh-lx/code-inspector/pull/570)
+
 ## 2.0.4
 
 - 【deps】升级 `launch-ide` 版本至 `1.4.6`，兼容了 `2026.2` 版本之后的 jetbrains 系列的 IDE [#569](https://github.com/zh-lx/code-inspector/pull/569)

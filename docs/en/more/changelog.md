@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.5
+
+- 【deps】Upgrade `launch-ide` version to `1.4.8`, optimized jetbrains IDE workspace detection via git commands [#570](https://github.com/zh-lx/code-inspector/pull/570)
+
 ## 2.0.4
 
 - 【deps】Upgrade `launch-ide` version to `1.4.6`, compatible with JetBrains IDEs after version `2026.2` [#569](https://github.com/zh-lx/code-inspector/pull/569)
