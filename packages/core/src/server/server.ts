@@ -4,13 +4,23 @@
 import http from 'http';
 import path from 'path';
 import chalk from 'chalk';
-import net from 'net';
 import { execSync } from 'child_process';
 import portFinder from 'portfinder';
 import { launchIDE } from 'launch-ide';
 import { DefaultPort } from '../shared/constant';
-import { getIP, getProjectRecord, setProjectRecord, findPort } from '../shared';
+import { getIP } from '../shared';
 import type { CodeOptions, RecordInfo } from '../shared';
+import {
+  clearServerRuntimeState,
+  getServerRuntimeState,
+  publishServerRuntimeState,
+} from '../shared/server-state';
+import { SERVER_PROTOCOL_VERSION } from '../shared/runtime-path';
+import {
+  getProjectId,
+  releaseServerStartupLock,
+  tryAcquireServerStartupLock,
+} from './server-lock';
 import {
   handleAIRequest,
   getAIOptions,
@@ -32,6 +42,13 @@ import {
 } from '../ai/server/ai-terminal';
 import { getEnvVariables } from 'launch-ide';
 import { isAuthorizedAIRequest } from '../ai/server/ai-auth';
+
+const HEALTH_CHECK_PATH = '/__code_inspector_health';
+const HEALTH_CHECK_TIMEOUT_MS = 500;
+const SERVER_START_TIMEOUT_MS = 10_000;
+const SERVER_COORDINATION_TIMEOUT_MS = 30_000;
+const SERVER_COORDINATION_POLL_MS = 100;
+const serverStartupPromises = new Map<string, Promise<void>>();
 
 /**
  * 获取项目 git 根目录
@@ -159,11 +176,27 @@ function handleIDERequest(
 export function createServer(
   callback: (port: number) => void,
   options?: CodeOptions,
-  record?: RecordInfo
+  record?: RecordInfo,
+  onError?: (error: Error) => void,
 ): http.Server {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '', `http://${req.headers.host}`);
     const pathname = url.pathname;
+
+    if (pathname === HEALTH_CHECK_PATH && req.method === 'GET') {
+      res.writeHead(200, {
+        ...CORS_HEADERS,
+        'Content-Type': 'application/json',
+      });
+      res.end(
+        JSON.stringify({
+          name: 'code-inspector',
+          projectId: getProjectId(),
+          protocolVersion: SERVER_PROTOCOL_VERSION,
+        }),
+      );
+      return;
+    }
 
     // 处理 CORS 预检请求
     if (req.method === 'OPTIONS') {
@@ -261,8 +294,14 @@ export function createServer(
     { port: options?.port ?? DefaultPort },
     (err: Error, port: number) => {
       if (err) {
-        throw err;
+        if (onError) {
+          onError(err);
+        } else {
+          throw err;
+        }
+        return;
       }
+      server.once('error', (error) => onError?.(error));
       server.listen(port, () => {
         callback(port);
       });
@@ -276,76 +315,166 @@ export function createServer(
 export const __TEST_ONLY__ = {
   createServer,
   getPort: portFinder.getPort.bind(portFinder),
+  isInspectorServer,
 };
 
-/**
- * 检查端口是否被占用
- */
-async function isPortOccupied(port: number): Promise<boolean> {
+async function isInspectorServer(
+  port: number,
+  projectId: string,
+): Promise<boolean> {
   return new Promise((resolve) => {
-    const server = net.createServer();
-    server.unref();
-
-    server.on('listening', () => {
-      server.close();
-      resolve(false);
+    let settled = false;
+    const finish = (result: boolean) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+    const request = http.get(
+      {
+        hostname: '127.0.0.1',
+        port,
+        path: HEALTH_CHECK_PATH,
+        timeout: HEALTH_CHECK_TIMEOUT_MS,
+      },
+      (response) => {
+        let body = '';
+        response.setEncoding('utf-8');
+        response.on('data', (chunk) => {
+          body += chunk;
+        });
+        response.on('end', () => {
+          try {
+            const result = JSON.parse(body);
+            finish(
+              response.statusCode === 200 &&
+                result.name === 'code-inspector' &&
+                result.projectId === projectId &&
+                result.protocolVersion === SERVER_PROTOCOL_VERSION,
+            );
+          } catch {
+            finish(false);
+          }
+        });
+      },
+    );
+    request.on('timeout', () => {
+      request.destroy();
+      finish(false);
     });
-
-    server.on('error', () => {
-      resolve(true);
-    });
-
-    server.listen(port);
+    request.on('error', () => finish(false));
   });
+}
+
+function createServerAndWait(
+  options: CodeOptions,
+  record: RecordInfo,
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let server: http.Server | undefined;
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      server?.close();
+      reject(new Error('Timed out starting the code-inspector server.'));
+    }, SERVER_START_TIMEOUT_MS);
+    const finish = (error?: Error, port?: number) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      if (error) {
+        reject(error);
+      } else {
+        resolve(port as number);
+      }
+    };
+
+    try {
+      server = __TEST_ONLY__.createServer(
+        (port) => finish(undefined, port),
+        options,
+        record,
+        (error) => finish(error),
+      );
+    } catch (error) {
+      finish(error as Error);
+    }
+  });
+}
+
+async function coordinateServerStartup(options: CodeOptions, record: RecordInfo) {
+  const projectId = getProjectId();
+  const deadline = Date.now() + SERVER_COORDINATION_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    const currentState = getServerRuntimeState(record);
+    const currentPort = currentState?.port;
+    if (
+      currentPort &&
+      (await __TEST_ONLY__.isInspectorServer(currentPort, projectId))
+    ) {
+      return;
+    }
+    const lock = tryAcquireServerStartupLock(record);
+    if (lock) {
+      try {
+        const publishedState = getServerRuntimeState(record);
+        const publishedPort = publishedState?.port;
+        if (
+          publishedPort &&
+          (await __TEST_ONLY__.isInspectorServer(publishedPort, projectId))
+        ) {
+          return;
+        }
+
+        clearServerRuntimeState(record, publishedState?.instanceId);
+        const port = await createServerAndWait(options, record);
+        publishServerRuntimeState(record, port, lock.token);
+        if (options.printServer) {
+          const info = [
+            chalk.blue('[code-inspector-plugin]'),
+            'Server is running on:',
+            chalk.green(`http://${getIP(options.ip || 'localhost')}:${port}`),
+          ];
+          console.log(info.join(' '));
+        }
+        return;
+      } catch (error) {
+        clearServerRuntimeState(record, lock.token);
+        throw error;
+      } finally {
+        releaseServerStartupLock(lock);
+      }
+    }
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, SERVER_COORDINATION_POLL_MS),
+    );
+  }
+
+  throw new Error('Timed out coordinating the code-inspector server startup.');
 }
 
 /**
  * 启动服务器
  */
-export async function startServer(options: CodeOptions, record: RecordInfo): Promise<void> {
-  const previousPort = getProjectRecord(record)?.port;
+export async function startServer(
+  options: CodeOptions,
+  record: RecordInfo,
+): Promise<void> {
+  const key = `${process.cwd()}\0${record.output}`;
+  let startupPromise = serverStartupPromises.get(key);
 
-  if (previousPort) {
-    const isOccupied = await isPortOccupied(previousPort);
-    if (isOccupied) {
-      // 端口已被占用，服务器已在运行
-      return;
+  if (!startupPromise) {
+    startupPromise = coordinateServerStartup(options, record);
+    serverStartupPromises.set(key, startupPromise);
+  }
+
+  try {
+    await startupPromise;
+  } finally {
+    if (serverStartupPromises.get(key) === startupPromise) {
+      serverStartupPromises.delete(key);
     }
-    // 端口可用，需要重启服务器
-    setProjectRecord(record, 'findPort', undefined);
-    setProjectRecord(record, 'port', undefined);
-  }
-
-  const restartServer = !getProjectRecord(record)?.findPort;
-
-  if (restartServer) {
-    const portPromise = new Promise<number>((resolve) => {
-      __TEST_ONLY__.createServer(
-        (port: number) => {
-          resolve(port);
-          if (options.printServer) {
-            const info = [
-              chalk.blue('[code-inspector-plugin]'),
-              'Server is running on:',
-              chalk.green(
-                `http://${getIP(options.ip || 'localhost')}:${options.port ?? DefaultPort}`
-              ),
-            ];
-            console.log(info.join(' '));
-          }
-        },
-        options,
-        record
-      );
-    });
-
-    setProjectRecord(record, 'findPort', 1);
-    const port = await portPromise;
-    setProjectRecord(record, 'port', port);
-  }
-
-  if (!getProjectRecord(record)?.port) {
-    const port = await findPort(record);
-    setProjectRecord(record, 'port', port);
   }
 }

@@ -6,6 +6,7 @@ import http from 'http';
 import net from 'net';
 import { createRequire } from 'module';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
+import { getRuntimeDirectory } from '@/core/src/shared/runtime-path';
 
 const mockHttpCreateServer = vi.hoisted(() => vi.fn());
 const mockNetCreateServer = vi.hoisted(() => vi.fn());
@@ -36,7 +37,9 @@ describe('startServer', () => {
     fs.mkdirSync(testDir, { recursive: true });
 
     mockHttpServer = {
+      once: vi.fn(),
       listen: vi.fn((port: number, callback: Function) => callback()),
+      close: vi.fn(),
     };
     mockHttpCreateServer.mockReturnValue(mockHttpServer as any);
 
@@ -76,9 +79,13 @@ describe('startServer', () => {
 
     serverModule = await import('@/core/src/server/server');
     recordCacheModule = await import('@/core/src/shared/record-cache');
+    vi.spyOn(serverModule.__TEST_ONLY__, 'isInspectorServer').mockImplementation(
+      async () => occupiedState,
+    );
   });
 
   afterEach(() => {
+    fs.rmSync(getRuntimeDirectory(testDir), { recursive: true, force: true });
     vi.restoreAllMocks();
     try {
       if (fs.existsSync(testDir)) {
@@ -89,7 +96,7 @@ describe('startServer', () => {
     }
   });
 
-  it('should not restart server if previous port is occupied', async () => {
+  it('should not restart a healthy inspector server', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/running');
 
     const record: RecordInfo = {
@@ -110,7 +117,7 @@ describe('startServer', () => {
     expect(mockHttpCreateServer).not.toHaveBeenCalled();
   });
 
-  it('should restart server when previous port is available', async () => {
+  it('should restart when the recorded port is not an inspector server', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/restart');
 
     const record: RecordInfo = {
@@ -123,15 +130,13 @@ describe('startServer', () => {
     };
 
     recordCacheModule.setProjectRecord(record, 'port', 7777);
-    recordCacheModule.setProjectRecord(record, 'findPort', 1);
-
     await serverModule.startServer(options, record);
 
     expect(mockHttpCreateServer).toHaveBeenCalled();
     expect(recordCacheModule.getProjectRecord(record)?.port).toBe(5678);
   });
 
-  it('should not restart server if findPort is already set and port exists', async () => {
+  it('should reuse a healthy recorded server', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/findport');
 
     const record: RecordInfo = {
@@ -143,7 +148,6 @@ describe('startServer', () => {
       bundler: 'vite',
     };
 
-    recordCacheModule.setProjectRecord(record, 'findPort', 1);
     recordCacheModule.setProjectRecord(record, 'port', 5678);
     occupiedState = true;
 
@@ -153,7 +157,7 @@ describe('startServer', () => {
     expect(mockHttpCreateServer).not.toHaveBeenCalled();
   });
 
-  it('should wait for port if findPort is set but port is not available yet', async () => {
+  it('should share one startup promise between concurrent calls', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/wait');
 
     const record: RecordInfo = {
@@ -165,17 +169,43 @@ describe('startServer', () => {
       bundler: 'vite',
     };
 
-    recordCacheModule.setProjectRecord(record, 'findPort', 1);
+    mockPortfinderGetPort.mockImplementationOnce(
+      (options: any, callback: any) => {
+        setTimeout(() => callback(null, options?.port || 9999), 50);
+      },
+    );
 
-    const promise = serverModule.startServer(options, record);
+    await Promise.all([
+      serverModule.startServer(options, record),
+      serverModule.startServer(options, record),
+    ]);
 
-    setTimeout(() => {
-      recordCacheModule.setProjectRecord(record, 'port', 9999);
-    }, 50);
+    expect(mockHttpCreateServer).toHaveBeenCalledTimes(1);
+    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(5678);
+  });
 
-    await promise;
+  it('releases the startup lock after a startup failure', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/startup-failure');
+    const record: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const options: CodeOptions = { bundler: 'vite' };
 
-    expect(recordCacheModule.getProjectRecord(record)?.port).toBe(9999);
+    mockPortfinderGetPort.mockImplementationOnce(
+      (_options: any, callback: any) => {
+        callback(new Error('port lookup failed'));
+      },
+    );
+
+    await expect(serverModule.startServer(options, record)).rejects.toThrow(
+      'port lookup failed',
+    );
+    await expect(
+      serverModule.startServer(options, record),
+    ).resolves.toBeUndefined();
+    expect(mockHttpCreateServer).toHaveBeenCalledTimes(2);
   });
 
   it('should print server info when printServer is true', async () => {

@@ -75,6 +75,7 @@ describe('createServer', () => {
     mockIsAuthorizedAIRequest.mockReturnValue(true);
 
     mockServer = {
+      once: vi.fn(),
       listen: vi.fn((port: number, callback: Function) => {
         callback();
       }),
@@ -170,6 +171,30 @@ describe('createServer', () => {
   });
 
   describe('request handling', () => {
+    it('should expose a project-scoped health check', () => {
+      serverModule.createServer(vi.fn());
+      const mockRes = { writeHead: vi.fn(), end: vi.fn() };
+
+      requestHandler(
+        {
+          url: '/__code_inspector_health',
+          method: 'GET',
+          headers: { host: 'localhost:5678' },
+        },
+        mockRes,
+      );
+
+      expect(mockRes.writeHead).toHaveBeenCalledWith(
+        200,
+        expect.objectContaining({ 'Content-Type': 'application/json' }),
+      );
+      expect(JSON.parse(mockRes.end.mock.calls[0][0])).toEqual({
+        name: 'code-inspector',
+        projectId: expect.any(String),
+        protocolVersion: 1,
+      });
+    });
+
     it('should handle request with file, line, and column parameters', () => {
       const afterInspectRequest = vi.fn();
       serverModule.createServer(vi.fn(), {
