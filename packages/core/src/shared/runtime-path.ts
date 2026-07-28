@@ -27,6 +27,32 @@ function getUserId() {
   return value.replace(/[^a-zA-Z0-9_.-]/g, '_');
 }
 
+function ensurePrivateDirectory(directory: string) {
+  try {
+    fs.mkdirSync(directory, { mode: 0o700 });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+      throw error;
+    }
+  }
+
+  const stat = fs.lstatSync(directory);
+  if (!stat.isDirectory() || stat.isSymbolicLink()) {
+    throw new Error(`Unsafe code-inspector runtime directory: ${directory}`);
+  }
+
+  if (process.platform !== 'win32' && typeof process.getuid === 'function') {
+    if (stat.uid !== process.getuid()) {
+      throw new Error(
+        `The code-inspector runtime directory is not owned by the current user: ${directory}`,
+      );
+    }
+    if ((stat.mode & 0o077) !== 0) {
+      fs.chmodSync(directory, 0o700);
+    }
+  }
+}
+
 export function getProjectId() {
   return getStringHash(process.cwd());
 }
@@ -35,15 +61,15 @@ export function getRuntimeDirectory(output: string) {
   const identity = `${process.cwd()}\0${path.resolve(output)}\0${SERVER_PROTOCOL_VERSION}`;
   return path.join(
     os.tmpdir(),
-    'code-inspector-plugin',
-    getUserId(),
+    `code-inspector-plugin-${getUserId()}`,
     getStringHash(identity),
   );
 }
 
 export function ensureRuntimeDirectory(output: string) {
   const directory = getRuntimeDirectory(output);
-  fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+  ensurePrivateDirectory(path.dirname(directory));
+  ensurePrivateDirectory(directory);
   return directory;
 }
 

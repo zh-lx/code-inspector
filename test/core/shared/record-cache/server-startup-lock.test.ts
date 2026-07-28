@@ -59,6 +59,61 @@ describe('server startup lock', () => {
     expect(fs.existsSync(lockPath)).toBe(true);
   });
 
+  it('does not reclaim an old lock while its owner is still running', () => {
+    const lockPath = getServerStartupLockPath(record);
+    fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+    fs.writeFileSync(
+      lockPath,
+      JSON.stringify({
+        pid: process.pid,
+        createdAt: Date.now() - 60_000,
+        token: 'live',
+      }),
+    );
+
+    expect(tryAcquireServerStartupLock(record)).toBeUndefined();
+    expect(JSON.parse(fs.readFileSync(lockPath, 'utf-8')).token).toBe('live');
+  });
+
+  it('recovers an old malformed lock without deleting a replacement', () => {
+    const lockPath = getServerStartupLockPath(record);
+    fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+    fs.writeFileSync(lockPath, '');
+    const old = new Date(Date.now() - 60_000);
+    fs.utimesSync(lockPath, old, old);
+
+    expect(tryAcquireServerStartupLock(record)).toBeDefined();
+  });
+
+  it('rechecks lock ownership after acquiring recovery ownership', () => {
+    const lockPath = getServerStartupLockPath(record);
+    fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+    fs.writeFileSync(
+      lockPath,
+      JSON.stringify({ pid: 2147483647, createdAt: Date.now(), token: 'dead' }),
+    );
+    const mkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, 'mkdirSync').mockImplementation(((directory: fs.PathLike) => {
+      const result = mkdirSync(directory);
+      if (String(directory).endsWith('.recovery')) {
+        fs.writeFileSync(
+          lockPath,
+          JSON.stringify({
+            pid: process.pid,
+            createdAt: Date.now(),
+            token: 'replacement',
+          }),
+        );
+      }
+      return result;
+    }) as typeof fs.mkdirSync);
+
+    expect(tryAcquireServerStartupLock(record)).toBeUndefined();
+    expect(JSON.parse(fs.readFileSync(lockPath, 'utf-8')).token).toBe(
+      'replacement',
+    );
+  });
+
   it('does not let a previous owner release a replacement lock', () => {
     const first = tryAcquireServerStartupLock(record)!;
     fs.rmSync(first.path, { force: true });

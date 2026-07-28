@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
+  ensureRuntimeDirectory,
   getBuildStateFilePath,
   getProjectId,
   getRuntimeDirectory,
@@ -61,6 +62,51 @@ describe('runtime path', () => {
 
       expect(fs.statSync(getRuntimeDirectory(output)).mode & 0o777).toBe(0o700);
       expect(fs.statSync(filePath).mode & 0o777).toBe(0o600);
+    },
+  );
+
+  it.runIf(process.platform !== 'win32')(
+    'repairs unsafe permissions on an existing owned directory',
+    () => {
+      const directory = getRuntimeDirectory(output);
+      fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+      fs.chmodSync(directory, 0o777);
+
+      ensureRuntimeDirectory(output);
+
+      expect(fs.statSync(directory).mode & 0o777).toBe(0o700);
+    },
+  );
+
+  it.runIf(process.platform !== 'win32')(
+    'rejects a symlink used as the project runtime directory',
+    () => {
+      const directory = getRuntimeDirectory(output);
+      fs.mkdirSync(path.dirname(directory), { recursive: true, mode: 0o700 });
+      fs.symlinkSync(output, directory, 'dir');
+
+      expect(() => ensureRuntimeDirectory(output)).toThrow(
+        'Unsafe code-inspector runtime directory',
+      );
+    },
+  );
+
+  it.runIf(process.platform !== 'win32')(
+    'rejects a runtime directory owned by another user',
+    () => {
+      const directory = ensureRuntimeDirectory(output);
+      const lstatSync = fs.lstatSync.bind(fs);
+      vi.spyOn(fs, 'lstatSync').mockImplementation(((target: fs.PathLike) => {
+        const stat = lstatSync(target);
+        if (String(target) === directory) {
+          Object.defineProperty(stat, 'uid', { value: stat.uid + 1 });
+        }
+        return stat;
+      }) as typeof fs.lstatSync);
+
+      expect(() => ensureRuntimeDirectory(output)).toThrow(
+        'is not owned by the current user',
+      );
     },
   );
 });

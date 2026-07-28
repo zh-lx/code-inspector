@@ -4,9 +4,15 @@ import path from 'path';
 import os from 'os';
 import http from 'http';
 import net from 'net';
+import { EventEmitter } from 'events';
 import { createRequire } from 'module';
 import type { RecordInfo, CodeOptions } from '@/core/src/shared/type';
 import { getRuntimeDirectory } from '@/core/src/shared/runtime-path';
+import {
+  getServerStartupLockPath,
+  releaseServerStartupLock,
+  tryAcquireServerStartupLock,
+} from '@/core/src/server/server-lock';
 
 const mockHttpCreateServer = vi.hoisted(() => vi.fn());
 const mockNetCreateServer = vi.hoisted(() => vi.fn());
@@ -85,6 +91,7 @@ describe('startServer', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     fs.rmSync(getRuntimeDirectory(testDir), { recursive: true, force: true });
     vi.restoreAllMocks();
     try {
@@ -94,6 +101,91 @@ describe('startServer', () => {
     } catch {
       // Ignore cleanup errors
     }
+  });
+
+  it('validates inspector health responses for the current project', async () => {
+    vi.mocked(serverModule.__TEST_ONLY__.isInspectorServer).mockRestore();
+    const response = new EventEmitter() as EventEmitter & {
+      statusCode: number;
+      setEncoding: ReturnType<typeof vi.fn>;
+    };
+    response.statusCode = 200;
+    response.setEncoding = vi.fn();
+    const request = new EventEmitter() as EventEmitter & {
+      destroy: ReturnType<typeof vi.fn>;
+    };
+    request.destroy = vi.fn();
+    const get = vi.spyOn(http, 'get').mockImplementation(((options, callback) => {
+      queueMicrotask(() => {
+        callback(response as any);
+        response.emit(
+          'data',
+          JSON.stringify({
+            name: 'code-inspector',
+            projectId: 'health-project',
+            protocolVersion: 1,
+          }),
+        );
+        response.emit('end');
+      });
+      return request as any;
+    }) as typeof http.get);
+
+    await expect(
+      serverModule.__TEST_ONLY__.isInspectorServer(5678, 'health-project'),
+    ).resolves.toBe(true);
+    expect(get.mock.calls[0]?.[0]).toMatchObject({
+      hostname: '127.0.0.1',
+      port: 5678,
+      path: '/__code_inspector_health',
+    });
+    expect(response.setEncoding).toHaveBeenCalledWith('utf-8');
+  });
+
+  it('rejects malformed health responses and request failures', async () => {
+    vi.mocked(serverModule.__TEST_ONLY__.isInspectorServer).mockRestore();
+    const createRequest = (event: 'end' | 'timeout' | 'error') => {
+      const response = new EventEmitter() as EventEmitter & {
+        statusCode: number;
+        setEncoding: ReturnType<typeof vi.fn>;
+      };
+      response.statusCode = 500;
+      response.setEncoding = vi.fn();
+      const request = new EventEmitter() as EventEmitter & {
+        destroy: ReturnType<typeof vi.fn>;
+      };
+      request.destroy = vi.fn();
+      vi.spyOn(http, 'get').mockImplementationOnce(((_options, callback) => {
+        queueMicrotask(() => {
+          if (event === 'end') {
+            callback(response as any);
+            response.emit('data', '{invalid');
+            response.emit('end');
+          } else {
+            request.emit(event, new Error(event));
+            request.emit('error', new Error('late error'));
+          }
+        });
+        return request as any;
+      }) as typeof http.get);
+      return request;
+    };
+
+    createRequest('end');
+    await expect(
+      serverModule.__TEST_ONLY__.isInspectorServer(5678, 'project'),
+    ).resolves.toBe(false);
+
+    const timedOutRequest = createRequest('timeout');
+    await expect(
+      serverModule.__TEST_ONLY__.isInspectorServer(5678, 'project'),
+    ).resolves.toBe(false);
+    expect(timedOutRequest.destroy).toHaveBeenCalled();
+
+    createRequest('error');
+    await expect(
+      serverModule.__TEST_ONLY__.isInspectorServer(5678, 'project'),
+    ).resolves.toBe(false);
   });
 
   it('should not restart a healthy inspector server', async () => {
@@ -157,6 +249,20 @@ describe('startServer', () => {
     expect(mockHttpCreateServer).not.toHaveBeenCalled();
   });
 
+  it('rechecks published state after acquiring the startup lock', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/recheck');
+    const record: RecordInfo = { port: 0, entry: '', output: testDir };
+    recordCacheModule.setProjectRecord(record, 'port', 5678);
+    vi.mocked(serverModule.__TEST_ONLY__.isInspectorServer)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    await serverModule.startServer({ bundler: 'vite' }, record);
+
+    expect(serverModule.__TEST_ONLY__.isInspectorServer).toHaveBeenCalledTimes(2);
+    expect(mockHttpCreateServer).not.toHaveBeenCalled();
+  });
+
   it('should share one startup promise between concurrent calls', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/wait');
 
@@ -206,6 +312,59 @@ describe('startServer', () => {
       serverModule.startServer(options, record),
     ).resolves.toBeUndefined();
     expect(mockHttpCreateServer).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects when server creation throws synchronously', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/create-throws');
+    vi.spyOn(serverModule.__TEST_ONLY__, 'createServer').mockImplementationOnce(
+      () => {
+        throw new Error('create failed');
+      },
+    );
+
+    await expect(
+      serverModule.startServer(
+        { bundler: 'vite' },
+        { port: 0, entry: '', output: testDir },
+      ),
+    ).rejects.toThrow('create failed');
+  });
+
+  it('times out when the server does not finish starting', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/start-timeout');
+    vi.spyOn(serverModule.__TEST_ONLY__, 'createServer').mockReturnValueOnce(
+      mockHttpServer,
+    );
+    const startup = serverModule.startServer(
+      { bundler: 'vite' },
+      { port: 0, entry: '', output: testDir },
+    );
+    const rejection = expect(startup).rejects.toThrow(
+      'Timed out starting the code-inspector server',
+    );
+
+    await vi.advanceTimersByTimeAsync(10_001);
+
+    await rejection;
+    expect(mockHttpServer.close).toHaveBeenCalled();
+  });
+
+  it('times out when another live process keeps the startup lock', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/lock-timeout');
+    const record: RecordInfo = { port: 0, entry: '', output: testDir };
+    const lock = tryAcquireServerStartupLock(record)!;
+    vi.useFakeTimers();
+    const startup = serverModule.startServer({ bundler: 'vite' }, record);
+    const rejection = expect(startup).rejects.toThrow(
+      'Timed out coordinating the code-inspector server startup',
+    );
+
+    await vi.advanceTimersByTimeAsync(30_001);
+
+    await rejection;
+    expect(fs.existsSync(getServerStartupLockPath(record))).toBe(true);
+    releaseServerStartupLock(lock);
   });
 
   it('should print server info when printServer is true', async () => {
