@@ -15,7 +15,11 @@ import {
   getServerRuntimeState,
   publishServerRuntimeState,
 } from '../shared/server-state';
-import { SERVER_PROTOCOL_VERSION, getProjectId } from '../shared/runtime-path';
+import {
+  SERVER_PROTOCOL_VERSION,
+  getProjectId,
+  getRuntimeDirectory,
+} from '../shared/runtime-path';
 import {
   releaseServerStartupLock,
   tryAcquireServerStartupLock,
@@ -491,8 +495,8 @@ export async function startServer(
   options: CodeOptions,
   record: RecordInfo,
 ): Promise<void> {
-  // Include output to isolate build targets; NUL avoids ambiguous path concatenation.
-  const key = `${process.cwd()}\0${record.output}`;
+  // Use the same canonical identity as the cross-process lock and runtime state.
+  const key = getRuntimeDirectory(record.output);
   let startupPromise = serverStartupPromises.get(key);
 
   if (!startupPromise) {

@@ -290,6 +290,35 @@ describe('startServer', () => {
     expect(recordCacheModule.getProjectRecord(record)?.port).toBe(5678);
   });
 
+  it('shares startup work for equivalent relative and absolute outputs', async () => {
+    const projectDir = path.dirname(testDir);
+    vi.spyOn(process, 'cwd').mockReturnValue(projectDir);
+    const options: CodeOptions = { bundler: 'vite' };
+    const absoluteRecord: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: testDir,
+    };
+    const relativeRecord: RecordInfo = {
+      port: 0,
+      entry: '',
+      output: path.relative(projectDir, testDir),
+    };
+
+    mockPortfinderGetPort.mockImplementationOnce(
+      (options: any, callback: any) => {
+        setTimeout(() => callback(null, options?.port || 9999), 50);
+      },
+    );
+
+    await Promise.all([
+      serverModule.startServer(options, relativeRecord),
+      serverModule.startServer(options, absoluteRecord),
+    ]);
+
+    expect(mockHttpCreateServer).toHaveBeenCalledTimes(1);
+  });
+
   it('releases the startup lock after a startup failure', async () => {
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/startup-failure');
     const record: RecordInfo = {
