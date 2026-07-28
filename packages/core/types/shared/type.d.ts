@@ -296,8 +296,6 @@ export type RecordInfo = {
     port: number;
     entry: string;
     output: string;
-    /** @deprecated Server startup is now coordinated with an atomic lock. */
-    findPort?: Promise<number>;
     inputs?: Promise<string[]>;
     injectTo?: string[];
     envDir?: string;

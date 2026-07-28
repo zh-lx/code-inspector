@@ -52,7 +52,6 @@ export const updateProjectRecord = (
   const port = patch.port;
   const buildPatch: Partial<RecordInfo> = { ...patch };
   delete buildPatch.port;
-  delete buildPatch.findPort;
 
   if (Object.prototype.hasOwnProperty.call(patch, 'port')) {
     if (port) {

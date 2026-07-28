@@ -51,4 +51,3 @@ export declare class AITerminalManager {
     private detachTerminal;
     private injectCSS;
 }
-export declare function checkTerminalAvailable(ip: string, port: number, token?: string): Promise<boolean>;
