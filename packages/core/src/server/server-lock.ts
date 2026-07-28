@@ -15,13 +15,7 @@ export interface ServerStartupLock {
   token: string;
 }
 
-interface ServerStartupLockContent {
-  pid: number;
-  createdAt: number;
-  token: string;
-}
-
-interface ServerStartupLockRecovery {
+interface ServerStartupLockMetadata {
   pid: number;
   createdAt: number;
   token: string;
@@ -33,7 +27,7 @@ export function getServerStartupLockPath(record: RecordInfo) {
 
 function readServerStartupLock(
   lockPath: string,
-): ServerStartupLockContent | undefined {
+): ServerStartupLockMetadata | undefined {
   try {
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf-8'));
     if (
@@ -76,7 +70,7 @@ function removeServerStartupLock(lockPath: string, token: string) {
 
 function isStaleServerStartupLock(
   lockPath: string,
-  lock?: ServerStartupLockContent,
+  lock?: ServerStartupLockMetadata,
 ) {
   if (!lock) {
     try {
@@ -97,7 +91,7 @@ function getRecoveryPath(lockPath: string) {
 
 function readServerStartupLockRecovery(
   recoveryPath: string,
-): ServerStartupLockRecovery | undefined {
+): ServerStartupLockMetadata | undefined {
   try {
     const recovery = JSON.parse(
       fs.readFileSync(path.join(recoveryPath, 'owner.json'), 'utf-8'),
@@ -151,7 +145,7 @@ function tryAcquireRecovery(lockPath: string) {
     try {
       // Atomic directory creation elects a single lock reclaimer across processes.
       fs.mkdirSync(recoveryPath);
-      const recovery: ServerStartupLockRecovery = {
+      const recovery: ServerStartupLockMetadata = {
         pid: process.pid,
         createdAt: Date.now(),
         token,
@@ -177,7 +171,7 @@ function tryAcquireRecovery(lockPath: string) {
 
 function reclaimServerStartupLock(
   lockPath: string,
-  observedLock?: ServerStartupLockContent,
+  observedLock?: ServerStartupLockMetadata,
 ) {
   const recovery = tryAcquireRecovery(lockPath);
   if (!recovery) return false;
@@ -192,16 +186,18 @@ function reclaimServerStartupLock(
       ) {
         return false;
       }
-    } else if (
-      currentLock ||
-      !isStaleServerStartupLock(lockPath, currentLock)
-    ) {
-      return false;
+    } else {
+      // Without an observed token, never remove a valid replacement lock.
+      if (currentLock) return false;
+      // A malformed lock may still be between atomic creation and metadata write.
+      if (!isStaleServerStartupLock(lockPath)) return false;
     }
     fs.unlinkSync(lockPath);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    // Another reclaimer may remove the stale lock before us. The caller can retry
+    // acquisition because there is no longer a lock to reclaim.
+    return (error as NodeJS.ErrnoException).code === 'ENOENT';
   } finally {
     removeRecovery(recovery.path, recovery.token);
   }
@@ -221,7 +217,7 @@ export function tryAcquireServerStartupLock(
     const token = `${process.pid}-${Date.now()}-${crypto
       .randomBytes(8)
       .toString('hex')}`;
-    const lock: ServerStartupLockContent = {
+    const lock: ServerStartupLockMetadata = {
       pid: process.pid,
       createdAt: Date.now(),
       token,

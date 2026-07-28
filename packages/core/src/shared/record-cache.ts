@@ -75,8 +75,7 @@ export const updateProjectRecord = (
       if (value === undefined) {
         delete buildState[key as keyof RecordInfo];
       } else {
-        // @ts-ignore RecordInfo contains fields with different value types.
-        buildState[key] = value;
+        (buildState as Record<string, unknown>)[key] = value;
       }
     });
     writeBuildState(record.output, buildState);
@@ -104,21 +103,4 @@ export const setProjectRecord = (
   value: RecordInfo[keyof RecordInfo],
 ) => {
   updateProjectRecord(record, { [key]: value });
-};
-
-export const findPort = async (
-  record: RecordInfo,
-  timeoutMs = 10_000,
-): Promise<number> => {
-  const deadline = Date.now() + timeoutMs;
-
-  while (Date.now() < deadline) {
-    const port = getProjectRecord(record)?.port;
-    if (port) {
-      return port;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-
-  throw new Error('Timed out waiting for the code-inspector server port.');
 };

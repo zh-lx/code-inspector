@@ -254,6 +254,22 @@ describe('server startup lock', () => {
     expect(fs.existsSync(lockPath)).toBe(true);
   });
 
+  it('retries acquisition when the stale lock disappears during recovery', () => {
+    const lockPath = getServerStartupLockPath(record);
+    const openSync = vi
+      .spyOn(fs, 'openSync')
+      .mockImplementationOnce(() => {
+        throw Object.assign(new Error('lock disappeared'), { code: 'EEXIST' });
+      });
+
+    const lock = tryAcquireServerStartupLock(record);
+
+    expect(lock).toBeDefined();
+    expect(fs.existsSync(lockPath)).toBe(true);
+    expect(openSync).toHaveBeenCalledTimes(2);
+    openSync.mockRestore();
+  });
+
   it('handles a filesystem failure while reclaiming a dead lock', () => {
     const lockPath = getServerStartupLockPath(record);
     fs.mkdirSync(path.dirname(lockPath), { recursive: true });

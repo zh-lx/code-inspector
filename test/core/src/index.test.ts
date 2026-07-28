@@ -113,6 +113,5 @@ describe('core/src/index exports', () => {
     expect(typeof exports.resetFileRecord).toBe('function');
     expect(typeof exports.getProjectRecord).toBe('function');
     expect(typeof exports.setProjectRecord).toBe('function');
-    expect(typeof exports.findPort).toBe('function');
   });
 });
