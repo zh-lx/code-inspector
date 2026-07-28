@@ -70,6 +70,22 @@ describe('project record updates', () => {
     });
   });
 
+  it('prefers cached build state over an older readable file', () => {
+    setProjectRecord(record, 'entry', '/project/src/old.ts');
+    vi.spyOn(fs, 'renameSync').mockImplementationOnce(() => {
+      throw new Error('rename failed');
+    });
+
+    setProjectRecord(record, 'entry', '/project/src/latest.ts');
+
+    expect(getProjectRecord(record)).toEqual({
+      entry: '/project/src/latest.ts',
+    });
+    expect(
+      JSON.parse(fs.readFileSync(getBuildStateFilePath(output), 'utf-8')),
+    ).toEqual({ entry: '/project/src/old.ts' });
+  });
+
   it('stores the server port separately from build state', () => {
     setProjectRecord(record, 'entry', '/project/src/main.ts');
     setProjectRecord(record, 'port', 5678);

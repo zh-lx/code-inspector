@@ -24,6 +24,7 @@ export function getServerRuntimeState(
   const state = readRuntimeJsonFile<ServerRuntimeState>(
     getServerStateFilePath(record.output),
   );
+  // Ignore foreign or obsolete metadata; the health check separately verifies liveness.
   if (
     state?.protocolVersion !== SERVER_PROTOCOL_VERSION ||
     state.projectId !== getProjectId() ||
@@ -64,6 +65,7 @@ export function clearServerRuntimeState(
   const filePath = getServerStateFilePath(record.output);
   try {
     const current = readRuntimeJsonFile<ServerRuntimeState>(filePath);
+    // Conditional deletion keeps a failed old instance from clearing newer state.
     if (expectedInstanceId && current?.instanceId !== expectedInstanceId) {
       return false;
     }

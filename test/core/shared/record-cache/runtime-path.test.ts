@@ -44,8 +44,8 @@ describe('runtime path', () => {
 
     expect(getRuntimeDirectory(output)).not.toBe(first);
     expect(getProjectId()).not.toBe(firstProjectId);
-    expect(firstProjectId).toMatch(/^[0-9a-f]{16}$/);
-    expect(path.basename(first)).toMatch(/^[0-9a-f]{16}$/);
+    expect(firstProjectId).toMatch(/^[0-9a-f]{64}$/);
+    expect(path.basename(first)).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it('uses separate runtime directories for different package outputs', () => {

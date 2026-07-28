@@ -159,6 +159,20 @@ describe('createServer', () => {
     expect(result).toBe(mockServer);
   });
 
+  it('should not suppress listen errors when no error callback is provided', () => {
+    serverModule.createServer(vi.fn());
+
+    expect(mockServer.once).not.toHaveBeenCalled();
+  });
+
+  it('should forward listen errors when an error callback is provided', () => {
+    const onError = vi.fn();
+
+    serverModule.createServer(vi.fn(), undefined, undefined, onError);
+
+    expect(mockServer.once).toHaveBeenCalledWith('error', onError);
+  });
+
   it('should throw when getPort returns an error', () => {
     const callback = vi.fn();
     mockPortfinderGetPort.mockImplementationOnce(

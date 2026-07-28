@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -5,19 +6,6 @@ import path from 'path';
 export const SERVER_PROTOCOL_VERSION = 1;
 
 let temporaryFileSequence = 0;
-
-function getStringHash(value: string) {
-  let first = 5381;
-  let second = 52711;
-  for (let index = 0; index < value.length; index += 1) {
-    const code = value.charCodeAt(index);
-    first = Math.imul(first, 33) ^ code;
-    second = Math.imul(second, 65599) + code;
-  }
-  return [first, second]
-    .map((part) => (part >>> 0).toString(16).padStart(8, '0'))
-    .join('');
-}
 
 function getUserId() {
   const value =
@@ -37,6 +25,7 @@ function ensurePrivateDirectory(directory: string) {
   }
 
   const stat = fs.lstatSync(directory);
+  // Reject symlinks so runtime files cannot be redirected to an unexpected location.
   if (!stat.isDirectory() || stat.isSymbolicLink()) {
     throw new Error(`Unsafe code-inspector runtime directory: ${directory}`);
   }
@@ -54,15 +43,16 @@ function ensurePrivateDirectory(directory: string) {
 }
 
 export function getProjectId() {
-  return getStringHash(process.cwd());
+  return crypto.createHash('sha256').update(process.cwd()).digest('hex');
 }
 
 export function getRuntimeDirectory(output: string) {
+  // Isolate runtime state by user, project, output target, and protocol version.
   const identity = `${process.cwd()}\0${path.resolve(output)}\0${SERVER_PROTOCOL_VERSION}`;
   return path.join(
     os.tmpdir(),
     `code-inspector-plugin-${getUserId()}`,
-    getStringHash(identity),
+    crypto.createHash('sha256').update(identity).digest('hex'),
   );
 }
 
@@ -101,5 +91,6 @@ export function writeRuntimeJsonFile<T>(
     encoding: 'utf-8',
     mode: 0o600,
   });
+  // Rename a complete same-directory temp file so readers never see partial JSON.
   fs.renameSync(temporaryPath, filePath);
 }

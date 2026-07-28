@@ -13,9 +13,10 @@ import {
 const BuildStateCache = new Map<string, Partial<RecordInfo>>();
 
 function getBuildState(output: string) {
+  const filePath = getBuildStateFilePath(output);
   return (
-    readRuntimeJsonFile<Partial<RecordInfo>>(getBuildStateFilePath(output)) ||
-    BuildStateCache.get(getBuildStateFilePath(output))
+    BuildStateCache.get(filePath) ||
+    readRuntimeJsonFile<Partial<RecordInfo>>(filePath)
   );
 }
 
@@ -25,6 +26,7 @@ function writeBuildState(output: string, state: Partial<RecordInfo>) {
     writeRuntimeJsonFile(output, filePath, state);
     BuildStateCache.delete(filePath);
   } catch {
+    // Keep an in-memory fallback when runtime storage is unavailable, as before.
     BuildStateCache.set(filePath, state);
   }
 }
@@ -33,6 +35,7 @@ export const resetFileRecord = (output: string) => {
   const serverState = getServerRuntimeState({ output });
   const currentBuildState = getBuildState(output);
   writeBuildState(output, {
+    // Preserve the latest port for callers that still consume previousPort on rebuild.
     previousPort:
       serverState?.port ||
       currentBuildState?.port ||
@@ -45,6 +48,7 @@ export const updateProjectRecord = (
   record: RecordInfo,
   patch: Partial<RecordInfo>,
 ) => {
+  // Keep server runtime state separate from build state to avoid concurrent overwrites.
   const port = patch.port;
   const buildPatch: Partial<RecordInfo> = { ...patch };
   delete buildPatch.port;
@@ -52,6 +56,7 @@ export const updateProjectRecord = (
 
   if (Object.prototype.hasOwnProperty.call(patch, 'port')) {
     if (port) {
+      // Support legacy port writes; coordinated startup uses the lock token instead.
       publishServerRuntimeState(
         record,
         port,
@@ -87,6 +92,7 @@ export const getProjectRecord = (
     return undefined;
   }
   return {
+    // Merge both stores into the legacy RecordInfo shape expected by existing callers.
     ...buildState,
     ...(serverState ? { port: serverState.port } : {}),
   };

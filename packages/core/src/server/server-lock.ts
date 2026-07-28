@@ -4,7 +4,6 @@ import path from 'path';
 import type { RecordInfo } from '../shared/type';
 import {
   ensureRuntimeDirectory,
-  getProjectId,
   getRuntimeDirectory,
 } from '../shared/runtime-path';
 
@@ -27,8 +26,6 @@ interface ServerStartupLockRecovery {
   createdAt: number;
   token: string;
 }
-
-export { getProjectId };
 
 export function getServerStartupLockPath(record: RecordInfo) {
   return path.join(getRuntimeDirectory(record.output), 'startup.lock');
@@ -54,9 +51,11 @@ function readServerStartupLock(
 
 function isProcessRunning(pid: number) {
   try {
+    // Signal 0 does not terminate the process; it only probes whether the PID exists.
     process.kill(pid, 0);
     return true;
   } catch (error) {
+    // EPERM means the process exists but the current user cannot signal it.
     return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
 }
@@ -64,6 +63,7 @@ function isProcessRunning(pid: number) {
 function removeServerStartupLock(lockPath: string, token: string) {
   try {
     const current = readServerStartupLock(lockPath);
+    // The lock may have been reclaimed and recreated; only its owner may remove it.
     if (current?.token !== token) {
       return false;
     }
@@ -80,7 +80,10 @@ function isStaleServerStartupLock(
 ) {
   if (!lock) {
     try {
-      return Date.now() - fs.statSync(lockPath).mtimeMs > STARTUP_LOCK_MAX_AGE_MS;
+      // An unreadable lock may still be in flight, so allow time before reclaiming it.
+      return (
+        Date.now() - fs.statSync(lockPath).mtimeMs > STARTUP_LOCK_MAX_AGE_MS
+      );
     } catch {
       return true;
     }
@@ -118,7 +121,9 @@ function isStaleRecovery(recoveryPath: string) {
     return !isProcessRunning(recovery.pid);
   }
   try {
-    return Date.now() - fs.statSync(recoveryPath).mtimeMs > STARTUP_LOCK_MAX_AGE_MS;
+    return (
+      Date.now() - fs.statSync(recoveryPath).mtimeMs > STARTUP_LOCK_MAX_AGE_MS
+    );
   } catch {
     return true;
   }
@@ -144,6 +149,7 @@ function tryAcquireRecovery(lockPath: string) {
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
+      // Atomic directory creation elects a single lock reclaimer across processes.
       fs.mkdirSync(recoveryPath);
       const recovery: ServerStartupLockRecovery = {
         pid: process.pid,
@@ -177,6 +183,7 @@ function reclaimServerStartupLock(
   if (!recovery) return false;
 
   try {
+    // Re-read after acquiring recovery ownership to avoid a check/delete TOCTOU race.
     const currentLock = readServerStartupLock(lockPath);
     if (observedLock) {
       if (
@@ -221,6 +228,7 @@ export function tryAcquireServerStartupLock(
     };
 
     try {
+      // `wx` atomically creates the file only when no other process owns the lock.
       const descriptor = fs.openSync(lockPath, 'wx');
       try {
         fs.writeFileSync(descriptor, JSON.stringify(lock), 'utf-8');
@@ -237,6 +245,7 @@ export function tryAcquireServerStartupLock(
       if (!isStaleServerStartupLock(lockPath, existingLock)) {
         return undefined;
       }
+      // Reclaim once and retry; a second race is left to the outer polling loop.
       if (!reclaimServerStartupLock(lockPath, existingLock)) {
         return undefined;
       }

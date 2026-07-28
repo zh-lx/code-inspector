@@ -1,5 +1,4 @@
 import type { RecordInfo } from '../shared/type';
-import { getProjectId } from '../shared/runtime-path';
 export interface ServerStartupLock {
     path: string;
     token: string;
@@ -14,7 +13,6 @@ interface ServerStartupLockRecovery {
     createdAt: number;
     token: string;
 }
-export { getProjectId };
 export declare function getServerStartupLockPath(record: RecordInfo): string;
 declare function readServerStartupLock(lockPath: string): ServerStartupLockContent | undefined;
 declare function removeServerStartupLock(lockPath: string, token: string): boolean;
@@ -41,3 +39,4 @@ export declare const __TEST_ONLY__: {
     removeServerStartupLock: typeof removeServerStartupLock;
     tryAcquireRecovery: typeof tryAcquireRecovery;
 };
+export {};
