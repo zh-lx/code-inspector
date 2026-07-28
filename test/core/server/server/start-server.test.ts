@@ -380,8 +380,10 @@ describe('startServer', () => {
     const timeoutCallback = timeoutSpy.mock.calls.find(
       ([, delay]) => delay === 10_000,
     )?.[0];
-    expect(timeoutCallback).toBeTypeOf('function');
-    (timeoutCallback as () => void)();
+    if (typeof timeoutCallback !== 'function') {
+      throw new Error('Expected the server startup timeout to be scheduled.');
+    }
+    timeoutCallback();
     expect(mockHttpServer.close).not.toHaveBeenCalled();
   });
 
