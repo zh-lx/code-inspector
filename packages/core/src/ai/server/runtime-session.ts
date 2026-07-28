@@ -168,7 +168,7 @@ export function getRuntimeSession(
   return sessions.get(sessionId) || null;
 }
 
-export function listRuntimeSessions(): RuntimeSessionRecord[] {
+function listRuntimeSessions(): RuntimeSessionRecord[] {
   return Array.from(sessions.values());
 }
 
@@ -334,5 +334,6 @@ export function getRuntimeSessionSnapshot(sessionId: string): {
 
 export const __TEST_ONLY__ = {
   destroyRuntimeSession,
+  listRuntimeSessions,
   scheduleRuntimeCleanup,
 };

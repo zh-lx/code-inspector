@@ -7,7 +7,6 @@ import {
   emitRuntimeEvent,
   getRuntimeSession,
   getRuntimeSessionSnapshot,
-  listRuntimeSessions,
   markRuntimeSessionRunning,
   setRuntimeSessionHooks,
   subscribeRuntimeSession,
@@ -106,9 +105,9 @@ describe('runtime session manager', () => {
       lastSeq: 0,
       metadata: { provider: 'codex', model: 'gpt-5-codex' },
     });
-    expect(listRuntimeSessions().some((item) => item.id === session.id)).toBe(
-      true,
-    );
+    expect(
+      __TEST_ONLY__.listRuntimeSessions().some((item) => item.id === session.id),
+    ).toBe(true);
   });
 
   it('should restore detached sessions to running when resubscribed', () => {

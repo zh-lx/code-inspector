@@ -319,8 +319,6 @@ export type RecordInfo = {
   port: number;
   entry: string;
   output: string; // web component 文件要写入的目录
-  /** @deprecated Server startup is now coordinated with an atomic lock. */
-  findPort?: Promise<number>;
   inputs?: Promise<string[]>; // 入口文件，适配 MPA 项目
   injectTo?: string[]; // 用户自定义的 injectTo 路径
   envDir?: string; // 项目 env 目录

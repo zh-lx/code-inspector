@@ -36,7 +36,7 @@ declare function destroyRuntimeSession(sessionId: string): void;
 declare function scheduleRuntimeCleanup(session: RuntimeSessionRecord, delayMs: number): void;
 export declare function createRuntimeSession(kind: RuntimeSessionKind, options?: CreateRuntimeSessionOptions): RuntimeSessionRecord;
 export declare function getRuntimeSession(sessionId: string): RuntimeSessionRecord | null;
-export declare function listRuntimeSessions(): RuntimeSessionRecord[];
+declare function listRuntimeSessions(): RuntimeSessionRecord[];
 export declare function setRuntimeSessionHooks(sessionId: string, hooks: {
     abort?: (() => void) | null;
     cleanup?: (() => void) | null;
@@ -61,6 +61,7 @@ export declare function getRuntimeSessionSnapshot(sessionId: string): {
 } | null;
 export declare const __TEST_ONLY__: {
     destroyRuntimeSession: typeof destroyRuntimeSession;
+    listRuntimeSessions: typeof listRuntimeSessions;
     scheduleRuntimeCleanup: typeof scheduleRuntimeCleanup;
 };
 export {};
