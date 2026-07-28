@@ -254,6 +254,48 @@ describe('server startup lock', () => {
     expect(fs.existsSync(lockPath)).toBe(true);
   });
 
+  it('does not reclaim while another process owns recovery', () => {
+    const lockPath = getServerStartupLockPath(record);
+    const recoveryPath = __TEST_ONLY__.getRecoveryPath(lockPath);
+    fs.mkdirSync(recoveryPath, { recursive: true });
+    fs.writeFileSync(
+      path.join(recoveryPath, 'owner.json'),
+      JSON.stringify({
+        pid: process.pid,
+        createdAt: Date.now(),
+        token: 'live-recovery',
+      }),
+    );
+
+    expect(__TEST_ONLY__.reclaimServerStartupLock(lockPath)).toBe(false);
+  });
+
+  it('keeps a fresh malformed lock when reclaiming without metadata', () => {
+    const lockPath = getServerStartupLockPath(record);
+    fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+    fs.writeFileSync(lockPath, '');
+
+    expect(__TEST_ONLY__.reclaimServerStartupLock(lockPath)).toBe(false);
+    expect(fs.existsSync(lockPath)).toBe(true);
+  });
+
+  it('treats a lock removed during unlink as reclaimed', () => {
+    const lockPath = getServerStartupLockPath(record);
+    fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+    fs.writeFileSync(
+      lockPath,
+      JSON.stringify({ pid: 2147483647, createdAt: Date.now(), token: 'dead' }),
+    );
+    const observed = __TEST_ONLY__.readServerStartupLock(lockPath)!;
+    vi.spyOn(fs, 'unlinkSync').mockImplementationOnce(() => {
+      throw Object.assign(new Error('already removed'), { code: 'ENOENT' });
+    });
+
+    expect(
+      __TEST_ONLY__.reclaimServerStartupLock(lockPath, observed),
+    ).toBe(true);
+  });
+
   it('retries acquisition when the stale lock disappears during recovery', () => {
     const lockPath = getServerStartupLockPath(record);
     const openSync = vi
