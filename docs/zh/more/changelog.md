@@ -1,5 +1,10 @@
 # 更新日志
 
+## 2.0.6
+
+- 【fix】解决多进程同时寻找 `port` 时的抢占冲突问题 [#572](https://github.com/zh-lx/code-inspector/pull/572)
+- 【chore】移除未使用的内部 api [#573](https://github.com/zh-lx/code-inspector/pull/573)
+
 ## 2.0.5
 
 - 【deps】升级 `launch-ide` 版本至 `1.4.8`，通过 git 指令优化了 jetbrains 系列的 IDE 检测 workspace [#570](https://github.com/zh-lx/code-inspector/pull/570)

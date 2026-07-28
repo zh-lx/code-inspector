@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.6
+
+- 【fix】Fixed the issue where multiple processes competing for the same `port` would cause conflicts [#572](https://github.com/zh-lx/code-inspector/pull/572)
+- 【chore】Removed unused internal APIs [#573](https://github.com/zh-lx/code-inspector/pull/573)
+
 ## 2.0.5
 
 - 【deps】Upgrade `launch-ide` version to `1.4.8`, optimized jetbrains IDE workspace detection via git commands [#570](https://github.com/zh-lx/code-inspector/pull/570)
