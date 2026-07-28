@@ -19,12 +19,15 @@ export declare function getRelativeOrAbsolutePath(filePath: string, pathType?: '
 /**
  * 创建 HTTP 服务器
  */
-export declare function createServer(callback: (port: number) => void, options?: CodeOptions, record?: RecordInfo): http.Server;
+export declare function createServer(callback: (port: number) => void, options?: CodeOptions, record?: RecordInfo, onError?: (error: Error) => void): http.Server;
 export declare const __TEST_ONLY__: {
     createServer: typeof createServer;
     getPort: typeof portFinder.getPort;
+    isInspectorServer: typeof isInspectorServer;
 };
+declare function isInspectorServer(port: number, projectId: string): Promise<boolean>;
 /**
  * 启动服务器
  */
 export declare function startServer(options: CodeOptions, record: RecordInfo): Promise<void>;
+export {};
