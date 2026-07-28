@@ -54,6 +54,37 @@ describe('runtime path', () => {
     );
   });
 
+  it('uses the environment user name when uid is unavailable', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(process, 'getuid');
+    const previousUsername = process.env.USERNAME;
+    try {
+      Object.defineProperty(process, 'getuid', {
+        configurable: true,
+        value: undefined,
+      });
+      process.env.USERNAME = 'test user';
+
+      expect(getRuntimeDirectory(output)).toContain(
+        `${path.sep}code-inspector-plugin-test_user${path.sep}`,
+      );
+    } finally {
+      if (descriptor) Object.defineProperty(process, 'getuid', descriptor);
+      if (previousUsername === undefined) delete process.env.USERNAME;
+      else process.env.USERNAME = previousUsername;
+    }
+  });
+
+  it('propagates unexpected runtime directory creation errors', () => {
+    const error = Object.assign(new Error('directory denied'), {
+      code: 'EACCES',
+    });
+    vi.spyOn(fs, 'mkdirSync').mockImplementationOnce(() => {
+      throw error;
+    });
+
+    expect(() => ensureRuntimeDirectory(output)).toThrow('directory denied');
+  });
+
   it.runIf(process.platform !== 'win32')(
     'restricts runtime directory and file permissions to the current user',
     () => {

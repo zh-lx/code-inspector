@@ -249,3 +249,15 @@ export function tryAcquireServerStartupLock(
 export function releaseServerStartupLock(lock: ServerStartupLock) {
   removeServerStartupLock(lock.path, lock.token);
 }
+
+export const __TEST_ONLY__ = {
+  getRecoveryPath,
+  isStaleRecovery,
+  isStaleServerStartupLock,
+  readServerStartupLock,
+  readServerStartupLockRecovery,
+  reclaimServerStartupLock,
+  removeRecovery,
+  removeServerStartupLock,
+  tryAcquireRecovery,
+};

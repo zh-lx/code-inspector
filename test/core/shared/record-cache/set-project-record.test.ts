@@ -50,6 +50,26 @@ describe('project record updates', () => {
     });
   });
 
+  it('removes build fields whose patch value is undefined', () => {
+    updateProjectRecord(record, { entry: '/project/src/main.ts' });
+
+    updateProjectRecord(record, { entry: undefined });
+
+    expect(getProjectRecord(record)).toEqual({});
+  });
+
+  it('keeps build state in memory when its atomic write fails', () => {
+    vi.spyOn(fs, 'renameSync').mockImplementationOnce(() => {
+      throw new Error('rename failed');
+    });
+
+    setProjectRecord(record, 'entry', '/project/src/fallback.ts');
+
+    expect(getProjectRecord(record)).toEqual({
+      entry: '/project/src/fallback.ts',
+    });
+  });
+
   it('stores the server port separately from build state', () => {
     setProjectRecord(record, 'entry', '/project/src/main.ts');
     setProjectRecord(record, 'port', 5678);
