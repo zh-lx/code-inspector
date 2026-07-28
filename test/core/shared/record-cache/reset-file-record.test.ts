@@ -10,6 +10,7 @@ import {
 import {
   getBuildStateFilePath,
   getRuntimeDirectory,
+  writeRuntimeJsonFile,
 } from '@/core/src/shared/runtime-path';
 import type { RecordInfo } from '@/core/src/shared/type';
 
@@ -48,6 +49,24 @@ describe('resetFileRecord', () => {
       previousPort: 5678,
       entry: '',
       port: 5678,
+    });
+  });
+
+  it('preserves legacy build-state ports and previous ports', () => {
+    const filePath = getBuildStateFilePath(output);
+    writeRuntimeJsonFile(output, filePath, { port: 4567 });
+
+    resetFileRecord(output);
+    expect(JSON.parse(fs.readFileSync(filePath, 'utf-8'))).toEqual({
+      previousPort: 4567,
+      entry: '',
+    });
+
+    writeRuntimeJsonFile(output, filePath, { previousPort: 3456 });
+    resetFileRecord(output);
+    expect(JSON.parse(fs.readFileSync(filePath, 'utf-8'))).toEqual({
+      previousPort: 3456,
+      entry: '',
     });
   });
 });

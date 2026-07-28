@@ -198,7 +198,7 @@ function reclaimServerStartupLock(
     // Another reclaimer may remove the stale lock before us. The caller can retry
     // acquisition because there is no longer a lock to reclaim.
     return (error as NodeJS.ErrnoException).code === 'ENOENT';
-  } finally {
+  } /* v8 ignore next -- defensive cleanup cannot throw */ finally {
     removeRecovery(recovery.path, recovery.token);
   }
 }

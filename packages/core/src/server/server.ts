@@ -475,7 +475,7 @@ async function coordinateServerStartup(
       } catch (error) {
         clearServerRuntimeState(record, lock.token);
         throw error;
-      } finally {
+      } /* v8 ignore next -- startup lock release is nonthrowing */ finally {
         releaseServerStartupLock(lock);
       }
     }

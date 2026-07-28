@@ -359,6 +359,32 @@ describe('startServer', () => {
     ).rejects.toThrow('create failed');
   });
 
+  it('ignores duplicate startup completion and a late timeout', async () => {
+    vi.spyOn(process, 'cwd').mockReturnValue('/test/project/settled-startup');
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    vi.spyOn(serverModule.__TEST_ONLY__, 'createServer').mockImplementationOnce(
+      ((onReady: (port: number) => void, _options, _record, onError) => {
+        onReady(5678);
+        onError?.(new Error('late startup error'));
+        return mockHttpServer;
+      }) as typeof serverModule.createServer,
+    );
+
+    await expect(
+      serverModule.startServer(
+        { bundler: 'vite' },
+        { port: 0, entry: '', output: testDir },
+      ),
+    ).resolves.toBeUndefined();
+
+    const timeoutCallback = timeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 10_000,
+    )?.[0];
+    expect(timeoutCallback).toBeTypeOf('function');
+    (timeoutCallback as () => void)();
+    expect(mockHttpServer.close).not.toHaveBeenCalled();
+  });
+
   it('times out when the server does not finish starting', async () => {
     vi.useFakeTimers();
     vi.spyOn(process, 'cwd').mockReturnValue('/test/project/start-timeout');

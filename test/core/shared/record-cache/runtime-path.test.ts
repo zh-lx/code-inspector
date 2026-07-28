@@ -74,6 +74,35 @@ describe('runtime path', () => {
     }
   });
 
+  it('falls back from USERNAME to USER and then to default', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(process, 'getuid');
+    const previousUsername = process.env.USERNAME;
+    const previousUser = process.env.USER;
+    try {
+      Object.defineProperty(process, 'getuid', {
+        configurable: true,
+        value: undefined,
+      });
+      delete process.env.USERNAME;
+      process.env.USER = 'fallback user';
+
+      expect(getRuntimeDirectory(output)).toContain(
+        `${path.sep}code-inspector-plugin-fallback_user${path.sep}`,
+      );
+
+      delete process.env.USER;
+      expect(getRuntimeDirectory(output)).toContain(
+        `${path.sep}code-inspector-plugin-default${path.sep}`,
+      );
+    } finally {
+      if (descriptor) Object.defineProperty(process, 'getuid', descriptor);
+      if (previousUsername === undefined) delete process.env.USERNAME;
+      else process.env.USERNAME = previousUsername;
+      if (previousUser === undefined) delete process.env.USER;
+      else process.env.USER = previousUser;
+    }
+  });
+
   it('propagates unexpected runtime directory creation errors', () => {
     const error = Object.assign(new Error('directory denied'), {
       code: 'EACCES',
