@@ -298,17 +298,27 @@ describe('server startup lock', () => {
 
   it('retries acquisition when the stale lock disappears during recovery', () => {
     const lockPath = getServerStartupLockPath(record);
+    const originalOpenSync = fs.openSync.bind(fs);
+    let attempts = 0;
     const openSync = vi
       .spyOn(fs, 'openSync')
-      .mockImplementationOnce(() => {
-        throw Object.assign(new Error('lock disappeared'), { code: 'EEXIST' });
-      });
+      .mockImplementation(((file, flags, mode) => {
+        if (String(file) === lockPath && flags === 'wx') {
+          attempts += 1;
+          if (attempts === 1) {
+            throw Object.assign(new Error('lock disappeared'), {
+              code: 'EEXIST',
+            });
+          }
+        }
+        return originalOpenSync(file, flags, mode);
+      }) as typeof fs.openSync);
 
     const lock = tryAcquireServerStartupLock(record);
 
     expect(lock).toBeDefined();
     expect(fs.existsSync(lockPath)).toBe(true);
-    expect(openSync).toHaveBeenCalledTimes(2);
+    expect(attempts).toBe(2);
     openSync.mockRestore();
   });
 
@@ -363,7 +373,7 @@ describe('server startup lock', () => {
     const openSync = fs.openSync.bind(fs);
     let attempts = 0;
     vi.spyOn(fs, 'openSync').mockImplementation(((file, flags, mode) => {
-      if (String(file) === lockPath) {
+      if (String(file) === lockPath && flags === 'wx') {
         attempts += 1;
         if (attempts === 2) writeDeadLock('second');
         throw Object.assign(new Error('exists'), { code: 'EEXIST' });
