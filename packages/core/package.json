@@ -6,8 +6,7 @@
   "types": "types/index.d.ts",
   "files": [
     "dist",
-    "types",
-    "scripts"
+    "types"
   ],
   "exports": {
     ".": {
@@ -45,7 +44,6 @@
     "build:client:watch": " vite build --config ./vite.client.config.ts --watch",
     "clear": "rimraf ./dist && rimraf ./types",
     "build": "pnpm clear && tsc && pnpm build:server && pnpm build:client",
-    "postinstall": "node ./scripts/verify-terminal-runtime.js",
     "pub": "pnpm publish",
     "pub:beta": "pnpm publish --tag beta"
   },
