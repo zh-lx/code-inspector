@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.7
+
+- 【chore】Remove postinstall script to support pnpm strictDepBuilds [#576](https://github.com/zh-lx/code-inspector/pull/576)
+
 ## 2.0.6
 
 - 【fix】Fixed the issue where multiple processes competing for the same `port` would cause conflicts [#572](https://github.com/zh-lx/code-inspector/pull/572)

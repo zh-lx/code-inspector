@@ -1,5 +1,9 @@
 # 更新日志
 
+## 2.0.7
+
+- 【chore】移除 postinstall 脚本以支持 pnpm strictDepBuilds [#576](https://github.com/zh-lx/code-inspector/pull/576)
+
 ## 2.0.6
 
 - 【fix】解决多进程同时寻找 `port` 时的抢占冲突问题 [#572](https://github.com/zh-lx/code-inspector/pull/572)
