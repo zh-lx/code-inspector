@@ -169,7 +169,7 @@ function handleIDERequest(
     editor: options?.editor,
     method: options?.openIn,
     format: options?.pathFormat,
-    rootDir: record?.envDir,
+    rootDir: record?.root,
     type: options?.launchType,
   });
 }
