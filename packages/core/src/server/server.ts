@@ -170,6 +170,7 @@ function handleIDERequest(
     method: options?.openIn,
     format: options?.pathFormat,
     rootDir: record?.envDir,
+    workspace: options?.workspace || ProjectRootPath || record?.root,
     type: options?.launchType,
   });
 }
