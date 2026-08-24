@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.8
+
+- 【feat】Upgraded `launch-ide` to `1.4.9` and added the `workspace` option for configuring the IDE workspace directory [#579](https://github.com/zh-lx/code-inspector/pull/579)
+
 ## 2.0.7
 
 - 【chore】Remove postinstall script to support pnpm strictDepBuilds [#576](https://github.com/zh-lx/code-inspector/pull/576)

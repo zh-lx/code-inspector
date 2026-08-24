@@ -1,5 +1,9 @@
 # 更新日志
 
+## 2.0.8
+
+- 【feat】升级 `launch-ide` 至 `1.4.9` 并新增 `workspace` 参数用于配置 IDE 工作区目录 [#579](https://github.com/zh-lx/code-inspector/pull/579)
+
 ## 2.0.7
 
 - 【chore】移除 postinstall 脚本以支持 pnpm strictDepBuilds [#576](https://github.com/zh-lx/code-inspector/pull/576)
