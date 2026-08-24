@@ -437,13 +437,15 @@ describe('createServer', () => {
       });
     });
 
-    it('should pass editor and openIn options to launchIDE', () => {
+    it('should pass editor and workspace options to launchIDE', () => {
       const afterInspectRequest = vi.fn();
+      const workspace = '/workspace';
       serverModule.createServer(
         vi.fn(),
         {
           bundler: 'vite',
           editor: 'code',
+          workspace,
           openIn: 'new',
           pathFormat: '{file}:{line}',
           launchType: 'open',
@@ -455,7 +457,8 @@ describe('createServer', () => {
           output: '/test',
           port: 0,
           entry: '',
-          envDir: '/project',
+          envDir: '/project-env',
+          root: '/project-root',
         },
       );
 
@@ -471,6 +474,15 @@ describe('createServer', () => {
 
       requestHandler(mockReq, mockRes);
 
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
+        expect.objectContaining({
+          editor: 'code',
+          method: 'new',
+          rootDir: workspace,
+          type: 'open',
+        }),
+      );
+
       expect(afterInspectRequest).toHaveBeenCalledWith(
         expect.objectContaining({
           bundler: 'vite',
@@ -485,6 +497,77 @@ describe('createServer', () => {
           column: 5,
         }),
       );
+    });
+
+    it('should use ProjectRootPath when workspace is not specified', () => {
+      serverModule.createServer(
+        vi.fn(),
+        { bundler: 'vite' },
+        {
+          output: '/test',
+          port: 0,
+          entry: '',
+          envDir: '/project-env',
+          root: '/project-root',
+        },
+      );
+
+      requestHandler(
+        {
+          url: '?file=%2Ftest%2Ffile.ts',
+          method: 'GET',
+          headers: { host: 'localhost:5678' },
+        },
+        { writeHead: vi.fn(), end: vi.fn() },
+      );
+
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
+        expect.objectContaining({ rootDir: serverModule.ProjectRootPath }),
+      );
+    });
+
+    it('should fall back to record root when no project root is available', async () => {
+      vi.resetModules();
+      const execSync = vi.fn(() => {
+        throw new Error('not a git repo');
+      });
+      vi.doMock('child_process', async (importOriginal) => {
+        const actual = await importOriginal<typeof import('child_process')>();
+        return {
+          ...actual,
+          default: { ...actual, execSync },
+          execSync,
+        };
+      });
+
+      const isolatedServerModule = await import('@/core/src/server/server');
+      const root = '/project-root';
+      isolatedServerModule.createServer(
+        vi.fn(),
+        { bundler: 'vite' },
+        {
+          output: '/test',
+          port: 0,
+          entry: '',
+          envDir: '/project-env',
+          root,
+        },
+      );
+
+      requestHandler(
+        {
+          url: '?file=%2Ftest%2Ffile.ts',
+          method: 'GET',
+          headers: { host: 'localhost:5678' },
+        },
+        { writeHead: vi.fn(), end: vi.fn() },
+      );
+
+      expect(isolatedServerModule.ProjectRootPath).toBe('');
+      expect(mockLaunchIDE).toHaveBeenCalledWith(
+        expect.objectContaining({ rootDir: root }),
+      );
+      vi.doUnmock('child_process');
     });
 
     it('should decode URL-encoded file paths correctly', () => {

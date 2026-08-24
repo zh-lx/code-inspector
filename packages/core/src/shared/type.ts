@@ -381,6 +381,11 @@ export type CodeOptions = {
   autoToggle?: boolean;
   editor?: Editor;
   /**
+   * @zh IDE 工作区目录，未指定时依次使用 ProjectRootPath 和项目 root
+   * @en The IDE workspace directory. When not specified, ProjectRootPath and the project root are used in order.
+   */
+  workspace?: string;
+  /**
    * @cn 用于注入DOM 筛选和点击跳转vscode的相关代码的文件。必须为绝对路径且以 `.js/.ts/.mjs/.mts/.jsx/.tsx` 为结尾的文件
    * @en The file to inject the relevant code for DOM filtering and click navigation in VSCode. Must be an absolute path and end with `.js/.ts/.mjs/.mts/.jsx/.tsx`.
    */
