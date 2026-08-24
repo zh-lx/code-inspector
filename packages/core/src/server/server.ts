@@ -169,7 +169,8 @@ function handleIDERequest(
     editor: options?.editor,
     method: options?.openIn,
     format: options?.pathFormat,
-    rootDir: options?.workspace || ProjectRootPath || record?.root,
+    rootDir: record?.envDir,
+    workspace: options?.workspace || ProjectRootPath || record?.root,
     type: options?.launchType,
   });
 }

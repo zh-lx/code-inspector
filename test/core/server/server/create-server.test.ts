@@ -478,7 +478,8 @@ describe('createServer', () => {
         expect.objectContaining({
           editor: 'code',
           method: 'new',
-          rootDir: workspace,
+          rootDir: '/project-env',
+          workspace,
           type: 'open',
         }),
       );
@@ -522,7 +523,10 @@ describe('createServer', () => {
       );
 
       expect(mockLaunchIDE).toHaveBeenCalledWith(
-        expect.objectContaining({ rootDir: serverModule.ProjectRootPath }),
+        expect.objectContaining({
+          rootDir: '/project-env',
+          workspace: serverModule.ProjectRootPath,
+        }),
       );
     });
 
@@ -565,7 +569,10 @@ describe('createServer', () => {
 
       expect(isolatedServerModule.ProjectRootPath).toBe('');
       expect(mockLaunchIDE).toHaveBeenCalledWith(
-        expect.objectContaining({ rootDir: root }),
+        expect.objectContaining({
+          rootDir: '/project-env',
+          workspace: root,
+        }),
       );
       vi.doUnmock('child_process');
     });
