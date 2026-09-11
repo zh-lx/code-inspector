@@ -50,7 +50,7 @@
   "dependencies": {
     "@vue/compiler-dom": "^3.5.13",
     "chalk": "^4.1.1",
-    "launch-ide": "1.4.9",
+    "launch-ide": "1.4.10",
     "portfinder": "^1.0.28",
     "ws": "^8.18.0"
   },
