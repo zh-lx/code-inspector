@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.9
+
+- 【feat】Support enabling multiple behavior features at the same time [#583](https://github.com/zh-lx/code-inspector/pull/583)
+- 【feat】Upgrade `launch-ide` to `1.4.10` to support the new Qoder IDE [#582](https://github.com/zh-lx/code-inspector/pull/582)
+
 ## 2.0.8
 
 - 【feat】Upgraded `launch-ide` to `1.4.9` and added the `workspace` option for configuring the IDE workspace directory [#579](https://github.com/zh-lx/code-inspector/pull/579)

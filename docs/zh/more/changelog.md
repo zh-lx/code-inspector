@@ -1,5 +1,10 @@
 # 更新日志
 
+## 2.0.9
+
+- 【feat】支持同时开启多个 behavior 功能 [#583](https://github.com/zh-lx/code-inspector/pull/583)
+- 【feat】升级 `launch-ide` 至 `1.4.10` 以支持新版的 Qoder IDE [#582](https://github.com/zh-lx/code-inspector/pull/582)
+
 ## 2.0.8
 
 - 【feat】升级 `launch-ide` 至 `1.4.9` 并新增 `workspace` 参数用于配置 IDE 工作区目录 [#579](https://github.com/zh-lx/code-inspector/pull/579)
