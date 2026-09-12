@@ -18,7 +18,7 @@ describe('Lifecycle methods', () => {
   });
 
   describe('firstUpdated', () => {
-    it('should initialize internal states from properties (mutually exclusive)', async () => {
+    it('should initialize internal states from properties with single-select mode', async () => {
       component = new CodeInspectorComponent();
       component.locate = true;
       component.copy = 'custom';
@@ -28,7 +28,7 @@ describe('Lifecycle methods', () => {
       document.body.appendChild(component);
       await component.updateComplete;
 
-      // 互斥逻辑：优先级 locate > copy > target > chat
+      // 单选逻辑：优先级 locate > copy > target > chat
       // 由于 locate 被设置，只有 internalLocate 应该为 true
       expect(component.internalLocate).toBe(true);
       expect(component.internalCopy).toBe(false);
@@ -48,6 +48,23 @@ describe('Lifecycle methods', () => {
 
       // defaultAction 为 'copy'，所以只有 internalCopy 应该为 true
       expect(component.internalLocate).toBe(false);
+      expect(component.internalCopy).toBe(true);
+      expect(component.internalTarget).toBe(false);
+    });
+
+    it('should activate every available action in a defaultAction array', async () => {
+      component = new CodeInspectorComponent();
+      component.locate = true;
+      component.copy = true;
+      component.target = 'https://example.com';
+      component.defaultAction = ['locate', 'copy'];
+      component.multiSelect = true;
+      component.hideConsole = true;
+
+      document.body.appendChild(component);
+      await component.updateComplete;
+
+      expect(component.internalLocate).toBe(true);
       expect(component.internalCopy).toBe(true);
       expect(component.internalTarget).toBe(false);
     });

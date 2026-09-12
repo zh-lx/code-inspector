@@ -177,6 +177,14 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
   const aiEnabled = Boolean(
     behavior.ai?.codex || behavior.ai?.claudeCode || behavior.ai?.opencode,
   );
+  const availableBehaviorCount = [
+    locate,
+    copy !== false,
+    !!target,
+    aiEnabled,
+  ].filter(Boolean).length;
+  const multiSelect =
+    Array.isArray(defaultAction) || availableBehaviorCount > 1;
   return `
 ;(function (){
   if (typeof window !== 'undefined') {
@@ -201,7 +209,8 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.aiAuthToken = '${getAIAuthToken()}';
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
-      inspector.defaultAction = '${defaultAction}';
+      inspector.multiSelect = ${multiSelect};
+      inspector.defaultAction = ${JSON.stringify(defaultAction)};
       document.documentElement.append(inspector);
     }
   }

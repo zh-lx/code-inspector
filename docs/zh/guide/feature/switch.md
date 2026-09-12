@@ -11,13 +11,14 @@
 ```js
 codeInspectorPlugin({
   behavior: {
-    defaultAction: 'locate', // 'locate' | 'copy' | 'target' | 'ai'
+    defaultAction: ['locate', 'copy'], // 也可以传单个值
   },
 }),
 ```
 
-默认优先级为 `locate > copy > target > ai`。
-如果未设置 `defaultAction`，会按这个优先级启用第一个可用功能。
+传入数组时会同时启用数组中可用的功能。未设置 `defaultAction`，或传入单个值时，会按 `locate > copy > target > ai` 的优先级启用第一个可用功能。
+
+当 `behavior` 中有多个可用能力，功能面板支持同时勾选多个功能；只有一个可用能力时，功能面板保持单选。
 
 ## 自定义面板快捷键
 

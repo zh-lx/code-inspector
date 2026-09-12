@@ -34,12 +34,13 @@ Below are configurations for some non-standard scenarios.
       expireDays?: number;
     };
     /**
-     * Default click action: 'copy' | 'locate' | 'target' | 'ai'
+     * Default click action: 'copy' | 'locate' | 'target' | 'ai'; an array can enable multiple actions
      */
-    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
+    defaultAction?: ('copy' | 'locate' | 'target' | 'ai') | ('copy' | 'locate' | 'target' | 'ai')[];
   };
   ```
 - Description: In some scenarios, if you don't need to locate code when clicking elements and only need to copy the source code location information, you can set `locate: false` and `copy: true`. In this case, clicking elements will only copy the source code location information.
+- When multiple behaviors are available in `behavior`, or `defaultAction` is an array, the settings panel allows multiple actions to be selected. Otherwise, only one action can be selected at a time.
 
 In addition to the above behaviors, `code-inspector-plugin` will trigger a `code-inspector:trackCode` custom event when clicking elements. You can use this event to customize the desired functionality(This feature is supported in version `1.2.0+`). For example, if you want to log when clicking elements, you can implement it as follows:
 

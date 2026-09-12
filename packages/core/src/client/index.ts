@@ -36,6 +36,7 @@ import {
   getClientText,
   normalizeClientLang,
 } from './i18n';
+import type { BehaviorAction } from '../shared/type';
 
 const styleId = '__code-inspector-unique-id';
 
@@ -143,7 +144,9 @@ export class CodeInspectorComponent extends LitElement {
   @property()
   modeKey: string = 'z';
   @property()
-  defaultAction: string = ''; // 默认开启的功能
+  defaultAction: BehaviorAction | BehaviorAction[] | '' = ''; // 默认开启的功能
+  @property()
+  multiSelect: boolean = false;
 
   @state()
   position = {
@@ -1299,31 +1302,39 @@ export class CodeInspectorComponent extends LitElement {
     this.internalAI = false;
   };
 
-  // 切换 locate 功能（互斥）
+  // 切换 locate 功能
   toggleLocate = () => {
     const newValue = !this.internalLocate;
-    this.clearAllActions();
+    if (!this.multiSelect) {
+      this.clearAllActions();
+    }
     this.internalLocate = newValue;
   };
 
-  // 切换 copy 功能（互斥）
+  // 切换 copy 功能
   toggleCopy = () => {
     const newValue = !this.internalCopy;
-    this.clearAllActions();
+    if (!this.multiSelect) {
+      this.clearAllActions();
+    }
     this.internalCopy = newValue;
   };
 
-  // 切换 target 功能（互斥）
+  // 切换 target 功能
   toggleTarget = () => {
     const newValue = !this.internalTarget;
-    this.clearAllActions();
+    if (!this.multiSelect) {
+      this.clearAllActions();
+    }
     this.internalTarget = newValue;
   };
 
-  // 切换 chat 功能（互斥）
+  // 切换 chat 功能
   toggleAICode = () => {
     const newValue = !this.internalAI;
-    this.clearAllActions();
+    if (!this.multiSelect) {
+      this.clearAllActions();
+    }
     this.internalAI = newValue;
   };
 
@@ -3171,39 +3182,51 @@ export class CodeInspectorComponent extends LitElement {
   }
 
   protected firstUpdated(): void {
-    // 初始化内部状态（互斥，只能有一个为 true）
-    // 如果有 defaultAction，优先使用 defaultAction 对应的功能（前提是该功能已启用）
+    // 初始化内部状态。多选模式下，数组中的可用功能会同时启用。
     // 否则按优先级：locate > copy > target > chat
     let actionSet = false;
 
-    if (this.defaultAction) {
-      // 根据 defaultAction 决定开启哪个功能
-      switch (this.defaultAction) {
+    const isActionAvailable = (action: BehaviorAction) => {
+      switch (action) {
         case 'ai':
-          if (this.ai) {
-            this.internalAI = true;
-            actionSet = true;
-          }
+          return this.ai;
+        case 'target':
+          return !!this.target;
+        case 'copy':
+          return this.copy !== false;
+        case 'locate':
+          return this.locate;
+      }
+    };
+
+    const activateAction = (action: BehaviorAction) => {
+      if (!isActionAvailable(action)) {
+        return false;
+      }
+      switch (action) {
+        case 'ai':
+          this.internalAI = true;
           break;
         case 'target':
-          if (this.target) {
-            this.internalTarget = true;
-            actionSet = true;
-          }
+          this.internalTarget = true;
           break;
         case 'copy':
-          if (this.copy) {
-            this.internalCopy = true;
-            actionSet = true;
-          }
+          this.internalCopy = true;
           break;
         case 'locate':
-          if (this.locate) {
-            this.internalLocate = true;
-            actionSet = true;
-          }
+          this.internalLocate = true;
           break;
       }
+      return true;
+    };
+
+    if (Array.isArray(this.defaultAction)) {
+      const activatedActions = this.defaultAction
+        .filter((action, index, actions) => actions.indexOf(action) === index)
+        .map(activateAction);
+      actionSet = activatedActions.some(Boolean);
+    } else if (this.defaultAction) {
+      actionSet = activateAction(this.defaultAction);
     }
 
     // 如果 defaultAction 对应的功能未启用，则按优先级开启第一个可用的功能

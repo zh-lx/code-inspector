@@ -34,12 +34,13 @@
       expireDays?: number;
     };
     /**
-     * 默认点击行为：'copy' | 'locate' | 'target' | 'ai'
+     * 默认点击行为：'copy' | 'locate' | 'target' | 'ai'，也可以传数组同时启用多个行为
      */
-    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
+    defaultAction?: ('copy' | 'locate' | 'target' | 'ai') | ('copy' | 'locate' | 'target' | 'ai')[];
   };
   ```
 - 说明：在某些场景下，如果你在点击元素时不需要定位代码，仅需要复制元素的源码位置信息，则可以设置 `locate: false` 和 `copy: true`，此时点击元素仅会复制源码位置信息。
+- 当 `behavior` 中有多个可用能力，或 `defaultAction` 设置为数组时，功能面板支持同时勾选多个功能；否则同时只能勾选一个功能。
 
 除了上述的行为之外，`code-inspector-plugin` 在点击元素时会触发一个 `code-inspector:trackCode` 的自定义事件，你可以通过此事件来自定义想要的功能（该功能在 `1.2.0+` 的版本中支持）。例如，在点击元素时，你想统计日志，则可以通过如下方式实现：
 

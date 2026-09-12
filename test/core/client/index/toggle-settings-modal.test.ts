@@ -81,6 +81,27 @@ describe('toggleSettingsModal and related functions', () => {
 
       expect(component.internalLocate).toBe(true);
     });
+
+    it('should keep other actions enabled in multi-select mode', () => {
+      component.multiSelect = true;
+      component.internalLocate = false;
+      component.internalCopy = true;
+
+      component.toggleLocate();
+
+      expect(component.internalLocate).toBe(true);
+      expect(component.internalCopy).toBe(true);
+    });
+
+    it('should clear other actions in single-select mode', () => {
+      component.internalLocate = false;
+      component.internalCopy = true;
+
+      component.toggleLocate();
+
+      expect(component.internalLocate).toBe(true);
+      expect(component.internalCopy).toBe(false);
+    });
   });
 
   describe('toggleCopy', () => {
