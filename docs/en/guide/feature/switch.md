@@ -11,13 +11,14 @@ Set default active feature via `behavior.defaultAction`:
 ```js
 codeInspectorPlugin({
   behavior: {
-    defaultAction: 'locate', // 'locate' | 'copy' | 'target' | 'ai'
+    defaultAction: ['locate', 'copy'], // a single value is also supported
   },
 }),
 ```
 
-Default priority is `locate > copy > target > ai`.
-If `defaultAction` is not set, the first available feature in this order is activated.
+An array activates all available features in the array. If `defaultAction` is omitted or a single value is provided, the first available feature is activated in the order `locate > copy > target > ai`.
+
+When multiple behaviors are available in `behavior`, the settings panel allows multiple features to be selected. With only one available behavior, it remains single-select.
 
 ## Customize Panel Shortcut Key
 

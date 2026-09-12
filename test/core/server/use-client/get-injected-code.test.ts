@@ -152,6 +152,45 @@ describe('getInjectedCode', () => {
     };
     const result = getInjectedCode(options, 5678, false);
     expect(result).toContain('inspector.ai = true');
-    expect(result).toContain("inspector.defaultAction = 'ai'");
+    expect(result).toContain('inspector.defaultAction = "ai"');
+  });
+
+  it('should enable multi-select when multiple behaviors are available', () => {
+    const options: CodeOptions = {
+      bundler: 'vite',
+      behavior: {
+        locate: true,
+        copy: true,
+      },
+    };
+    const result = getInjectedCode(options, 5678, false);
+
+    expect(result).toContain('inspector.multiSelect = true');
+  });
+
+  it('should enable multi-select for a defaultAction array', () => {
+    const options: CodeOptions = {
+      bundler: 'vite',
+      behavior: {
+        defaultAction: ['locate', 'copy'],
+      },
+    };
+    const result = getInjectedCode(options, 5678, false);
+
+    expect(result).toContain('inspector.multiSelect = true');
+    expect(result).toContain('inspector.defaultAction = ["locate","copy"]');
+  });
+
+  it('should keep single-select when only one behavior is available', () => {
+    const options: CodeOptions = {
+      bundler: 'vite',
+      behavior: {
+        locate: false,
+        copy: true,
+      },
+    };
+    const result = getInjectedCode(options, 5678, false);
+
+    expect(result).toContain('inspector.multiSelect = false');
   });
 });

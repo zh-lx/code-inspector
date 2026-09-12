@@ -1,5 +1,6 @@
 import { LitElement, TemplateResult } from 'lit';
 import { ChatMessage, ChatContext, ChatImageAttachment, ChatProvider, ToolCall, HistoryEntry } from '../ai/client/ai';
+import type { BehaviorAction } from '../shared/type';
 interface Position {
     left?: string;
     right?: string;
@@ -55,7 +56,8 @@ export declare class CodeInspectorComponent extends LitElement {
     lang: 'en' | 'zh';
     private wheelThrottling;
     modeKey: string;
-    defaultAction: string;
+    defaultAction: BehaviorAction | BehaviorAction[] | '';
+    multiSelect: boolean;
     position: {
         top: number;
         right: number;

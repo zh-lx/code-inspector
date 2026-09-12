@@ -279,6 +279,7 @@ export type OpenCodeOptions = {
      */
     options?: OpenCodeCliOptions;
 };
+export type BehaviorAction = 'copy' | 'locate' | 'target' | 'ai';
 export type Behavior = {
     locate?: boolean;
     copy?: boolean | string;
@@ -290,7 +291,7 @@ export type Behavior = {
         /** 对话历史过期天数，默认 0 不自动清理 */
         expireDays?: number;
     };
-    defaultAction?: 'copy' | 'locate' | 'target' | 'ai';
+    defaultAction?: BehaviorAction | BehaviorAction[];
 };
 export type RecordInfo = {
     port: number;
