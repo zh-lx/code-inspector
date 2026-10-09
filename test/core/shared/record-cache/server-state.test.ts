@@ -27,21 +27,22 @@ describe('server runtime state', () => {
   });
 
   it('publishes project-scoped server metadata', () => {
-    publishServerRuntimeState(record, 5678, 'instance-a');
+    publishServerRuntimeState(record, 5678, 'instance-a', 'token-a');
 
     expect(getServerRuntimeState(record)).toEqual({
-      protocolVersion: 1,
+      protocolVersion: 2,
       projectId: expect.any(String),
       instanceId: 'instance-a',
       pid: process.pid,
       port: 5678,
+      authToken: 'token-a',
       startedAt: expect.any(Number),
       updatedAt: expect.any(Number),
     });
   });
 
   it('only lets the expected instance clear its state', () => {
-    publishServerRuntimeState(record, 5678, 'instance-b');
+    publishServerRuntimeState(record, 5678, 'instance-b', 'token-b');
 
     expect(clearServerRuntimeState(record, 'instance-a')).toBe(false);
     expect(getServerRuntimeState(record)?.port).toBe(5678);

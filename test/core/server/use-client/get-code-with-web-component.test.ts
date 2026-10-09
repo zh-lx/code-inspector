@@ -78,6 +78,7 @@ import {
   setProjectRecord,
   resetFileRecord,
 } from '@/core/src/shared/record-cache';
+import { publishServerRuntimeState } from '@/core/src/shared/server-state';
 
 describe('getCodeWithWebComponent', () => {
   let testDir: string;
@@ -155,6 +156,35 @@ describe('getCodeWithWebComponent', () => {
   });
 
   describe('when file exists', () => {
+    it('uses the auth token published by the active server', async () => {
+      vi.spyOn(process, 'cwd').mockReturnValue('/test/project/shared-token');
+
+      const testFile = path.join(testDir, 'shared-token.ts');
+      fs.writeFileSync(testFile, 'const x = 1;');
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: testDir,
+      };
+      const options: CodeOptions = {
+        bundler: 'vite',
+        behavior: { ai: { codex: true } },
+      };
+
+      publishServerRuntimeState(record, 5678, 'instance-shared', 'shared-token');
+
+      const result = await getCodeWithWebComponent({
+        options,
+        record,
+        file: testFile,
+        code: 'const x = 1;',
+        inject: true,
+      });
+
+      expect(result).toContain("inspector.aiAuthToken = 'shared-token'");
+    });
+
     it('should start server when server option is not "close"', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/server-open');
 

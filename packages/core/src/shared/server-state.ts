@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { getAIAuthToken } from '../ai/server/ai-auth';
 import type { RecordInfo } from './type';
 import {
   getProjectId,
@@ -14,6 +15,7 @@ export interface ServerRuntimeState {
   instanceId: string;
   pid: number;
   port: number;
+  authToken: string;
   startedAt: number;
   updatedAt: number;
 }
@@ -28,7 +30,8 @@ export function getServerRuntimeState(
   if (
     state?.protocolVersion !== SERVER_PROTOCOL_VERSION ||
     state.projectId !== getProjectId() ||
-    !state.port
+    !state.port ||
+    !state.authToken
   ) {
     return undefined;
   }
@@ -39,6 +42,7 @@ export function publishServerRuntimeState(
   record: Pick<RecordInfo, 'output'>,
   port: number,
   instanceId: string,
+  authToken = getAIAuthToken(),
 ) {
   const now = Date.now();
   const state: ServerRuntimeState = {
@@ -47,6 +51,7 @@ export function publishServerRuntimeState(
     instanceId,
     pid: process.pid,
     port,
+    authToken,
     startedAt: now,
     updatedAt: now,
   };

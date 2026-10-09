@@ -10,13 +10,16 @@ export function getAIAuthToken(): string {
   return aiAuthToken;
 }
 
-export function isAuthorizedAIRequest(requestUrl: URL): boolean {
+export function isAuthorizedAIRequest(
+  requestUrl: URL,
+  authToken = aiAuthToken,
+): boolean {
   const providedToken = requestUrl.searchParams.get('token') || '';
   return (
-    providedToken.length === aiAuthToken.length &&
+    providedToken.length === authToken.length &&
     crypto.timingSafeEqual(
       toAsciiBytes(providedToken),
-      toAsciiBytes(aiAuthToken),
+      toAsciiBytes(authToken),
     )
   );
 }

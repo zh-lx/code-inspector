@@ -52,6 +52,12 @@ describe('getWebComponentCode', () => {
     expect(result).toMatch(/inspector\.aiAuthToken = '[a-f0-9]{64}'/);
   });
 
+  it('should inject the token provided by the active server', () => {
+    const result = getWebComponentCode({} as any, 5678, 'shared-token');
+
+    expect(result).toContain("inspector.aiAuthToken = 'shared-token'");
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });

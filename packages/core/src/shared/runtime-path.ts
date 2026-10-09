@@ -3,7 +3,8 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-export const SERVER_PROTOCOL_VERSION = 1;
+// The runtime state includes the server's AI authentication token.
+export const SERVER_PROTOCOL_VERSION = 2;
 
 let temporaryFileSequence = 0;
 
