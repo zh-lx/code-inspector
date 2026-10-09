@@ -654,6 +654,7 @@ export async function attachTerminalWebSocket(
   server: http.Server,
   getAIOptionsFn: () => ResolvedAIOptions | undefined,
   projectRootPath: string,
+  authToken?: string,
 ): Promise<boolean> {
   const pty = await loadNodePty();
   const WS = await loadWs();
@@ -710,7 +711,7 @@ export async function attachTerminalWebSocket(
       return; // 不处理非终端路径，留给其他 WebSocket 处理
     }
 
-    if (!isAuthorizedAIRequest(url)) {
+    if (!isAuthorizedAIRequest(url, authToken)) {
       socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
       socket.destroy();
       return;

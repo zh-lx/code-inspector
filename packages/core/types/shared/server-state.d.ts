@@ -5,9 +5,10 @@ export interface ServerRuntimeState {
     instanceId: string;
     pid: number;
     port: number;
+    authToken: string;
     startedAt: number;
     updatedAt: number;
 }
 export declare function getServerRuntimeState(record: Pick<RecordInfo, 'output'>): ServerRuntimeState | undefined;
-export declare function publishServerRuntimeState(record: Pick<RecordInfo, 'output'>, port: number, instanceId: string): ServerRuntimeState;
+export declare function publishServerRuntimeState(record: Pick<RecordInfo, 'output'>, port: number, instanceId: string, authToken?: string): ServerRuntimeState;
 export declare function clearServerRuntimeState(record: Pick<RecordInfo, 'output'>, expectedInstanceId?: string): boolean;

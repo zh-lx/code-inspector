@@ -205,7 +205,7 @@ describe('createServer', () => {
       expect(JSON.parse(mockRes.end.mock.calls[0][0])).toEqual({
         name: 'code-inspector',
         projectId: expect.any(String),
-        protocolVersion: 1,
+        protocolVersion: 2,
       });
     });
 

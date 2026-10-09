@@ -19,7 +19,7 @@ export declare function getRelativeOrAbsolutePath(filePath: string, pathType?: '
 /**
  * 创建 HTTP 服务器
  */
-export declare function createServer(callback: (port: number) => void, options?: CodeOptions, record?: RecordInfo, onError?: (error: Error) => void): http.Server;
+export declare function createServer(callback: (port: number) => void, options?: CodeOptions, record?: RecordInfo, onError?: (error: Error) => void, authToken?: string): http.Server;
 export declare const __TEST_ONLY__: {
     createServer: typeof createServer;
     getPort: typeof portFinder.getPort;

@@ -1,4 +1,4 @@
-export declare const SERVER_PROTOCOL_VERSION = 1;
+export declare const SERVER_PROTOCOL_VERSION = 2;
 export declare function getProjectId(): string;
 export declare function getRuntimeDirectory(output: string): string;
 export declare function ensureRuntimeDirectory(output: string): string;

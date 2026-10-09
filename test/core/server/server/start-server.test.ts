@@ -123,7 +123,7 @@ describe('startServer', () => {
           JSON.stringify({
             name: 'code-inspector',
             projectId: 'health-project',
-            protocolVersion: 1,
+            protocolVersion: 2,
           }),
         );
         response.emit('end');

@@ -14,6 +14,7 @@ import importMetaPlugin from '@babel/plugin-syntax-import-meta';
 import proposalDecorators from '@babel/plugin-proposal-decorators';
 import { startServer } from './server';
 import { getAIAuthToken } from '../ai/server/ai-auth';
+import { getServerRuntimeState } from '../shared/server-state';
 import type { CodeOptions, RecordInfo } from '../shared';
 import {
   PathName,
@@ -43,6 +44,7 @@ export function getInjectedCode(
   options: CodeOptions,
   port: number,
   isNextjs: boolean,
+  authToken = getAIAuthToken(),
 ) {
   let code = `'use client';`;
   if (!options?.skipSnippets?.includes?.('console')) {
@@ -51,7 +53,7 @@ export function getInjectedCode(
   if (options?.hideDomPathAttr) {
     code += getHidePathAttrCode();
   }
-  code += getWebComponentCode(options, port);
+  code += getWebComponentCode(options, port, authToken);
   code = `/* eslint-disable */ ` + code.replace(/\n/g, '');
   if (isNextjs) {
     code += `
@@ -156,7 +158,11 @@ function tryAddNextInspectorToEntry(
   }
 }
 
-export function getWebComponentCode(options: CodeOptions, port: number) {
+export function getWebComponentCode(
+  options: CodeOptions,
+  port: number,
+  authToken = getAIAuthToken(),
+) {
   const {
     hotKeys = ['shiftKey', 'altKey'],
     showSwitch = false,
@@ -206,7 +212,7 @@ export function getWebComponentCode(options: CodeOptions, port: number) {
       inspector.copy = ${typeof copy === 'string' ? `'${copy}'` : !!copy};
       inspector.target = '${target}';
       inspector.ai = ${aiEnabled};
-      inspector.aiAuthToken = '${getAIAuthToken()}';
+      inspector.aiAuthToken = '${authToken}';
       inspector.ip = '${getIP(ip)}';
       inspector.modeKey = '${modeKey.toLowerCase() || 'z'}';
       inspector.multiSelect = ${multiSelect};
@@ -374,6 +380,8 @@ export async function getCodeWithWebComponent({
     await startServer(options, record);
   }
 
+  const authToken = getServerRuntimeState(record)?.authToken;
+
   const isNextjs =
     options.bundler === 'turbopack' || isNextjsProject(path.dirname(file));
 
@@ -387,6 +395,7 @@ export async function getCodeWithWebComponent({
       options,
       getProjectRecord(record)?.port || 0,
       isNextjs,
+      authToken,
     );
     if (
       (isNextjs || options.importClient === 'file') &&

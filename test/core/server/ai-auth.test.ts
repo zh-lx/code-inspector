@@ -24,4 +24,21 @@ describe('terminal websocket authorization', () => {
       ),
     ).toBe(false);
   });
+
+  it('supports an auth token shared by another process', () => {
+    const token = 'a'.repeat(64);
+
+    expect(
+      isAuthorizedAIRequest(
+        new URL(`http://localhost:5678/ai?token=${token}`),
+        token,
+      ),
+    ).toBe(true);
+    expect(
+      isAuthorizedAIRequest(
+        new URL(`http://localhost:5678/ai?token=${getAIAuthToken()}`),
+        token,
+      ),
+    ).toBe(false);
+  });
 });

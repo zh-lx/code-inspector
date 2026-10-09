@@ -19,7 +19,7 @@ export declare const __TEST_ONLY__: {
  * 将终端 WebSocket 挂载到 HTTP 服务器
  * 使用 `noServer` 模式，通过 `upgrade` 事件仅处理 `/ai/terminal` 路径
  */
-export declare function attachTerminalWebSocket(server: http.Server, getAIOptionsFn: () => ResolvedAIOptions | undefined, projectRootPath: string): Promise<boolean>;
+export declare function attachTerminalWebSocket(server: http.Server, getAIOptionsFn: () => ResolvedAIOptions | undefined, projectRootPath: string, authToken?: string): Promise<boolean>;
 /**
  * 检查终端功能是否可用
  */

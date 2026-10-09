@@ -6,6 +6,7 @@ vi.mock('@code-inspector/core', () => ({
   RecordInfo: {},
   isDev: vi.fn((dev: boolean | undefined, condition: boolean) => dev ?? condition),
   isNextGET16: vi.fn(() => false),
+  startServer: vi.fn(async () => {}),
 }));
 
 // Mock path
@@ -21,7 +22,7 @@ import {
   resolveWebpackEntry,
   TurbopackCodeInspectorPlugin,
 } from '@/turbopack/src/index';
-import { isDev, isNextGET16 } from '@code-inspector/core';
+import { isDev, isNextGET16, startServer } from '@code-inspector/core';
 
 describe('TurbopackCodeInspectorPlugin', () => {
   const originalRequire = global.require;
@@ -58,6 +59,19 @@ describe('TurbopackCodeInspectorPlugin', () => {
       });
       expect(plugin).toEqual({});
     });
+
+    it('should not start the Inspector server when server is closed', () => {
+      vi.mocked(isDev).mockReturnValueOnce(true);
+
+      const plugin = TurbopackCodeInspectorPlugin({
+        bundler: 'turbopack',
+        output: '/test',
+        server: 'close',
+      });
+
+      expect(plugin).not.toEqual({});
+      expect(startServer).not.toHaveBeenCalled();
+    });
   });
 
   describe('loader configuration', () => {
@@ -73,6 +87,11 @@ describe('TurbopackCodeInspectorPlugin', () => {
       // Should have a key for file matching pattern
       const keys = Object.keys(plugin);
       expect(keys.length).toBeGreaterThan(0);
+      expect(startServer).toHaveBeenCalledTimes(1);
+      expect(startServer).toHaveBeenCalledWith(
+        expect.objectContaining({ bundler: 'turbopack', output: '/test' }),
+        expect.objectContaining({ output: '/test' }),
+      );
     });
 
     it('should use different file pattern for Next.js >= 16', () => {

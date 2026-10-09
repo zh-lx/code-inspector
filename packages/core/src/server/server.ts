@@ -44,7 +44,7 @@ import {
   getTerminalAvailabilityStatus,
 } from '../ai/server/ai-terminal';
 import { getEnvVariables } from 'launch-ide';
-import { isAuthorizedAIRequest } from '../ai/server/ai-auth';
+import { getAIAuthToken, isAuthorizedAIRequest } from '../ai/server/ai-auth';
 
 const HEALTH_CHECK_PATH = '/__code_inspector_health';
 const HEALTH_CHECK_TIMEOUT_MS = 500;
@@ -183,6 +183,7 @@ export function createServer(
   options?: CodeOptions,
   record?: RecordInfo,
   onError?: (error: Error) => void,
+  authToken?: string,
 ): http.Server {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '', `http://${req.headers.host}`);
@@ -212,7 +213,7 @@ export function createServer(
     }
 
     const isAIRoute = pathname === '/ai' || pathname.startsWith('/ai/');
-    if (isAIRoute && !isAuthorizedAIRequest(url)) {
+    if (isAIRoute && !isAuthorizedAIRequest(url, authToken)) {
       res.writeHead(403, CORS_HEADERS);
       res.end('Forbidden');
       return;
@@ -309,6 +310,7 @@ export function createServer(
     server,
     () => getAIOptions(options?.behavior),
     ProjectRootPath,
+    authToken,
   ).catch(() => {
     // ignore terminal feature init errors
   });
@@ -395,6 +397,7 @@ async function isInspectorServer(
 function createServerAndWait(
   options: CodeOptions,
   record: RecordInfo,
+  authToken: string,
 ): Promise<number> {
   // Wrap callback-based startup to handle port lookup, listen errors, and timeout alike.
   return new Promise((resolve, reject) => {
@@ -423,6 +426,7 @@ function createServerAndWait(
         options,
         record,
         (error) => finish(error),
+        authToken,
       );
     } catch (error) {
       finish(error as Error);
@@ -462,8 +466,9 @@ async function coordinateServerStartup(
 
         // Replace stale state only while holding the lock, then publish the new instance.
         clearServerRuntimeState(record, publishedState?.instanceId);
-        const port = await createServerAndWait(options, record);
-        publishServerRuntimeState(record, port, lock.token);
+        const authToken = getAIAuthToken();
+        const port = await createServerAndWait(options, record, authToken);
+        publishServerRuntimeState(record, port, lock.token, authToken);
         if (options.printServer) {
           const info = [
             chalk.blue('[code-inspector-plugin]'),
