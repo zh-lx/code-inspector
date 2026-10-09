@@ -3,6 +3,7 @@ import {
   RecordInfo,
   isDev,
   isNextGET16,
+  startServer,
 } from '@code-inspector/core';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -43,6 +44,17 @@ export function TurbopackCodeInspectorPlugin(
     entry: '',
     output: options.output,
   };
+
+  if (options.server !== 'close') {
+    // Turbopack evaluates the configured loaders in multiple worker processes.
+    // Start the shared Inspector server from the plugin process first so those
+    // workers reuse the published runtime state instead of racing to allocate
+    // different ports during the first compilation.
+    void startServer(options, record).catch(() => {
+      // Loader-side startup remains as a fallback if the plugin process cannot
+      // start the server.
+    });
+  }
 
   const WebpackEntry = resolveWebpackEntry({
     /* v8 ignore next */
