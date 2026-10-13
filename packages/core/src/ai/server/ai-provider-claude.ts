@@ -3,7 +3,7 @@
  */
 import path from 'path';
 import fs from 'fs';
-import { spawn, ChildProcess, execSync } from 'child_process';
+import { ChildProcess, execSync } from 'child_process';
 import type {
   ClaudeCodeOptions,
   ClaudeCliOptions,
@@ -12,6 +12,7 @@ import type {
 } from '../../shared';
 import type { AIContext, AIMessage } from './ai';
 import { getEnvVars } from '../../server/server';
+import { spawnCli } from './cli-spawn';
 import chalk from 'chalk';
 
 // ============================================================================
@@ -257,7 +258,7 @@ export async function getModelInfo(
 
   try {
     const model = await new Promise<string>((resolve) => {
-      const child = spawn(
+      const child = spawnCli(
         cliPath,
         ['-p', 'hi', '--output-format', 'stream-json', '--verbose'],
         {
@@ -685,7 +686,7 @@ function queryViaCli(
 
   const env = { ...getEnvVars(), ...opts?.env };
 
-  const child = spawn(cliPath, args, {
+  const child = spawnCli(cliPath, args, {
     cwd,
     env,
     stdio: ['pipe', 'pipe', 'pipe'],
