@@ -15,6 +15,7 @@ import { findClaudeCodeCli } from './ai-provider-claude';
 import { findCodexCli, CODEX_PROVIDER_RUNTIME } from './ai-provider-common';
 import { OPENCODE_PROVIDER_RUNTIME } from './ai-provider-opencode';
 import { isAuthorizedAIRequest } from './ai-auth';
+import { normalizeCliSpawnCommand } from './cli-spawn';
 import {
   completeRuntimeSession,
   createRuntimeSession,
@@ -308,7 +309,8 @@ async function verifyPtySpawn(
   }
 
   try {
-    const child = pty.spawn(command, probe.args, {
+    const normalized = normalizeCliSpawnCommand(command, probe.args);
+    const child = pty.spawn(normalized.command, normalized.args, {
       name: 'xterm-256color',
       cols: 80,
       rows: 24,
@@ -815,7 +817,8 @@ export async function attachTerminalWebSocket(
             runtimeKind: 'terminal',
           });
 
-          const ptyProcess = pty!.spawn(command, cmd.args, {
+          const normalized = normalizeCliSpawnCommand(command, cmd.args);
+          const ptyProcess = pty!.spawn(normalized.command, normalized.args, {
             name: 'xterm-256color',
             cols: 80,
             rows: 24,

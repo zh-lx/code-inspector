@@ -4,7 +4,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { spawn, ChildProcess, execSync } from 'child_process';
+import { ChildProcess, execSync } from 'child_process';
 import type {
   CodexOptions,
   CodexCliOptions,
@@ -14,6 +14,7 @@ import type {
 import type { AIContext, AIMessage } from './ai';
 import type { ProviderCallbacks, ProviderResult } from './ai-provider-claude';
 import { getEnvVars } from '../../server/server';
+import { spawnCli } from './cli-spawn';
 import chalk from 'chalk';
 
 export type CodexProviderRuntime = {
@@ -1018,7 +1019,7 @@ function queryViaCli(
   );
   const env = { ...getEnvVars(), ...codexOptions?.env };
 
-  const child = spawn(cliPath, cliArgs, {
+  const child = spawnCli(cliPath, cliArgs, {
     cwd,
     env,
     stdio: ['pipe', 'pipe', 'pipe'],
