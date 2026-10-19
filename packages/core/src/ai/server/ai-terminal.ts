@@ -662,8 +662,10 @@ export async function attachTerminalWebSocket(
 
   if (!pty || !WS) {
     terminalFeatureAvailable = false;
-    terminalFeatureUnavailableReason =
-      'node-pty or ws is not available in the current runtime.';
+    // node-pty 是可选 peerDependency，不会被自动安装，需要使用 Terminal 模式的用户自行安装
+    terminalFeatureUnavailableReason = !pty
+      ? 'node-pty is not installed. Install it in your project (e.g. `npm i -D node-pty`) to enable terminal mode.'
+      : 'ws is not available in the current runtime.';
     return false;
   }
 

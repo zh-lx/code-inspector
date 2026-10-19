@@ -1059,6 +1059,9 @@ importers:
       marked:
         specifier: ^17.0.1
         version: 17.0.1
+      node-pty:
+        specifier: ^1.1.0
+        version: 1.1.0
       rollup-plugin-terser:
         specifier: ^7.0.2
         version: 7.0.2(rollup@4.61.1)
@@ -1077,10 +1080,6 @@ importers:
       volar-service-pug:
         specifier: ^0.0.63
         version: 0.0.63
-    optionalDependencies:
-      node-pty:
-        specifier: ^1.1.0
-        version: 1.1.0
 
   packages/esbuild:
     dependencies:

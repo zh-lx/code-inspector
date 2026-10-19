@@ -151,8 +151,14 @@ codeInspectorPlugin({
 
 Terminal mode opens a native Codex CLI terminal in the AI panel. It requires the current runtime to load `node-pty` and `ws`; if terminal support is unavailable, model info is downgraded and displayed as CLI mode.
 
-:::tip node-pty is optional
-`node-pty` is an optional dependency (native addon). Package managers skip it when prebuilds/build tools are missing (`node-gyp`, python, make, g++), so installing `code-inspector-plugin` still succeeds. Locate and AI CLI/SDK modes keep working; only terminal mode is disabled until `node-pty` installs successfully.
+:::tip Install node-pty for terminal mode
+`node-pty` is an optional peer dependency (native addon) and is **not installed automatically**, so installing `code-inspector-plugin` never triggers a native build. To use terminal mode, install it in your project:
+
+```bash
+npm i -D node-pty
+```
+
+Without `node-pty`, locate and AI CLI/SDK modes keep working; only terminal mode is disabled.
 :::
 
 ```js
