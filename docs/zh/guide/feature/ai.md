@@ -151,8 +151,14 @@ codeInspectorPlugin({
 
 Terminal 模式会在 AI 面板中打开原生 Codex CLI 终端。需要当前运行环境可加载 `node-pty` 和 `ws`；如果终端能力不可用，模型信息会降级显示为 CLI 模式。
 
-:::tip node-pty 是可选依赖
-`node-pty` 是一个可选的原生依赖。当缺少预编译产物或构建工具（`node-gyp`、python、make、g++）时，包管理器会跳过该依赖，因此安装 `code-inspector-plugin` 仍能成功。定位功能和 AI CLI/SDK 模式不受影响；只有 Terminal 模式会被禁用，直到 `node-pty` 成功安装。
+:::tip 使用 Terminal 模式需要安装 node-pty
+`node-pty` 是一个可选的 peerDependency（原生依赖），**不会被自动安装**，因此安装 `code-inspector-plugin` 不会触发原生编译。如需使用 Terminal 模式，请在项目中安装：
+
+```bash
+npm i -D node-pty
+```
+
+未安装 `node-pty` 时，定位功能和 AI CLI/SDK 模式不受影响，只有 Terminal 模式不可用。
 :::
 
 ```js
