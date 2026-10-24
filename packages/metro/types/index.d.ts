@@ -3,6 +3,7 @@ export type MetroInspectorOptions = {
     projectRoot: string;
     injectTo: string;
     showSwitch?: boolean;
+    hotKeys?: CodeOptions['hotKeys'];
     editor?: CodeOptions['editor'];
 };
 export type MetroConfigLike = {

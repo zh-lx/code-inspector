@@ -6,6 +6,7 @@ export type MetroInspectorOptions = {
   projectRoot: string;
   injectTo: string;
   showSwitch?: boolean;
+  hotKeys?: CodeOptions['hotKeys'];
   editor?: CodeOptions['editor'];
 };
 
@@ -42,6 +43,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
     projectRoot: options.projectRoot,
     injectTo: options.injectTo,
     showSwitch: options.showSwitch ?? false,
+    hotKeys: options.hotKeys,
     editor: options.editor,
     originalTransformerPath,
   });
@@ -61,6 +63,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
       const inspectorOptions: CodeOptions = {
         bundler: 'metro',
         showSwitch: options.showSwitch ?? false,
+        hotKeys: options.hotKeys,
         editor: options.editor,
         pathType: 'relative',
       };

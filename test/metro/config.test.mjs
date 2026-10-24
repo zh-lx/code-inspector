@@ -15,13 +15,19 @@ const config = withCodeInspectorMetro(
     },
     extra: true,
   },
-  { projectRoot: process.cwd(), injectTo: path.resolve('app/_layout.tsx'), editor: 'code-insiders' },
+  {
+    projectRoot: process.cwd(),
+    injectTo: path.resolve('app/_layout.tsx'),
+    editor: 'code-insiders',
+    hotKeys: ['altKey'],
+  },
 );
 assert.equal(config.extra, true);
 assert.equal(config.transformer.existing, true);
 assert.equal(config.transformer.babelTransformerPath, path.resolve('packages/metro/dist/transformer.cjs'));
 assert.equal(JSON.parse(process.env.CODE_INSPECTOR_METRO_CONFIG).originalTransformerPath, original);
 assert.equal(JSON.parse(process.env.CODE_INSPECTOR_METRO_CONFIG).editor, 'code-insiders');
+assert.deepEqual(JSON.parse(process.env.CODE_INSPECTOR_METRO_CONFIG).hotKeys, ['altKey']);
 const enhanced = config.server.enhanceMiddleware((request, response, next) => {
   calls.push(request.url);
   next();
