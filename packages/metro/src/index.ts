@@ -1,9 +1,11 @@
 import { fileURLToPath } from 'node:url';
+import type { CodeOptions } from '@code-inspector/core';
 
 export type MetroInspectorOptions = {
   projectRoot: string;
   injectTo: string;
   showSwitch?: boolean;
+  editor?: CodeOptions['editor'];
 };
 
 export type MetroConfigLike = {
@@ -27,6 +29,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
     projectRoot: options.projectRoot,
     injectTo: options.injectTo,
     showSwitch: options.showSwitch ?? false,
+    editor: options.editor,
     originalTransformerPath,
   });
   const moduleUrl = import.meta.url;

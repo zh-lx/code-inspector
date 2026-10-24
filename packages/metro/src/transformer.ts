@@ -25,6 +25,7 @@ type RuntimeConfig = {
   projectRoot: string;
   injectTo: string;
   showSwitch: boolean;
+  editor?: CodeOptions['editor'];
   originalTransformerPath: string;
 };
 
@@ -76,6 +77,7 @@ export async function transform(input: TransformerInput) {
     const options: CodeOptions = {
       bundler: 'metro',
       showSwitch: config.showSwitch,
+      editor: config.editor,
       pathType: 'relative',
     };
     const record: RecordInfo = {
