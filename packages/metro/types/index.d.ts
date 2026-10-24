@@ -1,7 +1,9 @@
+import type { CodeOptions } from '@code-inspector/core';
 export type MetroInspectorOptions = {
     projectRoot: string;
     injectTo: string;
     showSwitch?: boolean;
+    editor?: CodeOptions['editor'];
 };
 export type MetroConfigLike = {
     transformer?: {
