@@ -24,4 +24,4 @@ Pass the final Metro config to `withCodeInspectorMetro` so other wrappers retain
 
 The inspector runs only when Metro requests a development web bundle. Its editor-opening server starts on the web bundle request, including when Metro serves a cached transform. Hold Option + Shift (macOS) or Alt + Shift (Windows) and click an element to open its source. Pass `hotKeys` to change the trigger, for example `hotKeys: ['altKey']` for Option only.
 
-If the editor cannot be detected, pass `editor` in the Metro options (for example, `editor: 'code-insiders'`) or set `CODE_EDITOR` before starting Expo.
+Pass `editor` in the Metro options (for example, `editor: 'code-insiders'`); the adapter resolves that editor's CLI from `PATH` and pins `CODE_EDITOR` for the inspector server. Set `CODE_EDITOR` yourself to override the resolution.

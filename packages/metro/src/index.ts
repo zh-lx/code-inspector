@@ -1,5 +1,6 @@
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { startServer, type CodeOptions, type RecordInfo } from '@code-inspector/core';
 
 export type MetroInspectorOptions = {
@@ -27,6 +28,18 @@ function isWebDevelopmentBundle(url: string | undefined) {
   );
 }
 
+function resolveEditorCli(editor: CodeOptions['editor']) {
+  if (!editor || process.env.CODE_EDITOR || editor.includes('/') || editor.includes('\\')) {
+    return;
+  }
+  const cli = process.env.PATH?.split(delimiter)
+    .map((directory) => join(directory, editor))
+    .find(existsSync);
+  if (cli) {
+    process.env.CODE_EDITOR = cli;
+  }
+}
+
 /** Add Code Inspector to Expo web development bundles. */
 export function withCodeInspectorMetro<T extends MetroConfigLike>(
   config: T,
@@ -35,6 +48,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
   if (!options.projectRoot || !options.injectTo) {
     throw new Error('Code Inspector Metro requires projectRoot and injectTo.');
   }
+  resolveEditorCli(options.editor);
   const originalTransformerPath = config.transformer?.babelTransformerPath;
   if (!originalTransformerPath) {
     throw new Error('Code Inspector Metro requires an existing Babel transformer.');
