@@ -22,6 +22,6 @@ export default withCodeInspectorMetro(config, {
 
 Pass the final Metro config to `withCodeInspectorMetro` so other wrappers retain their transformer settings. `injectTo` must name a source module loaded once by the browser app, such as the Expo Router root layout. The adapter extends Expo's configured Babel transformer, instruments project JSX, and maps React Native Web host components to `dataSet.inspPath` so their DOM elements carry `data-insp-path`.
 
-The inspector runs only when Metro requests a development web bundle. Its editor-opening server starts on the web bundle request, including when Metro serves a cached transform. Hold Option + Shift (macOS) or Alt + Shift (Windows) and click an element to open its source. Pass `hotKeys` to change the trigger, for example `hotKeys: ['altKey']` for Option only.
+The inspector runs only when Metro requests a development web bundle. Its editor-opening server starts on the web bundle request, including when Metro serves a cached transform. Hold Option + Shift (macOS) or Alt + Shift (Windows) and click an element to open its source. Pass `hotKeys` to change the trigger, for example `hotKeys: ['altKey']` for Option only or `hotKeys: ['control']` for Control. Aliases `control`, `option`, `command`, `cmd`, `alt`, `meta`, and `shift` map to the corresponding Code Inspector key names.
 
 Pass `editor` in the Metro options (for example, `editor: 'code-insiders'`); the adapter resolves that editor's CLI from `PATH` and pins `CODE_EDITOR` for the inspector server. Set `CODE_EDITOR` yourself to override the resolution.

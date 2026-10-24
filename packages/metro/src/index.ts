@@ -28,6 +28,27 @@ function isWebDevelopmentBundle(url: string | undefined) {
   );
 }
 
+const HOT_KEY_ALIASES: Record<string, 'ctrlKey' | 'altKey' | 'metaKey' | 'shiftKey'> = {
+  control: 'ctrlKey',
+  ctrl: 'ctrlKey',
+  option: 'altKey',
+  alt: 'altKey',
+  command: 'metaKey',
+  cmd: 'metaKey',
+  meta: 'metaKey',
+  shift: 'shiftKey',
+};
+
+function normalizeHotKeys(hotKeys: CodeOptions['hotKeys']) {
+  if (!hotKeys) {
+    return hotKeys;
+  }
+  return hotKeys.map((key) => {
+    const alias = HOT_KEY_ALIASES[String(key).trim().toLowerCase()];
+    return alias || key;
+  });
+}
+
 function resolveEditorCli(editor: CodeOptions['editor']) {
   if (!editor || process.env.CODE_EDITOR || editor.includes('/') || editor.includes('\\')) {
     return;
@@ -48,6 +69,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
   if (!options.projectRoot || !options.injectTo) {
     throw new Error('Code Inspector Metro requires projectRoot and injectTo.');
   }
+  const hotKeys = normalizeHotKeys(options.hotKeys);
   resolveEditorCli(options.editor);
   const originalTransformerPath = config.transformer?.babelTransformerPath;
   if (!originalTransformerPath) {
@@ -57,7 +79,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
     projectRoot: options.projectRoot,
     injectTo: options.injectTo,
     showSwitch: options.showSwitch ?? false,
-    hotKeys: options.hotKeys,
+    hotKeys,
     editor: options.editor,
     originalTransformerPath,
   });
@@ -77,7 +99,7 @@ export function withCodeInspectorMetro<T extends MetroConfigLike>(
       const inspectorOptions: CodeOptions = {
         bundler: 'metro',
         showSwitch: options.showSwitch ?? false,
-        hotKeys: options.hotKeys,
+        hotKeys,
         editor: options.editor,
         pathType: 'relative',
       };

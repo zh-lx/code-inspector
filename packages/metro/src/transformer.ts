@@ -96,5 +96,9 @@ export async function transform(input: TransformerInput) {
 }
 
 export function getCacheKey(options: unknown) {
-  return `code-inspector-metro-1:${getOriginalTransformer().getCacheKey?.(options) || ''}`;
+  const { hotKeys, showSwitch, editor, injectTo } = getConfig();
+  const inspectorKey = JSON.stringify({ hotKeys, showSwitch, editor, injectTo });
+  return `code-inspector-metro-2:${inspectorKey}:${
+    getOriginalTransformer().getCacheKey?.(options) || ''
+  }`;
 }
