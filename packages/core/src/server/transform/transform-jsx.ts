@@ -35,6 +35,7 @@ export function transformJsx(
       [proposalDecorators, { legacy: true }],
     ],
   });
+  const nativeHostBindings = reactNativeWeb ? getNativeHostBindings(ast) : new Set<string>();
 
   const dynamicInjectedElements = new Set<number>();
   const dynamicInjectedCreateElementCalls = new Set<number>();
@@ -49,7 +50,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
     },
     FunctionExpression(path: any) {
@@ -61,7 +62,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
     },
     ArrowFunctionExpression(path: any) {
@@ -73,7 +74,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
     },
     ClassDeclaration(path: any) {
@@ -85,7 +86,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
     },
     ClassExpression(path: any) {
@@ -97,7 +98,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
     },
     enter({ node }: any) {
@@ -117,7 +118,7 @@ export function transformJsx(
         const insertPosition =
           openingElement.end - (openingElement.selfClosing ? 2 : 1);
         const pathExpression = JSON.stringify(getNodePathValue(filePath, node, nodeName));
-        if (reactNativeWeb && isReactNativeWebHost(nodeName)) {
+        if (nativeHostBindings.has(nodeName)) {
           injectDataSet(s, content, openingElement, pathExpression);
         } else {
           s.prependLeft(insertPosition, ` ${PathName}=${pathExpression}${attributes.length ? ' ' : ''}`);
@@ -149,7 +150,7 @@ function transformComponentFunction(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
-  reactNativeWeb: boolean,
+  nativeHostBindings: Set<string>,
 ) {
   if (!isComponentFunction(path)) {
     return;
@@ -176,7 +177,7 @@ function transformComponentFunction(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
-      reactNativeWeb,
+      nativeHostBindings,
     );
   };
 
@@ -217,7 +218,7 @@ function transformClassComponent(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
-  reactNativeWeb: boolean,
+  nativeHostBindings: Set<string>,
 ) {
   if (!isComponentClass(path)) {
     return;
@@ -239,7 +240,7 @@ function transformClassComponent(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
-      reactNativeWeb,
+      nativeHostBindings,
     );
   };
 
@@ -510,7 +511,7 @@ function injectRootTargets(
   dynamicInjectedCreateElementCalls: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
-  reactNativeWeb: boolean,
+  nativeHostBindings: Set<string>,
 ) {
   for (const rootTarget of rootTargets) {
     if (rootTarget.type === 'jsx') {
@@ -522,7 +523,7 @@ function injectRootTargets(
         dynamicInjectedElements,
         propExpression,
         escapeTags,
-        reactNativeWeb,
+        nativeHostBindings,
       );
       continue;
     }
@@ -855,7 +856,7 @@ function injectDynamicPathAttribute(
   dynamicInjectedElements: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
-  reactNativeWeb: boolean,
+  nativeHostBindings: Set<string>,
 ) {
   const openingElement = node?.openingElement;
   const nodeName = getJsxNodeName(openingElement?.name);
@@ -874,7 +875,7 @@ function injectDynamicPathAttribute(
   const insertPosition =
     openingElement.end - (openingElement.selfClosing ? 2 : 1);
   const pathExpression = `${propExpression} || ${JSON.stringify(getNodePathValue(filePath, node, nodeName))}`;
-  if (reactNativeWeb && isReactNativeWebHost(nodeName)) {
+  if (nativeHostBindings.has(nodeName)) {
     injectDataSet(s, content, openingElement, pathExpression);
   } else {
     s.prependLeft(insertPosition, ` ${PathName}={${pathExpression}}${openingElement.attributes.length ? ' ' : ''}`);
@@ -887,8 +888,25 @@ const ReactNativeWebHosts = new Set([
   'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback',
 ]);
 
-function isReactNativeWebHost(nodeName: string) {
-  return ReactNativeWebHosts.has(nodeName.split('.').pop() || nodeName);
+function getNativeHostBindings(ast: any) {
+  const bindings = new Set<string>();
+  traverse(ast, {
+    ImportDeclaration(importPath: any) {
+      if (!['react-native', 'react-native-web'].includes(importPath.node.source.value)) return;
+      importPath.node.specifiers.forEach((specifier: any) => {
+        if (
+          specifier.type === 'ImportSpecifier' &&
+          ReactNativeWebHosts.has(specifier.imported.name)
+        ) {
+          bindings.add(specifier.local.name);
+        }
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          ReactNativeWebHosts.forEach((name) => bindings.add(`${specifier.local.name}.${name}`));
+        }
+      });
+    },
+  });
+  return bindings;
 }
 
 function injectDataSet(

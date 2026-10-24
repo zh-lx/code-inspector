@@ -15,7 +15,7 @@ describe('transformJsx', () => {
 
   describe('React Native Web', () => {
     it('passes source paths to native host elements through dataSet', () => {
-      const source = 'function Card(props) { return <View><Text>Hello</Text></View> }';
+      const source = 'import { View, Text } from "react-native"; function Card(props) { return <View><Text>Hello</Text></View> }';
       const result = transformJsx(source, filePath, [], true);
       expect(result).toContain('dataSet={{ inspPath:');
       expect(result).toContain(':View"');
@@ -24,7 +24,7 @@ describe('transformJsx', () => {
     });
 
     it('preserves an existing dataSet and propagates custom component paths', () => {
-      const source = 'function Card(props) { return <View dataSet={{ item: 1 }} /> } const el = <Card />';
+      const source = 'import { View } from "react-native"; function Card(props) { return <View dataSet={{ item: 1 }} /> } const el = <Card />';
       const result = transformJsx(source, filePath, [], true);
       expect(result).toContain('...({ item: 1 }), inspPath:');
       expect(result).toContain('<Card  data-insp-path=');
@@ -33,6 +33,12 @@ describe('transformJsx', () => {
 
     it('keeps DOM tags on the ordinary path attribute', () => {
       const result = transformJsx('const el = <div />', filePath, [], true);
+      expect(result).toContain('data-insp-path=');
+      expect(result).not.toContain('dataSet=');
+    });
+
+    it('does not pass dataSet to similarly named Tamagui components', () => {
+      const result = transformJsx('import { Text } from "@tamagui/tailwind"; const el = <Text />', filePath, [], true);
       expect(result).toContain('data-insp-path=');
       expect(result).not.toContain('dataSet=');
     });
