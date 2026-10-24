@@ -7,7 +7,7 @@ type RootTarget = {
     type: 'createElement';
     node: any;
 };
-export declare function transformJsx(content: string, filePath: string, escapeTags: EscapeTags): string;
+export declare function transformJsx(content: string, filePath: string, escapeTags: EscapeTags, reactNativeWeb?: boolean): string;
 declare function hasExportDefaultAncestor(path: any): boolean;
 declare function getPropagatedPathExpression(path: any, s: MagicString, content: string): string;
 declare function getObjectPatternPathBinding(param: any): string;

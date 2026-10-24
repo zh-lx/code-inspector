@@ -1,0 +1,24 @@
+{
+  "name": "@code-inspector/metro",
+  "version": "2.0.9",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./types/index.d.ts",
+  "files": ["dist", "types"],
+  "exports": {
+    ".": { "types": "./types/index.d.ts", "import": "./dist/index.mjs" },
+    "./transformer": "./dist/transformer.cjs"
+  },
+  "scripts": {
+    "clear": "rimraf ./dist ./types",
+    "build": "pnpm clear && tsc && vite build && vite build --config vite.transformer.config.ts"
+  },
+  "dependencies": {
+    "@code-inspector/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.3.9"
+  }
+}

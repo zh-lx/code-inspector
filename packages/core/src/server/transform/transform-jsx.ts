@@ -20,6 +20,7 @@ export function transformJsx(
   content: string,
   filePath: string,
   escapeTags: EscapeTags,
+  reactNativeWeb = false,
 ) {
   const s = new MagicString(content);
 
@@ -48,6 +49,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        reactNativeWeb,
       );
     },
     FunctionExpression(path: any) {
@@ -59,6 +61,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        reactNativeWeb,
       );
     },
     ArrowFunctionExpression(path: any) {
@@ -70,6 +73,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        reactNativeWeb,
       );
     },
     ClassDeclaration(path: any) {
@@ -81,6 +85,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        reactNativeWeb,
       );
     },
     ClassExpression(path: any) {
@@ -92,6 +97,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        reactNativeWeb,
       );
     },
     enter({ node }: any) {
@@ -103,21 +109,19 @@ export function transformJsx(
         nodeName &&
         !isEscapedJsxTag(escapeTags, nodeName)
       ) {
-        if (
-          dynamicInjectedElements.has(openingElement.start) ||
-          hasPathAttribute(attributes)
-        ) {
+        if (dynamicInjectedElements.has(openingElement.start) || hasPathAttribute(attributes)) {
           return;
         }
 
         // 向 dom 上添加一个带有 filepath/row/column 的属性
         const insertPosition =
           openingElement.end - (openingElement.selfClosing ? 2 : 1);
-        const addition = ` ${PathName}=${JSON.stringify(
-          getNodePathValue(filePath, node, nodeName),
-        )}${openingElement.attributes.length ? ' ' : ''}`;
-
-        s.prependLeft(insertPosition, addition);
+        const pathExpression = JSON.stringify(getNodePathValue(filePath, node, nodeName));
+        if (reactNativeWeb && isReactNativeWebHost(nodeName)) {
+          injectDataSet(s, content, openingElement, pathExpression);
+        } else {
+          s.prependLeft(insertPosition, ` ${PathName}=${pathExpression}${attributes.length ? ' ' : ''}`);
+        }
         return;
       }
 
@@ -145,6 +149,7 @@ function transformComponentFunction(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
+  reactNativeWeb: boolean,
 ) {
   if (!isComponentFunction(path)) {
     return;
@@ -171,6 +176,7 @@ function transformComponentFunction(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
+      reactNativeWeb,
     );
   };
 
@@ -211,6 +217,7 @@ function transformClassComponent(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
+  reactNativeWeb: boolean,
 ) {
   if (!isComponentClass(path)) {
     return;
@@ -232,6 +239,7 @@ function transformClassComponent(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
+      reactNativeWeb,
     );
   };
 
@@ -502,16 +510,19 @@ function injectRootTargets(
   dynamicInjectedCreateElementCalls: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
+  reactNativeWeb: boolean,
 ) {
   for (const rootTarget of rootTargets) {
     if (rootTarget.type === 'jsx') {
       injectDynamicPathAttribute(
         rootTarget.node,
         s,
+        content,
         filePath,
         dynamicInjectedElements,
         propExpression,
         escapeTags,
+        reactNativeWeb,
       );
       continue;
     }
@@ -839,10 +850,12 @@ function getSingleBindingAssignment(binding: any) {
 function injectDynamicPathAttribute(
   node: any,
   s: MagicString,
+  content: string,
   filePath: string,
   dynamicInjectedElements: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
+  reactNativeWeb: boolean,
 ) {
   const openingElement = node?.openingElement;
   const nodeName = getJsxNodeName(openingElement?.name);
@@ -860,11 +873,42 @@ function injectDynamicPathAttribute(
 
   const insertPosition =
     openingElement.end - (openingElement.selfClosing ? 2 : 1);
-  const addition = ` ${PathName}={${propExpression} || ${JSON.stringify(
-    getNodePathValue(filePath, node, nodeName),
-  )}}${openingElement.attributes.length ? ' ' : ''}`;
+  const pathExpression = `${propExpression} || ${JSON.stringify(getNodePathValue(filePath, node, nodeName))}`;
+  if (reactNativeWeb && isReactNativeWebHost(nodeName)) {
+    injectDataSet(s, content, openingElement, pathExpression);
+  } else {
+    s.prependLeft(insertPosition, ` ${PathName}={${pathExpression}}${openingElement.attributes.length ? ' ' : ''}`);
+  }
+}
 
-  s.prependLeft(insertPosition, addition);
+const ReactNativeWebHosts = new Set([
+  'View', 'Text', 'Image', 'TextInput', 'Pressable', 'ScrollView',
+  'FlatList', 'SectionList', 'Switch', 'ActivityIndicator',
+  'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback',
+]);
+
+function isReactNativeWebHost(nodeName: string) {
+  return ReactNativeWebHosts.has(nodeName.split('.').pop() || nodeName);
+}
+
+function injectDataSet(
+  s: MagicString,
+  content: string,
+  openingElement: any,
+  pathExpression: string,
+) {
+  const dataSet = openingElement.attributes.find(
+    (attribute: any) => attribute.type === 'JSXAttribute' && attribute.name?.name === 'dataSet',
+  );
+  if (dataSet) {
+    const existingValue = dataSet.value?.expression
+      ? content.slice(dataSet.value.expression.start, dataSet.value.expression.end)
+      : '{}';
+    s.overwrite(dataSet.start, dataSet.end, `dataSet={{ ...(${existingValue}), inspPath: ${pathExpression} }}`);
+    return;
+  }
+  const insertPosition = openingElement.end - (openingElement.selfClosing ? 2 : 1);
+  s.prependLeft(insertPosition, ` dataSet={{ inspPath: ${pathExpression} }}${openingElement.attributes.length ? ' ' : ''}`);
 }
 
 function injectStaticCreateElementPath(

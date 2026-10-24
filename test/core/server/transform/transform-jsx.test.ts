@@ -13,6 +13,31 @@ describe('transformJsx', () => {
   const filePath = 'test/file.jsx';
   const defaultEscapeTags = ['script', 'style'];
 
+  describe('React Native Web', () => {
+    it('passes source paths to native host elements through dataSet', () => {
+      const source = 'function Card(props) { return <View><Text>Hello</Text></View> }';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('dataSet={{ inspPath:');
+      expect(result).toContain(':View"');
+      expect(result).toContain(':Text"');
+      expect(result).not.toContain('<View data-insp-path');
+    });
+
+    it('preserves an existing dataSet and propagates custom component paths', () => {
+      const source = 'function Card(props) { return <View dataSet={{ item: 1 }} /> } const el = <Card />';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('...({ item: 1 }), inspPath:');
+      expect(result).toContain('<Card  data-insp-path=');
+      expect(result).toContain('props["data-insp-path"]');
+    });
+
+    it('keeps DOM tags on the ordinary path attribute', () => {
+      const result = transformJsx('const el = <div />', filePath, [], true);
+      expect(result).toContain('data-insp-path=');
+      expect(result).not.toContain('dataSet=');
+    });
+  });
+
   describe('basic transformation', () => {
     it('should add data-insp-path attribute to JSX elements', () => {
       const content = 'function App() { return <div>Hello</div>; }';
