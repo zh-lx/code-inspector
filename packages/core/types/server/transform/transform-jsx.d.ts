@@ -3,6 +3,7 @@ import { EscapeTags } from '../../shared';
 type RootTarget = {
     type: 'jsx';
     node: any;
+    scope: any;
 } | {
     type: 'createElement';
     node: any;

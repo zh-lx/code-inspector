@@ -31,6 +31,39 @@ describe('transformJsx', () => {
       expect(result).toContain('props["data-insp-path"]');
     });
 
+    it('does not treat a locally shadowed host name as a React Native host', () => {
+      const source = 'import { View } from "react-native"; function Card(View) { return <View /> }';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('data-insp-path=');
+      expect(result).not.toContain('dataSet=');
+    });
+
+    it('merges dataSet from a spread and keeps inspPath last', () => {
+      const source = 'import { View } from "react-native"; const el = <View {...props} />';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('...(( props )?.dataSet)');
+      expect(result.indexOf('...(( props )?.dataSet)')).toBeLessThan(
+        result.indexOf('inspPath:'),
+      );
+    });
+
+    it('keeps inspPath after a spread that follows an explicit dataSet', () => {
+      const source = 'import { View } from "react-native"; const el = <View dataSet={userData} {...props} />';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('...(( props )?.dataSet)');
+      expect(result).toContain('inspPath:');
+      const lastSpread = result.lastIndexOf('...(( props )?.dataSet)');
+      const lastInspPath = result.lastIndexOf('inspPath:');
+      expect(lastSpread).toBeLessThan(lastInspPath);
+    });
+
+    it('keeps nested JSX inside dataSet instrumented', () => {
+      const source = 'import { View, Text } from "react-native"; const el = <View dataSet={{ icon: <Text /> }} />';
+      const result = transformJsx(source, filePath, [], true);
+      expect(result).toContain('inspPath:');
+      expect(result).toMatch(/<Text\s+dataSet=\{\{ inspPath:/);
+    });
+
     it('keeps DOM tags on the ordinary path attribute', () => {
       const result = transformJsx('const el = <div />', filePath, [], true);
       expect(result).toContain('data-insp-path=');
@@ -1245,6 +1278,7 @@ export default class extends React.Component {
           node: {
             type: 'JSXElement',
           },
+          scope: null,
         },
       ]);
     });

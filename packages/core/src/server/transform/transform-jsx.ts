@@ -13,7 +13,7 @@ import proposalDecorators from '@babel/plugin-proposal-decorators';
 const PropagatedPathBinding = '__codeInspectorPath';
 const ImplicitPropsBinding = '__codeInspectorProps';
 type RootTarget =
-  | { type: 'jsx'; node: any }
+  | { type: 'jsx'; node: any; scope: any }
   | { type: 'createElement'; node: any };
 
 export function transformJsx(
@@ -101,7 +101,8 @@ export function transformJsx(
         nativeHostBindings,
       );
     },
-    enter({ node }: any) {
+    enter(path: any) {
+      const { node } = path;
       const openingElement = node.openingElement;
       const nodeName = getJsxNodeName(openingElement?.name);
       const attributes = openingElement?.attributes || [];
@@ -118,7 +119,7 @@ export function transformJsx(
         const insertPosition =
           openingElement.end - (openingElement.selfClosing ? 2 : 1);
         const pathExpression = JSON.stringify(getNodePathValue(filePath, node, nodeName));
-        if (nativeHostBindings.has(nodeName)) {
+        if (isNativeHostElement(nodeName, path.scope, nativeHostBindings)) {
           injectDataSet(s, content, openingElement, pathExpression);
         } else {
           s.prependLeft(insertPosition, ` ${PathName}=${pathExpression}${attributes.length ? ' ' : ''}`);
@@ -517,6 +518,7 @@ function injectRootTargets(
     if (rootTarget.type === 'jsx') {
       injectDynamicPathAttribute(
         rootTarget.node,
+        rootTarget.scope,
         s,
         content,
         filePath,
@@ -555,7 +557,7 @@ function collectRootTargets(
   }
 
   if (unwrappedNode.type === 'JSXElement') {
-    return [{ type: 'jsx', node: unwrappedNode }];
+    return [{ type: 'jsx', node: unwrappedNode, scope }];
   }
 
   if (unwrappedNode.type === 'CallExpression') {
@@ -616,7 +618,7 @@ function collectRootTargets(
     // Fragment 本身不会落到 DOM，上层路径需要下发给它的直接根子节点。
     return unwrappedNode.children.flatMap((child: any) => {
       if (child.type === 'JSXElement') {
-        return [{ type: 'jsx', node: child }];
+        return [{ type: 'jsx', node: child, scope }];
       }
       if (child.type === 'JSXFragment') {
         return collectRootTargets(child, scope, visitedBindings);
@@ -850,6 +852,7 @@ function getSingleBindingAssignment(binding: any) {
 
 function injectDynamicPathAttribute(
   node: any,
+  scope: any,
   s: MagicString,
   content: string,
   filePath: string,
@@ -875,7 +878,7 @@ function injectDynamicPathAttribute(
   const insertPosition =
     openingElement.end - (openingElement.selfClosing ? 2 : 1);
   const pathExpression = `${propExpression} || ${JSON.stringify(getNodePathValue(filePath, node, nodeName))}`;
-  if (nativeHostBindings.has(nodeName)) {
+  if (isNativeHostElement(nodeName, scope, nativeHostBindings)) {
     injectDataSet(s, content, openingElement, pathExpression);
   } else {
     s.prependLeft(insertPosition, ` ${PathName}={${pathExpression}}${openingElement.attributes.length ? ' ' : ''}`);
@@ -909,24 +912,83 @@ function getNativeHostBindings(ast: any) {
   return bindings;
 }
 
+function isNativeHostElement(
+  nodeName: string,
+  scope: any,
+  nativeHostBindings: Set<string>,
+) {
+  if (!nativeHostBindings.has(nodeName)) {
+    return false;
+  }
+  const rootName = nodeName.split('.')[0];
+  const binding = scope?.getBinding?.(rootName);
+  return binding?.kind === 'module';
+}
+
 function injectDataSet(
   s: MagicString,
   content: string,
   openingElement: any,
   pathExpression: string,
 ) {
-  const dataSet = openingElement.attributes.find(
+  const attributes = openingElement.attributes || [];
+  const dataSetIndex = attributes.findIndex(
     (attribute: any) => attribute.type === 'JSXAttribute' && attribute.name?.name === 'dataSet',
   );
-  if (dataSet) {
-    const existingValue = dataSet.value?.expression
-      ? content.slice(dataSet.value.expression.start, dataSet.value.expression.end)
-      : '{}';
-    s.overwrite(dataSet.start, dataSet.end, `dataSet={{ ...(${existingValue}), inspPath: ${pathExpression} }}`);
+  const dataSetAttribute = dataSetIndex >= 0 ? attributes[dataSetIndex] : undefined;
+  const hasSpread = attributes.some(
+    (attribute: any) => attribute.type === 'JSXSpreadAttribute',
+  );
+  const spreadsAfterDataSet = dataSetIndex >= 0
+    ? attributes.slice(dataSetIndex + 1).some(
+        (attribute: any) => attribute.type === 'JSXSpreadAttribute',
+      )
+    : false;
+
+  if (dataSetAttribute && !spreadsAfterDataSet) {
+    const expression = dataSetAttribute.value?.expression;
+    if (expression) {
+      // Keep the original expression range intact so nested JSX edits still apply.
+      s.overwrite(dataSetAttribute.value.start, dataSetAttribute.value.start + 1, '{{ ...(');
+      s.overwrite(dataSetAttribute.value.end - 1, dataSetAttribute.value.end, `), inspPath: ${pathExpression} }}`);
+    } else {
+      s.overwrite(
+        dataSetAttribute.start,
+        dataSetAttribute.end,
+        `dataSet={{ inspPath: ${pathExpression} }}`,
+      );
+    }
     return;
   }
+
+  if (!hasSpread) {
+    const insertPosition = openingElement.end - (openingElement.selfClosing ? 2 : 1);
+    s.prependLeft(
+      insertPosition,
+      ` dataSet={{ inspPath: ${pathExpression} }}${attributes.length ? ' ' : ''}`,
+    );
+    return;
+  }
+
+  const mergedSources = attributes.flatMap((attribute: any) => {
+    if (attribute.type === 'JSXAttribute' && attribute.name?.name === 'dataSet') {
+      const expression = attribute.value?.expression;
+      return expression
+        ? [`...(${content.slice(expression.start, expression.end)})`]
+        : ['...({})'];
+    }
+    if (attribute.type === 'JSXSpreadAttribute') {
+      const spread = content.slice(attribute.argument.start, attribute.argument.end);
+      return [`...(( ${spread} )?.dataSet)`];
+    }
+    return [];
+  });
+
+  const mergedValue = mergedSources.length
+    ? `{{ ${mergedSources.join(', ')}, inspPath: ${pathExpression} }}`
+    : `{{ inspPath: ${pathExpression} }}`;
   const insertPosition = openingElement.end - (openingElement.selfClosing ? 2 : 1);
-  s.prependLeft(insertPosition, ` dataSet={{ inspPath: ${pathExpression} }}${openingElement.attributes.length ? ' ' : ''}`);
+  s.prependLeft(insertPosition, ` dataSet=${mergedValue}${attributes.length ? ' ' : ''}`);
 }
 
 function injectStaticCreateElementPath(
