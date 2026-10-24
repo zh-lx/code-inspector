@@ -1,4 +1,4 @@
-import type { CodeOptions } from '@code-inspector/core';
+import { type CodeOptions } from '@code-inspector/core';
 export type MetroInspectorOptions = {
     projectRoot: string;
     injectTo: string;
@@ -8,6 +8,10 @@ export type MetroInspectorOptions = {
 export type MetroConfigLike = {
     transformer?: {
         babelTransformerPath?: string;
+        [key: string]: unknown;
+    };
+    server?: {
+        enhanceMiddleware?: unknown;
         [key: string]: unknown;
     };
     [key: string]: unknown;
