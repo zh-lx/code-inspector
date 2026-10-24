@@ -13,13 +13,14 @@ import proposalDecorators from '@babel/plugin-proposal-decorators';
 const PropagatedPathBinding = '__codeInspectorPath';
 const ImplicitPropsBinding = '__codeInspectorProps';
 type RootTarget =
-  | { type: 'jsx'; node: any }
+  | { type: 'jsx'; node: any; scope: any }
   | { type: 'createElement'; node: any };
 
 export function transformJsx(
   content: string,
   filePath: string,
   escapeTags: EscapeTags,
+  reactNativeWeb = false,
 ) {
   const s = new MagicString(content);
 
@@ -34,6 +35,7 @@ export function transformJsx(
       [proposalDecorators, { legacy: true }],
     ],
   });
+  const nativeHostBindings = reactNativeWeb ? getNativeHostBindings(ast) : new Set<string>();
 
   const dynamicInjectedElements = new Set<number>();
   const dynamicInjectedCreateElementCalls = new Set<number>();
@@ -48,6 +50,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        nativeHostBindings,
       );
     },
     FunctionExpression(path: any) {
@@ -59,6 +62,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        nativeHostBindings,
       );
     },
     ArrowFunctionExpression(path: any) {
@@ -70,6 +74,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        nativeHostBindings,
       );
     },
     ClassDeclaration(path: any) {
@@ -81,6 +86,7 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        nativeHostBindings,
       );
     },
     ClassExpression(path: any) {
@@ -92,9 +98,11 @@ export function transformJsx(
         dynamicInjectedElements,
         dynamicInjectedCreateElementCalls,
         escapeTags,
+        nativeHostBindings,
       );
     },
-    enter({ node }: any) {
+    enter(path: any) {
+      const { node } = path;
       const openingElement = node.openingElement;
       const nodeName = getJsxNodeName(openingElement?.name);
       const attributes = openingElement?.attributes || [];
@@ -103,21 +111,19 @@ export function transformJsx(
         nodeName &&
         !isEscapedJsxTag(escapeTags, nodeName)
       ) {
-        if (
-          dynamicInjectedElements.has(openingElement.start) ||
-          hasPathAttribute(attributes)
-        ) {
+        if (dynamicInjectedElements.has(openingElement.start) || hasPathAttribute(attributes)) {
           return;
         }
 
         // 向 dom 上添加一个带有 filepath/row/column 的属性
         const insertPosition =
           openingElement.end - (openingElement.selfClosing ? 2 : 1);
-        const addition = ` ${PathName}=${JSON.stringify(
-          getNodePathValue(filePath, node, nodeName),
-        )}${openingElement.attributes.length ? ' ' : ''}`;
-
-        s.prependLeft(insertPosition, addition);
+        const pathExpression = JSON.stringify(getNodePathValue(filePath, node, nodeName));
+        if (isNativeHostElement(nodeName, path.scope, nativeHostBindings)) {
+          injectDataSet(s, content, openingElement, pathExpression);
+        } else {
+          s.prependLeft(insertPosition, ` ${PathName}=${pathExpression}${attributes.length ? ' ' : ''}`);
+        }
         return;
       }
 
@@ -145,6 +151,7 @@ function transformComponentFunction(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
+  nativeHostBindings: Set<string>,
 ) {
   if (!isComponentFunction(path)) {
     return;
@@ -171,6 +178,7 @@ function transformComponentFunction(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
+      nativeHostBindings,
     );
   };
 
@@ -211,6 +219,7 @@ function transformClassComponent(
   dynamicInjectedElements: Set<number>,
   dynamicInjectedCreateElementCalls: Set<number>,
   escapeTags: EscapeTags,
+  nativeHostBindings: Set<string>,
 ) {
   if (!isComponentClass(path)) {
     return;
@@ -232,6 +241,7 @@ function transformClassComponent(
       dynamicInjectedCreateElementCalls,
       propExpression,
       escapeTags,
+      nativeHostBindings,
     );
   };
 
@@ -502,16 +512,20 @@ function injectRootTargets(
   dynamicInjectedCreateElementCalls: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
+  nativeHostBindings: Set<string>,
 ) {
   for (const rootTarget of rootTargets) {
     if (rootTarget.type === 'jsx') {
       injectDynamicPathAttribute(
         rootTarget.node,
+        rootTarget.scope,
         s,
+        content,
         filePath,
         dynamicInjectedElements,
         propExpression,
         escapeTags,
+        nativeHostBindings,
       );
       continue;
     }
@@ -543,7 +557,7 @@ function collectRootTargets(
   }
 
   if (unwrappedNode.type === 'JSXElement') {
-    return [{ type: 'jsx', node: unwrappedNode }];
+    return [{ type: 'jsx', node: unwrappedNode, scope }];
   }
 
   if (unwrappedNode.type === 'CallExpression') {
@@ -604,7 +618,7 @@ function collectRootTargets(
     // Fragment 本身不会落到 DOM，上层路径需要下发给它的直接根子节点。
     return unwrappedNode.children.flatMap((child: any) => {
       if (child.type === 'JSXElement') {
-        return [{ type: 'jsx', node: child }];
+        return [{ type: 'jsx', node: child, scope }];
       }
       if (child.type === 'JSXFragment') {
         return collectRootTargets(child, scope, visitedBindings);
@@ -838,11 +852,14 @@ function getSingleBindingAssignment(binding: any) {
 
 function injectDynamicPathAttribute(
   node: any,
+  scope: any,
   s: MagicString,
+  content: string,
   filePath: string,
   dynamicInjectedElements: Set<number>,
   propExpression: string,
   escapeTags: EscapeTags,
+  nativeHostBindings: Set<string>,
 ) {
   const openingElement = node?.openingElement;
   const nodeName = getJsxNodeName(openingElement?.name);
@@ -860,11 +877,118 @@ function injectDynamicPathAttribute(
 
   const insertPosition =
     openingElement.end - (openingElement.selfClosing ? 2 : 1);
-  const addition = ` ${PathName}={${propExpression} || ${JSON.stringify(
-    getNodePathValue(filePath, node, nodeName),
-  )}}${openingElement.attributes.length ? ' ' : ''}`;
+  const pathExpression = `${propExpression} || ${JSON.stringify(getNodePathValue(filePath, node, nodeName))}`;
+  if (isNativeHostElement(nodeName, scope, nativeHostBindings)) {
+    injectDataSet(s, content, openingElement, pathExpression);
+  } else {
+    s.prependLeft(insertPosition, ` ${PathName}={${pathExpression}}${openingElement.attributes.length ? ' ' : ''}`);
+  }
+}
 
-  s.prependLeft(insertPosition, addition);
+const ReactNativeWebHosts = new Set([
+  'View', 'Text', 'Image', 'TextInput', 'Pressable', 'ScrollView',
+  'FlatList', 'SectionList', 'Switch', 'ActivityIndicator',
+  'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback',
+]);
+
+function getNativeHostBindings(ast: any) {
+  const bindings = new Set<string>();
+  traverse(ast, {
+    ImportDeclaration(importPath: any) {
+      if (!['react-native', 'react-native-web'].includes(importPath.node.source.value)) return;
+      importPath.node.specifiers.forEach((specifier: any) => {
+        if (
+          specifier.type === 'ImportSpecifier' &&
+          ReactNativeWebHosts.has(specifier.imported.name)
+        ) {
+          bindings.add(specifier.local.name);
+        }
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          ReactNativeWebHosts.forEach((name) => bindings.add(`${specifier.local.name}.${name}`));
+        }
+      });
+    },
+  });
+  return bindings;
+}
+
+function isNativeHostElement(
+  nodeName: string,
+  scope: any,
+  nativeHostBindings: Set<string>,
+) {
+  if (!nativeHostBindings.has(nodeName)) {
+    return false;
+  }
+  const rootName = nodeName.split('.')[0];
+  const binding = scope?.getBinding?.(rootName);
+  return binding?.kind === 'module';
+}
+
+function injectDataSet(
+  s: MagicString,
+  content: string,
+  openingElement: any,
+  pathExpression: string,
+) {
+  const attributes = openingElement.attributes || [];
+  const dataSetIndex = attributes.findIndex(
+    (attribute: any) => attribute.type === 'JSXAttribute' && attribute.name?.name === 'dataSet',
+  );
+  const dataSetAttribute = dataSetIndex >= 0 ? attributes[dataSetIndex] : undefined;
+  const hasSpread = attributes.some(
+    (attribute: any) => attribute.type === 'JSXSpreadAttribute',
+  );
+  const spreadsAfterDataSet = dataSetIndex >= 0
+    ? attributes.slice(dataSetIndex + 1).some(
+        (attribute: any) => attribute.type === 'JSXSpreadAttribute',
+      )
+    : false;
+
+  if (dataSetAttribute && !spreadsAfterDataSet) {
+    const expression = dataSetAttribute.value?.expression;
+    if (expression) {
+      // Keep the original expression range intact so nested JSX edits still apply.
+      s.overwrite(dataSetAttribute.value.start, dataSetAttribute.value.start + 1, '{{ ...(');
+      s.overwrite(dataSetAttribute.value.end - 1, dataSetAttribute.value.end, `), inspPath: ${pathExpression} }}`);
+    } else {
+      s.overwrite(
+        dataSetAttribute.start,
+        dataSetAttribute.end,
+        `dataSet={{ inspPath: ${pathExpression} }}`,
+      );
+    }
+    return;
+  }
+
+  if (!hasSpread) {
+    const insertPosition = openingElement.end - (openingElement.selfClosing ? 2 : 1);
+    s.prependLeft(
+      insertPosition,
+      ` dataSet={{ inspPath: ${pathExpression} }}${attributes.length ? ' ' : ''}`,
+    );
+    return;
+  }
+
+  const mergedSources = attributes.flatMap((attribute: any) => {
+    if (attribute.type === 'JSXAttribute' && attribute.name?.name === 'dataSet') {
+      const expression = attribute.value?.expression;
+      return expression
+        ? [`...(${content.slice(expression.start, expression.end)})`]
+        : ['...({})'];
+    }
+    if (attribute.type === 'JSXSpreadAttribute') {
+      const spread = content.slice(attribute.argument.start, attribute.argument.end);
+      return [`...(( ${spread} )?.dataSet)`];
+    }
+    return [];
+  });
+
+  const mergedValue = mergedSources.length
+    ? `{{ ${mergedSources.join(', ')}, inspPath: ${pathExpression} }}`
+    : `{{ inspPath: ${pathExpression} }}`;
+  const insertPosition = openingElement.end - (openingElement.selfClosing ? 2 : 1);
+  s.prependLeft(insertPosition, ` dataSet=${mergedValue}${attributes.length ? ' ' : ''}`);
 }
 
 function injectStaticCreateElementPath(

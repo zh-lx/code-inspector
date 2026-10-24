@@ -22,6 +22,7 @@ type TransformCodeParams = {
   escapeTags: EscapeTags;
   pathType: PathType;
   mdx?: boolean;
+  reactNativeWeb?: boolean;
 };
 
 export async function transformCode(params: TransformCodeParams) {
@@ -32,6 +33,7 @@ export async function transformCode(params: TransformCodeParams) {
     escapeTags = [],
     pathType = 'relative',
     mdx = false,
+    reactNativeWeb = false,
   } = params;
   if (!fs.existsSync(filePath) || isIgnoredFile({ content, fileType })) {
     return content;
@@ -45,7 +47,7 @@ export async function transformCode(params: TransformCodeParams) {
     if (fileType === 'vue') {
       return await transformVue(content, filePath, finalEscapeTags);
     } else if (fileType === 'jsx') {
-      return transformJsx(content, filePath, finalEscapeTags);
+      return transformJsx(content, filePath, finalEscapeTags, reactNativeWeb);
     } else if (fileType === 'svelte') {
       return transformSvelte(content, filePath, finalEscapeTags);
     } else if (fileType === 'astro') {
