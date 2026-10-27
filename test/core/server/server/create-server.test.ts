@@ -76,6 +76,7 @@ describe('createServer', () => {
 
     mockServer = {
       once: vi.fn(),
+      unref: vi.fn(),
       listen: vi.fn((port: number, callback: Function) => {
         callback();
       }),
@@ -157,6 +158,12 @@ describe('createServer', () => {
     const result = serverModule.createServer(callback);
 
     expect(result).toBe(mockServer);
+  });
+
+  it('should not keep the host process alive once listening', () => {
+    serverModule.createServer(vi.fn());
+
+    expect(mockServer.unref).toHaveBeenCalled();
   });
 
   it('should not suppress listen errors when no error callback is provided', () => {

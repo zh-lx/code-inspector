@@ -331,6 +331,8 @@ export function createServer(
         server.once('error', onError);
       }
       server.listen(port, () => {
+        // The inspector is auxiliary; it must not keep a finished build or test run alive.
+        server.unref();
         callback(port);
       });
     },
