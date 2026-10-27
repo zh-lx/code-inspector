@@ -44,6 +44,7 @@ describe('startServer', () => {
 
     mockHttpServer = {
       once: vi.fn(),
+      unref: vi.fn(),
       listen: vi.fn((port: number, callback: Function) => callback()),
       close: vi.fn(),
     };
