@@ -105,6 +105,7 @@ interface PendingChatImageAttachment extends ChatImageAttachment {
 
 const PopperWidth = 300;
 const POPPER_MARGIN = 10; // Margin for popper positioning
+const ElementInfoGap = 8;
 
 function nextTick() {
   return new Promise((resolve) => {
@@ -422,7 +423,7 @@ export class CodeInspectorComponent extends LitElement {
         // 右下方(外部)
         vertical: 'element-info-bottom',
         horizon: 'element-info-right',
-        top: containerBottom,
+        top: containerBottom + ElementInfoGap,
         left: containerLeft,
         isExternal: true,
       },
@@ -430,7 +431,7 @@ export class CodeInspectorComponent extends LitElement {
         // 左下方(外部)
         vertical: 'element-info-bottom',
         horizon: 'element-info-left',
-        top: containerBottom,
+        top: containerBottom + ElementInfoGap,
         left: containerRight - width,
         isExternal: true,
       },
@@ -438,7 +439,7 @@ export class CodeInspectorComponent extends LitElement {
         // 右上方(外部)
         vertical: 'element-info-top',
         horizon: 'element-info-right',
-        top: containerTop - height,
+        top: containerTop - height - ElementInfoGap,
         left: containerLeft,
         isExternal: true,
       },
@@ -446,7 +447,7 @@ export class CodeInspectorComponent extends LitElement {
         // 左上方(外部)
         vertical: 'element-info-top',
         horizon: 'element-info-left',
-        top: containerTop - height,
+        top: containerTop - height - ElementInfoGap,
         left: containerRight - width,
         isExternal: true,
       },
@@ -3820,23 +3821,51 @@ export class CodeInspectorComponent extends LitElement {
         visibility: hidden;
       }
       .element-info-content {
+        position: relative;
         max-width: 100%;
         font-size: 12px;
         color: #000;
         background-color: #fff;
         word-break: break-all;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.25));
         box-sizing: border-box;
         padding: 6px 8px;
         border-radius: 2px;
         font-family: -apple-system, 'PingFang SC', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
+      .element-info-content::after {
+        content: '';
+        display: none;
+        position: absolute;
+        left: 12px;
+        width: 16px;
+        /* The extra 1px overlaps the tooltip to prevent seams while keeping the arrow tip at ElementInfoGap. */
+        height: calc(${ElementInfoGap}px + 1px);
+        background-color: #fff;
+        pointer-events: none;
+      }
+      .element-info-top .element-info-content::after {
+        display: block;
+        /* Move the arrow base 1px into the tooltip to prevent a seam. */
+        top: calc(100% - 1px);
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      .element-info-bottom .element-info-content::after {
+        display: block;
+        /* Move the arrow base 1px into the tooltip to prevent a seam. */
+        bottom: calc(100% - 1px);
+        clip-path: polygon(50% 0, 100% 100%, 0 100%);
+      }
+      .element-info-left .element-info-content::after {
+        left: auto;
+        right: 12px;
+      }
       .element-info-top {
-        top: -4px;
+        top: -${ElementInfoGap}px;
         transform: translateY(-100%);
       }
       .element-info-bottom {
-        top: calc(100% + 4px);
+        top: calc(100% + ${ElementInfoGap}px);
       }
       .element-info-top-inner {
         top: 4px;
