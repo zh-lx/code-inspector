@@ -35,6 +35,48 @@ describe('calculateElementInfoPosition overflow handling', () => {
     });
   });
 
+  it.each([
+    { top: 100, bottom: 150, vertical: 'element-info-bottom', tipTop: 158 },
+    { top: 510, bottom: 550, vertical: 'element-info-top', tipTop: 452 },
+    { top: 10, bottom: 610, vertical: 'element-info-top-inner', tipTop: 10 },
+  ])('should reserve arrow space for $vertical', async ({
+    top,
+    bottom,
+    vertical,
+    tipTop,
+  }) => {
+    Object.defineProperty(document.documentElement, 'clientWidth', {
+      value: 800,
+      configurable: true,
+    });
+    Object.defineProperty(document.documentElement, 'clientHeight', {
+      value: 600,
+      configurable: true,
+    });
+    const target = document.createElement('div');
+    target.getBoundingClientRect = vi.fn().mockReturnValue({
+      top,
+      bottom,
+      left: 100,
+      right: 200,
+      width: 100,
+      height: bottom - top,
+    });
+    const styleSpy = vi.spyOn(component, 'getDomPropertyValue').mockReturnValue(0);
+    component.elementInfoRef.getBoundingClientRect = vi.fn().mockReturnValue({
+      width: 300,
+      height: 50,
+    });
+
+    try {
+      const result = await component.calculateElementInfoPosition(target);
+      expect(result.vertical).toBe(vertical);
+      expect(result.top).toBe(tipTop);
+    } finally {
+      styleSpy.mockRestore();
+    }
+  });
+
   it('should add negative translateX for left horizon when containerLeft + width > browserWidth', async () => {
     // Set up a narrow viewport
     Object.defineProperty(document.documentElement, 'clientWidth', {
