@@ -107,6 +107,33 @@ describe('getCodeWithWebComponent', () => {
   });
 
   describe('when file does not exist', () => {
+    it('generates injected code for HTML injection even when the anchor file (main.js) is missing', async () => {
+      // vite/webpack 的 transformIndexHtml 固定传 file: 'main.js'，
+      // 项目根没有该文件时（如 Vite + React，入口为 src/main.tsx），
+      // 之前会静默返回空字符串，导致 <head> 注入空 <script>、插件失效。
+      const anchorFile = path.join(testDir, 'does-not-exist-main.js');
+      fs.writeFileSync(path.join(testDir, 'index.html'), '<html></html>');
+
+      const record: RecordInfo = {
+        port: 0,
+        entry: '',
+        output: testDir,
+        root: testDir,
+      };
+      const options: CodeOptions = { bundler: 'vite' };
+
+      const result = await getCodeWithWebComponent({
+        options,
+        record,
+        file: anchorFile,
+        code: '',
+        inject: true,
+      });
+
+      expect(result).not.toBe('');
+      expect(result).toContain('use client');
+    });
+
     it('should return original code when file does not exist', async () => {
       vi.spyOn(process, 'cwd').mockReturnValue('/test/project/nonexistent');
 

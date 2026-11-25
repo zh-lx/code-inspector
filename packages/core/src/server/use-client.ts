@@ -365,6 +365,23 @@ export async function getCodeWithWebComponent({
   inject?: boolean;
   server?: boolean;
 }) {
+  // HTML 注入场景（inject: true）传入的 file 只是推断项目类型的锚点，
+  // 例如 vite/webpack 的 transformIndexHtml 固定传 'main.js'。项目根目录
+  // 没有该文件时（如 Vite + React，入口为 src/main.tsx），之前会静默返回
+  // 空代码，导致 <head> 注入空 <script>、插件完全失效且没有任何提示。
+  // 用一个确定存在的目录（项目根）作为锚点继续生成注入代码。
+  if (
+    inject &&
+    !fs.existsSync(file) &&
+    !file.startsWith('virtual:nuxt:') &&
+    !isAstroToolbarFile(file)
+  ) {
+    file = path.join(record.root || process.cwd(), 'index.html');
+    if (!fs.existsSync(file)) {
+      file = record.root || process.cwd();
+    }
+  }
+
   if (
     !fs.existsSync(file) &&
     !file.startsWith('virtual:nuxt:') &&
